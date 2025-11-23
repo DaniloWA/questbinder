@@ -67,7 +67,50 @@ app.post('/api/:collection', async (req, res) => {
 
 app.put('/api/:collection/:id', async (req, res) => {
   try {
-    const updated = await update(req.params.collection, req.params.id, req.body);
+    let dataToUpdate = req.body;
+
+    // Special handling for characters: add change history
+    if (req.params.collection === 'characters') {
+      const { v4: uuidv4 } = await import('uuid');
+      const currentCharacter = await getById('characters', req.params.id);
+
+      if (currentCharacter) {
+        // Build change history entry
+        const changeEntry = {
+          id: uuidv4(),
+          timestamp: new Date().toISOString(),
+          userId: req.body.updatedBy || 'api-user',
+          userName: req.body.updatedByName || 'API User',
+          changes: {}
+        };
+
+        // Compare old vs new values
+        for (const [key, newValue] of Object.entries(req.body)) {
+          if (key !== 'changeHistory' && key !== 'updatedBy' && key !== 'updatedByName') {
+            const oldValue = currentCharacter[key];
+            const hasChanged = JSON.stringify(oldValue) !== JSON.stringify(newValue);
+
+            if (hasChanged) {
+              changeEntry.changes[key] = {
+                old: oldValue,
+                new: newValue
+              };
+            }
+          }
+        }
+
+        // Only add to history if there are actual changes
+        if (Object.keys(changeEntry.changes).length > 0) {
+          const currentHistory = currentCharacter.changeHistory || [];
+          const newHistory = [...currentHistory, changeEntry].slice(-100);
+          dataToUpdate = { ...dataToUpdate, changeHistory: newHistory };
+
+          console.log(`[API] Added ${Object.keys(changeEntry.changes).length} changes to history for character ${req.params.id}`);
+        }
+      }
+    }
+
+    const updated = await update(req.params.collection, req.params.id, dataToUpdate);
     if (!updated) return res.status(404).json({ error: 'Não encontrado' });
 
     if (updated.campaignId) {

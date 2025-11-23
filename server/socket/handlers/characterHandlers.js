@@ -10,8 +10,8 @@ export const registerCharacterHandlers = (socket, client, utils) => {
       if (!client.campaignId || !updates) return;
 
       // 1. Get character and campaign for permission checks
-      const character = await db.get('characters', characterId);
-      const campaign = await db.get('campaigns', client.campaignId);
+      const character = await db.getById('characters', characterId);
+      const campaign = await db.getById('campaigns', client.campaignId);
 
       if (!character || !campaign) {
         console.error('[WS] Character or campaign not found');
