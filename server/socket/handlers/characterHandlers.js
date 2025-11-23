@@ -6,7 +6,7 @@ export const registerCharacterHandlers = (socket, client, utils) => {
   socket.on('character:update', async (payload) => {
     try {
       const { characterId, updates } = payload;
-      if (!client.campaignId) return;
+      if (!client.campaignId || !updates) return;
 
       // 1. Update in Database
       await db.update('characters', characterId, updates);
@@ -21,6 +21,7 @@ export const registerCharacterHandlers = (socket, client, utils) => {
         updatedBy: client.userId
       });
 
+      console.log(`[WS] BROADCASTING CHARACTER UPDATE NOW: ${characterId}`);
       console.log(`[WS] Character ${characterId} updated by ${client.userId}`);
 
     } catch (err) {

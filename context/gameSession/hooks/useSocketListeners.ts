@@ -230,6 +230,7 @@ export const useSocketListeners = (
 
     // Handler para atualização de token
     const handleTokenUpdate = (payload: TokenUpdatePayload) => {
+      console.log('[WS] handleTokenUpdate received:', payload);
       setState(previousState => ({
         ...previousState,
         scenes: StateHelpers.updateItemInSceneList(
@@ -478,28 +479,48 @@ export const useSocketListeners = (
     };
 
     // Handler para atualização de personagem
-    const handleCharacterUpdate = (payload: { characterId: string; updates: any; }) => {
+    const handleCharacterUpdate = (payload: any) => {
+      console.log('[WS] handleCharacterUpdate received:', payload);
+
+      // Normalize payload
+      let characterId: string;
+      let updates: any;
+
+      if (payload.updates && payload.characterId) {
+        // Socket format
+        characterId = payload.characterId;
+        updates = payload.updates;
+      } else if (payload.id) {
+        // API format (full object)
+        characterId = payload.id;
+        updates = payload;
+      } else {
+        console.warn('[WS] Invalid character update payload:', payload);
+        return;
+      }
+
       setState(previousState => {
         const updatedCharacters = previousState.campaignCharacters.map(character =>
-          character.id === payload.characterId
-            ? { ...character, ...payload.updates }
+          character.id === characterId
+            ? { ...character, ...updates }
             : character
         );
 
         const updatedScenes = previousState.scenes.map(scene => ({
           ...scene,
           tokens: scene.tokens.map(token => {
-            if (token.linkedId !== payload.characterId) return token;
+            if (token.linkedId !== characterId) return token;
 
             const character = previousState.campaignCharacters.find(
-              char => char.id === payload.characterId
+              char => char.id === characterId
             );
-            const maxHp = payload.updates.hpMax ?? (character?.hpMax || 1);
-            const currentHp = payload.updates.hpCurrent;
+
+            const effectiveMaxHp = updates.hpMax ?? (character?.hpMax || 1);
+            const effectiveCurrentHp = updates.hpCurrent;
 
             const updatedConditions = calculateTokenConditions(
-              currentHp,
-              maxHp,
+              effectiveCurrentHp,
+              effectiveMaxHp,
               token.conditions || []
             );
 

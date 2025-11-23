@@ -4,8 +4,13 @@ import { SocketEventType, SocketEventMap } from '../types/socket';
 class RealSocketService {
   private socket: Socket | null = null;
   private queue: { event: string; payload: any; }[] = [];
+  private userId: string | null = null;
+  private campaignId: string | null = null;
 
   public connect(userId: string, campaignId: string): Promise<boolean> {
+    this.userId = userId;
+    this.campaignId = campaignId;
+
     // If socket exists (connected or connecting), just join room
     if (this.socket) {
       if (this.socket.connected) {
@@ -26,8 +31,10 @@ class RealSocketService {
     return new Promise((resolve) => {
       this.socket?.on('connect', () => {
         console.log('[WS] Connected to Server');
-        console.log('[WS] Emitting room:join with:', { userId, campaignId });
-        this.socket?.emit('room:join', { userId, campaignId });
+        if (this.userId && this.campaignId) {
+          console.log('[WS] Emitting room:join with:', { userId: this.userId, campaignId: this.campaignId });
+          this.socket?.emit('room:join', { userId: this.userId, campaignId: this.campaignId });
+        }
 
         // Flush queue
         if (this.queue.length > 0) {
