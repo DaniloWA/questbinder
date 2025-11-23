@@ -1,0 +1,11 @@
+{
+  "watch": [
+    "."
+  ],
+  "ext": "js,json",
+  "ignore": [
+    "database.sqlite",
+    "node_modules"
+  ],
+  "exec": "node index.js"
+}

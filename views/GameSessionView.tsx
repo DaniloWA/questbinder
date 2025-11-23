@@ -1,0 +1,614 @@
+
+import React, { useState, useEffect } from 'react';
+import { GameSessionProvider, useGameSession } from '../context/GameSessionContext';
+import { useNavigation } from '../context/NavigationContext';
+import { useModal } from '../context/ModalContext';
+import { Token, TokenTemplate, VTTTool, Character, Condition, Handout } from '../types';
+import { Loader2, Sparkles, ChevronLeft, Settings, BookOpen, Trash2, X, Lightbulb, MessageSquare, Swords, Wifi, WifiOff, Music, FileText } from 'lucide-react';
+import { Tooltip } from '../components/ui/Tooltip';
+import { Button } from '../components/ui/Button';
+import { MapCanvas, TriggerZoneConfigModalContent, AudioZoneEditModalContent } from '../components/vtt/MapCanvas';
+import { VTTToolbar } from '../components/vtt/VTTToolbar';
+import { DrawingToolbar } from '../components/vtt/DrawingToolbar';
+import { RulerToolbar } from '../components/vtt/RulerToolbar';
+import { TokenContextMenu } from '../components/vtt/TokenContextMenu';
+import { TokenEditModal } from '../components/vtt/TokenEditModal';
+import { MapSettingsModal } from '../components/vtt/MapSettingsModal';
+import { MapContextMenu } from '../components/vtt/MapContextMenu';
+import { useAuth } from '../context/AuthContext';
+import { SceneNavigation } from '../components/vtt/SceneNavigation';
+import { PartyList } from '../components/vtt/PartyList';
+import { CharacterSheetViewer } from '../components/vtt/CharacterSheetViewer';
+import { Modal } from '../components/ui/Modal';
+import { SmartDiceRoller } from '../components/vtt/SmartDiceRoller';
+import { PermissionsModal } from '../components/vtt/PermissionsModal';
+import { useNotification } from '../context/NotificationContext';
+import { AudioPanel } from '../components/vtt/AudioPanel';
+import { SpectateBanner } from '../components/vtt/SpectateBanner';
+import { HandoutTray } from '../components/vtt/HandoutTray';
+import { SharedHandoutViewer } from '../components/vtt/SharedHandoutViewer';
+import { HandoutFormModal } from '../components/vtt/HandoutFormModal';
+import { HandoutPreviewModal } from '../components/vtt/HandoutPreviewModal';
+import { HandoutShareModal } from '../components/vtt/HandoutShareModal';
+import { CompendiumWindow } from '../components/vtt/CompendiumWindow';
+
+export const GameSessionView: React.FC = () => {
+    const { params, navigateTo } = useNavigation();
+    const campaignId = params?.id as string | undefined;
+
+    useEffect(() => {
+        if (!campaignId) {
+            console.error('Nenhum campaignId encontrado na URL!');
+            navigateTo('dashboard');
+        }
+    }, [campaignId, navigateTo]);
+
+    if (!campaignId) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-950 text-red-400 gap-4">
+                <h1 className="text-3xl font-bold">Campanha não encontrada</h1>
+                <Button onClick={() => navigateTo('dashboard')} size="lg">
+                    Voltar ao Painel
+                </Button>
+            </div>
+        );
+    }
+
+    return (
+        <GameSessionProvider campaignId={campaignId}>
+            <GameSessionUI />
+        </GameSessionProvider>
+    );
+};
+
+const TokenLibrary: React.FC<{
+    templates: TokenTemplate[];
+    onUseTemplate: (tpl: TokenTemplate) => void;
+    onDeleteTemplate: (id: string) => void;
+    onClose: () => void;
+}> = ({ templates, onUseTemplate, onDeleteTemplate, onClose }) => {
+    return (
+        <div className="h-full flex flex-col bg-zinc-950/95 backdrop-blur-md border-r border-white/10 shadow-2xl">
+            <div className="p-4 border-b border-white/10 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-zinc-100">
+                    <BookOpen className="w-5 h-5 text-primary" />
+                    <h3 className="font-bold font-fantasy tracking-wide">Bestiário</h3>
+                </div>
+                <button onClick={onClose} className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-white transition-colors">
+                    <X className="w-5 h-5" />
+                </button>
+            </div>
+            <div className="p-4 space-y-3 flex-1 overflow-y-auto custom-scrollbar">
+                {templates.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center text-center py-12 text-zinc-600">
+                        <BookOpen className="w-12 h-12 mb-3 opacity-20" />
+                        <p className="text-sm italic text-zinc-600">Grimório vazio.</p>
+                        <p className="text-xs mt-2 max-w-[150px]">Crie um token no mapa e salve-o como modelo para vê-lo aqui.</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 gap-3">
+                        {templates.map(tpl => (
+                            <div key={tpl.id} className="bg-zinc-900/50 border border-white/5 rounded-xl p-2 flex items-center gap-3 hover:border-primary/50 hover:bg-zinc-800 transition-all group cursor-grab active:cursor-grabbing shadow-sm" onClick={() => onUseTemplate(tpl)}>
+                                <div className="relative shrink-0">
+                                    {tpl.displayMode === 'text' ? (
+                                        <div
+                                            className="w-12 h-12 rounded-lg border border-white/10 shadow-inner flex items-center justify-center"
+                                            style={{ backgroundColor: tpl.textDetails?.backgroundColor || '#333' }}
+                                        >
+                                            <span className="font-bold" style={{ color: tpl.textDetails?.textColor || '#fff' }}>
+                                                {tpl.textDetails?.text || '?'}
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        <img src={tpl.imgUrl} className="w-12 h-12 rounded-lg bg-zinc-950 object-cover border border-white/10 shadow-inner" />
+                                    )}
+                                    <div className="absolute -bottom-1 -right-1 bg-zinc-950 text-[9px] px-1.5 py-0.5 rounded border border-white/10 font-mono text-zinc-400">{tpl.size}x</div>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-bold text-sm truncate text-zinc-200 group-hover:text-primary transition-colors">{tpl.name}</p>
+                                    <p className="text-[10px] text-zinc-500 uppercase tracking-wider">{tpl.visionRange > 0 ? `${tpl.visionRange}m Visão` : 'Cego'}</p>
+                                </div>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); onDeleteTemplate(tpl.id); }}
+                                    className="p-2 hover:bg-destructive/20 text-zinc-600 hover:text-destructive rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+const GameSessionUI: React.FC = () => {
+    const session = useGameSession();
+    const { user: currentUser } = useAuth();
+    const { navigateTo } = useNavigation();
+    const { openModal, closeModal } = useModal();
+    const { show } = useNotification();
+
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isPermissionsOpen, setIsPermissionsOpen] = useState(false);
+    const [isHandoutTrayOpen, setIsHandoutTrayOpen] = useState(false);
+    const [isCompendiumOpen, setIsCompendiumOpen] = useState(false);
+
+    const [tokenContextMenu, setTokenContextMenu] = useState<{ x: number, y: number, token: Token; } | null>(null);
+    const [mapContextMenu, setMapContextMenu] = useState<{ x: number, y: number, worldX: number, worldY: number, obstacleId?: string, triggerZoneId?: string, audioZoneId?: string; } | null>(null);
+
+    // --- SHEET STATE ---
+    const [viewingCharacterId, setViewingCharacterId] = useState<string | null>(null);
+    const viewingCharacter = session.campaignCharacters.find(c => c.id === viewingCharacterId) || null;
+
+    // --- HANDOUT STATE ---
+    const [editingHandout, setEditingHandout] = useState<Handout | 'new' | null>(null);
+    const [previewingHandout, setPreviewingHandout] = useState<Handout | null>(null);
+    const [sharingHandout, setSharingHandout] = useState<Handout | null>(null);
+
+    // --- TRIGGER ZONE EDIT STATE ---
+    const [editingTriggerZoneId, setEditingTriggerZoneId] = useState<string | null>(null);
+    // --- AUDIO ZONE EDIT STATE ---
+    const [editingAudioZoneId, setEditingAudioZoneId] = useState<string | null>(null);
+
+    // ... (Logic for tools/permissions remains unchanged) ...
+    useEffect(() => {
+        if (session.isGM) return;
+        const drawingTools = ['draw-wall', 'draw-door', 'draw-window', 'eraser', 'draw-audio-rect', 'draw-audio-poly'];
+        const measureTool = 'measure-path';
+        const fogTools = ['fog-poly', 'fog-rect'];
+        if (drawingTools.includes(session.activeTool) && !session.checkPermission('drawings')) session.setActiveTool('select');
+        if (session.activeTool === measureTool && !session.checkPermission('measure')) session.setActiveTool('select');
+        if (fogTools.includes(session.activeTool) && !session.checkPermission('fogReveal')) session.setActiveTool('select');
+    }, [session.permissions, session.activeTool, session.isGM, session.checkPermission, session.setActiveTool]);
+
+    // ... (Modal Handlers remain unchanged) ...
+    const handleOpenTokenModal = (token: Token | 'new', initialPosition?: { x: number, y: number; }) => {
+        if (!session.isGM) {
+            if (token === 'new') {
+                if (!session.checkPermission('tokenCreate')) {
+                    show({ type: 'warning', message: 'Você não tem permissão para criar tokens.' });
+                    return;
+                }
+            } else {
+                const isOwner = token.ownerId === currentUser?.id || token.controlledBy?.includes(currentUser?.id || '');
+                if (!isOwner) {
+                    show({ type: 'warning', message: 'Você não controla este token.' });
+                    return;
+                }
+                if (!session.checkPermission('tokenEdit')) {
+                    show({ type: 'warning', message: 'Edição de tokens bloqueada.' });
+                    return;
+                }
+            }
+        }
+        setMapContextMenu(null);
+        setTokenContextMenu(null);
+        openModal(
+            <TokenEditModal
+                token={token}
+                initialPosition={initialPosition}
+                players={session.players}
+                availableCharacters={session.campaignCharacters}
+                onSave={(data, pos) => {
+                    if (token === 'new') {
+                        session.addToken({ ...data, ...(pos || { x: 0, y: 0 }) });
+                    } else {
+                        session.updateToken(token.id, data);
+                    }
+                    closeModal();
+                }}
+                onSaveTemplate={session.saveTemplate}
+                onCancel={closeModal}
+            />,
+            { title: token === 'new' ? 'Invocar Criatura' : 'Editar Criatura', size: 'xl' }
+        );
+    };
+
+    const handleOpenSheet = (token: Token) => {
+        if (token.linkedId) {
+            setViewingCharacterId(token.linkedId);
+        }
+        setTokenContextMenu(null);
+    };
+
+    // ... (Duplicate, Template, ContextMenu handlers unchanged) ...
+    const handleDuplicateToken = (token: Token) => {
+        if (!session.isGM && !session.checkPermission('tokenCreate')) {
+            show({ type: 'warning', message: 'Criação de tokens bloqueada.' });
+            return;
+        }
+        let offset = 1;
+        const newToken = { ...token, id: undefined, name: `${token.name} (Clone)`, x: token.x + offset, y: token.y + offset };
+        session.addToken(newToken);
+    };
+
+    const handleUseTemplate = (tpl: TokenTemplate) => {
+        if (!session.isGM && !session.checkPermission('tokenCreate')) {
+            show({ type: 'warning', message: 'Criação de tokens bloqueada.' });
+            return;
+        }
+        if (!session.activeScene) return;
+        const centerX = Math.floor((-session.viewport.x + (window.innerWidth / 2)) / session.viewport.zoom / session.activeScene.grid.size);
+        const centerY = Math.floor((-session.viewport.y + (window.innerHeight / 2)) / session.viewport.zoom / session.activeScene.grid.size);
+        session.addToken({
+            type: tpl.type || 'npc', name: tpl.name, imgUrl: tpl.imgUrl, size: tpl.size, visionRange: tpl.visionRange, darkvisionRange: tpl.darkvisionRange,
+            visionColor: tpl.visionColor, displayMode: tpl.displayMode, textDetails: tpl.textDetails, isVisibleToPlayers: true, x: centerX, y: centerY, light: tpl.light
+        });
+        session.setActiveTool('select');
+    };
+
+    const handleTokenContextMenu = (e: React.MouseEvent, tokenId: string) => {
+        if (!tokenId) { setTokenContextMenu(null); return; }
+        const token = session.activeScene?.tokens.find(t => t.id === tokenId);
+        if (token) {
+            const isOwner = token.ownerId === currentUser?.id || token.controlledBy?.includes(currentUser?.id || '');
+            if (session.isGM || isOwner) {
+                setMapContextMenu(null);
+                setTokenContextMenu({ x: e.clientX, y: e.clientY, token });
+            }
+        }
+    };
+
+    const handleMapContextMenu = (e: React.MouseEvent, worldX: number, worldY: number, obstacleId?: string, triggerZoneId?: string, audioZoneId?: string) => {
+        setTokenContextMenu(null);
+        setMapContextMenu({ x: e.clientX, y: e.clientY, worldX, worldY, obstacleId, triggerZoneId, audioZoneId });
+    };
+
+    const handleToggleObstacleVisibility = () => {
+        if (mapContextMenu?.obstacleId) {
+            const obs = session.activeScene?.obstacles.find(o => o.id === mapContextMenu.obstacleId);
+            if (obs) {
+                session.updateObstacle(obs.id, { hidden: !obs.hidden });
+            }
+        }
+        setMapContextMenu(null);
+    };
+
+    const handleDeleteObstacle = () => {
+        if (mapContextMenu?.obstacleId && session.activeScene) {
+            session.removeObstacle(mapContextMenu.obstacleId);
+        }
+        setMapContextMenu(null);
+    };
+
+    const handleToggleTokenCondition = (token: Token, condition: Condition) => {
+        const current = token.conditions || [];
+        const newConditions = current.includes(condition) ? current.filter(c => c !== condition) : [...current, condition];
+        session.updateToken(token.id, { conditions: newConditions });
+    };
+
+    const handleSaveHandout = async (data: Omit<Handout, 'id' | 'createdAt' | 'campaignId' | 'sharedWith'>) => {
+        if (editingHandout === 'new') {
+            await session.createHandout(data);
+        } else if (editingHandout) {
+            await session.updateHandout(editingHandout.id, data);
+        }
+        setEditingHandout(null);
+        show({ type: 'success', message: 'Recurso salvo.' });
+    };
+
+    const handleDeleteHandout = (handout: Handout) => {
+        openModal(
+            <>
+                <p>Tem certeza que deseja excluir "<strong>{handout.name}</strong>"?</p>
+                <div className="flex justify-end gap-2 mt-4">
+                    <Button variant="ghost" onClick={closeModal}>Cancelar</Button>
+                    <Button variant="destructive" onClick={async () => { await session.deleteHandout(handout.id); closeModal(); }}>Excluir</Button>
+                </div>
+            </>,
+            { title: 'Excluir Recurso', variant: 'alert' }
+        );
+    };
+
+    const handleEditTriggerZone = () => {
+        if (mapContextMenu?.triggerZoneId) {
+            setEditingTriggerZoneId(mapContextMenu.triggerZoneId);
+        }
+        setMapContextMenu(null);
+    };
+
+    const handleDeleteTriggerZone = () => {
+        if (mapContextMenu?.triggerZoneId) {
+            session.removeTriggerZone(mapContextMenu.triggerZoneId);
+        }
+        setMapContextMenu(null);
+    };
+
+    const handleEditAudioZone = () => {
+        if (mapContextMenu?.audioZoneId) {
+            setEditingAudioZoneId(mapContextMenu.audioZoneId);
+        }
+        setMapContextMenu(null);
+    };
+
+    const handleDeleteAudioZone = () => {
+        if (mapContextMenu?.audioZoneId) {
+            session.removeAudioZone(mapContextMenu.audioZoneId);
+        }
+        setMapContextMenu(null);
+    };
+
+    if (session.isLoading) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-950 text-white">
+                <div className="relative">
+                    <div className="absolute -inset-8 bg-primary/20 blur-3xl rounded-full animate-pulse"></div>
+                    <Sparkles className="w-16 h-16 text-primary animate-bounce relative z-10" />
+                </div>
+                <h1 className="text-2xl font-bold font-fantasy tracking-widest mt-8 animate-pulse text-transparent bg-clip-text bg-gradient-to-r from-primary to-white">SINCRONIZANDO PLANOS...</h1>
+                <p className="text-zinc-500 mt-2 font-mono text-xs">{session.campaign?.name || 'Carregando...'}</p>
+            </div>
+        );
+    }
+
+    if (!session.campaign) {
+        return <div className="min-h-screen bg-zinc-950 text-red-400 flex items-center justify-center">Falha ao carregar campanha.</div>;
+    }
+
+    const editingTriggerZone = editingTriggerZoneId ? session.activeScene?.triggerZones?.find(z => z.id === editingTriggerZoneId) : null;
+    const editingAudioZone = editingAudioZoneId ? session.activeScene?.audioZones?.find(z => z.id === editingAudioZoneId) : null;
+
+    return (
+        <div className="h-screen w-screen bg-zinc-900 text-white overflow-hidden flex flex-col font-sans antialiased relative">
+
+            {/* Reconnection Banner */}
+            {!session.isConnected && (
+                <div className="absolute top-0 left-0 right-0 z-[9999] bg-red-600/90 backdrop-blur text-white py-2 px-4 flex items-center justify-center gap-3 shadow-2xl animate-in slide-in-from-top-full duration-500">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span className="font-bold tracking-wide">CONEXÃO PERDIDA. TENTANDO RECONECTAR...</span>
+                    <span className="text-xs opacity-80 hidden sm:inline">(Suas ações serão salvas e enviadas assim que a conexão voltar)</span>
+                </div>
+            )}
+
+            <div className="absolute inset-0 z-0">
+                <MapCanvas
+                    scene={session.activeScene}
+                    tokens={session.activeScene?.tokens || []}
+                    viewport={session.viewport}
+                    isGM={session.isGM}
+                    gmViewMode={session.gmViewMode}
+                    previewPlayerId={session.previewPlayerId}
+                    currentUser={currentUser}
+                    activeTool={session.activeTool}
+                    movementPath={session.movementPath}
+                    pings={session.pings}
+                    drawingObstacle={session.drawingObstacle}
+                    draftPolyPoints={session.draftPolyPoints}
+                    selectedTokenIds={session.selectedTokenIds}
+                    remoteDrags={session.remoteDrags}
+                    permissions={session.permissions}
+                    drawingLightZone={session.drawingLightZone}
+                    drawingAudioZone={session.drawingAudioZone}
+
+                    setViewport={session.setViewport}
+                    moveToken={session.moveToken}
+                    moveTokens={session.moveTokens}
+                    selectToken={session.selectToken}
+                    clearSelection={session.clearSelection}
+
+                    updateFog={session.updateFog}
+                    setActiveTool={session.setActiveTool}
+                    onTokenContextMenu={handleTokenContextMenu}
+                    onMapContextMenu={handleMapContextMenu}
+                    setMovementPath={session.setMovementPath}
+                    addObstacles={session.addObstacles}
+                    updateObstacle={session.updateObstacle}
+                    setDrawingObstacle={session.setDrawingObstacle}
+                    setDraftPolyPoints={session.setDraftPolyPoints}
+                    updateToken={session.updateToken}
+                    onOpenSheet={handleOpenSheet}
+                    emitTokenDrag={session.emitTokenDrag}
+                    setDrawingLightZone={session.setDrawingLightZone}
+                    addLightZones={session.addLightZones}
+                    setDrawingAudioZone={session.setDrawingAudioZone}
+                    addAudioZones={session.addAudioZones}
+                    emitCursorMove={session.emitCursorMove}
+                    remoteCursors={session.remoteCursors}
+
+                    drawingTriggerZone={session.drawingTriggerZone}
+                    setDrawingTriggerZone={session.setDrawingTriggerZone}
+                    addTriggerZones={session.addTriggerZones}
+                    removeTriggerZone={session.removeTriggerZone}
+
+                    // NEW: Pass characters and roll handler for Hover Card
+                    campaignCharacters={session.campaignCharacters}
+                    onRollDice={(formula, label) => session.rollDice(label, formula)}
+                    onCharacterUpdate={session.updateCharacter}
+                />
+            </div>
+
+            <SpectateBanner />
+
+            <div className="absolute inset-0 z-10 pointer-events-none flex flex-col justify-between p-4 sm:p-6">
+                <div className="flex justify-between items-start w-full">
+                    <div className="pointer-events-auto flex items-center gap-3 bg-zinc-950/80 backdrop-blur-md border border-white/10 rounded-2xl p-2 pr-6 shadow-xl hover:bg-zinc-950/90 transition-colors group">
+                        <Button variant="ghost" size="icon" onClick={() => navigateTo('dashboard')} className="text-zinc-400 hover:text-white hover:bg-white/10 rounded-xl h-10 w-10">
+                            <ChevronLeft className="w-5 h-5" />
+                        </Button>
+                        <div className="flex flex-col">
+                            <h1 className="font-bold text-sm text-zinc-100 leading-none group-hover:text-primary transition-colors">{session.campaign.name}</h1>
+                            <div className="flex items-center gap-2 mt-1">
+                                <div className={`w-1.5 h-1.5 rounded-full ${session.isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider flex items-center gap-1">
+                                    {session.activeScene?.name || 'Carregando...'}
+                                    {session.isConnected ? <span className="text-green-600/80 ml-1 hidden sm:inline">LIVE</span> : <span className="text-red-600/80 ml-1 hidden sm:inline">OFFLINE</span>}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {session.combat?.isActive && (
+                        <div className="pointer-events-auto absolute left-1/2 -translate-x-1/2 top-6 bg-red-950/90 backdrop-blur-md border border-red-500/30 text-red-100 px-6 py-2 rounded-full shadow-2xl flex items-center gap-3 animate-in slide-in-from-top-4">
+                            <Swords className="w-4 h-4 text-red-400 animate-pulse" />
+                            <div className="flex gap-4 text-sm font-bold font-fantasy tracking-wide">
+                                <span>COMBATE</span>
+                                <span className="w-px h-4 bg-red-500/30"></span>
+                                <span>RODADA {session.combat.round}</span>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="pointer-events-auto flex items-center gap-3">
+                        <div className="flex gap-2 bg-zinc-950/80 backdrop-blur-md border border-white/10 rounded-2xl p-1.5 shadow-xl">
+                            <Tooltip content={session.isConnected ? 'Conectado ao Servidor' : 'Desconectado'}>
+                                <div className={`p-2.5 rounded-xl transition-all ${session.isConnected ? 'text-green-500' : 'text-red-500'}`}>
+                                    {session.isConnected ? <Wifi className="w-5 h-5" /> : <WifiOff className="w-5 h-5" />}
+                                </div>
+                            </Tooltip>
+                            <div className="w-px h-6 bg-white/10 self-center mx-1"></div>
+                            <Tooltip content="Grupo & Combate">
+                                <button onClick={session.toggleRightSidebar} className={`p-2.5 rounded-xl transition-all duration-200 ${session.ui.isRightSidebarOpen ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-zinc-400 hover:text-white hover:bg-white/10'}`}>
+                                    <Swords className="w-5 h-5" />
+                                </button>
+                            </Tooltip>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="pointer-events-auto self-center mb-4 md:mb-6 flex flex-col items-center gap-4">
+                    {/* Render Drawing Toolbar if active */}
+                    <DrawingToolbar />
+                    {/* Render Ruler Toolbar if active */}
+                    <RulerToolbar />
+
+                    <VTTToolbar
+                        activeTool={session.activeTool}
+                        isCombatActive={!!session.combat?.isActive}
+                        gmViewMode={session.gmViewMode}
+                        gmHideObstacles={session.ui.gmHideObstacles}
+                        players={session.players}
+                        previewPlayerId={session.previewPlayerId}
+                        onSetPreviewPlayer={session.setPreviewPlayerId}
+                        onToolSelect={session.setActiveTool}
+                        onResetFog={() => session.updateFog('')}
+                        onAddToken={() => handleOpenTokenModal('new', { x: Math.floor((-session.viewport.x + window.innerWidth / 2) / session.viewport.zoom / 70), y: Math.floor((-session.viewport.y + window.innerHeight / 2) / session.viewport.zoom / 70) })}
+                        onToggleLibrary={session.toggleLibrary}
+                        isLibraryOpen={session.ui.isLibraryOpen}
+                        onToggleDiceRoller={session.toggleDiceRoller}
+                        isDiceRollerOpen={session.ui.isDiceRollerOpen}
+                        onOpenSettings={() => setIsSettingsOpen(true)}
+                        onStartCombat={session.startCombat}
+                        onEndCombat={session.endCombat}
+                        onToggleViewMode={session.toggleGMViewMode}
+                        onToggleGhostWalls={() => session.setGmHideObstacles(!session.ui.gmHideObstacles)}
+                        onOpenPermissions={() => setIsPermissionsOpen(true)}
+                        isAudioPanelOpen={session.ui.isAudioPanelOpen}
+                        onToggleAudioPanel={session.toggleAudioPanel}
+                        isHandoutTrayOpen={isHandoutTrayOpen}
+                        onToggleHandouts={() => setIsHandoutTrayOpen(!isHandoutTrayOpen)}
+                        onToggleCompendium={() => setIsCompendiumOpen(!isCompendiumOpen)}
+                        isCompendiumOpen={isCompendiumOpen}
+                    />
+                </div>
+            </div>
+
+            <div className="pointer-events-auto">
+                <SceneNavigation />
+            </div>
+
+            <div className="pointer-events-auto">
+                <SmartDiceRoller isOpen={session.ui.isDiceRollerOpen} onClose={session.toggleDiceRoller} />
+            </div>
+
+            <div className="pointer-events-auto">
+                <AudioPanel isOpen={session.ui.isAudioPanelOpen} onClose={session.toggleAudioPanel} />
+            </div>
+
+            <div className="pointer-events-auto">
+                <CompendiumWindow isOpen={isCompendiumOpen} onClose={() => setIsCompendiumOpen(false)} />
+            </div>
+
+            <div className="pointer-events-auto">
+                <HandoutTray isOpen={isHandoutTrayOpen} onClose={() => setIsHandoutTrayOpen(false)} handouts={session.handouts} onCreate={() => setEditingHandout('new')} onEdit={(h) => setEditingHandout(h)} onShare={(h) => setSharingHandout(h)} onPreview={(h) => setPreviewingHandout(h)} />
+            </div>
+
+            <SharedHandoutViewer />
+
+            <div className={`absolute top-0 left-0 bottom-0 z-20 w-80 transform transition-transform duration-300 ease-out ${session.ui.isLibraryOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                <TokenLibrary templates={session.templates} onUseTemplate={handleUseTemplate} onDeleteTemplate={session.deleteTemplate} onClose={session.toggleLibrary} />
+            </div>
+
+            <div className={`absolute top-0 right-0 bottom-0 z-20 w-80 md:w-96 transform transition-transform duration-300 ease-out ${session.ui.isRightSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                <PartyList />
+            </div>
+
+            <PermissionsModal isOpen={isPermissionsOpen} onClose={() => setIsPermissionsOpen(false)} permissions={session.permissions} onUpdate={session.updatePermissions} />
+
+            {viewingCharacter && (
+                <Modal isOpen={!!viewingCharacter} onClose={() => setViewingCharacterId(null)} size="xl" hideCloseButton>
+                    <div className="h-[80vh]"><CharacterSheetViewer character={viewingCharacter} isGM={session.isGM} currentUserId={currentUser?.id} onClose={() => setViewingCharacterId(null)} onUpdate={(updates) => session.updateCharacter(viewingCharacter.id, updates)} onRoll={(label, formula) => session.rollDice(label, formula)} onShare={(type, data) => session.sendChatMessage(`Compartilhou ${data.name || 'algo'}`, 'message', undefined, { type, label: data.name, data, id: data.id })} /></div>
+                </Modal>
+            )}
+
+            {tokenContextMenu && (
+                <TokenContextMenu x={tokenContextMenu.x} y={tokenContextMenu.y} token={tokenContextMenu.token} onClose={() => setTokenContextMenu(null)} onEdit={() => handleOpenTokenModal(tokenContextMenu.token)} onDuplicate={() => handleDuplicateToken(tokenContextMenu.token)} onDelete={() => session.removeToken(tokenContextMenu.token.id)} onToggleVisibility={() => session.updateToken(tokenContextMenu.token.id, { isVisibleToPlayers: !tokenContextMenu.token.isVisibleToPlayers })} onToggleCondition={(condition) => handleToggleTokenCondition(tokenContextMenu.token, condition)} onOpenSheet={() => handleOpenSheet(tokenContextMenu.token)} />
+            )}
+
+            {isSettingsOpen && session.activeScene && <MapSettingsModal scene={session.activeScene} onClose={() => setIsSettingsOpen(false)} onSave={session.updateMapSettings} />}
+
+            {mapContextMenu && (
+                <MapContextMenu
+                    x={mapContextMenu.x}
+                    y={mapContextMenu.y}
+                    worldX={mapContextMenu.worldX}
+                    worldY={mapContextMenu.worldY}
+                    isGM={session.isGM}
+                    canCreateToken={session.checkPermission('tokenCreate')}
+                    obstacleId={mapContextMenu.obstacleId}
+                    triggerZoneId={mapContextMenu.triggerZoneId}
+                    audioZoneId={mapContextMenu.audioZoneId}
+                    onClose={() => setMapContextMenu(null)}
+                    onAddToken={() => handleOpenTokenModal('new', { x: Math.floor(mapContextMenu.worldX / 70), y: Math.floor(mapContextMenu.worldY / 70) })}
+                    onAddLight={() => session.addLightToken(Math.floor(mapContextMenu.worldX / 70), Math.floor(mapContextMenu.worldY / 70))}
+                    onPing={() => session.addPing(mapContextMenu.worldX, mapContextMenu.worldY)}
+                    onToggleObstacleVisibility={handleToggleObstacleVisibility}
+                    onDeleteObstacle={handleDeleteObstacle}
+                    onEditTriggerZone={handleEditTriggerZone}
+                    onDeleteTriggerZone={handleDeleteTriggerZone}
+                    onEditAudioZone={handleEditAudioZone}
+                    onDeleteAudioZone={handleDeleteAudioZone}
+                />
+            )}
+
+            {!!editingHandout && <Modal isOpen={!!editingHandout} onClose={() => setEditingHandout(null)} title={editingHandout === 'new' ? 'Novo Recurso' : 'Editar Recurso'} size="xl"><HandoutFormModal handout={editingHandout === 'new' ? undefined : editingHandout} onSave={handleSaveHandout} onClose={() => setEditingHandout(null)} /></Modal>}
+            {previewingHandout && <HandoutPreviewModal handout={previewingHandout} onClose={() => setPreviewingHandout(null)} onEdit={(h) => { setPreviewingHandout(null); setEditingHandout(h); }} onShare={(h) => { setPreviewingHandout(null); setSharingHandout(h); }} />}
+            {sharingHandout && <HandoutShareModal handout={sharingHandout} onClose={() => setSharingHandout(null)} />}
+
+            {/* Trigger Zone Edit Modal */}
+            {!!editingTriggerZone && (
+                <Modal isOpen={!!editingTriggerZone} onClose={() => setEditingTriggerZoneId(null)} title="Editar Gatilho" size="sm">
+                    <TriggerZoneConfigModalContent
+                        handouts={session.handouts}
+                        onSave={(handoutId) => {
+                            if (editingTriggerZoneId) {
+                                session.updateTriggerZone(editingTriggerZoneId, { handoutId });
+                            }
+                            setEditingTriggerZoneId(null);
+                        }}
+                        onClose={() => setEditingTriggerZoneId(null)}
+                        initialHandoutId={editingTriggerZone.handoutId}
+                    />
+                </Modal>
+            )}
+
+            {/* Audio Zone Edit Modal */}
+            {!!editingAudioZone && (
+                <Modal isOpen={!!editingAudioZone} onClose={() => setEditingAudioZoneId(null)} title="Editar Zona de Áudio" size="lg">
+                    <AudioZoneEditModalContent
+                        zone={editingAudioZone}
+                        audioSettings={session.audioSettings}
+                        onSave={(updates) => {
+                            if (editingAudioZoneId) {
+                                session.updateAudioZone(editingAudioZoneId, updates);
+                            }
+                            setEditingAudioZoneId(null);
+                        }}
+                        onClose={() => setEditingAudioZoneId(null)}
+                    />
+                </Modal>
+            )}
+        </div>
+    );
+};

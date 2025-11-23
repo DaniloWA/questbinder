@@ -1,0 +1,336 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QuestBinder - Seu Portal de RPG</title>
+    
+    <!-- Tailwind CSS with Plugins -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+    
+    <style>
+      /* 
+       * QUESTBINDER DESIGN SYSTEM
+       * Theme: Fantasy Modern (Violet/Gold/Deep Slate)
+       */
+      :root {
+        /* Base Colors - Light Mode (Paper/Parchment feel) */
+        --background: 250 249 246; /* Off-white parchment */
+        --foreground: 25 23 42; /* Deep Violet/Black */
+
+        /* UI Surfaces */
+        --card: 255 255 255;
+        --card-foreground: 25 23 42;
+        --popover: 255 255 255;
+        --popover-foreground: 25 23 42;
+
+        /* Brand Colors - Violet Magic */
+        --primary: 124 58 237; /* Violet 600 */
+        --primary-foreground: 255 255 255;
+
+        /* Secondary - Gold/Loot */
+        --secondary: 251 191 36; /* Amber 400 */
+        --secondary-foreground: 66 32 6; /* Amber 950 */
+
+        --muted: 243 244 246; /* Gray 100 */
+        --muted-foreground: 107 114 128; /* Gray 500 */
+
+        --accent: 237 233 254; /* Violet 100 */
+        --accent-foreground: 124 58 237;
+
+        /* Status Colors */
+        --destructive: 220 38 38; /* Red 600 (HP Loss) */
+        --destructive-foreground: 255 255 255;
+        
+        --success: 22 163 74; /* Green 600 (Heal) */
+        --success-foreground: 255 255 255;
+
+        /* Borders & Inputs */
+        --border: 229 231 235;
+        --input: 229 231 235;
+        --ring: 124 58 237; /* Violet Ring */
+
+        /* Radii */
+        --radius: 0.5rem;
+      }
+
+      .dark {
+        /* Base Colors - Dark Mode (Dungeon) */
+        --background: 10 10 12; /* Zinc 950+ */
+        --foreground: 237 233 254; /* Violet 50 */
+
+        /* UI Surfaces */
+        --card: 24 24 27; /* Zinc 900 */
+        --card-foreground: 237 233 254;
+        --popover: 24 24 27;
+        --popover-foreground: 237 233 254;
+
+        /* Brand Colors */
+        --primary: 139 92 246; /* Violet 500 */
+        --primary-foreground: 255 255 255;
+
+        /* Secondary - Dark Gold */
+        --secondary: 180 83 9; /* Amber 700 */
+        --secondary-foreground: 255 251 235;
+
+        --muted: 39 39 42; /* Zinc 800 */
+        --muted-foreground: 161 161 170; /* Zinc 400 */
+
+        --accent: 39 39 42; /* Zinc 800 */
+        --accent-foreground: 237 233 254;
+
+        /* Status Colors */
+        --destructive: 127 29 29; /* Red 900 */
+        --destructive-foreground: 254 242 242;
+
+        /* Borders & Inputs */
+        --border: 39 39 42; /* Zinc 800 */
+        --input: 39 39 42; /* Zinc 800 */
+        --ring: 139 92 246;
+      }
+
+      body {
+        font-family: 'Inter', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background-color: rgb(var(--background));
+        color: rgb(var(--foreground));
+      }
+      
+      /* Font for RPG Titles */
+      h1, h2, h3, .rpg-font {
+        font-family: 'Inter', sans-serif; /* Keeping it clean for now, but could switch to Cinzel */
+      }
+      
+      .font-fantasy {
+        font-family: 'Cinzel', serif;
+      }
+      
+      * {
+        transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 300ms;
+      }
+
+      /* --- CINEMATIC DICE ANIMATIONS --- */
+      
+      @keyframes roll-spin {
+        0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+        100% { transform: rotateX(360deg) rotateY(720deg) rotateZ(360deg); }
+      }
+
+      @keyframes crit-pulse {
+        0% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.7); transform: scale(1); }
+        70% { box-shadow: 0 0 0 20px rgba(234, 179, 8, 0); transform: scale(1.1); }
+        100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0); transform: scale(1); }
+      }
+
+      @keyframes shake-hard {
+        0% { transform: translate(1px, 1px) rotate(0deg); }
+        10% { transform: translate(-1px, -2px) rotate(-1deg); }
+        20% { transform: translate(-3px, 0px) rotate(1deg); }
+        30% { transform: translate(3px, 2px) rotate(0deg); }
+        40% { transform: translate(1px, -1px) rotate(1deg); }
+        50% { transform: translate(-1px, 2px) rotate(-1deg); }
+        60% { transform: translate(-3px, 1px) rotate(0deg); }
+        70% { transform: translate(3px, 1px) rotate(-1deg); }
+        80% { transform: translate(-1px, -1px) rotate(1deg); }
+        90% { transform: translate(1px, 2px) rotate(0deg); }
+        100% { transform: translate(1px, -2px) rotate(-1deg); }
+      }
+
+      @keyframes glitch {
+        0% { transform: translate(0); opacity: 1; clip-path: inset(0 0 0 0); }
+        20% { transform: translate(-2px, 2px); opacity: 0.8; clip-path: inset(10% 0 60% 0); }
+        40% { transform: translate(2px, -2px); opacity: 1; clip-path: inset(40% 0 10% 0); }
+        60% { transform: translate(-2px, 2px); opacity: 0.8; clip-path: inset(80% 0 5% 0); }
+        80% { transform: translate(2px, -2px); opacity: 1; clip-path: inset(20% 0 70% 0); }
+        100% { transform: translate(0); opacity: 1; clip-path: inset(0 0 0 0); }
+      }
+
+      @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+      }
+
+      /* --- TOKEN IDLE ANIMATIONS --- */
+      @keyframes token-breath {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+      }
+      
+      @keyframes token-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      @keyframes token-wobble {
+        0%, 100% { transform: rotate(-3deg); }
+        50% { transform: rotate(3deg); }
+      }
+
+      .animate-roll-spin { animation: roll-spin 0.5s linear infinite; }
+      .animate-crit-pulse { animation: crit-pulse 1.5s infinite; }
+      .animate-shake-hard { animation: shake-hard 0.4s ease-out; }
+      .animate-glitch { animation: glitch 0.3s linear infinite; }
+      .animate-float { animation: float 3s ease-in-out infinite; }
+      
+      /* Token Specific */
+      .token-anim-breath { animation: token-breath 3s ease-in-out infinite; }
+      .token-anim-float { animation: float 4s ease-in-out infinite; }
+      .token-anim-spin { animation: token-spin 10s linear infinite; }
+      .token-anim-wobble { animation: token-wobble 2s ease-in-out infinite; }
+
+      .token-effect-ghostly { opacity: 0.6; filter: grayscale(100%) blur(0.5px); }
+      .token-effect-burning { filter: drop-shadow(0 0 5px #f97316) sepia(100%) saturate(300%) hue-rotate(-20deg); }
+      .token-effect-frozen { filter: drop-shadow(0 0 5px #0ea5e9) sepia(80%) hue-rotate(180deg); }
+      .token-effect-glitch { animation: glitch 2s infinite; }
+      .token-effect-outline { filter: drop-shadow(0 0 2px white) drop-shadow(0 0 2px white); }
+
+    </style>
+
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        content: [
+          './pages/**/*.{ts,tsx}',
+          './components/**/*.{ts,tsx}',
+          './app/**/*.{ts,tsx}',
+          './views/**/*.{ts,tsx}',
+          './src/**/*.{ts,tsx}',
+        ],
+        theme: {
+          container: {
+            center: true,
+            padding: "2rem",
+            screens: {
+              "2xl": "1400px",
+            },
+          },
+          extend: {
+            screens: {
+              'xs': '475px',
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              fantasy: ['Cinzel', 'serif'],
+            },
+            colors: {
+              border: "rgb(var(--border) / <alpha-value>)",
+              input: "rgb(var(--input) / <alpha-value>)",
+              ring: "rgb(var(--ring) / <alpha-value>)",
+              background: "rgb(var(--background) / <alpha-value>)",
+              foreground: "rgb(var(--foreground) / <alpha-value>)",
+              primary: {
+                DEFAULT: "rgb(var(--primary) / <alpha-value>)",
+                foreground: "rgb(var(--primary-foreground) / <alpha-value>)",
+                50: '#f5f3ff',
+                100: '#ede9fe',
+                200: '#ddd6fe',
+                300: '#c4b5fd',
+                400: '#a78bfa',
+                500: '#8b5cf6',
+                600: '#7c3aed',
+                700: '#6d28d9',
+                800: '#5b21b6',
+                900: '#4c1d95',
+              },
+              secondary: {
+                DEFAULT: "rgb(var(--secondary) / <alpha-value>)",
+                foreground: "rgb(var(--secondary-foreground) / <alpha-value>)",
+              },
+              destructive: {
+                DEFAULT: "rgb(var(--destructive) / <alpha-value>)",
+                foreground: "rgb(var(--destructive-foreground) / <alpha-value>)",
+              },
+              muted: {
+                DEFAULT: "rgb(var(--muted) / <alpha-value>)",
+                foreground: "rgb(var(--muted-foreground) / <alpha-value>)",
+              },
+              accent: {
+                DEFAULT: "rgb(var(--accent) / <alpha-value>)",
+                foreground: "rgb(var(--accent-foreground) / <alpha-value>)",
+              },
+              popover: {
+                DEFAULT: "rgb(var(--popover) / <alpha-value>)",
+                foreground: "rgb(var(--popover-foreground) / <alpha-value>)",
+              },
+              card: {
+                DEFAULT: "rgb(var(--card) / <alpha-value>)",
+                foreground: "rgb(var(--card-foreground) / <alpha-value>)",
+              },
+            },
+            borderRadius: {
+              lg: "var(--radius)",
+              md: "calc(var(--radius) - 2px)",
+              sm: "calc(var(--radius) - 4px)",
+            },
+            keyframes: {
+              "accordion-down": {
+                from: { height: "0" },
+                to: { height: "var(--radix-accordion-content-height)" },
+              },
+              "accordion-up": {
+                from: { height: "var(--radix-accordion-content-height)" },
+                to: { height: "0" },
+              },
+              "fade-in": {
+                from: { opacity: "0" },
+                to: { opacity: "1" },
+              },
+              "zoom-in-95": {
+                from: { opacity: "0", transform: "scale(0.95)" },
+                to: { opacity: "1", transform: "scale(1)" },
+              },
+              "slide-in-from-top-2": {
+                from: { transform: "translateY(-0.5rem)", opacity: "0" },
+                to: { transform: "translateY(0)", opacity: "1" },
+              },
+              "slide-in-from-right-full": {
+                from: { transform: "translateX(100%)", opacity: "0" },
+                to: { transform: "translateX(0)", opacity: "1" },
+              },
+              "shimmer": {
+                "100%": {
+                  "transform": "translateX(100%)",
+                }
+              }
+            },
+            animation: {
+              "accordion-down": "accordion-down 0.2s ease-out",
+              "accordion-up": "accordion-up 0.2s ease-out",
+              "fade-in": "fade-in 0.2s ease-out",
+              "zoom-in-95": "zoom-in-95 0.2s ease-out",
+              "slide-in-from-top-2": "slide-in-from-top-2 0.2s ease-out",
+              "slide-in-right": "slide-in-from-right-full 0.3s ease-out",
+              "shimmer": "shimmer 2s infinite",
+            },
+          },
+        },
+      }
+    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0",
+    "date-fns": "https://aistudiocdn.com/date-fns@^4.1.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-background text-foreground antialiased selection:bg-primary selection:text-primary-foreground">
+    <div id="root" class="h-full"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
