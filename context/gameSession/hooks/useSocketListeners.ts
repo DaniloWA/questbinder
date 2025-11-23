@@ -524,7 +524,14 @@ export const useSocketListeners = (
               token.conditions || []
             );
 
-            return { ...token, conditions: updatedConditions };
+            return {
+              ...token,
+              conditions: updatedConditions,
+              label: updates.name ?? token.label,
+              hpCurrent: effectiveCurrentHp,
+              hpMax: effectiveMaxHp,
+              ac: updates.armorClass ?? token.ac
+            };
           })
         }));
 

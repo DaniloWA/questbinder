@@ -3,7 +3,7 @@ import { Character, Attributes, SkillName } from '../../types';
 import { SheetCard, SheetHeader } from '../ui/SheetPrimitives';
 import {
     Sword, Shield, Zap, Backpack, Dice5, X, Activity, Heart,
-    Eye, Crosshair, Share2, Moon, Wind, Skull, Award, Hourglass, User, Lock, Settings, ScrollText, NotebookPen
+    Eye, Crosshair, Share2, Moon, Wind, Skull, Award, Hourglass, User, Lock, Settings, ScrollText, NotebookPen, FileWarning, Clock
 } from 'lucide-react';
 import { SKILLS_DATA } from '../../data/rules';
 import { Tooltip } from '../ui/Tooltip';
@@ -27,7 +27,7 @@ const fmtMod = (mod: number) => (mod >= 0 ? `+${mod}` : `${mod}`);
 export const CharacterSheetViewer: React.FC<CharacterSheetViewerProps> = ({
     character, onClose, onUpdate, onRoll, onShare, isGM = false, currentUserId
 }) => {
-    const [activeTab, setActiveTab] = useState<'combat' | 'spells' | 'inventory' | 'features' | 'bio'>('combat');
+    const [activeTab, setActiveTab] = useState<'combat' | 'spells' | 'inventory' | 'features' | 'bio' | 'history' | 'gmnotes'>('combat');
     const [openFeatures, setOpenFeatures] = useState<Record<string, boolean>>({});
     const [isEditing, setIsEditing] = useState(false);
     const { checkPermission } = useGameSession();
@@ -745,6 +745,65 @@ export const CharacterSheetViewer: React.FC<CharacterSheetViewerProps> = ({
         </div>
     );
 
+    const renderHistoryTab = () => (
+        <div className="p-3 md:p-5 space-y-4 pb-20">
+            {/* Change History */}
+            <div className="space-y-2">
+                <SheetHeader title="Histórico de Alterações" icon={Clock} />
+                <p className="text-xs text-zinc-500 italic mb-2">Últimas 100 alterações na ficha.</p>
+                <div className="space-y-2 max-h-[500px] overflow-y-auto custom-scrollbar">
+                    {(character.changeHistory && character.changeHistory.length > 0) ? (
+                        [...character.changeHistory].reverse().map((entry) => (
+                            <div key={entry.id} className="p-3 bg-zinc-900 rounded-lg border border-zinc-800">
+                                <div className="flex items-center justify-between mb-1">
+                                    <span className="text-xs font-bold text-zinc-300">{entry.userName}</span>
+                                    <span className="text-[10px] text-zinc-500">
+                                        {new Date(entry.timestamp).toLocaleString('pt-BR', {
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        })}
+                                    </span>
+                                </div>
+                                <div className="text-xs text-zinc-400">
+                                    <span className="text-zinc-500">Alterou:</span>{' '}
+                                    {Object.keys(entry.changes).map((key, idx) => (
+                                        <span key={key}>
+                                            <span className="text-primary font-mono">{key}</span>
+                                            {idx < Object.keys(entry.changes).length - 1 && ', '}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="text-center py-8 text-zinc-600 text-xs italic border border-dashed border-zinc-800 rounded-lg">
+                            Nenhuma alteração registrada ainda.
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+
+    const renderGMNotesTab = () => (
+        <div className="p-3 md:p-5 space-y-6 pb-20">
+            {/* GM Notes */}
+            <div className="space-y-2">
+                <SheetHeader title="Notas do Mestre" icon={FileWarning} />
+                <p className="text-xs text-zinc-500 italic mb-2">Estas notas são privadas e visíveis apenas para o Mestre.</p>
+                <textarea
+                    value={character.gmNotes || ''}
+                    onChange={(e) => onUpdate({ gmNotes: e.target.value })}
+                    className="w-full bg-zinc-900 text-sm text-zinc-300 border border-zinc-800 rounded-lg p-3 min-h-[200px] focus:border-primary outline-none resize-none"
+                    placeholder="Adicione notas privadas sobre este personagem..."
+                />
+            </div>
+        </div>
+    );
+
     return (
         <div className="flex flex-col h-full bg-zinc-950 text-white overflow-hidden">
             {/* Header */}
@@ -850,6 +909,8 @@ export const CharacterSheetViewer: React.FC<CharacterSheetViewerProps> = ({
                             { id: 'inventory', label: 'Items', icon: Backpack },
                             { id: 'features', label: 'Feitos', icon: Award },
                             { id: 'bio', label: 'Bio', icon: User },
+                            { id: 'history', label: 'Histórico', icon: Clock },
+                            ...(isGM ? [{ id: 'gmnotes', label: 'GM', icon: FileWarning }] : []),
                         ].map(tab => (
                             <button
                                 key={tab.id}
@@ -868,6 +929,8 @@ export const CharacterSheetViewer: React.FC<CharacterSheetViewerProps> = ({
                         {activeTab === 'inventory' && renderInventoryTab()}
                         {activeTab === 'features' && renderFeaturesTab()}
                         {activeTab === 'bio' && renderBioTab()}
+                        {activeTab === 'history' && renderHistoryTab()}
+                        {activeTab === 'gmnotes' && isGM && renderGMNotesTab()}
                     </div>
                 </div>
             </div>

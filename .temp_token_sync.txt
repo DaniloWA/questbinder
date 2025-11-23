@@ -1,0 +1,14 @@
+            const updatedConditions = calculateTokenConditions(
+              effectiveCurrentHp,
+              effectiveMaxHp,
+              token.conditions || []
+            );
+
+            return { 
+              ...token, 
+              conditions: updatedConditions,
+              label: updates.name ?? token.label,
+              hpCurrent: effectiveCurrentHp,
+              hpMax: effectiveMaxHp,
+              ac: updates.armorClass ?? token.ac
+            };

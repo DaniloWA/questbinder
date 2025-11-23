@@ -128,6 +128,14 @@ export interface CharacterTokenSettings {
   imageRotation?: number;
 }
 
+export interface CharacterChangeEntry {
+  id: string;
+  timestamp: string;
+  userId: string;
+  userName: string;
+  changes: Record<string, { old: any, new: any; }>;
+}
+
 export interface Character {
   id: string;
   ownerId: string;
@@ -181,6 +189,8 @@ export interface Character {
   notes?: string;
   avatarUrl?: string;
   tokenSettings?: CharacterTokenSettings;
+  gmNotes?: string;
+  changeHistory?: CharacterChangeEntry[];
   createdAt: string;
 }
 

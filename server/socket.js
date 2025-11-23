@@ -73,6 +73,9 @@ export const setupSocket = (server) => {
         // Fallback if db.getById('users') fails or returns null (e.g. if using mock auth)
         const playerInfo = user || { id: userId, name: 'Unknown', color: '#ffffff', role: client.isGM ? 'gm' : 'player' };
 
+        // Store userName in client object for change history
+        client.userName = playerInfo.name || 'Unknown';
+
         // Ensure role is set correctly based on campaign
         const role = client.isGM ? 'gm' : 'player';
         const playerPayload = { ...playerInfo, role };
