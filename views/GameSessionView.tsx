@@ -534,7 +534,7 @@ const GameSessionUI: React.FC = () => {
                 <PartyList />
             </div>
 
-            <PermissionsModal isOpen={isPermissionsOpen} onClose={() => setIsPermissionsOpen(false)} permissions={session.permissions} onUpdate={session.updatePermissions} />
+            <PermissionsModal isOpen={isPermissionsOpen} onClose={() => setIsPermissionsOpen(false)} permissions={session.permissions} onUpdate={session.updatePermissions} campaign={session.campaign} players={session.players} />
 
             {viewingCharacter && (
                 <Modal isOpen={!!viewingCharacter} onClose={() => setViewingCharacterId(null)} size="xl" hideCloseButton>
@@ -546,7 +546,17 @@ const GameSessionUI: React.FC = () => {
                 <TokenContextMenu x={tokenContextMenu.x} y={tokenContextMenu.y} token={tokenContextMenu.token} onClose={() => setTokenContextMenu(null)} onEdit={() => handleOpenTokenModal(tokenContextMenu.token)} onDuplicate={() => handleDuplicateToken(tokenContextMenu.token)} onDelete={() => session.removeToken(tokenContextMenu.token.id)} onToggleVisibility={() => session.updateToken(tokenContextMenu.token.id, { isVisibleToPlayers: !tokenContextMenu.token.isVisibleToPlayers })} onToggleCondition={(condition) => handleToggleTokenCondition(tokenContextMenu.token, condition)} onOpenSheet={() => handleOpenSheet(tokenContextMenu.token)} />
             )}
 
-            {isSettingsOpen && session.activeScene && <MapSettingsModal scene={session.activeScene} onClose={() => setIsSettingsOpen(false)} onSave={session.updateMapSettings} />}
+            {isSettingsOpen && session.activeScene && (
+                <MapSettingsModal
+                    scene={session.activeScene}
+                    onClose={() => setIsSettingsOpen(false)}
+                    onSave={session.updateMapSettings}
+                    audioSettings={session.audioSettings}
+                    bulkUpdateObstacles={session.bulkUpdateObstacles}
+                    defaultObstacleHidden={session.ui.defaultObstacleHidden}
+                    onToggleDefaultObstacleHidden={() => session.setGmHideObstacles(!session.ui.defaultObstacleHidden)}
+                />
+            )}
 
             {mapContextMenu && (
                 <MapContextMenu

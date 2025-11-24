@@ -152,6 +152,32 @@ export const apiService = {
     }
   },
 
+  // PATCH (Specific updates)
+  patch: async <T>(
+    endpoint: string,
+    payload: any
+  ): Promise<ApiResponse<T>> => {
+    if (!USE_REAL_BACKEND) {
+      // Mock implementation for patch if needed, or just fallback to success
+      return { success: true, data: payload as T };
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/${endpoint}`, {
+        method: 'PATCH',
+        headers: getHeaders(),
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) return handleError(`Falha ao atualizar (HTTP ${res.status})`);
+
+      const data = (await res.json()) as T;
+      return { success: true, data };
+    } catch (err) {
+      return handleError('Erro ao atualizar no servidor');
+    }
+  },
+
   // DELETE
   delete: async (
     collection: CollectionName,

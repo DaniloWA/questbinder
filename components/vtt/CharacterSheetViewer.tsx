@@ -30,7 +30,15 @@ export const CharacterSheetViewer: React.FC<CharacterSheetViewerProps> = ({
     const [activeTab, setActiveTab] = useState<'combat' | 'spells' | 'inventory' | 'features' | 'bio' | 'history' | 'gmnotes'>('combat');
     const [openFeatures, setOpenFeatures] = useState<Record<string, boolean>>({});
     const [isEditing, setIsEditing] = useState(false);
-    const { checkPermission } = useGameSession();
+
+    // Try to get game session context, but don't fail if not available (e.g., in Dashboard)
+    let checkPermission: (perm: string) => boolean = () => true;
+    try {
+        const gameSession = useGameSession();
+        checkPermission = gameSession.checkPermission;
+    } catch (e) {
+        // Not in GameSessionContext, use default permission (allow all for now)
+    }
 
     // Permission check: GM always true, Owner needs 'sheetEdit' perm
     const canEdit = isGM || (character.ownerId === currentUserId && checkPermission('sheetEdit'));

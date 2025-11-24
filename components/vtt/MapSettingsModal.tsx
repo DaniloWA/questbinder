@@ -1,12 +1,11 @@
 
 import React, { useState, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { MapScene } from '../../types';
+import { MapScene, Playlist, SoundEffect } from '../../types';
 import { Button } from '../ui/Button';
 import { SheetLabel, SheetInput, SheetSelect, SheetSelectOption } from '../ui/SheetPrimitives';
 import { X, UploadCloud, Image as ImageIcon, Eye, EyeOff, ShieldAlert, Sun, Moon, Music, Loader2 } from 'lucide-react';
 import { ColorPicker } from '../ui/ColorPicker';
-import { useGameSession } from '../../context/GameSessionContext';
 import { fileService } from '../../services/fileService';
 import { useNotification } from '../../context/NotificationContext';
 
@@ -14,10 +13,17 @@ interface MapSettingsModalProps {
     scene: MapScene;
     onClose: () => void;
     onSave: (newOptions: Partial<MapScene>) => void;
+    audioSettings: { playlists: Playlist[], soundboard: SoundEffect[]; };
+    // Optional VTT-specific props
+    bulkUpdateObstacles?: (updates: any) => void;
+    defaultObstacleHidden?: boolean;
+    onToggleDefaultObstacleHidden?: () => void;
 }
 
-export const MapSettingsModal: React.FC<MapSettingsModalProps> = ({ scene, onClose, onSave }) => {
-    const { bulkUpdateObstacles, ui, setDefaultObstacleHidden, audioSettings } = useGameSession();
+export const MapSettingsModal: React.FC<MapSettingsModalProps> = ({
+    scene, onClose, onSave, audioSettings,
+    bulkUpdateObstacles, defaultObstacleHidden, onToggleDefaultObstacleHidden
+}) => {
     const { show } = useNotification();
     const [imageUrl, setImageUrl] = useState(scene.imageUrl);
     const [gridSize, setGridSize] = useState(scene.grid.size);
@@ -284,44 +290,48 @@ export const MapSettingsModal: React.FC<MapSettingsModalProps> = ({ scene, onClo
                     {/* Defaults */}
                     <div className="space-y-2 border-t border-zinc-800 pt-4">
                         <SheetLabel>Padrões de Criação</SheetLabel>
-                        <div className="bg-zinc-800/50 p-3 rounded-lg flex items-center justify-between">
-                            <span className="text-sm text-zinc-300">Criar novas paredes invisíveis?</span>
-                            <button
-                                onClick={() => setDefaultObstacleHidden(!ui.defaultObstacleHidden)}
-                                className={`w-10 h-5 rounded-full transition-colors relative ${ui.defaultObstacleHidden ? 'bg-primary' : 'bg-zinc-600'}`}
-                            >
-                                <div className={`absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform ${ui.defaultObstacleHidden ? 'translate-x-5' : 'translate-x-0'}`}></div>
-                            </button>
-                        </div>
+                        {onToggleDefaultObstacleHidden && defaultObstacleHidden !== undefined && (
+                            <div className="bg-zinc-800/50 p-3 rounded-lg flex items-center justify-between">
+                                <span className="text-sm text-zinc-300">Criar novas paredes invisíveis?</span>
+                                <button
+                                    onClick={onToggleDefaultObstacleHidden}
+                                    className={`w-10 h-5 rounded-full transition-colors relative ${defaultObstacleHidden ? 'bg-primary' : 'bg-zinc-600'}`}
+                                >
+                                    <div className={`absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform ${defaultObstacleHidden ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                                </button>
+                            </div>
+                        )}
                     </div>
 
                     {/* Bulk Actions */}
-                    <div className="space-y-2 border-t border-zinc-800 pt-4">
-                        <SheetLabel icon={<ShieldAlert className="w-3 h-3" />}>Ações em Massa (Estruturas)</SheetLabel>
-                        <div className="bg-zinc-800/50 p-3 rounded-lg space-y-3">
-                            <div className="flex gap-3">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    fullWidth
-                                    onClick={() => bulkUpdateObstacles({ hidden: true })}
-                                    className="border-dashed border-zinc-600 hover:border-zinc-400 text-zinc-400 hover:text-white"
-                                >
-                                    <EyeOff className="w-4 h-4 mr-2" /> Ocultar Todas
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    fullWidth
-                                    onClick={() => bulkUpdateObstacles({ hidden: false })}
-                                    className="border-dashed border-zinc-600 hover:border-zinc-400 text-zinc-400 hover:text-white"
-                                >
-                                    <Eye className="w-4 h-4 mr-2" /> Revelar Todas
-                                </Button>
+                    {bulkUpdateObstacles && (
+                        <div className="space-y-2 border-t border-zinc-800 pt-4">
+                            <SheetLabel icon={<ShieldAlert className="w-3 h-3" />}>Ações em Massa (Estruturas)</SheetLabel>
+                            <div className="bg-zinc-800/50 p-3 rounded-lg space-y-3">
+                                <div className="flex gap-3">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        fullWidth
+                                        onClick={() => bulkUpdateObstacles({ hidden: true })}
+                                        className="border-dashed border-zinc-600 hover:border-zinc-400 text-zinc-400 hover:text-white"
+                                    >
+                                        <EyeOff className="w-4 h-4 mr-2" /> Ocultar Todas
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        fullWidth
+                                        onClick={() => bulkUpdateObstacles({ hidden: false })}
+                                        className="border-dashed border-zinc-600 hover:border-zinc-400 text-zinc-400 hover:text-white"
+                                    >
+                                        <Eye className="w-4 h-4 mr-2" /> Revelar Todas
+                                    </Button>
+                                </div>
+                                <p className="text-[10px] text-zinc-500 italic text-center">Isso altera a visibilidade real para os jogadores.</p>
                             </div>
-                            <p className="text-[10px] text-zinc-500 italic text-center">Isso altera a visibilidade real para os jogadores.</p>
                         </div>
-                    </div>
+                    )}
                 </div>
 
                 <div className="p-4 border-t border-zinc-800 bg-zinc-900/50 flex justify-end gap-3 rounded-b-xl">

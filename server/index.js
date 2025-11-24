@@ -146,6 +146,35 @@ app.delete('/api/:collection/:id', async (req, res) => {
   }
 });
 
+// Endpoint específico para atualizar permissões da campanha
+app.patch('/api/campaigns/:id/permissions', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { permissions } = req.body;
+
+    if (!permissions) {
+      return res.status(400).json({ error: 'Permissions object is required' });
+    }
+
+    const campaign = await getById('campaigns', id);
+    if (!campaign) {
+      return res.status(404).json({ error: 'Campaign not found' });
+    }
+
+    // Update permissions in DB
+    const updatedCampaign = await update('campaigns', id, { permissions });
+
+    // Broadcast update via Socket.IO
+    io.to(id).emit('campaign:permissionsUpdated', { permissions });
+    console.log(`[API] Permissions updated for campaign ${id}`);
+
+    res.json(updatedCampaign.permissions);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error updating permissions' });
+  }
+});
+
 // ======================= START SERVER =======================
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`\nServidor rodando em http://localhost:${PORT}`);

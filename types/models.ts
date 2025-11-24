@@ -446,6 +446,30 @@ export interface SessionLogConfig {
   system: 'public' | 'gm';
 }
 
+// Token Hover Visibility Permissions
+export interface TokenHoverPermissions {
+  pc: {  // Other players' Heroes
+    showName: boolean;
+    showHP: boolean;
+    showResource: boolean;
+    showConditions: boolean;
+    showStats: boolean;  // AC, Speed, PP
+    showAttributes: boolean;  // Roll buttons
+  };
+  npc: {  // Creatures/Monsters
+    showName: boolean;
+    showHP: boolean;
+    showResource: boolean;
+    showConditions: boolean;
+    showStats: boolean;
+    showAttributes: boolean;
+  };
+  object: {  // Objects/Items
+    showName: boolean;
+    showConditions: boolean;
+  };
+}
+
 export interface PermissionSet {
   // Interação Básica
   tokenMovement: boolean;
@@ -474,6 +498,9 @@ export interface PermissionSet {
   // Privacidade
   shareCursor: boolean;
   allowSpectate: boolean;
+
+  // Token Hover Visibility
+  tokenHover: TokenHoverPermissions;
 
   // Logs
   logConfig: SessionLogConfig;

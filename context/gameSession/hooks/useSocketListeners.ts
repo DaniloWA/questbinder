@@ -615,7 +615,14 @@ export const useSocketListeners = (
       'character:update': handleCharacterUpdate,
       'character:delete': handleCharacterDelete,
       'player:join': handlePlayerJoin,
-      'player:leave': handlePlayerLeave
+      'player:leave': handlePlayerLeave,
+      'campaign:permissionsUpdated': (payload: { permissions: any; }) => {
+        console.log('[WS] Campaign permissions updated:', payload);
+        setState(prev => ({
+          ...prev,
+          campaign: prev.campaign ? { ...prev.campaign, permissions: payload.permissions } : null
+        }));
+      }
     };
 
     // Registrar listeners

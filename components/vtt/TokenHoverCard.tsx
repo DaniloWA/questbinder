@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Token, Condition, Character } from '../../types';
+import { Token, Condition, Character, TokenHoverPermissions } from '../../types';
 import { Heart, Shield, Zap, Eye, EyeOff, Droplets, Skull, AlertTriangle, Wind, ScrollText, Activity, Hand, Flame, Ghost, Anchor, EarOff, Lock, Moon, Plus } from 'lucide-react';
 import { Tooltip } from '../ui/Tooltip';
 import { STATUS_RULES, StatusDefinition } from '../../data/rules';
@@ -12,6 +12,7 @@ interface TokenHoverCardProps {
     position: { x: number, y: number; };
     isGM: boolean;
     currentUserId?: string;
+    permissions?: TokenHoverPermissions; // NEW: Token hover permissions
     onUpdate: (id: string, data: Partial<Token>) => void;
     onCharacterUpdate?: (id: string, data: Partial<Character>) => void; // Callback for character updates
     onOpenSheet?: (token: Token) => void;
@@ -62,12 +63,32 @@ const getMod = (score: number = 10) => Math.floor((score - 10) / 2);
 const fmtMod = (n: number) => (n >= 0 ? `+${n}` : `${n}`);
 
 export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
-    token, character, position, isGM, currentUserId,
+    token, character, position, isGM, currentUserId, permissions,
     onUpdate, onCharacterUpdate, onOpenSheet, onRoll, onMouseEnter, onMouseLeave
 }) => {
 
     const { sendChatMessage } = useGameSession();
     const [isAdding, setIsAdding] = useState(false);
+
+    // Permission checking function
+    const canShow = (field: keyof TokenHoverPermissions['pc'] | keyof TokenHoverPermissions['npc'] | keyof TokenHoverPermissions['object']): boolean => {
+        // GM and controllers always see everything
+        if (isGM || isController) return true;
+
+        // If no permissions defined, default to show everything (backward compatibility)
+        if (!permissions) return true;
+
+        // Check based on token type
+        const tokenPerms = permissions[token.type];
+        if (!tokenPerms) return true;
+
+        // Type-safe field check
+        if (field in tokenPerms) {
+            return (tokenPerms as any)[field] === true;
+        }
+
+        return false;
+    };
 
     const style: React.CSSProperties = {
         position: 'fixed', // Fixed ensures smooth movement relative to viewport without jitter from parent scaling
@@ -213,14 +234,14 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
 
     return (
         <div
-            className="w-[320px] bg-zinc-950/95 backdrop-blur-md border border-zinc-700 rounded-xl shadow-2xl overflow-visible flex flex-col animate-in fade-in zoom-in-95 slide-in-from-bottom-2 duration-200 pointer-events-auto ring-1 ring-white/10"
+            className="w-[300px] bg-zinc-950/95 backdrop-blur-md border border-zinc-700 rounded-xl shadow-2xl overflow-visible flex flex-col animate-in fade-in zoom-in-95 slide-in-from-bottom-2 duration-200 pointer-events-auto ring-1 ring-white/10"
             style={style}
             onMouseEnter={onMouseEnter}
             onMouseLeave={() => { setIsAdding(false); onMouseLeave(); }}
             onClick={(e) => e.stopPropagation()}
         >
             {/* HEADER */}
-            <div className="relative bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 border-b border-white/10 p-3 flex items-center gap-3 rounded-t-xl overflow-hidden">
+            <div className="relative bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 border-b border-white/10 p-2.5 flex items-center gap-2.5 rounded-t-xl overflow-hidden">
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay pointer-events-none" />
 
                 <div className="relative z-10 w-10 h-10 rounded-lg border-2 border-zinc-600 bg-zinc-800 overflow-hidden shrink-0 shadow-lg">
@@ -268,12 +289,12 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
                 </div>
             </div>
 
-            <div className="p-3 space-y-3">
+            <div className="p-2.5 space-y-2.5">
 
                 {/* BARS SECTION */}
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                     {/* HP BAR */}
-                    {(canControl || (hp && hp.visible)) && hp && hp.max > 0 && (
+                    {canShow('showHP') && (canControl || (hp && hp.visible)) && hp && hp.max > 0 && (
                         <div className="space-y-1">
                             <div className="flex justify-between items-center text-[10px] font-bold uppercase text-zinc-500 px-0.5">
                                 <span className="flex items-center gap-1"><Heart className="w-3 h-3 text-red-500 fill-current" /> Vida</span>
@@ -303,7 +324,7 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
                     )}
 
                     {/* RESOURCE BAR (MP) */}
-                    {(canControl || (mp && mp.visible)) && mp && mp.max > 0 && (
+                    {canShow('showResource') && (canControl || (mp && mp.visible)) && mp && mp.max > 0 && (
                         <div className="space-y-1 pt-1 border-t border-zinc-800/50">
                             <div className="flex justify-between items-center text-[10px] font-bold uppercase text-zinc-500 px-0.5">
                                 <span className="flex items-center gap-1"><Zap className="w-3 h-3 text-blue-500 fill-current" /> Recurso</span>
@@ -331,8 +352,8 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
                     )}
                 </div>
 
-                {/* ACTIVE CONDITIONS (Visible to All) */}
-                {(token.conditions?.length > 0 || canControl) && (
+                {/* ACTIVE CONDITIONS */}
+                {canShow('showConditions') && (token.conditions?.length > 0 || canControl) && (
                     <div className="flex flex-wrap gap-1.5 pt-1 items-center relative border-t border-zinc-800/50 mt-1">
                         {token.conditions && token.conditions.map(cId => {
                             const def = STATUS_RULES[cId] || { id: cId, name: cId, effects: ['Efeito desconhecido.'], duration: '' };
@@ -387,34 +408,36 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
                 )}
 
                 {/* QUICK STATS ROW */}
-                <div className="flex gap-2 bg-zinc-900/50 p-1 rounded-lg border border-zinc-800">
-                    <div className="flex-1 flex flex-col items-center justify-center p-1.5 border-r border-zinc-800/50 last:border-0">
-                        <span className="text-[9px] uppercase text-zinc-500 font-bold mb-0.5">CA</span>
-                        <div className="flex items-center gap-1 text-blue-300 font-bold text-xs">
-                            <Shield className="w-3 h-3" /> {stats.ac}
+                {canShow('showStats') && (
+                    <div className="flex gap-2 bg-zinc-900/50 p-1 rounded-lg border border-zinc-800">
+                        <div className="flex-1 flex flex-col items-center justify-center p-1.5 border-r border-zinc-800/50 last:border-0">
+                            <span className="text-[9px] uppercase text-zinc-500 font-bold mb-0.5">CA</span>
+                            <div className="flex items-center gap-1 text-blue-300 font-bold text-xs">
+                                <Shield className="w-3 h-3" /> {stats.ac}
+                            </div>
                         </div>
+                        <div className="flex-1 flex flex-col items-center justify-center p-1.5 border-r border-zinc-800/50 last:border-0">
+                            <span className="text-[9px] uppercase text-zinc-500 font-bold mb-0.5">Desl.</span>
+                            <div className="flex items-center gap-1 text-green-300 font-bold text-xs">
+                                <Wind className="w-3 h-3" /> {stats.speed}
+                            </div>
+                        </div>
+                        {token.linkedId && onOpenSheet && (
+                            <div className="flex-1 flex items-center justify-center">
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); onOpenSheet(token); }}
+                                    className="w-full h-full flex flex-col items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 rounded transition-colors group"
+                                >
+                                    <ScrollText className="w-3.5 h-3.5 mb-0.5 group-hover:text-primary" />
+                                    <span className="text-[9px] uppercase font-bold">Ficha</span>
+                                </button>
+                            </div>
+                        )}
                     </div>
-                    <div className="flex-1 flex flex-col items-center justify-center p-1.5 border-r border-zinc-800/50 last:border-0">
-                        <span className="text-[9px] uppercase text-zinc-500 font-bold mb-0.5">Desl.</span>
-                        <div className="flex items-center gap-1 text-green-300 font-bold text-xs">
-                            <Wind className="w-3 h-3" /> {stats.speed}
-                        </div>
-                    </div>
-                    {token.linkedId && onOpenSheet && (
-                        <div className="flex-1 flex items-center justify-center">
-                            <button
-                                onClick={(e) => { e.stopPropagation(); onOpenSheet(token); }}
-                                className="w-full h-full flex flex-col items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 rounded transition-colors group"
-                            >
-                                <ScrollText className="w-3.5 h-3.5 mb-0.5 group-hover:text-primary" />
-                                <span className="text-[9px] uppercase font-bold">Ficha</span>
-                            </button>
-                        </div>
-                    )}
-                </div>
+                )}
 
-                {/* ATTRIBUTE ROLLERS (Grid) - Owner/GM Only */}
-                {canControl && (
+                {/* ATTRIBUTE ROLLERS (Grid) */}
+                {canShow('showAttributes') && canControl && (
                     <div className="grid grid-cols-3 gap-1.5">
                         {(Object.entries(stats.attributes) as [string, number][]).slice(0, 6).map(([key, val]) => (
                             <Tooltip key={key} content={`Rolar Teste de ${key.toUpperCase()} (${fmtMod(getMod(val))})`}>

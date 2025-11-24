@@ -10,10 +10,16 @@ import { Campaign, Character, User as UserType, Handout, HandoutType } from '../
 import { Button } from '../components/ui/Button';
 import { CharacterSheetViewer } from '../components/vtt/CharacterSheetViewer';
 import { HandoutFormModal } from '../components/vtt/HandoutFormModal';
+import { TokenHoverPermissionsPanel } from '../components/CampaignSettings/TokenHoverPermissionsPanel';
 import {
     Calendar, Users, Play, Settings, ArrowLeft, Plus, Copy, Trash2, Map as MapIcon,
-    Sword, ScrollText, Crown, User, Check, FileText, Image, Youtube, Share2, Eye, EyeOff
+    Sword, ScrollText, Crown, User, Check, FileText, Image, Youtube, Share2, Eye, EyeOff,
+    Music, BookOpen, Shield, Volume2
 } from 'lucide-react';
+import { CampaignAudioSettings } from '../components/CampaignSettings/CampaignAudioSettings';
+import { CampaignScenesList } from '../components/CampaignSettings/CampaignScenesList';
+import { CampaignBestiary } from '../components/CampaignSettings/CampaignBestiary';
+import { PermissionsModal } from '../components/vtt/PermissionsModal';
 import { Tooltip } from '../components/ui/Tooltip';
 import { Modal } from '../components/ui/Modal';
 import { Skeleton } from '../components/ui/Loading';
@@ -96,7 +102,7 @@ const CharacterSelectionModal: React.FC<{
     );
 };
 
-type DashboardTab = 'overview' | 'players' | 'characters' | 'handouts';
+type DashboardTab = 'overview' | 'players' | 'characters' | 'maps' | 'audio' | 'bestiary' | 'handouts' | 'settings';
 
 export const CampaignDashboardView: React.FC = () => {
     const { params, navigateTo } = useNavigation();
@@ -113,6 +119,7 @@ export const CampaignDashboardView: React.FC = () => {
     const [viewingCharacter, setViewingCharacter] = useState<Character | null>(null);
     const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
     const [editingHandout, setEditingHandout] = useState<Handout | 'new' | null>(null);
+    const [isPermissionsOpen, setIsPermissionsOpen] = useState(false);
 
     const loadData = async (id: string = campaignId) => {
         setIsLoading(true);
@@ -124,6 +131,15 @@ export const CampaignDashboardView: React.FC = () => {
         }
 
         setCampaign(cRes.data);
+
+        // Ensure campaign has permissions (initialize with defaults if missing)
+        if (!cRes.data.permissions) {
+            const { getDefaultPermissions } = await import('../utils/defaultPermissions');
+            const defaultPerms = getDefaultPermissions();
+            cRes.data.permissions = defaultPerms;
+            // Update campaign with default permissions
+            await campaignService.update(cRes.data.id, { permissions: defaultPerms });
+        }
 
         const [chars, playerList, handoutList] = await Promise.all([
             characterService.getByCampaign(id),
@@ -326,7 +342,11 @@ export const CampaignDashboardView: React.FC = () => {
                         <TabButton tab="overview" icon={<MapIcon />} label="Visão Geral" />
                         <TabButton tab="players" icon={<Users />} label={`Jogadores (${players.length})`} />
                         <TabButton tab="characters" icon={<Sword />} label={`Heróis (${characters.length})`} />
+                        {isOwner && <TabButton tab="maps" icon={<MapIcon />} label={`Mapas (${campaign.scenes.length})`} />}
+                        {isOwner && <TabButton tab="audio" icon={<Volume2 />} label="Áudio" />}
+                        {isOwner && <TabButton tab="bestiary" icon={<BookOpen />} label="Bestiário" />}
                         {isOwner && <TabButton tab="handouts" icon={<FileText />} label={`Recursos (${handouts.length})`} />}
+                        {isOwner && <TabButton tab="settings" icon={<Settings />} label="Configurações" />}
                     </div>
                 </div>
             </div>
@@ -382,6 +402,22 @@ export const CampaignDashboardView: React.FC = () => {
                     </div>
                 )}
 
+                {activeTab === 'maps' && isOwner && campaign && (
+                    <CampaignScenesList
+                        campaign={campaign}
+                        onUpdate={setCampaign}
+                        audioSettings={campaign.audioSettings || { playlists: [], soundboard: [] }}
+                    />
+                )}
+
+                {activeTab === 'audio' && isOwner && campaign && (
+                    <CampaignAudioSettings campaign={campaign} onUpdate={setCampaign} />
+                )}
+
+                {activeTab === 'bestiary' && isOwner && (
+                    <CampaignBestiary />
+                )}
+
                 {activeTab === 'handouts' && isOwner && (
                     <div className="space-y-8">
                         <div className="flex justify-between items-center">
@@ -431,6 +467,27 @@ export const CampaignDashboardView: React.FC = () => {
                         )}
                     </div>
                 )}
+
+                {activeTab === 'settings' && isOwner && campaign && (
+                    <div className="max-w-4xl mx-auto space-y-8">
+                        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 flex items-center justify-between">
+                            <div>
+                                <h3 className="text-xl font-bold text-zinc-100 flex items-center gap-2">
+                                    <Shield className="w-5 h-5 text-primary" />
+                                    Permissões da Sessão
+                                </h3>
+                                <p className="text-zinc-400 mt-1">
+                                    Configure o que os jogadores podem fazer (mover tokens, desenhar, etc).
+                                </p>
+                            </div>
+                            <Button size="lg" onClick={() => setIsPermissionsOpen(true)}>
+                                Configurar Permissões
+                            </Button>
+                        </div>
+
+                        <TokenHoverPermissionsPanel campaign={campaign} onUpdate={setCampaign} />
+                    </div>
+                )}
             </div>
 
             {/* Modals */}
@@ -461,6 +518,24 @@ export const CampaignDashboardView: React.FC = () => {
                         onClose={() => setEditingHandout(null)}
                     />
                 </Modal>
+            )}
+
+            {isPermissionsOpen && campaign && campaign.permissions && (
+                <PermissionsModal
+                    isOpen={isPermissionsOpen}
+                    onClose={() => setIsPermissionsOpen(false)}
+                    permissions={campaign.permissions}
+                    onUpdate={async (perms) => {
+                        const updated = { ...campaign.permissions, ...perms };
+                        const res = await campaignService.update(campaign.id, { permissions: updated });
+                        if (res.success) {
+                            setCampaign({ ...campaign, permissions: updated });
+                            show({ type: 'success', message: 'Permissões atualizadas!' });
+                        }
+                    }}
+                    campaign={campaign}
+                    players={players}
+                />
             )}
         </div>
     );

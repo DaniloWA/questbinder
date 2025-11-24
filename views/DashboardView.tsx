@@ -15,7 +15,7 @@ import { CLASSES, RACES } from '../data/rules';
 import {
   LogOut, Bell, Menu, Sword, Scroll, Map, BookOpen, Crown,
   Dice5, Plus, Search, Users, Compass, Trash2, Edit, Heart,
-  Shield, Activity, Calendar, Play, User as UserIcon, Sparkles
+  Shield, Activity, Calendar, Play, User as UserIcon, Sparkles, Settings
 } from 'lucide-react';
 
 type DashboardTab = 'overview' | 'heroes' | 'campaigns' | 'library';
@@ -369,7 +369,7 @@ export const DashboardView: React.FC = () => {
 
             return (
               <div key={campaign.id} className="group relative rounded-3xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500 hover:-translate-y-4 cursor-pointer"
-                onClick={() => navigateTo('game-session', { id: campaign.id })}>
+                onClick={() => navigateTo('campaign-dashboard', { id: campaign.id })}>
                 <div className="aspect-video relative">
                   <img src={campaign.coverUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
@@ -403,8 +403,8 @@ export const DashboardView: React.FC = () => {
                   </div>
 
                   <Button size="lg" className="w-full text-lg font-fantasy py-7 shadow-xl">
-                    <Play className="w-6 h-6 mr-3" />
-                    Entrar na Aventura
+                    <Settings className="w-6 h-6 mr-3" />
+                    Gerenciar Campanha
                   </Button>
                 </div>
               </div>
@@ -478,8 +478,8 @@ const NavButton: React.FC<{ icon: React.ReactNode; label: string; active?: boole
   <button
     onClick={onClick}
     className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 group ${active
-        ? 'bg-primary text-white shadow-lg shadow-primary/25'
-        : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'
+      ? 'bg-primary text-white shadow-lg shadow-primary/25'
+      : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'
       }`}
   >
     <div className={`transition-transform duration-300 group-hover:scale-125 ${active ? 'text-white' : ''}`}>

@@ -3,6 +3,30 @@ import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 import { SEED_DATA } from './seed.js';
 
+// Default permissions definition to avoid importing TS in JS server
+const defaultTokenHoverPermissions = {
+  pc: {
+    showName: true,
+    showHP: true,
+    showResource: true,
+    showConditions: true,
+    showStats: true,
+    showAttributes: true,
+  },
+  npc: {
+    showName: true,
+    showHP: true,
+    showResource: true,
+    showConditions: true,
+    showStats: true,
+    showAttributes: true,
+  },
+  object: {
+    showName: true,
+    showConditions: true,
+  }
+};
+
 let dbInstance = null;
 
 export const initDB = async () => {
@@ -25,14 +49,14 @@ export const initDB = async () => {
     console.log('Database vazio. Fazendo seed...');
     for (const [collection, items] of Object.entries(SEED_DATA)) {
       for (const item of items) {
-        await create(collection, item); // usa o create() que já existe aqui embaixo
+        await create(collection, item);
       }
     }
     console.log('Seed concluído!');
   }
 };
 
-// ==================== EXPORTES BÁSICOS (compatíveis com seu código antigo) ====================
+// ==================== EXPORTES BÁSICOS ====================
 export const getById = async (collection, id) => {
   const row = await dbInstance.get(
     'SELECT data FROM store WHERE collection = ? AND id = ?',
@@ -57,6 +81,34 @@ export const create = async (collection, data) => {
     id,
     createdAt: data.createdAt || new Date().toISOString()
   };
+
+  // Ensure default token hover permissions for new campaigns
+  if (collection === 'campaigns' && !item.permissions) {
+    item.permissions = {
+      // Basic permissions defaults
+      tokenMovement: true,
+      doorControl: true,
+      drawings: true,
+      measure: true,
+      pingMap: true,
+      diceRolling: true,
+      tokenCreate: true,
+      tokenEdit: true,
+      tokenDelete: true,
+      fogReveal: true,
+      compendiumBrowse: true,
+      journalCreate: true,
+      sheetEdit: true,
+      initiativeRoll: true,
+      drawingDelete: true,
+      drawingClear: true,
+      shareCursor: true,
+      allowSpectate: true,
+      tokenHover: defaultTokenHoverPermissions,
+      logConfig: { movement: 'public', combat: 'public', rolls: 'public', system: 'public' },
+      userOverrides: {}
+    };
+  }
 
   await dbInstance.run(
     'INSERT INTO store (collection, id, data) VALUES (?, ?, ?)',
@@ -154,6 +206,7 @@ export const atomicUpdate = async (collection, id, { path, operation }) => {
   await update(collection, id, doc);
   return doc;
 };
+
 // Função auxiliar que aplica $push, $pull, $set em caminhos aninhados
 function applyOperation(obj, path, operation, arrayFilters = []) {
   const parts = path.replace(/\.\$\[.*?\]/g, '.$').split('.'); // trata $[scene] como $
