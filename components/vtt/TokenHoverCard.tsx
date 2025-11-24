@@ -166,12 +166,13 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
         e.stopPropagation(); // Prevent map click
         const current = token.conditions || [];
         const def = STATUS_RULES[conditionId];
-        const next = current.includes(conditionId) ? current.filter(c => c !== conditionId) : [...current, conditionId];
+        const isAdding = !current.includes(conditionId);
+        const next = isAdding ? [...current, conditionId] : current.filter(c => c !== conditionId);
 
         onUpdate(token.id, { conditions: next });
 
-        // Chat Message on ADD only
-        if (!current.includes(conditionId) && def) {
+        // Chat Message on ADD only, and only if GM and broadcastConditions is enabled
+        if (isAdding && isGM && permissions?.logConfig?.broadcastConditions && def) {
             const markdown = `**${def.name}**\n\n${def.effects.map(e => `- ${e}`).join('\n')}\n\n*Duração: ${def.duration}*`;
             sendChatMessage(
                 `Aplicou **${def.name}** em ${token.name}.`,
@@ -353,59 +354,89 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
                 </div>
 
                 {/* ACTIVE CONDITIONS */}
-                {canShow('showConditions') && (token.conditions?.length > 0 || canControl) && (
-                    <div className="flex flex-wrap gap-1.5 pt-1 items-center relative border-t border-zinc-800/50 mt-1">
-                        {token.conditions && token.conditions.map(cId => {
-                            const def = STATUS_RULES[cId] || { id: cId, name: cId, effects: ['Efeito desconhecido.'], duration: '' };
-                            const styleClass = getDefaultStyle(cId);
-                            const icon = ICON_MAP[cId] || <Activity className="w-3.5 h-3.5" />;
+                {(() => {
+                    const effectConditions = token.effects?.flatMap(e => e.conditions || []) || [];
+                    const allConditions = Array.from(new Set([...(token.conditions || []), ...effectConditions]));
 
-                            return (
-                                <Tooltip key={cId} content={renderConditionTooltip(def)}>
-                                    <button
-                                        onClick={(e) => shareCondition(e, cId)}
-                                        className={`flex items-center gap-1.5 px-2 py-1 rounded text-[9px] font-bold uppercase border shadow-sm hover:opacity-80 transition-opacity ${styleClass}`}
-                                    >
-                                        {icon}
-                                        <span>{def.name}</span>
-                                    </button>
-                                </Tooltip>
-                            );
-                        })}
+                    if (!canShow('showConditions') || (allConditions.length === 0 && !canControl)) return null;
 
-                        {/* Add Condition Button (Owner/GM Only) */}
-                        {canControl && (
-                            <div className="relative">
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); setIsAdding(!isAdding); }}
-                                    className={`w-6 h-6 flex items-center justify-center rounded-full border border-dashed border-zinc-600 text-zinc-500 hover:text-white hover:border-white hover:bg-zinc-800 transition-colors ${isAdding ? 'bg-zinc-800 text-white' : ''}`}
-                                    title="Adicionar Condição"
-                                >
-                                    <Plus className="w-3 h-3" />
-                                </button>
+                    return (
+                        <div className="space-y-2 pt-1 border-t border-zinc-800/50 mt-1">
+                            {/* Conditions List */}
+                            <div className="flex flex-wrap gap-1.5 items-center relative">
+                                {allConditions.map(cId => {
+                                    const def = STATUS_RULES[cId] || { id: cId, name: cId, effects: ['Efeito desconhecido.'], duration: '' };
+                                    const styleClass = getDefaultStyle(cId);
+                                    const icon = ICON_MAP[cId] || <Activity className="w-3.5 h-3.5" />;
 
-                                {/* POPUP LIST */}
-                                {isAdding && (
-                                    <div className="absolute top-full left-0 mt-2 w-48 bg-zinc-900 border border-zinc-700 rounded-xl shadow-xl p-1.5 max-h-60 overflow-y-auto custom-scrollbar z-50 animate-in fade-in zoom-in-95">
-                                        <div className="px-2 py-1 mb-1 text-[9px] font-bold uppercase text-zinc-500">Adicionar Condição</div>
-                                        {Object.entries(STATUS_RULES).map(([key, rule]) => {
-                                            if (token.conditions?.includes(key)) return null;
-                                            return (
-                                                <button
-                                                    key={key}
-                                                    onClick={(e) => toggleCondition(e, key)}
-                                                    className="w-full text-left px-2 py-1.5 text-xs text-zinc-300 hover:bg-primary/20 hover:text-white rounded transition-colors flex items-center gap-2"
-                                                >
-                                                    {ICON_MAP[key]} <span>{rule.name}</span>
-                                                </button>
-                                            );
-                                        })}
+                                    return (
+                                        <Tooltip key={cId} content={renderConditionTooltip(def)}>
+                                            <button
+                                                onClick={(e) => shareCondition(e, cId)}
+                                                onContextMenu={(e) => { e.preventDefault(); toggleCondition(e, cId); }}
+                                                className={`flex items-center gap-1.5 px-2 py-1 rounded text-[9px] font-bold uppercase border shadow-sm hover:opacity-80 transition-opacity ${styleClass}`}
+                                                title="Clique esquerdo: Linkar no Chat | Clique direito: Remover"
+                                            >
+                                                {icon}
+                                                <span>{def.name}</span>
+                                            </button>
+                                        </Tooltip>
+                                    );
+                                })}
+
+                                {/* Add Condition Button (Owner/GM Only) */}
+                                {canControl && (
+                                    <div className="relative">
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); setIsAdding(!isAdding); }}
+                                            className={`w-6 h-6 flex items-center justify-center rounded-full border border-dashed border-zinc-600 text-zinc-500 hover:text-white hover:border-white hover:bg-zinc-800 transition-colors ${isAdding ? 'bg-zinc-800 text-white' : ''}`}
+                                            title="Adicionar Condição"
+                                        >
+                                            <Plus className="w-3 h-3" />
+                                        </button>
+
+                                        {/* POPUP LIST */}
+                                        {isAdding && (
+                                            <div className="absolute top-full left-0 mt-2 w-48 bg-zinc-900 border border-zinc-700 rounded-xl shadow-xl p-1.5 max-h-60 overflow-y-auto custom-scrollbar z-50 animate-in fade-in zoom-in-95">
+                                                <div className="px-2 py-1 mb-1 text-[9px] font-bold uppercase text-zinc-500">Adicionar Condição</div>
+                                                {Object.entries(STATUS_RULES).map(([key, rule]) => {
+                                                    if (token.conditions?.includes(key as Condition)) return null;
+                                                    return (
+                                                        <button
+                                                            key={key}
+                                                            onClick={(e) => toggleCondition(e, key as Condition)}
+                                                            className="w-full text-left px-2 py-1.5 text-xs text-zinc-300 hover:bg-primary/20 hover:text-white rounded transition-colors flex items-center gap-2"
+                                                        >
+                                                            {ICON_MAP[key] || <Activity className="w-3 h-3" />} <span>{rule.name}</span>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
-                        )}
-                    </div>
-                )}
+
+                            {/* Active Effects List */}
+                            {token.effects && token.effects.length > 0 && (
+                                <div className="space-y-1">
+                                    <div className="text-[9px] font-bold uppercase text-zinc-500 px-1">Efeitos Ativos</div>
+                                    <div className="flex flex-col gap-1">
+                                        {token.effects.map(effect => (
+                                            <div key={effect.id} className="bg-zinc-900/50 border border-zinc-800 rounded px-2 py-1 text-[10px] flex justify-between items-center">
+                                                <span className="text-zinc-300 font-medium truncate max-w-[120px]" title={effect.name}>{effect.name}</span>
+                                                <div className="flex gap-2 text-zinc-500">
+                                                    {effect.modifiers?.ac ? <span className="text-blue-400 font-bold" title="Modificador de CA">CA {fmtMod(effect.modifiers.ac)}</span> : null}
+                                                    {effect.modifiers?.speed ? <span className="text-green-400 font-bold" title="Modificador de Deslocamento">Desl. {fmtMod(effect.modifiers.speed)}</span> : null}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })()}
 
                 {/* QUICK STATS ROW */}
                 {canShow('showStats') && (

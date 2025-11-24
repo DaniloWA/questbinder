@@ -8,7 +8,7 @@ import {
     Square, Grid, MousePointer2, ChevronRight,
     User, Crown, Lightbulb, Sun, Hexagon, Users, Lock,
     LayoutGrid, RefreshCw, ArrowLeft, ScanEye, Dices, BookOpen,
-    Music, Speaker, FileText, Book, Zap, Brush
+    Music, Speaker, FileText, Book, Zap, Brush, Wand2
 } from 'lucide-react';
 import { Tooltip } from '../ui/Tooltip';
 import { useGameSession } from '../../context/GameSessionContext';
@@ -306,6 +306,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 children: [
                     { id: 'draw-wall', type: 'tool', label: 'Parede', icon: <Fence /> },
                     { id: 'freehand-wall', type: 'tool', label: 'Parede Livre (Desenho)', icon: <PenTool /> },
+                    { id: 'smart-wall', type: 'tool', label: 'Parede Inteligente (Magic Wand)', icon: <Wand2 /> },
                     { id: 'draw-door', type: 'tool', label: 'Porta', icon: <DoorOpen /> },
                     { id: 'draw-window', type: 'tool', label: 'Janela', icon: <Grid /> },
                     { id: 'eraser', type: 'tool', label: 'Borracha (Estrutura)', icon: <Eraser />, danger: true },

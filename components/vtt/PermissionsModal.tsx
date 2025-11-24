@@ -308,6 +308,26 @@ export const PermissionsModal: React.FC<PermissionsModalProps> = ({ isOpen, onCl
                                     </div>
                                 );
                             })}
+
+                            {/* Broadcast Conditions Toggle */}
+                            <div className="pt-4 mt-4 border-t border-zinc-800">
+                                <h3 className="text-base font-bold text-white flex items-center gap-2 mb-3"><Zap className="w-4 h-4 text-primary" /> Notificações de Condições</h3>
+                                <div className="flex items-center justify-between p-3 rounded-lg bg-zinc-900/50 border border-zinc-800">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 rounded-full bg-zinc-800 text-zinc-400"><Sword className="w-4 h-4" /></div>
+                                        <div>
+                                            <span className="text-sm font-bold text-zinc-200 block">Anunciar Condições no Chat</span>
+                                            <span className="text-xs text-zinc-500">Quando o GM adiciona condições, enviar mensagem no chat.</span>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setLocalPerms(prev => ({ ...prev, logConfig: { ...prev.logConfig, broadcastConditions: !prev.logConfig.broadcastConditions } }))}
+                                        className={`relative w-12 h-6 rounded-full transition-colors duration-200 ${localPerms.logConfig.broadcastConditions ? 'bg-primary' : 'bg-zinc-700'}`}
+                                    >
+                                        <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 ${localPerms.logConfig.broadcastConditions ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     )}
 

@@ -61,6 +61,7 @@ export const getDefaultPermissions = (): SessionPermissions => ({
     combat: 'public',
     rolls: 'public',
     system: 'gm',
+    broadcastConditions: true, // Default: GM broadcasts condition changes to chat
   },
 
   // Overrides por Usuário

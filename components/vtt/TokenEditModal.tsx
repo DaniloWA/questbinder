@@ -1,10 +1,10 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Token, TokenShape, LightAnimationType, TokenType, LightConfig, User, Character, Condition, TokenIdleAnimation, TokenEffect, BorderStyle, TokenStats } from '../../types';
+import { Token, TokenShape, LightAnimationType, TokenType, LightConfig, User, Character, Condition, TokenIdleAnimation, TokenEffect, BorderStyle, TokenStats, CombatEffect } from '../../types';
 import { Button } from '../ui/Button';
 import { SheetInput, SheetLabel, SheetSelect, SheetTextArea } from '../ui/SheetPrimitives';
 import { Counter } from '../ui/Counter';
-import { UploadCloud, Eye, RotateCw, Heart, Zap, Shield, Activity, Circle, Square, Hexagon, Skull, AlertTriangle, Droplets, ScanEye, Image as ImageIcon, EyeOff, Type, Sun, Lightbulb, Moon, User as UserIcon, Ghost, Box, Lock, Check, BookOpen, Search, Palette, Wand2, ArrowDownUp, FileText, Flame, Package, Move, Hand, Anchor, EarOff, Loader2 } from 'lucide-react';
+import { UploadCloud, Eye, RotateCw, Heart, Zap, Shield, Activity, Circle, Square, Hexagon, Skull, AlertTriangle, Droplets, ScanEye, Image as ImageIcon, EyeOff, Type, Sun, Lightbulb, Moon, User as UserIcon, Ghost, Box, Lock, Check, BookOpen, Search, Palette, Wand2, ArrowDownUp, FileText, Flame, Package, Move, Hand, Anchor, EarOff, Loader2, Trash2 } from 'lucide-react';
 import { ColorPicker } from '../ui/ColorPicker';
 import { compendiumService } from '../../services/compendiumService';
 import { ApiMonster } from '../../types/compendium';
@@ -13,6 +13,8 @@ import { STATUS_RULES } from '../../data/rules';
 import { Tooltip } from '../ui/Tooltip';
 import { fileService } from '../../services/fileService';
 import { useNotification } from '../../context/NotificationContext';
+import { AuraSettingsPanel } from './TokenSettings/AuraSettingsPanel';
+import { Aura } from '../../types';
 
 type TokenData = Omit<Token, 'id' | 'x' | 'y'>;
 
@@ -21,6 +23,7 @@ interface TokenEditModalProps {
     initialPosition?: { x: number, y: number; };
     players: User[];
     availableCharacters?: Character[];
+    sceneTokens?: Token[];
     onSave: (data: TokenData, position?: { x: number, y: number; }) => void;
     onSaveTemplate?: (data: TokenData) => void;
     onCancel: () => void;
@@ -84,7 +87,7 @@ const OBJECT_PRESETS: { id: string; label: string; icon: string; light: Partial<
     { id: 'trap', label: 'Armadilha', icon: '⚙️', light: { enabled: false }, color: '#52525b', effect: 'none', animation: 'none' },
 ];
 
-export const TokenEditModal: React.FC<TokenEditModalProps> = ({ token, initialPosition, players, availableCharacters = [], onSave, onSaveTemplate, onCancel }) => {
+export const TokenEditModal: React.FC<TokenEditModalProps> = ({ token, initialPosition, players, availableCharacters = [], sceneTokens = [], onSave, onSaveTemplate, onCancel }) => {
     const { show } = useNotification();
     const isNew = token === 'new';
     const t = isNew ? {} as Partial<Token> : token;
@@ -151,6 +154,10 @@ export const TokenEditModal: React.FC<TokenEditModalProps> = ({ token, initialPo
     const [mpMax, setMpMax] = useState(t.bars?.bar2?.max || 0);
     const [mpVisible, setMpVisible] = useState(t.bars?.bar2?.visible ?? false);
     const [conditions, setConditions] = useState<Condition[]>(t.conditions || []);
+    const [auras, setAuras] = useState<Aura[]>(t.auras || []);
+    const [effects, setEffects] = useState<CombatEffect[]>(t.effects || []);
+    const [ignoredAuras, setIgnoredAuras] = useState<string[]>(t.ignoredAuras || []);
+    const [disposition, setDisposition] = useState<'friendly' | 'neutral' | 'hostile' | undefined>(t.disposition);
 
     // Monster Sheet (TokenStats)
     const [monsterStats, setMonsterStats] = useState<TokenStats>(t.stats || {
@@ -345,6 +352,10 @@ export const TokenEditModal: React.FC<TokenEditModalProps> = ({ token, initialPo
             displayMode, textDetails: { text: textVal, backgroundColor: textBgColor, textColor: textColor },
             bars: { bar1: { value: hpValue, max: hpMax, color: '#22c55e', visible: hpVisible }, bar2: { value: mpValue, max: mpMax, color: '#3b82f6', visible: mpVisible } },
             conditions,
+            auras,
+            effects,
+            ignoredAuras,
+            disposition,
             stats: monsterStats
         };
     };
@@ -400,6 +411,7 @@ export const TokenEditModal: React.FC<TokenEditModalProps> = ({ token, initialPo
             { id: 'style', label: 'Estilo', icon: <Palette className="w-4 h-4" /> },
             { id: 'stats', label: 'Status', icon: <Activity className="w-4 h-4" /> },
             { id: 'light', label: 'Luz', icon: <Sun className="w-4 h-4" /> },
+            { id: 'auras', label: 'Auras', icon: <Shield className="w-4 h-4" /> },
             { id: 'perms', label: 'Permissões', icon: <Lock className="w-4 h-4" /> }
         ];
         if (tokenType === 'npc') return [
@@ -408,12 +420,14 @@ export const TokenEditModal: React.FC<TokenEditModalProps> = ({ token, initialPo
             { id: 'style', label: 'Estilo', icon: <Palette className="w-4 h-4" /> },
             { id: 'stats', label: 'Status', icon: <Activity className="w-4 h-4" /> },
             { id: 'light', label: 'Luz', icon: <Sun className="w-4 h-4" /> },
+            { id: 'auras', label: 'Auras', icon: <Shield className="w-4 h-4" /> },
             { id: 'perms', label: 'Permissões', icon: <Lock className="w-4 h-4" /> }
         ];
         return [
             { id: 'general', label: 'Geral', icon: <Eye className="w-4 h-4" /> },
             { id: 'style', label: 'Estilo', icon: <Palette className="w-4 h-4" /> },
             { id: 'light', label: 'Luz', icon: <Sun className="w-4 h-4" /> },
+            { id: 'auras', label: 'Auras', icon: <Shield className="w-4 h-4" /> },
         ];
     };
 
@@ -547,6 +561,27 @@ export const TokenEditModal: React.FC<TokenEditModalProps> = ({ token, initialPo
                                     )}
                                 </div>
                                 {tokenType !== 'object' && (
+                                    <div className="space-y-2">
+                                        <SheetLabel>Disposição (IA)</SheetLabel>
+                                        <div className="flex bg-zinc-950 p-1 rounded-lg border border-zinc-800">
+                                            {([
+                                                { id: 'friendly', label: 'Aliado', color: 'text-green-500', bg: 'bg-green-500/10 border-green-500/50' },
+                                                { id: 'neutral', label: 'Neutro', color: 'text-zinc-400', bg: 'bg-zinc-800 border-zinc-700' },
+                                                { id: 'hostile', label: 'Inimigo', color: 'text-red-500', bg: 'bg-red-500/10 border-red-500/50' }
+                                            ] as const).map(opt => (
+                                                <button
+                                                    key={opt.id}
+                                                    type="button"
+                                                    onClick={() => setDisposition(opt.id)}
+                                                    className={`flex-1 py-1.5 text-xs font-bold rounded transition-all border ${disposition === opt.id ? `${opt.bg} ${opt.color}` : 'border-transparent text-zinc-600 hover:text-zinc-400'}`}
+                                                >
+                                                    {opt.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                {tokenType !== 'object' && (
                                     <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-950/30 space-y-4">
                                         <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-2"><ScanEye className="w-3 h-3" /> Visão</h3>
                                         <div className="grid grid-cols-2 gap-4"><div><SheetLabel tooltip="Alcance de visão em área iluminada">Alcance Normal</SheetLabel><Counter value={visionRange} onChange={setVisionRange} min={0} max={999} className="bg-zinc-900 w-full" /></div><div><SheetLabel icon={<Moon className="w-3 h-3" />} tooltip="Alcance de visão no escuro total">Visão Escuro</SheetLabel><Counter value={darkvisionRange} onChange={setDarkvisionRange} min={0} max={999} className="bg-zinc-900 w-full" /></div></div>
@@ -616,6 +651,40 @@ export const TokenEditModal: React.FC<TokenEditModalProps> = ({ token, initialPo
                                         })}
                                     </div>
                                 </div>
+                                <div className="space-y-2">
+                                    <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-2"><Zap className="w-3 h-3" /> Efeitos Ativos</h3>
+                                    <div className="bg-zinc-950/50 p-2 rounded-lg border border-zinc-800 space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
+                                        {effects.length === 0 && <span className="text-xs text-zinc-600 italic p-2 block text-center">Nenhum efeito ativo.</span>}
+                                        {effects.map(eff => (
+                                            <div key={eff.id} className="flex items-center justify-between p-2 bg-zinc-900 rounded border border-zinc-800">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-1 h-8 rounded-full bg-primary/50"></div>
+                                                    <div>
+                                                        <div className="text-xs font-bold text-white">{eff.name}</div>
+                                                        <div className="text-[10px] text-zinc-500 flex gap-2">
+                                                            {eff.sourceAuraId && <span className="text-blue-400 flex items-center gap-1"><Shield className="w-3 h-3" /> Aura</span>}
+                                                            {eff.duration !== -1 && <span>{typeof eff.duration === 'object' ? `${eff.duration.remaining} rodadas` : `${eff.duration} rodadas`}</span>}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newEffects = effects.filter(e => e.id !== eff.id);
+                                                        setEffects(newEffects);
+                                                        if (eff.sourceAuraId) {
+                                                            setIgnoredAuras([...ignoredAuras, eff.sourceAuraId]);
+                                                        }
+                                                    }}
+                                                    className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                                                    title={eff.sourceAuraId ? "Remover e Ignorar Aura" : "Remover Efeito"}
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         )}
 
@@ -632,6 +701,17 @@ export const TokenEditModal: React.FC<TokenEditModalProps> = ({ token, initialPo
                                         <div className="space-y-2"><SheetLabel>Animação da Luz</SheetLabel><div className="grid grid-cols-3 gap-2">{[{ id: 'none', label: 'Fixo' }, { id: 'torch', label: 'Tocha' }, { id: 'pulse', label: 'Pulso' }].map(opt => (<button key={opt.id} type="button" onClick={() => setLightAnim(opt.id as LightAnimationType)} className={`py-2 text-xs font-bold rounded-md border transition-all ${lightAnim === opt.id ? 'bg-primary/20 border-primary text-primary' : 'bg-zinc-950 border-zinc-800 text-zinc-500 hover:bg-zinc-800'}`}>{opt.label}</button>))}</div></div>
                                     </div>
                                 )}
+                            </div>
+                        )}
+
+                        {activeTab === 'auras' && (
+                            <div className="h-full animate-in fade-in slide-in-from-right-4 duration-300">
+                                <AuraSettingsPanel
+                                    auras={auras}
+                                    onChange={setAuras}
+                                    sceneTokens={sceneTokens || []}
+                                    parentToken={isNew ? { ...t, ...getData() } as Token : { ...token, ...getData() } as Token}
+                                />
                             </div>
                         )}
 

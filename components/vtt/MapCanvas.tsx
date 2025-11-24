@@ -4,8 +4,9 @@ import { MapScene, Token, Viewport, Ping, Obstacle, User, PolygonObstacle, LineO
 import { TokenDragPayload, CursorMovePayload } from '../../types/socket';
 import { TokenHoverCard } from './TokenHoverCard';
 import { calculateVisibilityPolygon, isPointInPolygon, distanceToSegment } from '../../utils/geometry';
-import { drawGrid, drawToken, drawRuler, drawObstacles, drawLabel, drawLightingLayer, drawAudioZones } from '../../utils/canvasRenderer';
+import { drawGrid, drawToken, drawRuler, drawObstacles, drawLabel, drawLightingLayer, drawAudioZones, drawAuras } from '../../utils/canvasRenderer';
 import { findPath } from '../../utils/pathfinding';
+import { getContourFromPoint } from '../../utils/imageProcessing';
 import { useGameSession } from '../../context/GameSessionContext';
 import { useModal } from '../../context/ModalContext';
 import { Button } from '../ui/Button';
@@ -336,7 +337,7 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
     }).current;
 
     const lastMousePos = useRef({ x: 0, y: 0 });
-    const isDrawingTool = ['draw-wall', 'draw-door', 'draw-window', 'fog-poly', 'fog-rect', 'measure-path', 'eraser', 'draw-light-rect', 'draw-light-poly', 'draw-audio-rect', 'draw-audio-poly', 'eraser-audio', 'draw-trigger-rect', 'draw-trigger-poly', 'eraser-trigger', 'brush', 'eraser-drawing'].includes(activeTool);
+    const isDrawingTool = ['draw-wall', 'draw-door', 'draw-window', 'fog-poly', 'fog-rect', 'measure-path', 'eraser', 'draw-light-rect', 'draw-light-poly', 'draw-audio-rect', 'draw-audio-poly', 'eraser-audio', 'draw-trigger-rect', 'draw-trigger-poly', 'eraser-trigger', 'brush', 'eraser-drawing', 'smart-wall'].includes(activeTool);
 
     const visionTokens = React.useMemo(() => {
         if (isGM && gmViewMode === 'player') {
@@ -433,6 +434,7 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
         imagesToLoad.forEach(src => {
             if (src && !imageCache[src]) {
                 const img = new Image();
+                img.crossOrigin = "Anonymous";
                 img.src = src;
                 img.onload = () => { imageCache[src] = img; };
             }
@@ -697,6 +699,7 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
                 }
 
                 const linkedCharacter = token.linkedId ? campaignCharacters.find(c => c.id === token.linkedId) : undefined;
+                drawAuras(ctx, animToken, gridSize, viewport.zoom, effectiveIsGM);
                 drawToken(ctx, animToken, gridSize, selectedTokenIds.includes(token.id), viewport.zoom, imageCache, renderAsGhost, linkedCharacter);
             });
 
@@ -1091,6 +1094,35 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
             if (activeTool === 'brush' || activeTool === 'freehand-wall') {
                 isDrawingRef.current = true;
                 liveDrawingPointsRef.current = [worldPos];
+                return;
+            }
+
+            if (activeTool === 'smart-wall' && scene) {
+                const img = imageCache[scene.imageUrl];
+                if (img) {
+                    const mapWidth = scene.grid.size * scene.grid.cols;
+                    const mapHeight = scene.grid.size * scene.grid.rows;
+                    const scaleX = img.naturalWidth / mapWidth;
+                    const scaleY = img.naturalHeight / mapHeight;
+
+                    const ix = Math.floor(worldPos.x * scaleX);
+                    const iy = Math.floor(worldPos.y * scaleY);
+
+                    // Run async to not block UI? It's synchronous for now, might freeze for a sec on large images.
+                    // We can wrap in setTimeout to allow UI update if needed, but for now direct call.
+                    try {
+                        const contour = getContourFromPoint(img, ix, iy, 40); // Tolerance 40
+                        if (contour.length > 2) {
+                            const worldContour = contour.map(p => ({
+                                x: p.x / scaleX,
+                                y: p.y / scaleY
+                            }));
+                            addObstacles([{ type: 'wall', points: worldContour, blocksVision: true, blocksMovement: true, open: false }]);
+                        }
+                    } catch (e) {
+                        console.error("Smart wall error:", e);
+                    }
+                }
                 return;
             }
 

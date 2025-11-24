@@ -17,6 +17,7 @@ import { useCharacterActions } from './gameSession/hooks/useCharacterActions';
 import { useTemplateActions } from './gameSession/hooks/useTemplateActions';
 import { useMapInteraction } from './gameSession/hooks/useMapInteraction';
 import { useUiActions } from './gameSession/hooks/useUiActions';
+import { useAuraSystem } from './gameSession/hooks/useAuraSystem';
 import { audioService } from '../services/audioService';
 
 const GameSessionContext = createContext<GameSessionContextType | undefined>(undefined);
@@ -40,6 +41,7 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
     } = useChatActions(state, setState, campaignId, user, checkPermission, show, setIsCompendiumOpen, setViewport, addPing, selectToken);
 
     useSocketListeners(state, setState, campaignId, user, show);
+    useAuraSystem(state, updateToken, campaignId, state.isGM);
 
     // Audio Zone Playback Effect
     React.useEffect(() => {

@@ -193,6 +193,7 @@ const GameSessionUI: React.FC = () => {
                 initialPosition={initialPosition}
                 players={session.players}
                 availableCharacters={session.campaignCharacters}
+                sceneTokens={session.activeScene?.tokens || []}
                 onSave={(data, pos) => {
                     if (token === 'new') {
                         session.addToken({ ...data, ...(pos || { x: 0, y: 0 }) });

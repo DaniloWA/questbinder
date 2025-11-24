@@ -330,6 +330,10 @@ export interface Token {
   darkvisionRange?: number;
   visionColor?: string;
   light?: LightConfig;
+  auras?: Aura[];
+  effects?: CombatEffect[]; // Active combat effects on this token
+  ignoredAuras?: string[]; // IDs of auras manually dismissed by the user
+  disposition?: 'friendly' | 'neutral' | 'hostile'; // For smart targeting
 
   // Visual Styling
   shape?: TokenShape;
@@ -390,6 +394,24 @@ export type CombatCondition =
   | 'invisible' | 'restrained' | 'grappled' | 'incapacitated'
   | 'petrified' | 'exhausted' | 'concentrating';
 
+export interface Aura {
+  id: string;
+  name: string;
+  radius: number;
+  color: string;
+  shape: 'circle' | 'square';
+  effects: CombatEffect[]; // Template effects to apply
+  targets: 'all' | 'allies' | 'enemies' | 'self';
+  active: boolean;
+  visible?: boolean; // GM only visibility
+  includedTokenIds?: string[]; // Specific tokens to force include (overrides disposition)
+  excludedTokenIds?: string[]; // Specific tokens to force exclude
+  description?: string;
+  category?: 'offensive' | 'defensive' | 'support' | 'control';
+  trigger?: string;
+  requirements?: string[];
+}
+
 export interface CombatEffect {
   id: string;
   name: string;
@@ -402,6 +424,7 @@ export interface CombatEffect {
     remaining: number;
   };
   source?: string; // Quem aplicou
+  sourceAuraId?: string; // ID da aura que aplicou este efeito (para remoção automática)
   conditions?: CombatCondition[];
   modifiers?: {
     ac?: number;
@@ -534,6 +557,7 @@ export interface SessionLogConfig {
   combat: 'public' | 'gm';
   rolls: 'public' | 'gm';
   system: 'public' | 'gm';
+  broadcastConditions: boolean; // GM can toggle whether condition changes are sent to chat
 }
 
 // Token Hover Visibility Permissions
@@ -645,7 +669,7 @@ export interface SoundEffect {
 }
 
 // --- MISC ---
-export type VTTTool = 'select' | 'pan' | 'measure-path' | 'fog-poly' | 'fog-rect' | 'draw-wall' | 'freehand-wall' | 'draw-door' | 'draw-window' | 'draw-light-rect' | 'draw-light-poly' | 'draw-audio-rect' | 'draw-audio-poly' | 'draw-trigger-rect' | 'draw-trigger-poly' | 'eraser' | 'eraser-audio' | 'eraser-trigger' | 'brush' | 'eraser-drawing';
+export type VTTTool = 'select' | 'pan' | 'measure-path' | 'fog-poly' | 'fog-rect' | 'draw-wall' | 'freehand-wall' | 'smart-wall' | 'draw-door' | 'draw-window' | 'draw-light-rect' | 'draw-light-poly' | 'draw-audio-rect' | 'draw-audio-poly' | 'draw-trigger-rect' | 'draw-trigger-poly' | 'eraser' | 'eraser-audio' | 'eraser-trigger' | 'brush' | 'eraser-drawing';
 
 export interface JournalEntry {
   id: string;

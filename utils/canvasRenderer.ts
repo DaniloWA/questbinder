@@ -352,6 +352,60 @@ interface TokenBar {
     visible: boolean;
 }
 
+export const drawAuras = (
+    ctx: CanvasRenderingContext2D,
+    token: Token,
+    gridSize: number,
+    viewportZoom: number,
+    isGM: boolean = false
+) => {
+    if (!token.auras || token.auras.length === 0) return;
+
+    const px = token.x * gridSize;
+    const py = token.y * gridSize;
+    const sizePx = token.size * gridSize;
+    const cx = px + sizePx / 2;
+    const cy = py + sizePx / 2;
+
+    token.auras.forEach(aura => {
+        if (!aura.active) return;
+        if (aura.visible === false && !isGM) return;
+
+        const radiusPx = aura.radius * gridSize; // Assuming radius is in grid units (e.g. 1.5m = 1 square)
+        // Wait, radius in Aura is in meters. GridSize is pixels per square.
+        // We need to know pixels per meter.
+        // Usually 1 square = 1.5m (5ft).
+        // So radiusInSquares = radiusMeters / 1.5
+        // radiusPx = radiusInSquares * gridSize
+        const radiusInSquares = aura.radius / 1.5;
+        const r = radiusInSquares * gridSize;
+
+        ctx.save();
+        ctx.translate(cx, cy);
+
+        ctx.beginPath();
+        if (aura.shape === 'square') {
+            ctx.rect(-r, -r, r * 2, r * 2);
+        } else {
+            ctx.arc(0, 0, r, 0, Math.PI * 2);
+        }
+
+        // Fill
+        ctx.fillStyle = aura.color;
+        ctx.globalAlpha = 0.15;
+        ctx.fill();
+
+        // Border
+        ctx.strokeStyle = aura.color;
+        ctx.globalAlpha = 0.4;
+        ctx.lineWidth = 2 / viewportZoom;
+        ctx.setLineDash([5 / viewportZoom, 5 / viewportZoom]);
+        ctx.stroke();
+
+        ctx.restore();
+    });
+};
+
 export const drawToken = (
     ctx: CanvasRenderingContext2D,
     token: Token,
@@ -496,16 +550,27 @@ export const drawToken = (
     if (isGhost) return;
 
     // 6. Status Conditions
-    if (token.conditions && token.conditions.length > 0) {
+    // Combine explicit conditions with conditions from active effects
+    const activeConditions = new Set<string>(token.conditions || []);
+    if (token.effects) {
+        token.effects.forEach(effect => {
+            if (effect.conditions) {
+                effect.conditions.forEach(c => activeConditions.add(c));
+            }
+        });
+    }
+    const uniqueConditions = Array.from(activeConditions);
+
+    if (uniqueConditions.length > 0) {
         const dotSize = 6 / viewportZoom;
         const gap = 2 / viewportZoom;
-        const totalWidth = (token.conditions.length * dotSize) + ((token.conditions.length - 1) * gap);
+        const totalWidth = (uniqueConditions.length * dotSize) + ((uniqueConditions.length - 1) * gap);
         let startX = cx - totalWidth / 2 + dotSize / 2;
         const startY = py + (isTopDown ? sizePx : padding); // Move dots lower for TopDown? Or keep top? Keep top.
 
         const colorMap: Record<string, string> = { dead: '#ef4444', bloodied: '#dc2626', stunned: '#eab308', shielded: '#3b82f6', alert: '#f97316' };
 
-        token.conditions.forEach((cond, i) => {
+        uniqueConditions.forEach((cond, i) => {
             ctx.beginPath();
             ctx.arc(startX + i * (dotSize + gap), py + padding + dotSize, dotSize, 0, Math.PI * 2);
             ctx.fillStyle = colorMap[cond] || '#ffffff';
