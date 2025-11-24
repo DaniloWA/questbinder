@@ -305,6 +305,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 hidden: !isGM,
                 children: [
                     { id: 'draw-wall', type: 'tool', label: 'Parede', icon: <Fence /> },
+                    { id: 'freehand-wall', type: 'tool', label: 'Parede Livre (Desenho)', icon: <PenTool /> },
                     { id: 'draw-door', type: 'tool', label: 'Porta', icon: <DoorOpen /> },
                     { id: 'draw-window', type: 'tool', label: 'Janela', icon: <Grid /> },
                     { id: 'eraser', type: 'tool', label: 'Borracha (Estrutura)', icon: <Eraser />, danger: true },

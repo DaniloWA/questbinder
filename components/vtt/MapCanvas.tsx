@@ -576,9 +576,17 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
                     for (let i = 1; i < livePoints.length; i++) {
                         ctx.lineTo(livePoints[i].x, livePoints[i].y);
                     }
-                    ctx.strokeStyle = drawingSettings.color;
-                    ctx.lineWidth = drawingSettings.width / viewport.zoom;
-                    ctx.globalAlpha = drawingSettings.opacity;
+
+                    if (activeTool === 'freehand-wall') {
+                        ctx.strokeStyle = 'rgba(255, 0, 255, 0.6)';
+                        ctx.lineWidth = 4;
+                        ctx.globalAlpha = 1.0;
+                    } else {
+                        ctx.strokeStyle = drawingSettings.color;
+                        ctx.lineWidth = drawingSettings.width / viewport.zoom;
+                        ctx.globalAlpha = drawingSettings.opacity;
+                    }
+
                     ctx.stroke();
                     ctx.restore();
                 }
@@ -931,7 +939,7 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
         }
 
         // LIVE DRAWING LOGIC
-        if (activeTool === 'brush' && isDrawingRef.current) {
+        if ((activeTool === 'brush' || activeTool === 'freehand-wall') && isDrawingRef.current) {
             const currentPoints = liveDrawingPointsRef.current;
             // Add point only if moved enough to save memory
             if (currentPoints.length > 0) {
@@ -1080,7 +1088,7 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
         }
 
         if (e.button === 0) {
-            if (activeTool === 'brush') {
+            if (activeTool === 'brush' || activeTool === 'freehand-wall') {
                 isDrawingRef.current = true;
                 liveDrawingPointsRef.current = [worldPos];
                 return;
@@ -1275,15 +1283,28 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
             return;
         }
 
-        if (activeTool === 'brush') {
+        if (activeTool === 'brush' || activeTool === 'freehand-wall') {
             isDrawingRef.current = false;
             if (liveDrawingPointsRef.current.length > 1) {
-                addDrawing({
-                    id: Math.random().toString(),
-                    userId: currentUser?.id || '',
-                    points: liveDrawingPointsRef.current,
-                    ...drawingSettings
-                });
+                if (activeTool === 'brush') {
+                    addDrawing({
+                        id: Math.random().toString(),
+                        userId: currentUser?.id || '',
+                        points: liveDrawingPointsRef.current,
+                        ...drawingSettings
+                    });
+                } else {
+                    // Freehand Wall
+                    // Simplify points? For now, just use them.
+                    // Maybe reduce density if needed.
+                    addObstacles([{
+                        type: 'wall',
+                        points: [...liveDrawingPointsRef.current],
+                        blocksVision: true,
+                        blocksMovement: true,
+                        open: true // Freehand walls are usually open paths
+                    }]);
+                }
             }
             liveDrawingPointsRef.current = [];
         }

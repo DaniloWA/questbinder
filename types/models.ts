@@ -645,7 +645,7 @@ export interface SoundEffect {
 }
 
 // --- MISC ---
-export type VTTTool = 'select' | 'pan' | 'measure-path' | 'fog-poly' | 'fog-rect' | 'draw-wall' | 'draw-door' | 'draw-window' | 'draw-light-rect' | 'draw-light-poly' | 'draw-audio-rect' | 'draw-audio-poly' | 'draw-trigger-rect' | 'draw-trigger-poly' | 'eraser' | 'eraser-audio' | 'eraser-trigger' | 'brush' | 'eraser-drawing';
+export type VTTTool = 'select' | 'pan' | 'measure-path' | 'fog-poly' | 'fog-rect' | 'draw-wall' | 'freehand-wall' | 'draw-door' | 'draw-window' | 'draw-light-rect' | 'draw-light-poly' | 'draw-audio-rect' | 'draw-audio-poly' | 'draw-trigger-rect' | 'draw-trigger-poly' | 'eraser' | 'eraser-audio' | 'eraser-trigger' | 'brush' | 'eraser-drawing';
 
 export interface JournalEntry {
   id: string;

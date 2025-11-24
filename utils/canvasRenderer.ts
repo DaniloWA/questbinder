@@ -690,7 +690,7 @@ export const drawObstacles = (
         if (obstacle.type === 'wall') {
             // Standard Wall
             ctx.strokeStyle = isHighlighted ? '#ef4444' : 'rgba(255, 0, 255, 0.6)';
-            ctx.lineWidth = (isHighlighted ? 6 : 4) / zoom;
+            ctx.lineWidth = (isHighlighted ? 6 : 4);
 
             if (obstacle.points.length > 1) {
                 ctx.beginPath();
@@ -719,22 +719,30 @@ export const drawObstacles = (
 
             // Draw Base Frame (Wall gap)
             const frameColor = obstacle.type === 'door' ? '#8B4513' : '#475569'; // Brown for door, Slate for window
-            const frameWidth = (isHighlighted ? 6 : 4) / zoom;
+            const frameWidth = (isHighlighted ? 6 : 4);
 
-            // Draw the "Hole" in the wall (clear previous wall if any, but here we just draw over)
-            // Actually, we usually draw walls first. For doors, we draw the frame.
-
-            // 1. Draw Frame Ends (Jambs)
+            // Draw Frame Ends (Jambs)
             ctx.fillStyle = frameColor;
-            const jambSize = 4 / zoom;
+            const jambSize = 4;
             ctx.fillRect(-len / 2, -jambSize, jambSize, jambSize * 2); // Left Jamb
             ctx.fillRect(len / 2 - jambSize, -jambSize, jambSize, jambSize * 2); // Right Jamb
 
             if (obstacle.type === 'door') {
                 const doorColor = isHighlighted ? '#ef4444' : '#A0522D'; // Sienna
-                const doorThickness = 6 / zoom;
+                const doorThickness = 6;
 
                 if (isOpen) {
+                    // Draw Threshold (visual guide for clicking)
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(-len / 2, 0);
+                    ctx.lineTo(len / 2, 0);
+                    ctx.strokeStyle = isHighlighted ? '#ef4444' : 'rgba(0, 0, 0, 0.3)';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([4, 4]);
+                    ctx.stroke();
+                    ctx.restore();
+
                     // Open Door: Draw rectangle swung open 90 degrees (or 45)
                     // Let's swing it 90 degrees relative to the wall
                     ctx.save();
@@ -749,8 +757,8 @@ export const drawObstacles = (
                     ctx.beginPath();
                     ctx.arc(0, 0, len - jambSize * 2, 0, -Math.PI / 3, true);
                     ctx.strokeStyle = 'rgba(0,0,0,0.3)';
-                    ctx.lineWidth = 1 / zoom;
-                    ctx.setLineDash([3 / zoom, 3 / zoom]);
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([3, 3]);
                     ctx.stroke();
 
                     ctx.restore();
@@ -767,7 +775,7 @@ export const drawObstacles = (
                 }
             } else if (obstacle.type === 'window') {
                 const glassColor = 'rgba(200, 240, 255, 0.6)';
-                const frameThick = 2 / zoom;
+                const frameThick = 2;
 
                 // Window Frame (Top/Bottom lines)
                 ctx.fillStyle = frameColor;
@@ -783,7 +791,7 @@ export const drawObstacles = (
 
                     ctx.fillStyle = glassColor;
                     ctx.strokeStyle = frameColor;
-                    ctx.lineWidth = 1 / zoom;
+                    ctx.lineWidth = 1;
                     ctx.fillRect(0, -frameThick, len, frameThick * 2);
                     ctx.strokeRect(0, -frameThick, len, frameThick * 2);
 
@@ -795,7 +803,7 @@ export const drawObstacles = (
 
                     // Cross bars (Muntins)
                     ctx.strokeStyle = frameColor;
-                    ctx.lineWidth = 1 / zoom;
+                    ctx.lineWidth = 1;
                     ctx.beginPath();
                     ctx.moveTo(0, -frameThick);
                     ctx.lineTo(0, frameThick); // Vertical
