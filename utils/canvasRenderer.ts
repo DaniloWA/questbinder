@@ -68,7 +68,8 @@ export const drawLightingLayer = (
     viewport: Viewport,
     visionTokens: Token[], // Explicit list of tokens that see
     renderDarkness: boolean = true,
-    playerVisionPolygons?: Point[][] // If provided, clips global lights to this union
+    playerVisionPolygons?: Point[][], // If provided, clips global lights to this union
+    obstacles?: Obstacle[] // Optional: Filtered obstacles to use for lighting calculation
 ) => {
     const time = Date.now();
     const gridSize = scene.grid.size;
@@ -188,7 +189,9 @@ export const drawLightingLayer = (
         visionSources.forEach(src => {
             if (src.r <= 0) return;
 
-            const poly = calculateVisibilityPolygon({ x: src.x, y: src.y }, scene.obstacles, src.r);
+            // Use passed obstacles (already filtered) or fallback to scene.obstacles (filtering if player view implied)
+            const obstaclesToUse = obstacles || (playerVisionPath ? scene.obstacles.filter(o => !o.hidden) : scene.obstacles);
+            const poly = calculateVisibilityPolygon({ x: src.x, y: src.y }, obstaclesToUse, src.r);
 
             ctx.save();
 
@@ -304,7 +307,8 @@ export const drawLightingLayer = (
             const maxRadius = Math.max(config.brightRadius || 0, config.dimRadius || 0) * gridSize * flicker;
             if (maxRadius <= 0.1) return;
 
-            const poly = calculateVisibilityPolygon({ x: cx, y: cy }, scene.obstacles, maxRadius);
+            const obstaclesToUse = obstacles || (playerVisionPath ? scene.obstacles.filter(o => !o.hidden) : scene.obstacles);
+            const poly = calculateVisibilityPolygon({ x: cx, y: cy }, obstaclesToUse, maxRadius);
 
             ctx.save();
 
@@ -656,26 +660,24 @@ export const drawObstacles = (
 ) => {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    obstacles.forEach(obstacle => {
 
+    obstacles.forEach(obstacle => {
         const isHidden = obstacle.hidden;
 
         if (!isGM && isHidden) return;
         if (isGM && isHidden && !gmShowHidden) return;
 
-        // Dash Logic for hidden or special states
+        // Base Styles
         if (isGM && isHidden) {
             ctx.setLineDash([5 / zoom, 5 / zoom]);
             ctx.globalAlpha = 0.5;
         } else if (!obstacle.blocksVision && isGM && obstacle.type === 'wall') {
-            // Invisible Wall (Window is separate type)
             ctx.setLineDash([10 / zoom, 10 / zoom]);
         } else {
             ctx.setLineDash([]);
             ctx.globalAlpha = 1.0;
         }
 
-        // Highlight override
         const isHighlighted = obstacle.id === highlightedId;
         if (isHighlighted) {
             ctx.shadowColor = '#ef4444';
@@ -686,7 +688,7 @@ export const drawObstacles = (
         }
 
         if (obstacle.type === 'wall') {
-            // Standard Wall Drawing
+            // Standard Wall
             ctx.strokeStyle = isHighlighted ? '#ef4444' : 'rgba(255, 0, 255, 0.6)';
             ctx.lineWidth = (isHighlighted ? 6 : 4) / zoom;
 
@@ -694,67 +696,114 @@ export const drawObstacles = (
                 ctx.beginPath();
                 ctx.moveTo(obstacle.points[0].x, obstacle.points[0].y);
                 for (let i = 1; i < obstacle.points.length; i++) ctx.lineTo(obstacle.points[i].x, obstacle.points[i].y);
+                if (!obstacle.open) ctx.closePath();
+                ctx.stroke();
+            }
+        } else if (obstacle.type === 'door' || obstacle.type === 'window') {
+            // Visual Door/Window Logic
+            const p1 = obstacle.p1;
+            const p2 = obstacle.p2;
+            const isOpen = !obstacle.blocksMovement; // Assuming open = passable
 
-                if (!obstacle.open) {
-                    ctx.closePath();
+            // Calculate geometry
+            const dx = p2.x - p1.x;
+            const dy = p2.y - p1.y;
+            const len = Math.sqrt(dx * dx + dy * dy);
+            const angle = Math.atan2(dy, dx);
+            const midX = (p1.x + p2.x) / 2;
+            const midY = (p1.y + p2.y) / 2;
+
+            ctx.save();
+            ctx.translate(midX, midY);
+            ctx.rotate(angle);
+
+            // Draw Base Frame (Wall gap)
+            const frameColor = obstacle.type === 'door' ? '#8B4513' : '#475569'; // Brown for door, Slate for window
+            const frameWidth = (isHighlighted ? 6 : 4) / zoom;
+
+            // Draw the "Hole" in the wall (clear previous wall if any, but here we just draw over)
+            // Actually, we usually draw walls first. For doors, we draw the frame.
+
+            // 1. Draw Frame Ends (Jambs)
+            ctx.fillStyle = frameColor;
+            const jambSize = 4 / zoom;
+            ctx.fillRect(-len / 2, -jambSize, jambSize, jambSize * 2); // Left Jamb
+            ctx.fillRect(len / 2 - jambSize, -jambSize, jambSize, jambSize * 2); // Right Jamb
+
+            if (obstacle.type === 'door') {
+                const doorColor = isHighlighted ? '#ef4444' : '#A0522D'; // Sienna
+                const doorThickness = 6 / zoom;
+
+                if (isOpen) {
+                    // Open Door: Draw rectangle swung open 90 degrees (or 45)
+                    // Let's swing it 90 degrees relative to the wall
+                    ctx.save();
+                    ctx.translate(-len / 2 + jambSize, 0); // Pivot at left jamb
+                    ctx.rotate(-Math.PI / 3); // Open 60 degrees
+
+                    ctx.fillStyle = doorColor;
+                    ctx.globalAlpha = 0.8;
+                    ctx.fillRect(0, -doorThickness / 2, len - jambSize * 2, doorThickness);
+
+                    // Draw arc to show swing path
+                    ctx.beginPath();
+                    ctx.arc(0, 0, len - jambSize * 2, 0, -Math.PI / 3, true);
+                    ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+                    ctx.lineWidth = 1 / zoom;
+                    ctx.setLineDash([3 / zoom, 3 / zoom]);
+                    ctx.stroke();
+
+                    ctx.restore();
+                } else {
+                    // Closed Door: Solid rectangle filling the gap
+                    ctx.fillStyle = doorColor;
+                    ctx.fillRect(-len / 2 + jambSize, -doorThickness / 2, len - jambSize * 2, doorThickness);
+
+                    // Door Knob
+                    ctx.beginPath();
+                    ctx.arc(-len / 4, 0, doorThickness / 2, 0, Math.PI * 2);
+                    ctx.fillStyle = '#FFD700'; // Gold
+                    ctx.fill();
                 }
-                ctx.stroke();
+            } else if (obstacle.type === 'window') {
+                const glassColor = 'rgba(200, 240, 255, 0.6)';
+                const frameThick = 2 / zoom;
+
+                // Window Frame (Top/Bottom lines)
+                ctx.fillStyle = frameColor;
+                ctx.fillRect(-len / 2, -frameThick * 2, len, frameThick); // Top
+                ctx.fillRect(-len / 2, frameThick, len, frameThick); // Bottom
+
+                if (isOpen) {
+                    // Open Window: Slide one pane over the other? Or swing?
+                    // Let's do a "swung open" look for clarity, similar to door but smaller
+                    ctx.save();
+                    ctx.translate(-len / 2, 0);
+                    ctx.rotate(-Math.PI / 4); // 45 deg
+
+                    ctx.fillStyle = glassColor;
+                    ctx.strokeStyle = frameColor;
+                    ctx.lineWidth = 1 / zoom;
+                    ctx.fillRect(0, -frameThick, len, frameThick * 2);
+                    ctx.strokeRect(0, -frameThick, len, frameThick * 2);
+
+                    ctx.restore();
+                } else {
+                    // Closed Window: Glass pane
+                    ctx.fillStyle = glassColor;
+                    ctx.fillRect(-len / 2 + jambSize, -frameThick, len - jambSize * 2, frameThick * 2);
+
+                    // Cross bars (Muntins)
+                    ctx.strokeStyle = frameColor;
+                    ctx.lineWidth = 1 / zoom;
+                    ctx.beginPath();
+                    ctx.moveTo(0, -frameThick);
+                    ctx.lineTo(0, frameThick); // Vertical
+                    ctx.stroke();
+                }
             }
-        } else if (obstacle.type === 'door') {
-            // Simplified Door Drawing Logic - Removing "Buggy" Swing Animation
-            // Closed = Blocks Movement (Solid)
-            // Open = !Blocks Movement (Dashed/See-through)
 
-            const isOpen = !obstacle.blocksMovement;
-            const color = isHighlighted ? '#ef4444' : 'rgba(139, 92, 246, 0.9)';
-            const width = (isHighlighted ? 8 : 6) / zoom;
-
-            ctx.beginPath();
-            ctx.moveTo(obstacle.p1.x, obstacle.p1.y);
-            ctx.lineTo(obstacle.p2.x, obstacle.p2.y);
-            ctx.strokeStyle = color;
-            ctx.lineWidth = width;
-
-            if (isOpen) {
-                // Open Door: Dashed line on the same spot
-                ctx.setLineDash([width * 1.5, width]);
-                ctx.globalAlpha = 0.6; // Slightly transparent to indicate open
-            }
-
-            ctx.stroke();
-
-            // Reset styles
-            ctx.setLineDash([]);
-            ctx.globalAlpha = 1.0;
-
-        } else if (obstacle.type === 'window') {
-            // Window Drawing Logic
-            const isOpen = !obstacle.blocksMovement;
-            const color = isHighlighted ? '#ef4444' : 'rgba(59, 130, 246, 0.8)';
-            const width = (isHighlighted ? 6 : 4) / zoom;
-
-            // Draw Frame (Always visible)
-            ctx.beginPath();
-            ctx.moveTo(obstacle.p1.x, obstacle.p1.y);
-            ctx.lineTo(obstacle.p2.x, obstacle.p2.y);
-            ctx.strokeStyle = color;
-            ctx.lineWidth = width;
-
-            if (isOpen) {
-                ctx.setLineDash([width * 2, width]); // Dashed implies open
-            }
-            ctx.stroke();
-            ctx.setLineDash([]);
-
-            if (!isOpen) {
-                // Draw "Glass" fill if closed
-                ctx.beginPath();
-                ctx.moveTo(obstacle.p1.x, obstacle.p1.y);
-                ctx.lineTo(obstacle.p2.x, obstacle.p2.y);
-                ctx.strokeStyle = 'rgba(200, 240, 255, 0.5)';
-                ctx.lineWidth = width / 2;
-                ctx.stroke();
-            }
+            ctx.restore();
         }
 
         // Reset styles

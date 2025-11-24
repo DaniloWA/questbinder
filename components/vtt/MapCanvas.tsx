@@ -481,6 +481,11 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
 
             const allVisionPolygons: Point[][] = [];
 
+            // --- VISION CALCULATION ---
+            // Use ALL obstacles for vision calculation to ensure consistency with GM view.
+            // Hidden obstacles (like secret doors) should still block vision if they are walls/closed doors.
+            const visionObstacles = scene.obstacles;
+
             if (effectiveIsGM) {
                 if (mapImage?.complete) ctx.drawImage(mapImage, 0, 0, mapWidth, mapHeight);
                 else { ctx.fillStyle = '#202020'; ctx.fillRect(0, 0, mapWidth, mapHeight); }
@@ -501,6 +506,8 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
                 const visibilityPath = new Path2D();
                 if (scene.fogPath) visibilityPath.addPath(new Path2D(scene.fogPath));
 
+                const unitScale = gridSize / (unitsPerSquare || 1.5);
+
                 visionTokens.forEach(token => {
                     const anim = animationsRef.current.get(token.id);
                     let currX = token.x;
@@ -512,9 +519,14 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
                         currY = anim.startY + (anim.targetY - anim.startY) * ease;
                     }
                     const origin = { x: (currX + token.size / 2) * gridSize, y: (currY + token.size / 2) * gridSize };
-                    const effectiveRadius = Math.max(gridSize * 0.6, Math.max(token.visionRange || 0, token.darkvisionRange || 0) * gridSize);
+
+                    // FIX: Use unitScale for correct radius calculation (matching GM view)
+                    const visionRangePx = (token.visionRange || 0) * unitScale;
+                    const darkvisionRangePx = (token.darkvisionRange || 0) * unitScale;
+                    const effectiveRadius = Math.max(gridSize * 0.6, Math.max(visionRangePx, darkvisionRangePx));
+
                     if (effectiveRadius > 0) {
-                        const poly = calculateVisibilityPolygon(origin, scene.obstacles, effectiveRadius);
+                        const poly = calculateVisibilityPolygon(origin, visionObstacles, effectiveRadius);
                         if (poly.length > 0) {
                             allVisionPolygons.push(poly);
                             const p = new Path2D();
@@ -533,6 +545,8 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
                 drawGrid(ctx, mapWidth, mapHeight, gridSize, gridColor, gridAlpha, viewport.zoom);
                 ctx.restore();
             }
+
+            // ... (Drawings code skipped for brevity, assumed unchanged) ...
 
             if (scene.drawings) {
                 ctx.lineCap = 'round';
@@ -679,7 +693,8 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
             });
 
             if (lightCtx) {
-                drawLightingLayer(lightCtx, canvas.width, canvas.height, scene, tokens, animationsRef.current, viewport, visionTokens, !effectiveIsGM, (!effectiveIsGM && allVisionPolygons.length > 0) ? allVisionPolygons : undefined);
+                // PASS visionObstacles to drawLightingLayer
+                drawLightingLayer(lightCtx, canvas.width, canvas.height, scene, tokens, animationsRef.current, viewport, visionTokens, !effectiveIsGM, (!effectiveIsGM && allVisionPolygons.length > 0) ? allVisionPolygons : undefined, visionObstacles);
                 ctx.save(); ctx.resetTransform(); ctx.globalCompositeOperation = 'source-over'; ctx.drawImage(lightCanvas, 0, 0); ctx.restore();
             }
 
@@ -1271,6 +1286,27 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
                 });
             }
             liveDrawingPointsRef.current = [];
+        }
+
+        if (drawingObstacle) {
+            const p1 = drawingObstacle.p1;
+            const p2 = screenToWorld(e.clientX - canvasRef.current!.getBoundingClientRect().left, e.clientY - canvasRef.current!.getBoundingClientRect().top);
+
+            // Minimum length check to avoid accidental clicks
+            const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+            if (dist > 10 / viewport.zoom) {
+                addObstacles([{
+                    type: drawingObstacle.type as 'door' | 'window',
+                    p1,
+                    p2,
+                    blocksVision: drawingObstacle.type === 'door', // Doors block vision by default
+                    blocksMovement: true,
+                    hidden: false
+                }]);
+            }
+            setDrawingObstacle(null);
+            setActiveTool('select');
+            return;
         }
     };
 
