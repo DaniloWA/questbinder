@@ -383,14 +383,94 @@ export interface Ping {
   userId?: string;
 }
 
+// --- COMBAT SYSTEM ---
+export type CombatCondition =
+  | 'prone' | 'stunned' | 'paralyzed' | 'unconscious' | 'dead'
+  | 'poisoned' | 'blinded' | 'deafened' | 'frightened' | 'charmed'
+  | 'invisible' | 'restrained' | 'grappled' | 'incapacitated'
+  | 'petrified' | 'exhausted' | 'concentrating';
+
+export interface CombatEffect {
+  id: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+  duration: {
+    type: 'rounds' | 'turns' | 'minutes' | 'hours' | 'permanent';
+    value: number;
+    remaining: number;
+  };
+  source?: string; // Quem aplicou
+  conditions?: CombatCondition[];
+  modifiers?: {
+    ac?: number;
+    speed?: number;
+    advantage?: string[]; // Skills/saves com vantagem
+    disadvantage?: string[];
+  };
+}
+
+export interface CombatAction {
+  id: string;
+  timestamp: number;
+  round: number;
+  turn: number;
+  combatantId: string;
+  combatantName: string;
+  type: 'damage' | 'heal' | 'effect' | 'move' | 'condition' | 'other';
+  description: string;
+  value?: number;
+  targetId?: string;
+  targetName?: string;
+}
+
+export interface CombatSettings {
+  autoRollInitiative: boolean;
+  autoAdvanceTurn: boolean; // Avançar automaticamente após X segundos
+  autoAdvanceDelay: number; // Segundos
+  showInitiativeToPlayers: boolean;
+  showEnemyHP: boolean;
+  showEnemyAC: boolean;
+  trackConcentration: boolean;
+  autoRemoveDeadCombatants: boolean;
+  enableTurnTimer: boolean;
+  turnTimerDuration: number; // Segundos
+  enableSuggestions: boolean; // Sugestões inteligentes
+}
+
 export interface Combatant {
   id: string; // Token ID
   name: string;
   initiative: number;
+  initiativeBonus?: number; // Para re-roll
   hp?: number;
   maxHp?: number;
+  ac?: number;
   imgUrl?: string;
   type: 'pc' | 'npc';
+
+  // Novos campos
+  effects: CombatEffect[];
+  conditions: CombatCondition[];
+  isConcentrating?: boolean;
+  concentrationSpell?: string;
+
+  // Ações disponíveis
+  actions: {
+    action: boolean;
+    bonusAction: boolean;
+    reaction: boolean;
+    movement: number; // Restante em metros
+  };
+}
+
+export interface CombatStats {
+  totalDamageDealt: number;
+  totalHealingDone: number;
+  roundsElapsed: number;
+  combatStartTime: number;
+  combatDuration?: number; // Calculado ao finalizar
 }
 
 export interface CombatState {
@@ -398,7 +478,17 @@ export interface CombatState {
   round: number;
   turnOrder: Combatant[];
   activeTurnIndex: number;
+
+  // Novos campos
+  settings: CombatSettings;
+  history: CombatAction[];
+  turnStartTime?: number; // Para timer
+  surpriseRound: boolean;
+
+  // Estatísticas
+  stats: CombatStats;
 }
+
 
 export interface TokenTemplate extends Omit<Token, 'id' | 'x' | 'y'> {
   id: string;

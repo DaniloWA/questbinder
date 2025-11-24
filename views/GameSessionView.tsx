@@ -31,6 +31,7 @@ import { HandoutFormModal } from '../components/vtt/HandoutFormModal';
 import { HandoutPreviewModal } from '../components/vtt/HandoutPreviewModal';
 import { HandoutShareModal } from '../components/vtt/HandoutShareModal';
 import { CompendiumWindow } from '../components/vtt/CompendiumWindow';
+import { CombatInitiativeRoller } from '../components/vtt/CombatInitiativeRoller';
 
 export const GameSessionView: React.FC = () => {
     const { params, navigateTo } = useNavigation();
@@ -151,6 +152,7 @@ const GameSessionUI: React.FC = () => {
     const [editingTriggerZoneId, setEditingTriggerZoneId] = useState<string | null>(null);
     // --- AUDIO ZONE EDIT STATE ---
     const [editingAudioZoneId, setEditingAudioZoneId] = useState<string | null>(null);
+    const [isInitiativeRollerOpen, setIsInitiativeRollerOpen] = useState(false);
 
     // ... (Logic for tools/permissions remains unchanged) ...
     useEffect(() => {
@@ -489,7 +491,7 @@ const GameSessionUI: React.FC = () => {
                         onToggleDiceRoller={session.toggleDiceRoller}
                         isDiceRollerOpen={session.ui.isDiceRollerOpen}
                         onOpenSettings={() => setIsSettingsOpen(true)}
-                        onStartCombat={session.startCombat}
+                        onStartCombat={() => setIsInitiativeRollerOpen(true)}
                         onEndCombat={session.endCombat}
                         onToggleViewMode={session.toggleGMViewMode}
                         onToggleGhostWalls={() => session.setGmHideObstacles(!session.ui.gmHideObstacles)}
@@ -619,6 +621,12 @@ const GameSessionUI: React.FC = () => {
                     />
                 </Modal>
             )}
+
+            {/* Combat Initiative Roller */}
+            <CombatInitiativeRoller
+                isOpen={isInitiativeRollerOpen}
+                onClose={() => setIsInitiativeRollerOpen(false)}
+            />
         </div>
     );
 };

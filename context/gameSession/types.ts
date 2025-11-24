@@ -106,10 +106,36 @@ export interface GameSessionContextType extends GameSessionState {
   updateFog: (path: string) => void;
   addPing: (x: number, y: number) => void;
 
-  startCombat: () => void;
+  // Combat Management
+  startCombat: (combatants?: any[], settings?: any) => void;
   endCombat: () => void;
   nextTurn: () => void;
+  previousTurn: () => void;
+  goToTurn: (index: number) => void;
+
+  // Combatant Management
+  addCombatant: (combatant: any) => void;
+  removeCombatant: (id: string) => void;
   updateCombatant: (id: string, data: any) => void;
+  rerollInitiative: (id?: string) => void;
+  updateCombatSettings: (settings: any) => void;
+
+  // Combat Actions
+  applyDamage: (targetId: string, amount: number, source?: string) => void;
+  applyHealing: (targetId: string, amount: number, source?: string) => void;
+  applyEffect: (targetId: string, effect: any) => void;
+  removeEffect: (targetId: string, effectId: string) => void;
+  addCondition: (targetId: string, condition: any) => void;
+  removeCondition: (targetId: string, condition: any) => void;
+
+  // Combat Automation
+  toggleAction: (combatantId: string, action: 'action' | 'bonusAction' | 'reaction') => void;
+  resetActions: (combatantId: string) => void;
+  checkConcentration: (combatantId: string, damage: number) => boolean;
+
+  // Combat Utility
+  getCombatStats: () => any;
+  exportCombatLog: () => string;
 
   sendChatMessage: (content: string, type?: 'message' | 'roll' | 'system', rollDetails?: any, link?: ChatLinkMetadata) => void;
   toggleChatReaction: (msg: ChatMessage, type: 'like' | 'dislike') => void;

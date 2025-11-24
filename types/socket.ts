@@ -9,6 +9,13 @@ export type SocketEventType =
   | 'token:add'
   | 'token:remove'
   | 'combat:update'
+  | 'combat:start'
+  | 'combat:end'
+  | 'combat:next-turn'
+  | 'combat:combatant:add'
+  | 'combat:combatant:update'
+  | 'combat:combatant:remove'
+  | 'combat:action'
   | 'dice:roll'
   | 'map:ping'
   | 'chat:message'
@@ -102,6 +109,35 @@ export interface CombatUpdatePayload {
   combat: CombatState | null;
 }
 
+export interface CombatStartPayload {
+  combat: CombatState;
+}
+
+export interface CombatEndPayload {
+  stats: any; // CombatStats
+}
+
+export interface CombatNextTurnPayload {
+  combat: CombatState;
+}
+
+export interface CombatCombatantAddPayload {
+  combatant: any; // Combatant
+}
+
+export interface CombatCombatantUpdatePayload {
+  id: string;
+  updates: any; // Partial<Combatant>
+}
+
+export interface CombatCombatantRemovePayload {
+  id: string;
+}
+
+export interface CombatActionPayload {
+  action: any; // CombatAction
+}
+
 export interface DiceRollPayload {
   result: RollResult;
   user: { id: string; name: string; color: string; };
@@ -173,6 +209,13 @@ export interface SocketEventMap {
   'token:add': TokenAddPayload;
   'token:remove': TokenRemovePayload;
   'combat:update': CombatUpdatePayload;
+  'combat:start': CombatStartPayload;
+  'combat:end': CombatEndPayload;
+  'combat:next-turn': CombatNextTurnPayload;
+  'combat:combatant:add': CombatCombatantAddPayload;
+  'combat:combatant:update': CombatCombatantUpdatePayload;
+  'combat:combatant:remove': CombatCombatantRemovePayload;
+  'combat:action': CombatActionPayload;
   'dice:roll': DiceRollPayload;
   'map:ping': MapPingPayload;
   'chat:message': ChatMessagePayload;

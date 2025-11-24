@@ -553,6 +553,118 @@ export const useSocketListeners = (
       }));
     };
 
+    // ==================== COMBAT HANDLERS ====================
+
+    const handleCombatStart = (payload: { combat: any; }) => {
+      console.log('[WS] Combat started:', payload);
+      setState(prev => ({
+        ...prev,
+        combat: payload.combat
+      }));
+
+      if (!state.isGM) {
+        show({
+          type: 'info',
+          message: '⚔️ Combate iniciado!',
+          duration: 3000
+        });
+      }
+    };
+
+    const handleCombatEnd = (payload: { stats: any; }) => {
+      console.log('[WS] Combat ended:', payload);
+      setState(prev => ({
+        ...prev,
+        combat: null
+      }));
+
+      if (!state.isGM) {
+        show({
+          type: 'success',
+          message: '✅ Combate finalizado',
+          duration: 3000
+        });
+      }
+    };
+
+    // (Combat handler moved to dedicated section below)
+
+    const handleCombatNextTurn = (payload: { combat: any; }) => {
+      console.log('[WS] Combat turn advanced:', payload);
+      setState(prev => ({
+        ...prev,
+        combat: payload.combat
+      }));
+
+      const activeCombatant = payload.combat.turnOrder[payload.combat.activeTurnIndex];
+      if (!state.isGM && activeCombatant) {
+        show({
+          type: 'info',
+          message: `🎯 Turno de ${activeCombatant.name}`,
+          duration: 2000
+        });
+      }
+    };
+
+    const handleCombatCombatantAdd = (payload: { combatant: any; }) => {
+      console.log('[WS] Combatant added:', payload);
+      setState(prev => {
+        if (!prev.combat) return prev;
+        return {
+          ...prev,
+          combat: {
+            ...prev.combat,
+            turnOrder: [...prev.combat.turnOrder, payload.combatant]
+              .sort((a, b) => b.initiative - a.initiative)
+          }
+        };
+      });
+    };
+
+    const handleCombatCombatantUpdate = (payload: { id: string; updates: any; }) => {
+      console.log('[WS] Combatant updated:', payload);
+      setState(prev => {
+        if (!prev.combat) return prev;
+        return {
+          ...prev,
+          combat: {
+            ...prev.combat,
+            turnOrder: prev.combat.turnOrder.map(c =>
+              c.id === payload.id ? { ...c, ...payload.updates } : c
+            )
+          }
+        };
+      });
+    };
+
+    const handleCombatCombatantRemove = (payload: { id: string; }) => {
+      console.log('[WS] Combatant removed:', payload);
+      setState(prev => {
+        if (!prev.combat) return prev;
+        return {
+          ...prev,
+          combat: {
+            ...prev.combat,
+            turnOrder: prev.combat.turnOrder.filter(c => c.id !== payload.id)
+          }
+        };
+      });
+    };
+
+    const handleCombatAction = (payload: { action: any; }) => {
+      console.log('[WS] Combat action:', payload);
+      setState(prev => {
+        if (!prev.combat) return prev;
+        return {
+          ...prev,
+          combat: {
+            ...prev.combat,
+            history: [...prev.combat.history, payload.action]
+          }
+        };
+      });
+    };
+
     // Handler para jogador entrar
     const handlePlayerJoin = (payload: { user: any; }) => {
       setState(previousState => {
@@ -601,6 +713,13 @@ export const useSocketListeners = (
       'token:remove': handleTokenRemove,
       'token:drag': handleTokenDrag,
       'combat:update': handleCombatUpdate,
+      'combat:start': handleCombatStart,
+      'combat:end': handleCombatEnd,
+      'combat:next-turn': handleCombatNextTurn,
+      'combat:combatant:add': handleCombatCombatantAdd,
+      'combat:combatant:update': handleCombatCombatantUpdate,
+      'combat:combatant:remove': handleCombatCombatantRemove,
+      'combat:action': handleCombatAction,
       'dice:roll': handleDiceRoll,
       'chat:message': handleChatMessage,
       'session:permissions': handleSessionPermissions,

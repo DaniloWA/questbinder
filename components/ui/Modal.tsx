@@ -21,7 +21,7 @@ export const Modal: React.FC<ModalProps> = ({
   hideCloseButton = false,
 }) => {
   const overlayRef = useRef<HTMLDivElement>(null);
-  
+
   // Dragging State
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -68,10 +68,10 @@ export const Modal: React.FC<ModalProps> = ({
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDragging) return;
       e.preventDefault();
-      
+
       const dx = e.clientX - dragStartRef.current.x;
       const dy = e.clientY - dragStartRef.current.y;
-      
+
       setPosition({ x: dx, y: dy });
     };
 
@@ -90,7 +90,7 @@ export const Modal: React.FC<ModalProps> = ({
     };
   }, [isDragging]);
 
-  if (!isOpen && !children) return null;
+  if (!isOpen) return null;
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (preventOutsideClick) return;
@@ -101,14 +101,14 @@ export const Modal: React.FC<ModalProps> = ({
 
   const handleHeaderMouseDown = (e: React.MouseEvent) => {
     if (size === 'full') return; // Cannot drag full screen modal
-    
+
     // Prevent dragging if clicking on buttons inside header
     if ((e.target as HTMLElement).closest('button')) return;
 
     setIsDragging(true);
-    dragStartRef.current = { 
-      x: e.clientX - position.x, 
-      y: e.clientY - position.y 
+    dragStartRef.current = {
+      x: e.clientX - position.x,
+      y: e.clientY - position.y
     };
   };
 
@@ -126,7 +126,7 @@ export const Modal: React.FC<ModalProps> = ({
 
   // Animation Classes
   // Note: 'duration-300' aligns with the ModalContext close timeout
-  const animationClasses = isOpen 
+  const animationClasses = isOpen
     ? 'animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-300'
     : 'animate-out fade-out zoom-out-95 slide-out-to-bottom-4 duration-300';
 
@@ -158,14 +158,14 @@ export const Modal: React.FC<ModalProps> = ({
           ${size === 'full' ? 'h-full' : 'max-h-[90vh]'}
           ${animationClasses}
         `}
-        style={{ 
+        style={{
           transform: `translate(${position.x}px, ${position.y}px)`,
           cursor: isDragging ? 'grabbing' : 'auto'
         }}
       >
         {/* Header */}
         {(title || !hideCloseButton) && (
-          <div 
+          <div
             onMouseDown={handleHeaderMouseDown}
             className={`
               flex items-start justify-between px-6 py-4 border-b border-border select-none

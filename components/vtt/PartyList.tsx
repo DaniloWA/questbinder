@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useGameSession } from '../../context/GameSessionContext';
 import { useNotification } from '../../context/NotificationContext';
-import { CombatTracker } from './CombatTracker';
+import { CombatTrackerEnhanced } from './CombatTrackerEnhanced';
 import { GameLog, ChatViewMode } from './GameLog';
 import { Users, Activity, Swords, X, Copy, UserPlus, Wifi, ArrowLeftFromLine } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -84,7 +84,7 @@ export const PartyList: React.FC = () => {
             <div className="flex items-center justify-between p-2 border-b border-white/10 bg-zinc-900/80 shrink-0">
                 <div className="flex bg-zinc-900/50 p-1 rounded-lg border border-white/5">
                     <Tooltip content="Log & Chat">
-                        <button 
+                        <button
                             onClick={() => setActiveTab('chat')}
                             className={`p-2 rounded-md transition-all relative ${activeTab === 'chat' ? 'bg-zinc-800 text-primary shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
                         >
@@ -95,7 +95,7 @@ export const PartyList: React.FC = () => {
                         </button>
                     </Tooltip>
                     <Tooltip content="Combate">
-                        <button 
+                        <button
                             onClick={() => setActiveTab('combat')}
                             className={`p-2 rounded-md transition-all ${activeTab === 'combat' ? 'bg-zinc-800 text-red-400 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
                         >
@@ -103,7 +103,7 @@ export const PartyList: React.FC = () => {
                         </button>
                     </Tooltip>
                     <Tooltip content="Grupo">
-                        <button 
+                        <button
                             onClick={() => setActiveTab('party')}
                             className={`p-2 rounded-md transition-all ${activeTab === 'party' ? 'bg-zinc-800 text-green-400 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
                         >
@@ -127,13 +127,13 @@ export const PartyList: React.FC = () => {
                             <h3 className="text-zinc-300 font-bold mb-1">Histórico Destacado</h3>
                             <p className="text-xs text-zinc-500 mb-6">O log está em uma janela flutuante.</p>
                             <div className="text-[10px] text-zinc-600 bg-black/20 px-3 py-1.5 rounded border border-white/5">
-                                Use <ArrowLeftFromLine className="w-3 h-3 inline mx-1"/> para acoplar.
+                                Use <ArrowLeftFromLine className="w-3 h-3 inline mx-1" /> para acoplar.
                             </div>
                         </div>
                     )}
                 </div>
 
-                {activeTab === 'combat' && <CombatTracker />}
+                {activeTab === 'combat' && <CombatTrackerEnhanced />}
                 {activeTab === 'party' && renderPartyTab()}
             </div>
         </div>

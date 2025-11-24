@@ -63,7 +63,13 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
         switchScene, addScene, deleteScene, updateSceneData, updateMapSettings, updateFog
     } = useSceneActions(state, setState, campaignId);
 
-    const { startCombat, endCombat, nextTurn, updateCombatant } = useCombatActions(state, setState);
+    const {
+        startCombat, endCombat, nextTurn, previousTurn, goToTurn,
+        addCombatant, removeCombatant, updateCombatant, rerollInitiative, updateCombatSettings,
+        applyDamage, applyHealing, applyEffect, removeEffect,
+        addCondition, removeCondition, toggleAction, resetActions,
+        checkConcentration, getCombatStats, exportCombatLog
+    } = useCombatActions(state, setState);
 
     const {
         createHandout, updateHandout, deleteHandout, shareHandout, unshareHandout
@@ -117,7 +123,24 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
         startCombat,
         endCombat,
         nextTurn,
+        previousTurn,
+        goToTurn,
+        addCombatant,
+        removeCombatant,
         updateCombatant,
+        rerollInitiative,
+        updateCombatSettings,
+        applyDamage,
+        applyHealing,
+        applyEffect,
+        removeEffect,
+        addCondition,
+        removeCondition,
+        toggleAction,
+        resetActions,
+        checkConcentration,
+        getCombatStats,
+        exportCombatLog,
         sendChatMessage,
         toggleChatReaction,
         handleChatLinkClick,

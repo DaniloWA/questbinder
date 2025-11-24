@@ -10,6 +10,7 @@ import { registerHandoutHandlers } from './socket/handlers/handoutHandlers.js';
 import { registerAudioHandlers } from './socket/handlers/audioHandlers.js';
 import { registerMapHandlers } from './socket/handlers/mapHandlers.js';
 import { registerCharacterHandlers } from './socket/handlers/characterHandlers.js';
+import { registerCombatHandlers } from './socket/handlers/combatHandlers.js';
 
 export const setupSocket = (server) => {
   const io = new Server(server, {
@@ -116,6 +117,7 @@ export const setupSocket = (server) => {
     registerAudioHandlers(socket, client, utils);
     registerMapHandlers(socket, client, utils);
     registerCharacterHandlers(socket, client, utils);
+    registerCombatHandlers(socket, client, utils);
 
     // ==================== CAMPAIGN HANDLERS ====================
     socket.on('campaign:updatePermissions', async (payload) => {
