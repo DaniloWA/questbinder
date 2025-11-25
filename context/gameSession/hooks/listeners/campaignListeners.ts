@@ -1,17 +1,15 @@
 import { socketService } from '../../../../services/socketService';
 import {
   CampaignUpdatePayload,
-  HandoutUpdatePayload,
-  SessionPermissionsPayload
+  HandoutUpdatePayload
 } from '../../../../types';
 import { ListenerDeps, ListenerCleanup } from './types';
 
 /**
  * Registers listeners for campaign-related events
  * - campaign:update
- * - campaign:permissionsUpdated  
+ * - campaign:permissionsUpdated
  * - handout:update
- * - session:permissions
  */
 export const registerCampaignListeners = ({
   state,
@@ -130,15 +128,7 @@ export const registerCampaignListeners = ({
     });
   };
 
-  // Handler: session:permissions
-  const handleSessionPermissions = (payload: SessionPermissionsPayload) => {
-    setState(previousState => ({
-      ...previousState,
-      permissions: payload.permissions
-    }));
-  };
-
-  // Handler: campaign:permissionsUpdated
+  // Handler: campaign:permissionsUpdated (consolidado)
   const handlePermissionsUpdated = (payload: { permissions: any; }) => {
     console.log('[WS] ✅ Received campaign:permissionsUpdated event');
     console.log('[WS] Campaign permissions updated:', payload);
@@ -155,9 +145,11 @@ export const registerCampaignListeners = ({
 
       console.log('[WS] Updated campaign permissions:', updatedCampaign.permissions);
 
+      // Update both campaign.permissions AND state.permissions for full compatibility
       return {
         ...prev,
-        campaign: updatedCampaign
+        campaign: updatedCampaign,
+        permissions: payload.permissions
       };
     });
   };
@@ -165,14 +157,12 @@ export const registerCampaignListeners = ({
   // Register listeners
   socketService.on('campaign:update', handleCampaignUpdate);
   socketService.on('handout:update', handleHandoutUpdate);
-  socketService.on('session:permissions', handleSessionPermissions);
   socketService.on('campaign:permissionsUpdated', handlePermissionsUpdated);
 
   // Return cleanup function
   return () => {
     socketService.off('campaign:update', handleCampaignUpdate);
     socketService.off('handout:update', handleHandoutUpdate);
-    socketService.off('session:permissions', handleSessionPermissions);
     socketService.off('campaign:permissionsUpdated', handlePermissionsUpdated);
   };
 };
