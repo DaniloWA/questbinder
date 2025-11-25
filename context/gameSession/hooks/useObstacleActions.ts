@@ -54,7 +54,8 @@ export const useObstacleActions = (
       state,
       setState,
       campaignId,
-      isGMOnly: true,
+      // Allow players with doorControl permission to update obstacles
+      requiredPermission: 'doorControl',
 
       optimisticUpdate: (prev) => {
         const updatedScenes = StateHelpers.updateItemInSceneList(prev.scenes, prev.activeSceneId, 'obstacles', id, data);

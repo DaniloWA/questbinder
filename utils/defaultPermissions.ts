@@ -27,7 +27,7 @@ export const defaultTokenHoverPermissions: TokenHoverPermissions = {
 export const getDefaultPermissions = (): SessionPermissions => ({
   // Interação Básica - APENAS ferramentas essenciais habilitadas por padrão
   tokenMovement: true,  // Jogadores podem mover seus próprios tokens
-  doorControl: false,   // GM deve habilitar explicitamente
+  doorControl: true,    // Jogadores podem abrir/fechar portas e janelas (configurável pelo GM)
   drawings: true,       // Ferramenta de desenho disponível
   measure: true,        // Régua disponível
   pingMap: false,       // GM deve habilitar explicitamente
@@ -68,4 +68,3 @@ export const getDefaultPermissions = (): SessionPermissions => ({
   // Overrides por Usuário
   userOverrides: {},
 });
-
