@@ -3,7 +3,7 @@ import crypto from 'crypto';
 
 export const registerTokenHandlers = (socket, client, utils) => {
   console.log('[token] handlers registered');
-  const { safeEmitError, validatePayload, checkPermission, safeBroadcast } = utils;
+  const { safeEmitError, validatePayload, getPermissionHelper, safeBroadcast } = utils;
 
   socket.on('token:update', async (payload) => {
     try {
@@ -21,14 +21,6 @@ export const registerTokenHandlers = (socket, client, utils) => {
       }
 
       const { sceneId, id, changes } = payload;
-
-      // Determine permission
-      const requiredPerm = (changes.x !== undefined || changes.y !== undefined) ? 'tokenMovement' : 'tokenEdit';
-
-      if (!(await checkPermission(requiredPerm))) {
-        console.warn(`[WS] token:update denied: missing ${requiredPerm}`);
-        return safeEmitError('Sem permissão para editar token.');
-      }
 
       const campaign = await db.getById('campaigns', client.campaignId);
       if (!campaign) {
@@ -50,13 +42,17 @@ export const registerTokenHandlers = (socket, client, utils) => {
 
       const token = scene.tokens[tokenIndex];
 
-      // Check ownership for non-GM
-      if (!client.isGM) {
-        const isOwner = token.ownerId === client.userId || token.controlledBy?.includes(client.userId);
-        if (!isOwner) {
-          console.warn('[WS] token:update: not owner');
-          return safeEmitError('Você não controla este token.');
-        }
+      // REGRA MILENAR: Use PermissionHelper
+      const helper = await getPermissionHelper();
+
+      // Determine which permission to check based on changes
+      const isMovement = changes.x !== undefined || changes.y !== undefined;
+      const canPerform = isMovement ? helper.canMoveToken(token) : helper.canEditToken(token);
+
+      if (!canPerform) {
+        const action = isMovement ? 'mover' : 'editar';
+        console.warn(`[WS] token:update denied: cannot ${action} token`);
+        return safeEmitError(`Sem permissão para ${action} este token.`);
       }
 
       scene.tokens[tokenIndex] = { ...token, ...changes };
@@ -83,8 +79,10 @@ export const registerTokenHandlers = (socket, client, utils) => {
         return safeEmitError('Dados inválidos para criação de token.');
       }
 
-      if (!(await checkPermission('tokenCreate'))) {
-        console.warn('[WS] token:add denied: missing tokenCreate');
+      // REGRA MILENAR: Use PermissionHelper
+      const helper = await getPermissionHelper();
+      if (!helper.can('tokenCreate')) {
+        console.warn('[WS] token:add denied: missing tokenCreate permission');
         return safeEmitError('Sem permissão para criar tokens.');
       }
 
@@ -126,11 +124,6 @@ export const registerTokenHandlers = (socket, client, utils) => {
         return safeEmitError('Dados inválidos para remoção de token.');
       }
 
-      if (!(await checkPermission('tokenDelete'))) {
-        console.warn('[WS] token:remove denied');
-        return safeEmitError('Sem permissão para deletar tokens.');
-      }
-
       const { sceneId, id } = payload;
 
       const campaign = await db.getById('campaigns', client.campaignId);
@@ -138,6 +131,16 @@ export const registerTokenHandlers = (socket, client, utils) => {
 
       const scene = campaign.scenes?.find(s => s.id === sceneId);
       if (!scene) return safeEmitError('Cena não encontrada.');
+
+      const token = scene.tokens.find(t => t.id === id);
+      if (!token) return safeEmitError('Token não encontrado.');
+
+      // REGRA MILENAR: Use PermissionHelper
+      const helper = await getPermissionHelper();
+      if (!helper.canDeleteToken(token)) {
+        console.warn('[WS] token:remove denied: cannot delete token');
+        return safeEmitError('Sem permissão para deletar este token.');
+      }
 
       scene.tokens = scene.tokens.filter(t => t.id !== id);
       await db.update('campaigns', client.campaignId, campaign);

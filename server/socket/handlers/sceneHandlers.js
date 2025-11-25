@@ -4,7 +4,7 @@ import crypto from 'crypto';
 export const registerSceneHandlers = (socket, client, utils) => {
   console.log('[scene] handlers registered');
 
-  const { safeEmitError, validatePayload, requireGM, safeBroadcast, checkPermission } = utils;
+  const { safeEmitError, validatePayload, requireGM, safeBroadcast, getPermissionHelper } = utils;
 
   socket.on('campaign:update', requireGM(async (changes) => {
     await db.update('campaigns', client.campaignId, changes);
@@ -19,12 +19,15 @@ export const registerSceneHandlers = (socket, client, utils) => {
 
       const { id, changes } = payload;
 
+      // REGRA MILENAR: Use PermissionHelper
+      const helper = await getPermissionHelper();
+
       // PERMISSION VALIDATION: Check what's being changed and validate permissions
 
       // 1. Fog changes require fogReveal permission (or GM)
       if (changes.fogPath !== undefined) {
-        if (!client.isGM && !(await checkPermission('fogReveal'))) {
-          console.warn(`[WS] scene:update denied: ${client.userId} lacks fogReveal permission`);
+        if (!helper.can('fogReveal')) {
+          console.warn(`[WS] scene:update denied: lacks fogReveal permission`);
           return safeEmitError('Sem permissão para revelar neblina.');
         }
       }
@@ -34,7 +37,7 @@ export const registerSceneHandlers = (socket, client, utils) => {
         const campaign = await db.getById('campaigns', client.campaignId);
         const scene = campaign?.scenes.find(s => s.id === id);
 
-        if (scene && !client.isGM) {
+        if (scene && !helper.isGameMaster()) {
           const oldObs = scene.obstacles || [];
           const newObs = changes.obstacles || [];
 
@@ -62,13 +65,13 @@ export const registerSceneHandlers = (socket, client, utils) => {
 
           if (isDoorControl) {
             // This is door control - check doorControl permission
-            if (!(await checkPermission('doorControl'))) {
-              console.warn(`[WS] scene:update denied: ${client.userId} lacks doorControl permission`);
+            if (!helper.can('doorControl')) {
+              console.warn(`[WS] scene:update denied: lacks doorControl permission`);
               return safeEmitError('Sem permissão para controlar portas.');
             }
           } else {
             // Other obstacle modifications are GM-only
-            console.warn(`[WS] scene:update denied: non-GM ${client.userId} cannot modify obstacles`);
+            console.warn(`[WS] scene:update denied: non-GM cannot modify obstacles`);
             return safeEmitError('Apenas o GM pode adicionar/remover/modificar obstáculos.');
           }
         }
@@ -78,8 +81,8 @@ export const registerSceneHandlers = (socket, client, utils) => {
       const sensitiveFields = ['grid', 'ambientLight', 'lightZones', 'audioZones', 'triggerZones', 'imageUrl', 'name'];
       const hasSensitiveChanges = sensitiveFields.some(field => changes[field] !== undefined);
 
-      if (hasSensitiveChanges && !client.isGM) {
-        console.warn(`[WS] scene:update denied: non-GM ${client.userId} cannot modify scene settings`);
+      if (hasSensitiveChanges && !helper.isGameMaster()) {
+        console.warn(`[WS] scene:update denied: non-GM cannot modify scene settings`);
         return safeEmitError('Apenas o GM pode modificar configurações da cena.');
       }
 

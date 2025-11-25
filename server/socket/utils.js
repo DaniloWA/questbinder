@@ -1,5 +1,6 @@
 import * as db from '../db.js';
 import crypto from 'crypto';
+import PermissionHelper from '../utils/PermissionHelper.js';
 
 export const DEFAULT_PERMISSIONS = {
   tokenMovement: true,
@@ -117,32 +118,27 @@ export const createSocketUtils = (io, socket, client) => {
     }
   };
 
-  const checkPermission = async (perm) => {
-    if (!client.campaignId) {
-      console.warn('[WS] checkPermission: no campaign ID');
-      return false;
-    }
-    if (client.isGM) return true;
-
-    try {
-      const campaign = await db.getById('campaigns', client.campaignId);
-      if (!campaign) {
-        console.warn('[WS] checkPermission: campaign not found');
-        return false;
-      }
-
-      const perms = campaign.permissions || DEFAULT_PERMISSIONS;
-      const override = perms.userOverrides?.[client.userId]?.[perm];
-      const result = override !== undefined ? override : (perms[perm] !== undefined ? perms[perm] : DEFAULT_PERMISSIONS[perm]);
-
-      console.log(`[WS] checkPermission ${perm} for ${client.userId}: ${result}`);
-      return !!result;
-    } catch (e) {
-      console.error('[WS] checkPermission error:', e);
-      return false;
-    }
+  /**
+   * REGRA MILENAR: Get PermissionHelper instance
+   * This is the ONLY way to check permissions on the server
+   */
+  const getPermissionHelper = async () => {
+    return await PermissionHelper.create(client);
   };
 
+  /**
+   * DEPRECATED: Use getPermissionHelper().can(perm) instead
+   * Kept for backward compatibility
+   */
+  const checkPermission = async (perm) => {
+    const helper = await getPermissionHelper();
+    return helper.can(perm);
+  };
+
+  /**
+   * DEPRECATED: Use getPermissionHelper().requireGM() instead
+   * Kept for backward compatibility
+   */
   const requireGM = (handler) => async (payload) => {
     if (!client.campaignId || !client.isGM) {
       safeEmitError('Apenas o GM pode fazer isso.');
@@ -162,8 +158,9 @@ export const createSocketUtils = (io, socket, client) => {
     broadcast,
     broadcastToRoom,
     logChange,
-    checkPermission,
-    requireGM,
+    getPermissionHelper, // NEW: Primary way to check permissions
+    checkPermission, // DEPRECATED: Backward compatibility
+    requireGM, // DEPRECATED: Backward compatibility
     validatePayload
   };
 };

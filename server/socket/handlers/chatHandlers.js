@@ -3,15 +3,18 @@ import crypto from 'crypto';
 
 export const registerChatHandlers = (socket, client, utils) => {
   console.log('[chat] handlers registered');
-  const { safeEmitError, safeBroadcast, checkPermission } = utils;
+  const { safeEmitError, safeBroadcast, getPermissionHelper } = utils;
 
   socket.on('chat:message', async (message) => {
     try {
       if (!client.campaignId) return;
 
+      // REGRA MILENAR: Use PermissionHelper
+      const helper = await getPermissionHelper();
+
       // Check permission for dice rolling
-      if (message.type === 'roll' && !(await checkPermission('diceRolling'))) {
-        console.warn('[WS] chat:message (roll) denied for user:', client.userId);
+      if (message.type === 'roll' && !helper.can('diceRolling')) {
+        console.warn('[WS] chat:message (roll) denied - lacks diceRolling permission');
         return safeEmitError('Sem permissão para rolar dados.');
       }
 
@@ -38,9 +41,12 @@ export const registerChatHandlers = (socket, client, utils) => {
     try {
       if (!client.campaignId) return;
 
+      // REGRA MILENAR: Use PermissionHelper
+      const helper = await getPermissionHelper();
+
       // Check permission for dice rolling
-      if (!(await checkPermission('diceRolling'))) {
-        console.warn('[WS] dice:roll denied for user:', client.userId);
+      if (!helper.can('diceRolling')) {
+        console.warn('[WS] dice:roll denied - lacks diceRolling permission');
         return safeEmitError('Sem permissão para rolar dados.');
       }
 

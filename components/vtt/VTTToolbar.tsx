@@ -274,24 +274,22 @@ const MenuItem: React.FC<{
 };
 
 export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
-    const { checkPermission, isGM, toggleVisionRanges, ui } = useGameSession();
-
-    const hasPerm = (key: Exclude<keyof PermissionSet, 'userOverrides' | 'logConfig' | 'shareCursor' | 'allowSpectate'>) => checkPermission(key) || isGM;
+    const { permissionHelper, toggleVisionRanges, ui } = useGameSession();
 
     const toolbarConfig = useMemo<ToolbarItemConfig[][]>(() => {
 
         const interactionGroup: ToolbarItemConfig[] = [
             { id: 'select', type: 'tool', label: 'Selecionar', icon: <MousePointer2 />, shortcut: 'V' },
-            { id: 'measure-path', type: 'tool', label: 'Régua', icon: <Ruler />, shortcut: 'M', hidden: !hasPerm('measure') },
+            { id: 'measure-path', type: 'tool', label: 'Régua', icon: <Ruler />, shortcut: 'M', hidden: !permissionHelper.canAsGMOr('measure') },
             {
                 id: 'drawings',
                 type: 'group',
                 label: 'Desenhar',
                 icon: <Brush />,
-                hidden: !hasPerm('drawings'),
+                hidden: !permissionHelper.canAsGMOr('drawings'),
                 children: [
                     { id: 'brush', type: 'tool', label: 'Pincel Livre', icon: <PenTool /> },
-                    { id: 'eraser-drawing', type: 'tool', label: 'Apagar Desenhos', icon: <Eraser />, danger: true, hidden: !hasPerm('drawingDelete') }
+                    { id: 'eraser-drawing', type: 'tool', label: 'Apagar Desenhos', icon: <Eraser />, danger: true, hidden: !permissionHelper.canAsGMOr('drawingDelete') }
                 ]
             }
         ];
@@ -302,7 +300,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 type: 'group',
                 label: 'Arquitetura',
                 icon: <LayoutGrid />,
-                hidden: !isGM,
+                hidden: !permissionHelper.isGameMaster(),
                 children: [
                     { id: 'draw-wall', type: 'tool', label: 'Parede', icon: <Fence /> },
                     { id: 'freehand-wall', type: 'tool', label: 'Parede Livre (Desenho)', icon: <PenTool /> },
@@ -317,7 +315,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 type: 'group',
                 label: 'Iluminação & Neblina',
                 icon: <Lightbulb />,
-                hidden: !isGM,
+                hidden: !permissionHelper.isGameMaster(),
                 children: [
                     { id: 'draw-light-rect', type: 'tool', label: 'Luz (Retângulo)', icon: <Sun /> },
                     { id: 'draw-light-poly', type: 'tool', label: 'Luz (Polígono)', icon: <Hexagon /> },
@@ -335,7 +333,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 type: 'group',
                 label: 'Áudio',
                 icon: <Music />,
-                hidden: !isGM,
+                hidden: !permissionHelper.isGameMaster(),
                 children: [
                     { id: 'audio-panel-action', type: 'action', label: 'Painel de Áudio', icon: <Music />, onClick: props.onToggleAudioPanel, isActive: props.isAudioPanelOpen },
                     {
@@ -352,7 +350,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 type: 'group',
                 label: 'Gatilhos',
                 icon: <Zap />,
-                hidden: !isGM,
+                hidden: !permissionHelper.isGameMaster(),
                 children: [
                     { id: 'draw-trigger-rect', type: 'tool', label: 'Gatilho (Retângulo)', icon: <Square /> },
                     { id: 'draw-trigger-poly', type: 'tool', label: 'Gatilho (Polígono)', icon: <Hexagon /> },
@@ -369,7 +367,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 icon: <Dices />,
                 onClick: props.onToggleDiceRoller,
                 isActive: !!props.isDiceRollerOpen,
-                hidden: !hasPerm('diceRolling')
+                hidden: !permissionHelper.canAsGMOr('diceRolling')
             },
             {
                 id: 'bestiary',
@@ -394,7 +392,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 icon: <FileText />,
                 onClick: props.onToggleHandouts,
                 isActive: !!props.isHandoutTrayOpen,
-                hidden: !isGM,
+                hidden: !permissionHelper.isGameMaster(),
             },
             {
                 id: 'add-token',
@@ -402,7 +400,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 label: 'Novo Token',
                 icon: <UserPlus />,
                 onClick: props.onAddToken,
-                hidden: !hasPerm('tokenCreate')
+                hidden: !permissionHelper.canAsGMOr('tokenCreate')
             },
             {
                 id: 'combat',
@@ -411,7 +409,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 icon: props.isCombatActive ? <ShieldOff /> : <Swords />,
                 danger: props.isCombatActive,
                 onClick: props.isCombatActive ? props.onEndCombat : props.onStartCombat,
-                hidden: !isGM
+                hidden: !permissionHelper.isGameMaster()
             }
         ];
 
@@ -421,7 +419,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 type: 'group',
                 label: 'Mestre',
                 icon: <Crown />,
-                hidden: !isGM,
+                hidden: !permissionHelper.isGameMaster(),
                 children: [
                     {
                         id: 'view-mode',
@@ -493,7 +491,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
         ];
 
         return groups.filter(g => g.length > 0);
-    }, [props, hasPerm, isGM, toggleVisionRanges, ui]);
+    }, [props, permissionHelper, toggleVisionRanges, ui]);
 
     return (
         <div className="flex items-center gap-2 p-2 bg-zinc-950/80 backdrop-blur-xl border border-zinc-800 rounded-2xl shadow-2xl ring-1 ring-white/10 pointer-events-auto animate-in slide-in-from-bottom-8 duration-500">

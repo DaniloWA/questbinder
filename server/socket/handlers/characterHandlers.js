@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export const registerCharacterHandlers = (socket, client, utils) => {
   console.log('[character] handlers registered');
-  const { safeBroadcast, checkPermission } = utils;
+  const { safeBroadcast, getPermissionHelper } = utils;
 
   socket.on('character:update', async (payload) => {
     try {
@@ -19,13 +19,16 @@ export const registerCharacterHandlers = (socket, client, utils) => {
         return;
       }
 
+      // REGRA MILENAR: Use PermissionHelper
+      const helper = await getPermissionHelper();
+
       // 2. Permission check: GM always allowed, owner needs sheetEdit permission
-      const isGM = campaign.ownerId === client.userId;
+      const isGM = helper.isGameMaster();
       const isOwner = character.ownerId === client.userId;
-      const hasSheetEditPerm = await checkPermission('sheetEdit');
+      const hasSheetEditPerm = helper.can('sheetEdit');
 
       if (!isGM && !(isOwner && hasSheetEditPerm)) {
-        console.log(`[WS] Permission denied: User ${client.userId} cannot edit character ${characterId}`);
+        console.log(`[WS] Permission denied: cannot edit character ${characterId}`);
         socket.emit('error', { message: 'Você não tem permissão para editar esta ficha.' });
         return;
       }

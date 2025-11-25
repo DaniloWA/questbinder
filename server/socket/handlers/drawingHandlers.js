@@ -3,7 +3,7 @@ import crypto from 'crypto';
 
 export const registerDrawingHandlers = (socket, client, utils) => {
   console.log('[drawing] handlers registered');
-  const { safeEmitError, validatePayload, checkPermission, safeBroadcast } = utils;
+  const { safeEmitError, validatePayload, getPermissionHelper, safeBroadcast } = utils;
 
   socket.on('drawing:add', async (payload) => {
     try {
@@ -12,7 +12,9 @@ export const registerDrawingHandlers = (socket, client, utils) => {
       const validation = validatePayload(payload, ['sceneId', 'drawing']);
       if (!validation.valid) return safeEmitError('Dados inválidos.');
 
-      if (!(await checkPermission('drawings'))) {
+      // REGRA MILENAR: Use PermissionHelper
+      const helper = await getPermissionHelper();
+      if (!helper.can('drawings')) {
         return safeEmitError('Sem permissão para desenhar.');
       }
 
@@ -58,17 +60,14 @@ export const registerDrawingHandlers = (socket, client, utils) => {
       if (!scene) return;
 
       const drawing = scene.drawings.find(d => d.id === id);
-      let allowed = false;
+      if (!drawing) return safeEmitError('Desenho não encontrado.');
 
-      if (client.isGM) {
-        allowed = true;
-      } else if (drawing && drawing.userId === client.userId) {
-        allowed = await checkPermission('drawings');
-      } else {
-        allowed = await checkPermission('drawingDelete');
+      // REGRA MILENAR: Use PermissionHelper
+      const helper = await getPermissionHelper();
+      if (!helper.canDeleteDrawing(drawing.userId)) {
+        console.warn('[WS] drawing:remove denied: cannot delete drawing');
+        return safeEmitError('Sem permissão para apagar este desenho.');
       }
-
-      if (!allowed) return safeEmitError('Sem permissão para apagar este desenho.');
 
       scene.drawings = scene.drawings.filter(d => d.id !== id);
       await db.update('campaigns', client.campaignId, campaign);
