@@ -25,24 +25,24 @@ export const defaultTokenHoverPermissions: TokenHoverPermissions = {
 };
 
 export const getDefaultPermissions = (): SessionPermissions => ({
-  // Interação Básica
-  tokenMovement: true,
-  doorControl: true,
-  drawings: true,
-  measure: true,
-  pingMap: true,
-  diceRolling: true,
+  // Interação Básica - APENAS ferramentas essenciais habilitadas por padrão
+  tokenMovement: true,  // Jogadores podem mover seus próprios tokens
+  doorControl: false,   // GM deve habilitar explicitamente
+  drawings: true,       // Ferramenta de desenho disponível
+  measure: true,        // Régua disponível
+  pingMap: false,       // GM deve habilitar explicitamente
+  diceRolling: true,    // Mesa de dados disponível
 
-  // Gestão de Tokens
+  // Gestão de Tokens - Requer permissão do GM
   tokenCreate: false,
   tokenEdit: false,
   tokenDelete: false,
 
-  // Ferramentas Avançadas
+  // Ferramentas Avançadas - Requer permissão do GM
   fogReveal: false,
 
   // Novas Permissões
-  compendiumBrowse: false, // GM only by default, but configurable
+  compendiumBrowse: true, // Grimório disponível por padrão
   journalCreate: false,
   sheetEdit: true,
   initiativeRoll: true,

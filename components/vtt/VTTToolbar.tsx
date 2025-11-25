@@ -376,6 +376,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 icon: <BookOpen />,
                 onClick: props.onToggleLibrary,
                 isActive: props.isLibraryOpen,
+                hidden: !permissionHelper.canAsGMOr("bestiaryBrowse"), // Apenas GM pode acessar o bestiário
             },
             {
                 id: 'compendium',
@@ -384,6 +385,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 icon: <Book />,
                 onClick: props.onToggleCompendium,
                 isActive: !!props.isCompendiumOpen,
+                hidden: !permissionHelper.canAsGMOr('compendiumBrowse'), // Requer permissão
             },
             {
                 id: 'handouts',
