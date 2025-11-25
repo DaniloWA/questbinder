@@ -18,14 +18,14 @@ interface SmartDiceRollerProps {
 }
 
 export const SmartDiceRoller: React.FC<SmartDiceRollerProps> = ({ isOpen, onClose }) => {
-    const { selectedTokenIds, scenes, activeSceneId, campaignCharacters, broadcastRoll, checkPermission, isGM } = useGameSession();
+    const { selectedTokenIds, scenes, activeSceneId, campaignCharacters, broadcastRoll, permissionHelper } = useGameSession();
     const [activeTab, setActiveTab] = useState<'manual' | 'attributes' | 'combat' | 'skills' | 'inventory'>('manual');
     const [currentCharacter, setCurrentCharacter] = useState<Character | null>(null);
 
     const rollerRef = useRef<DiceRollerHandle>(null);
 
-    // Permission check
-    const canRoll = isGM || checkPermission('diceRolling');
+    // REGRA MILENAR: Use PermissionHelper
+    const canRoll = permissionHelper.canAsGMOr('diceRolling');
 
     // Auto-detect character from selection
     useEffect(() => {

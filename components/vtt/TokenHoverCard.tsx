@@ -67,28 +67,8 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
     onUpdate, onCharacterUpdate, onOpenSheet, onRoll, onMouseEnter, onMouseLeave
 }) => {
 
-    const { sendChatMessage } = useGameSession();
+    const { sendChatMessage, permissionHelper } = useGameSession();
     const [isAdding, setIsAdding] = useState(false);
-
-    // Permission checking function
-    const canShow = (field: keyof TokenHoverPermissions['pc'] | keyof TokenHoverPermissions['npc'] | keyof TokenHoverPermissions['object']): boolean => {
-        // GM and controllers always see everything
-        if (isGM || isController) return true;
-
-        // If no permissions defined, default to show everything (backward compatibility)
-        if (!permissions) return true;
-
-        // Check based on token type
-        const tokenPerms = permissions[token.type];
-        if (!tokenPerms) return true;
-
-        // Type-safe field check
-        if (field in tokenPerms) {
-            return (tokenPerms as any)[field] === true;
-        }
-
-        return false;
-    };
 
     const style: React.CSSProperties = {
         position: 'fixed', // Fixed ensures smooth movement relative to viewport without jitter from parent scaling
@@ -103,10 +83,10 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
     const hp = character ? { value: character.hpCurrent, max: character.hpMax, visible: true } : token.bars?.bar1;
     const mp = character ? { value: character.manaCurrent, max: character.manaMax, visible: true } : token.bars?.bar2;
     const isController = token.ownerId === currentUserId || token.controlledBy?.includes(currentUserId || '');
-    const canControl = isGM || isController;
+    const canControl = permissionHelper.isGameMaster() || isController;
 
     // ⚠️ CRITICAL CHECK: If hover is globally disabled for players, don't render at all
-    if (!isGM && !isController && permissions && permissions.enabled === false) {
+    if (!permissionHelper.isGameMaster() && !isController && permissions && permissions.enabled === false) {
         return null;
     }
 
@@ -269,7 +249,7 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
                 <div className="relative z-10 min-w-0 flex-1">
                     <div className="flex justify-between items-center">
                         <div className="min-w-0">
-                            {canShow('showName') && <h4 className="font-bold text-sm text-white truncate leading-tight font-fantasy tracking-wide">{token.name}</h4>}
+                            {permissionHelper.canSeeTokenHoverField(token, 'showName', permissions) && <h4 className="font-bold text-sm text-white truncate leading-tight font-fantasy tracking-wide">{token.name}</h4>}
                             <div className="flex items-center gap-2 mt-0.5">
                                 <span className={`text-[9px] px-1.5 rounded-sm uppercase font-bold leading-none py-0.5 ${token.type === 'pc' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' : 'bg-red-500/20 text-red-300 border border-red-500/30'}`}>
                                     {token.type === 'pc' ? 'Herói' : 'Criatura'}
@@ -300,7 +280,7 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
                 {/* BARS SECTION */}
                 <div className="space-y-2.5">
                     {/* HP BAR */}
-                    {canShow('showHP') && (canControl || (hp && hp.visible)) && hp && hp.max > 0 && (
+                    {permissionHelper.canSeeTokenHoverField(token, 'showHP', permissions) && (canControl || (hp && hp.visible)) && hp && hp.max > 0 && (
                         <div className="space-y-1">
                             <div className="flex justify-between items-center text-[10px] font-bold uppercase text-zinc-500 px-0.5">
                                 <span className="flex items-center gap-1"><Heart className="w-3 h-3 text-red-500 fill-current" /> Vida</span>
@@ -330,7 +310,7 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
                     )}
 
                     {/* RESOURCE BAR (MP) */}
-                    {canShow('showResource') && (canControl || (mp && mp.visible)) && mp && mp.max > 0 && (
+                    {permissionHelper.canSeeTokenHoverField(token, 'showResource', permissions) && (canControl || (mp && mp.visible)) && mp && mp.max > 0 && (
                         <div className="space-y-1 pt-1 border-t border-zinc-800/50">
                             <div className="flex justify-between items-center text-[10px] font-bold uppercase text-zinc-500 px-0.5">
                                 <span className="flex items-center gap-1"><Zap className="w-3 h-3 text-blue-500 fill-current" /> Recurso</span>
@@ -363,7 +343,7 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
                     const effectConditions = token.effects?.flatMap(e => e.conditions || []) || [];
                     const allConditions = Array.from(new Set([...(token.conditions || []), ...effectConditions]));
 
-                    if (!canShow('showConditions') || (allConditions.length === 0 && !canControl)) return null;
+                    if (!permissionHelper.canSeeTokenHoverField(token, 'showConditions', permissions) || (allConditions.length === 0 && !canControl)) return null;
 
                     return (
                         <div className="space-y-2 pt-1 border-t border-zinc-800/50 mt-1">
