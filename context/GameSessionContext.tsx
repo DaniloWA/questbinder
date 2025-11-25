@@ -26,10 +26,10 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
     const { show } = useNotification();
     const {
         state, setState, isCompendiumOpen, setIsCompendiumOpen,
-        activeScene, activeHandout, sharedHandout, triggeredHandout, user
+        activeScene, activeHandout, sharedHandout, user
     } = useGameState(campaignId);
 
-    const { checkPermission, updatePermissions } = usePermissions(state, setState, user);
+    const { checkPermission, updatePermissions, permissionHelper } = usePermissions(state, setState, user);
     const { setViewport, addPing, setRulerSettings } = useMapInteraction(state, setState, user, checkPermission);
     const {
         moveToken, moveTokens, updateToken, addToken, removeToken,
@@ -174,6 +174,7 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
         setRulerSettings,
         checkPermission,
         updatePermissions,
+        permissionHelper, // Global permission helper
         updateMapSettings,
         emitTokenDrag,
         emitCursorMove,

@@ -1,18 +1,23 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { GameSessionState, BooleanPermissionKey } from '../types';
 import { socketService } from '../../../services/socketService';
 import { SessionPermissions } from '../../../types';
+import { PermissionHelper } from '../helpers/PermissionHelper';
 
 export const usePermissions = (
   state: GameSessionState,
   setState: React.Dispatch<React.SetStateAction<GameSessionState>>,
   user: any
 ) => {
+  // Create PermissionHelper instance (memoized for performance)
+  const permissionHelper = useMemo(
+    () => new PermissionHelper(state.isGM, user?.id || null, state.permissions),
+    [state.isGM, user?.id, state.permissions]
+  );
+
+  // Backward compatibility: keep original checkPermission function
   const checkPermission = (perm: BooleanPermissionKey) => {
-    if (state.isGM) return true;
-    if (!user) return false;
-    const override = state.permissions.userOverrides[user.id]?.[perm];
-    return (override !== undefined ? override : state.permissions[perm]) as boolean;
+    return permissionHelper.can(perm);
   };
 
   const updatePermissions = (perms: Partial<SessionPermissions>) => {
@@ -26,6 +31,7 @@ export const usePermissions = (
 
   return {
     checkPermission,
-    updatePermissions
+    updatePermissions,
+    permissionHelper // Export the helper for advanced usage
   };
 };

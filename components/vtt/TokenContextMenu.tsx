@@ -24,7 +24,7 @@ interface TokenContextMenuProps {
 export const TokenContextMenu: React.FC<TokenContextMenuProps> = ({
     x, y, token, onClose, onEdit, onDuplicate, onDelete, onToggleVisibility, onToggleCondition, onOpenSheet
 }) => {
-    const { scenes, activeSceneId, moveTokenToScene, isGM, sendChatMessage, permissions } = useGameSession();
+    const { scenes, activeSceneId, moveTokenToScene, isGM, sendChatMessage, permissionHelper } = useGameSession();
     const { user } = useAuth();
     const { show } = useNotification();
     const menuRef = useRef<HTMLDivElement>(null);
@@ -112,10 +112,10 @@ export const TokenContextMenu: React.FC<TokenContextMenuProps> = ({
         }, 400);
     };
 
-    const isController = liveToken.ownerId === user?.id || liveToken.controlledBy?.includes(user?.id || '');
-    const canEdit = isGM || (isController && permissions.tokenEdit);
-    const canCreate = isGM || permissions.tokenCreate;
-    const canDelete = isGM || (isController && permissions.tokenDelete);
+    // Use PermissionHelper for cleaner permission checks
+    const canEdit = permissionHelper.canEditToken(liveToken);
+    const canCreate = permissionHelper.can('tokenCreate');
+    const canDelete = permissionHelper.canDeleteToken(liveToken);
 
     return createPortal(
         <div

@@ -1159,7 +1159,7 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
             }
 
             if (clickedObstacle && activeTool === 'select' && ['door', 'window'].includes(clickedObstacle.type)) {
-                const canInteract = isGM || permissions.doorControl;
+                const canInteract = isGM || checkPermission('doorControl');
                 if (canInteract) {
                     const isOpen = !clickedObstacle.blocksMovement;
                     const newOpen = !isOpen;
@@ -1229,7 +1229,7 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
                 const isController = clickedToken.ownerId === currentUser?.id || clickedToken.controlledBy?.includes(currentUser?.id || '');
 
                 if (isGM || isController) {
-                    if (!isGM && !permissions.tokenMovement) return;
+                    if (!isGM && !checkPermission('tokenMovement')) return;
                     dragState.isDragging = true;
                     dragState.token = clickedToken;
                     dragState.dragStartX = pos.x;

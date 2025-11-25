@@ -7,6 +7,7 @@ import {
 import {
   TokenDragPayload, CursorMovePayload
 } from '../../types/socket';
+import { PermissionHelper } from './helpers/PermissionHelper';
 
 export type BooleanPermissionKey = Exclude<keyof SessionPermissions, 'logConfig' | 'userOverrides'>;
 
@@ -179,6 +180,7 @@ export interface GameSessionContextType extends GameSessionState {
 
   checkPermission: (perm: BooleanPermissionKey) => boolean;
   updatePermissions: (perms: Partial<SessionPermissions>) => void;
+  permissionHelper: PermissionHelper; // Global permission helper instance
   updateMapSettings: (settings: Partial<MapScene>) => void;
 
   toggleGMViewMode: () => void;

@@ -46,6 +46,7 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw?
+.agent
 
 # Database
 *.sqlite
