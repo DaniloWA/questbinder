@@ -1,4 +1,5 @@
 // index.js (ou server.js) — VERSÃO FINAL 100% FUNCIONAL
+import 'dotenv/config';
 import express from 'express';
 import http from 'http';
 import cors from 'cors';
@@ -7,11 +8,17 @@ import { setupSocket } from './socket.js';
 
 const app = express();
 const server = http.createServer(app);
-const PORT = 3001;
+const PORT = parseInt(process.env.PORT || '3001');
+const HOST = process.env.HOST || '0.0.0.0';
 
 // ======================= MIDDLEWARES =======================
+const corsOrigins = [
+  process.env.CORS_ORIGIN_1 || 'http://localhost:5173',
+  process.env.CORS_ORIGIN_2 || 'http://127.0.0.1:5173'
+];
+
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://127.0.0.1:5173'], // Vite default
+  origin: corsOrigins,
   credentials: true
 }));
 
@@ -148,36 +155,47 @@ app.delete('/api/:collection/:id', async (req, res) => {
 
 // Endpoint específico para atualizar permissões da campanha
 app.patch('/api/campaigns/:id/permissions', async (req, res) => {
+  console.log('[API] ========== PATCH /api/campaigns/:id/permissions ==========');
+  console.log('[API] Campaign ID:', req.params.id);
+  console.log('[API] Permissions:', JSON.stringify(req.body.permissions, null, 2));
+
   try {
     const { id } = req.params;
     const { permissions } = req.body;
 
     if (!permissions) {
+      console.warn('[API] Missing permissions object');
       return res.status(400).json({ error: 'Permissions object is required' });
     }
 
     const campaign = await getById('campaigns', id);
     if (!campaign) {
+      console.warn('[API] Campaign not found:', id);
       return res.status(404).json({ error: 'Campaign not found' });
     }
 
     // Update permissions in DB
     const updatedCampaign = await update('campaigns', id, { permissions });
+    console.log('[API] ✅ Permissions saved to database');
 
     // Broadcast update via Socket.IO
+    const roomSize = io.sockets.adapter.rooms.get(id)?.size || 0;
+    console.log(`[API] Broadcasting to room ${id} (${roomSize} clients)`);
     io.to(id).emit('campaign:permissionsUpdated', { permissions });
-    console.log(`[API] Permissions updated for campaign ${id}`);
+    console.log(`[API] ✅ Broadcasted campaign:permissionsUpdated to ${roomSize} clients`);
 
     res.json(updatedCampaign.permissions);
   } catch (err) {
-    console.error(err);
+    console.error('[API] Error updating permissions:', err);
     res.status(500).json({ error: 'Error updating permissions' });
   }
 });
 
 // ======================= START SERVER =======================
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`\nServidor rodando em http://localhost:${PORT}`);
-  console.log(`API REST: http://localhost:${PORT}/api/campaigns`);
-  console.log(`WebSocket: ws://localhost:${PORT}\n`);
+server.listen(PORT, HOST, () => {
+  console.log(`\n🚀 QuestBinder Server`);
+  console.log(`📍 Servidor rodando em http://localhost:${PORT}`);
+  console.log(`🔌 WebSocket: ws://localhost:${PORT}`);
+  console.log(`🌐 CORS habilitado para: ${corsOrigins.join(', ')}`);
+  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}\n`);
 });

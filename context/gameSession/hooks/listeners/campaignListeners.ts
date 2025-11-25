@@ -130,12 +130,16 @@ export const registerCampaignListeners = ({
 
   // Handler: campaign:permissionsUpdated (consolidado)
   const handlePermissionsUpdated = (payload: { permissions: any; }) => {
-    console.log('[WS] ✅ Received campaign:permissionsUpdated event');
-    console.log('[WS] Campaign permissions updated:', payload);
+    console.log('[WS] ========== CAMPAIGN:PERMISSIONSUPDATED EVENT RECEIVED ==========');
+    console.log('[WS] Payload:', JSON.stringify(payload, null, 2));
+    console.log('[WS] Current state permissions:', state.permissions);
     console.log('[WS] Applying permissions update in real-time...');
 
     setState(prev => {
-      if (!prev.campaign) return prev;
+      if (!prev.campaign) {
+        console.warn('[WS] No campaign in state, cannot update permissions');
+        return prev;
+      }
 
       // Create a NEW campaign object to ensure React detects the change
       const updatedCampaign = {
@@ -143,7 +147,8 @@ export const registerCampaignListeners = ({
         permissions: { ...payload.permissions }
       };
 
-      console.log('[WS] Updated campaign permissions:', updatedCampaign.permissions);
+      console.log('[WS] ✅ Updated campaign permissions:', updatedCampaign.permissions);
+      console.log('[WS] ✅ Updated state permissions:', payload.permissions);
 
       // Update both campaign.permissions AND state.permissions for full compatibility
       return {
@@ -152,6 +157,8 @@ export const registerCampaignListeners = ({
         permissions: payload.permissions
       };
     });
+
+    console.log('[WS] ✅ Permissions update completed');
   };
 
   // Register listeners

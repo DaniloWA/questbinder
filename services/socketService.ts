@@ -20,12 +20,21 @@ class RealSocketService {
       return Promise.resolve(true);
     }
 
-    this.socket = io('http://localhost:3000', {
+    const wsUrl = import.meta.env.VITE_WS_URL || 'http://localhost:3001';
+    const reconnectionAttempts = import.meta.env.VITE_WS_RECONNECTION_ATTEMPTS === 'Infinity'
+      ? Infinity
+      : parseInt(import.meta.env.VITE_WS_RECONNECTION_ATTEMPTS || '10');
+    const reconnectionDelay = parseInt(import.meta.env.VITE_WS_RECONNECTION_DELAY || '1000');
+    const reconnectionDelayMax = parseInt(import.meta.env.VITE_WS_RECONNECTION_DELAY_MAX || '5000');
+
+    console.log('[WS] Connecting to:', wsUrl);
+
+    this.socket = io(wsUrl, {
       transports: ['websocket'],
       reconnection: true,
-      reconnectionAttempts: Infinity,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
+      reconnectionAttempts,
+      reconnectionDelay,
+      reconnectionDelayMax,
     });
 
     return new Promise((resolve) => {

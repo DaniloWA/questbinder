@@ -21,12 +21,22 @@ export const usePermissions = (
   };
 
   const updatePermissions = (perms: Partial<SessionPermissions>) => {
+    console.log('[CLIENT] ========== UPDATE PERMISSIONS CALLED ==========');
+    console.log('[CLIENT] Campaign ID:', state.campaign?.id);
+    console.log('[CLIENT] New permissions:', JSON.stringify(perms, null, 2));
+
     const newPerms = { ...state.permissions, ...perms };
+    console.log('[CLIENT] Merged permissions:', JSON.stringify(newPerms, null, 2));
+
     setState(prev => ({ ...prev, permissions: newPerms }));
+    console.log('[CLIENT] ✅ Local state updated');
+
+    console.log('[CLIENT] Emitting campaign:updatePermissions via WebSocket...');
     socketService.emit('campaign:updatePermissions', {
       campaignId: state.campaign?.id,
       permissions: newPerms
     });
+    console.log('[CLIENT] ✅ WebSocket emit completed');
   };
 
   return {

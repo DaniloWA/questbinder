@@ -11,20 +11,26 @@ import { registerAudioHandlers } from './socket/handlers/audioHandlers.js';
 import { registerMapHandlers } from './socket/handlers/mapHandlers.js';
 import { registerCharacterHandlers } from './socket/handlers/characterHandlers.js';
 import { registerCombatHandlers } from './socket/handlers/combatHandlers.js';
+import { registerPermissionsHandlers } from './socket/handlers/permissionsHandlers.js';
 
 export const setupSocket = (server) => {
+  const corsOrigins = [
+    process.env.CORS_ORIGIN_1 || 'http://localhost:5173',
+    process.env.CORS_ORIGIN_2 || 'http://127.0.0.1:5173'
+  ];
+
   const io = new Server(server, {
     cors: {
-      origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+      origin: corsOrigins,
       methods: ['GET', 'POST'],
       credentials: true
     },
-    pingTimeout: 20000,
-    pingInterval: 25000,
+    pingTimeout: parseInt(process.env.WS_PING_TIMEOUT || '20000'),
+    pingInterval: parseInt(process.env.WS_PING_INTERVAL || '25000'),
     // CRITICAL: Increase buffer size to support large Base64 images
     // Base64 encoding increases file size by ~33%
     // 10MB image → ~13MB Base64, so we set 20MB to be safe
-    maxHttpBufferSize: 20 * 1024 * 1024, // 20MB (default is 1MB)
+    maxHttpBufferSize: parseInt(process.env.WS_MAX_HTTP_BUFFER_SIZE || '20971520'), // 20MB (default is 1MB)
   });
 
   io.on('connection', (socket) => {
