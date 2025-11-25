@@ -143,11 +143,11 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
 
     const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
 
-    const { isGM, addToken, sendChatMessage, viewport, activeScene, compendiumTarget, checkPermission } = useGameSession();
+    const { isGM, addToken, sendChatMessage, viewport, activeScene, compendiumTarget, permissionHelper } = useGameSession();
     const { show } = useNotification();
 
-    // PERMISSION CHECK
-    const canBrowse = checkPermission('compendiumBrowse');
+    // REGRA MILENAR: Use PermissionHelper
+    const canBrowse = permissionHelper.can('compendiumBrowse');
 
     // Load favorites on mount
     useEffect(() => {

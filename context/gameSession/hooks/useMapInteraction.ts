@@ -7,13 +7,15 @@ export const useMapInteraction = (
   state: GameSessionState,
   setState: React.Dispatch<React.SetStateAction<GameSessionState>>,
   user: any,
-  checkPermission: (perm: BooleanPermissionKey) => boolean
+  permissionHelper?: any // REGRA MILENAR
 ) => {
   const setViewport = (v: Partial<Viewport>) => setState(prev => ({ ...prev, viewport: { ...prev.viewport, ...v } }));
 
   const addPing = (x: number, y: number) => {
     if (!user) return;
-    if (!state.isGM && !checkPermission('pingMap')) return;
+    // REGRA MILENAR: Use PermissionHelper
+    const canPing = permissionHelper ? permissionHelper.canAsGMOr('pingMap') : false;
+    if (!canPing) return;
     const newPing: Ping = {
       id: Math.random().toString(36).substr(2, 9),
       x, y,

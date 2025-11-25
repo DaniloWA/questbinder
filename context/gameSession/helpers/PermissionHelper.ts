@@ -44,6 +44,7 @@ export class PermissionHelper {
    * Players can control tokens they own or are controlled by them
    */
   canControlToken(token: Token): boolean {
+    if (!token) return false;
     if (this.isGM) return true;
     if (!this.userId) return false;
 

@@ -10,8 +10,8 @@ export const useTokenActions = (
   setState: React.Dispatch<React.SetStateAction<GameSessionState>>,
   campaignId: string,
   user: any,
-  checkPermission: (perm: BooleanPermissionKey) => boolean,
-  show: (notification: any) => void
+  show: (notification: any) => void,
+  permissionHelper?: any // REGRA MILENAR
 ) => {
   const activeScene = state.scenes.find(s => s.id === state.activeSceneId) || null;
 
@@ -27,11 +27,9 @@ export const useTokenActions = (
       state,
       setState,
       campaignId,
-      user,
-      checkPermission,
-      requiredPermission: 'tokenMovement',
-      // Custom permission check for owner
-      validate: () => state.isGM || (!!isControlledByMe && checkPermission('tokenMovement')),
+      validate: () => {
+        return permissionHelper ? (permissionHelper.isGameMaster() || (!!isControlledByMe && permissionHelper.can('tokenMovement'))) : false;
+      },
 
       optimisticUpdate: (prev) => {
         const updatedScenes = StateHelpers.updateItemInSceneList(
@@ -89,7 +87,7 @@ export const useTokenActions = (
         }
       }
     }
-  }, [activeScene, state, user, checkPermission, setState, campaignId]);
+  }, [activeScene, state, user, setState, campaignId]);
 
   const moveTokens = (updates: { id: string, x: number, y: number; }[]) => { updates.forEach(u => moveToken(u.id, u.x, u.y)); };
 
@@ -99,7 +97,7 @@ export const useTokenActions = (
       setState,
       campaignId,
       user,
-      checkPermission,
+      permissionHelper, // REGRA MILENAR
       requiredPermission: 'tokenEdit',
 
       optimisticUpdate: (prev) => {
@@ -144,7 +142,7 @@ export const useTokenActions = (
       setState,
       campaignId,
       user,
-      checkPermission,
+      permissionHelper, // REGRA MILENAR
       requiredPermission: 'tokenCreate',
 
       optimisticUpdate: (prev) => {
@@ -172,7 +170,7 @@ export const useTokenActions = (
       setState,
       campaignId,
       user,
-      checkPermission,
+      permissionHelper, // REGRA MILENAR
       requiredPermission: 'tokenDelete',
 
       optimisticUpdate: (prev) => {

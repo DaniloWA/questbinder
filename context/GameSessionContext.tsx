@@ -30,15 +30,15 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
     } = useGameState(campaignId);
 
     const { checkPermission, updatePermissions, permissionHelper } = usePermissions(state, setState, user);
-    const { setViewport, addPing, setRulerSettings } = useMapInteraction(state, setState, user, checkPermission);
+    const { setViewport, addPing, setRulerSettings } = useMapInteraction(state, setState, user, permissionHelper);
     const {
         moveToken, moveTokens, updateToken, addToken, removeToken,
         moveTokenToScene, selectToken, clearSelection, emitTokenDrag, emitCursorMove
-    } = useTokenActions(state, setState, campaignId, user, checkPermission, show);
+    } = useTokenActions(state, setState, campaignId, user, show, permissionHelper);
 
     const {
         sendChatMessage, toggleChatReaction, handleChatLinkClick, rollDice, broadcastRoll
-    } = useChatActions(state, setState, campaignId, user, checkPermission, show, setIsCompendiumOpen, setViewport, addPing, selectToken);
+    } = useChatActions(state, setState, campaignId, user, show, setIsCompendiumOpen, setViewport, addPing, selectToken, permissionHelper);
 
     useSocketListeners(state, setState, campaignId, user, show);
     useAuraSystem(state, updateToken, campaignId, state.isGM);
@@ -83,7 +83,7 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
 
     const {
         addDrawing, removeDrawing, undoLastDrawing, clearAllDrawings, setDrawingSettings
-    } = useDrawingActions(state, setState, campaignId, user, checkPermission);
+    } = useDrawingActions(state, setState, campaignId, user, permissionHelper);
 
     const {
         addObstacles, updateObstacle, removeObstacle, bulkUpdateObstacles

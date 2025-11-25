@@ -160,16 +160,16 @@ const GameSessionUI: React.FC = () => {
         const drawingTools = ['draw-wall', 'draw-door', 'draw-window', 'eraser', 'draw-audio-rect', 'draw-audio-poly'];
         const measureTool = 'measure-path';
         const fogTools = ['fog-poly', 'fog-rect'];
-        if (drawingTools.includes(session.activeTool) && !session.checkPermission('drawings')) session.setActiveTool('select');
-        if (session.activeTool === measureTool && !session.checkPermission('measure')) session.setActiveTool('select');
-        if (fogTools.includes(session.activeTool) && !session.checkPermission('fogReveal')) session.setActiveTool('select');
-    }, [session.permissions, session.activeTool, session.isGM, session.checkPermission, session.setActiveTool]);
+        if (drawingTools.includes(session.activeTool) && !session.permissionHelper.can('drawings')) session.setActiveTool('select');
+        if (session.activeTool === measureTool && !session.permissionHelper.can('measure')) session.setActiveTool('select');
+        if (fogTools.includes(session.activeTool) && !session.permissionHelper.can('fogReveal')) session.setActiveTool('select');
+    }, [session.permissions, session.activeTool, session.isGM, session.permissionHelper, session.setActiveTool]);
 
     // ... (Modal Handlers remain unchanged) ...
     const handleOpenTokenModal = (token: Token | 'new', initialPosition?: { x: number, y: number; }) => {
         if (!session.isGM) {
             if (token === 'new') {
-                if (!session.checkPermission('tokenCreate')) {
+                if (!session.permissionHelper.can('tokenCreate')) {
                     show({ type: 'warning', message: 'Você não tem permissão para criar tokens.' });
                     return;
                 }
@@ -179,7 +179,7 @@ const GameSessionUI: React.FC = () => {
                     show({ type: 'warning', message: 'Você não controla este token.' });
                     return;
                 }
-                if (!session.checkPermission('tokenEdit')) {
+                if (!session.permissionHelper.can('tokenEdit')) {
                     show({ type: 'warning', message: 'Edição de tokens bloqueada.' });
                     return;
                 }
@@ -218,7 +218,7 @@ const GameSessionUI: React.FC = () => {
 
     // ... (Duplicate, Template, ContextMenu handlers unchanged) ...
     const handleDuplicateToken = (token: Token) => {
-        if (!session.isGM && !session.checkPermission('tokenCreate')) {
+        if (!session.isGM && !session.permissionHelper.can('tokenCreate')) {
             show({ type: 'warning', message: 'Criação de tokens bloqueada.' });
             return;
         }
@@ -228,7 +228,7 @@ const GameSessionUI: React.FC = () => {
     };
 
     const handleUseTemplate = (tpl: TokenTemplate) => {
-        if (!session.isGM && !session.checkPermission('tokenCreate')) {
+        if (!session.isGM && !session.permissionHelper.can('tokenCreate')) {
             show({ type: 'warning', message: 'Criação de tokens bloqueada.' });
             return;
         }
@@ -569,7 +569,7 @@ const GameSessionUI: React.FC = () => {
                     worldX={mapContextMenu.worldX}
                     worldY={mapContextMenu.worldY}
                     isGM={session.isGM}
-                    canCreateToken={session.checkPermission('tokenCreate')}
+                    canCreateToken={session.permissionHelper.can('tokenCreate')}
                     obstacleId={mapContextMenu.obstacleId}
                     triggerZoneId={mapContextMenu.triggerZoneId}
                     audioZoneId={mapContextMenu.audioZoneId}

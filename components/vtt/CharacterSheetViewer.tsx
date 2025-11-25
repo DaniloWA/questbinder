@@ -32,16 +32,17 @@ export const CharacterSheetViewer: React.FC<CharacterSheetViewerProps> = ({
     const [isEditing, setIsEditing] = useState(false);
 
     // Try to get game session context, but don't fail if not available (e.g., in Dashboard)
-    let checkPermission: (perm: string) => boolean = () => true;
+    let permissionHelper: any = { can: () => true, isGameMaster: () => isGM };
     try {
         const gameSession = useGameSession();
-        checkPermission = gameSession.checkPermission;
+        permissionHelper = gameSession.permissionHelper;
     } catch (e) {
         // Not in GameSessionContext, use default permission (allow all for now)
     }
 
-    // Permission check: GM always true, Owner needs 'sheetEdit' perm
-    const canEdit = isGM || (character.ownerId === currentUserId && checkPermission('sheetEdit'));
+    // REGRA MILENAR: Use PermissionHelper
+    // GM always true, Owner needs 'sheetEdit' perm
+    const canEdit = permissionHelper.isGameMaster() || (character.ownerId === currentUserId && permissionHelper.can('sheetEdit'));
 
     // --- ACTIONS ---
     const handleRoll = (label: string, mod: number | string, type: 'd20' | 'dmg' = 'd20') => {

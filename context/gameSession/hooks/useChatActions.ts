@@ -10,12 +10,12 @@ export const useChatActions = (
   setState: React.Dispatch<React.SetStateAction<GameSessionState>>,
   campaignId: string,
   user: any,
-  checkPermission: (perm: BooleanPermissionKey) => boolean,
   show: (notification: any) => void,
   setIsCompendiumOpen: (val: boolean) => void,
   setViewport: (v: any) => void,
   addPing: (x: number, y: number) => void,
-  selectToken: (id: string, multi: boolean) => void
+  selectToken: (id: string, multi: boolean) => void,
+  permissionHelper?: any // REGRA MILENAR
 ) => {
   const activeScene = state.scenes.find(s => s.id === state.activeSceneId) || null;
 
@@ -79,7 +79,10 @@ export const useChatActions = (
   };
 
   const rollDice = (label: string, formula: string) => {
-    if (!state.isGM && !checkPermission('diceRolling')) {
+    // REGRA MILENAR: Use PermissionHelper
+    const canRoll = permissionHelper ? permissionHelper.canAsGMOr('diceRolling') : false;
+
+    if (!canRoll) {
       show({ type: 'warning', message: 'Rolagem de dados bloqueada pelo Mestre.' });
       return;
     }

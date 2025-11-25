@@ -115,7 +115,8 @@ interface ActionOptions<T> {
   setState: React.Dispatch<React.SetStateAction<GameSessionState>>;
   campaignId: string;
   user?: any;
-  checkPermission?: (perm: BooleanPermissionKey) => boolean;
+  // REGRA MILENAR: Use PermissionHelper
+  permissionHelper?: any; // Should be PermissionHelper type
   requiredPermission?: BooleanPermissionKey;
   isGMOnly?: boolean;
 
@@ -139,7 +140,7 @@ export const ActionHandlers = {
       state,
       setState,
       user,
-      checkPermission,
+      permissionHelper,
       requiredPermission,
       isGMOnly,
       optimisticUpdate,
@@ -156,31 +157,46 @@ export const ActionHandlers = {
         if (onFailure) onFailure(validationResult);
         return;
       }
-      if (validationResult === false) return;
+      if (validationResult === false) {
+        if (onFailure) onFailure('Validation failed');
+        return;
+      }
     }
 
     // 2. Permission Check
-    if (!state.isGM) {
-      if (isGMOnly) {
+    // REGRA MILENAR: Prefer PermissionHelper
+    if (permissionHelper) {
+      if (isGMOnly && !permissionHelper.isGameMaster()) {
         console.warn('[Action] Permission denied: GM only');
         return;
       }
-      if (requiredPermission && checkPermission && !checkPermission(requiredPermission)) {
+      if (requiredPermission && !permissionHelper.canAsGMOr(requiredPermission)) {
         console.warn(`[Action] Permission denied: ${requiredPermission} required`);
         return;
       }
+    } else if (isGMOnly && !state.isGM) {
+      // Fallback for when permissionHelper is not passed (e.g. useSceneActions currently)
+      // We should aim to pass permissionHelper everywhere, but for now this keeps it working.
+      console.warn('[Action] Permission denied: GM only (fallback check)');
+      return;
     }
 
     // 3. Optimistic Update
-    setState(prev => optimisticUpdate(prev));
+    const prevState = state;
+    if (optimisticUpdate) {
+      setState(prev => optimisticUpdate(prev));
+    }
 
-    // 4. API Call (Fire and forget or await if needed, usually fire and forget for optimistic)
+    // 4. API Call
     if (apiCall) {
       try {
         await apiCall();
       } catch (error) {
         console.error('[Action] API call failed:', error);
-        // Ideally revert state here, but for now we log
+        // Revert state on failure
+        setState(prevState);
+        if (onFailure) onFailure('API call failed');
+        return;
       }
     }
 

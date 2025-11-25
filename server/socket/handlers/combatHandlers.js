@@ -3,12 +3,14 @@ import * as db from '../../db.js';
 
 export const registerCombatHandlers = (socket, client, utils) => {
   console.log('[combat] handlers registered');
-  const { broadcast, broadcastToRoom, logChange } = utils;
+  const { broadcast, broadcastToRoom, logChange, getPermissionHelper } = utils;
 
   // ==================== COMBAT:START ====================
   socket.on('combat:start', async (payload) => {
     try {
-      if (!client.campaignId || !client.isGM) {
+      // REGRA MILENAR: Use PermissionHelper
+      const helper = await getPermissionHelper();
+      if (!client.campaignId || !helper.isGameMaster()) {
         console.warn('[WS] combat:start: Unauthorized or no campaign');
         return;
       }
@@ -32,7 +34,9 @@ export const registerCombatHandlers = (socket, client, utils) => {
   // ==================== COMBAT:END ====================
   socket.on('combat:end', async (payload) => {
     try {
-      if (!client.campaignId || !client.isGM) {
+      // REGRA MILENAR: Use PermissionHelper
+      const helper = await getPermissionHelper();
+      if (!client.campaignId || !helper.isGameMaster()) {
         console.warn('[WS] combat:end: Unauthorized or no campaign');
         return;
       }
@@ -75,7 +79,9 @@ export const registerCombatHandlers = (socket, client, utils) => {
   // ==================== COMBAT:NEXT-TURN ====================
   socket.on('combat:next-turn', async (payload) => {
     try {
-      if (!client.campaignId || !client.isGM) {
+      // REGRA MILENAR: Use PermissionHelper
+      const helper = await getPermissionHelper();
+      if (!client.campaignId || !helper.isGameMaster()) {
         console.warn('[WS] combat:next-turn: Unauthorized or no campaign');
         return;
       }
@@ -100,7 +106,9 @@ export const registerCombatHandlers = (socket, client, utils) => {
   // ==================== COMBAT:COMBATANT:ADD ====================
   socket.on('combat:combatant:add', async (payload) => {
     try {
-      if (!client.campaignId || !client.isGM) {
+      // REGRA MILENAR: Use PermissionHelper
+      const helper = await getPermissionHelper();
+      if (!client.campaignId || !helper.isGameMaster()) {
         console.warn('[WS] combat:combatant:add: Unauthorized or no campaign');
         return;
       }
@@ -143,7 +151,9 @@ export const registerCombatHandlers = (socket, client, utils) => {
   // ==================== COMBAT:COMBATANT:REMOVE ====================
   socket.on('combat:combatant:remove', async (payload) => {
     try {
-      if (!client.campaignId || !client.isGM) {
+      // REGRA MILENAR: Use PermissionHelper
+      const helper = await getPermissionHelper();
+      if (!client.campaignId || !helper.isGameMaster()) {
         console.warn('[WS] combat:combatant:remove: Unauthorized or no campaign');
         return;
       }

@@ -10,7 +10,7 @@ export const useDrawingActions = (
   setState: React.Dispatch<React.SetStateAction<GameSessionState>>,
   campaignId: string,
   user: any,
-  checkPermission: (perm: BooleanPermissionKey) => boolean
+  permissionHelper?: any // REGRA MILENAR
 ) => {
   const addDrawing = (drawing: MapDrawing) => {
     const newDrawing = { ...drawing, ...state.drawingSettings };
@@ -20,7 +20,7 @@ export const useDrawingActions = (
       setState,
       campaignId,
       user,
-      checkPermission,
+      permissionHelper, // REGRA MILENAR
       requiredPermission: 'drawings',
 
       optimisticUpdate: (prev) => {
@@ -49,9 +49,11 @@ export const useDrawingActions = (
       setState,
       campaignId,
       user,
-      checkPermission,
+      permissionHelper, // REGRA MILENAR
       // Custom permission: GM OR Owner OR drawingDelete permission
-      validate: () => state.isGM || (isOwner && checkPermission('drawings')) || (!isOwner && checkPermission('drawingDelete')),
+      validate: () => {
+        return permissionHelper ? permissionHelper.canDeleteDrawing(drawing?.userId) : false;
+      },
 
       optimisticUpdate: (prev) => {
         const updatedScenes = StateHelpers.removeItemFromSceneList(
@@ -86,7 +88,7 @@ export const useDrawingActions = (
       setState,
       campaignId,
       user,
-      checkPermission,
+      permissionHelper, // REGRA MILENAR
       isGMOnly: true,
 
       optimisticUpdate: (prev) => {

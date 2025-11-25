@@ -274,7 +274,7 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const lightCanvasRef = useRef<HTMLCanvasElement>(document.createElement('canvas'));
-    const { removeObstacle, ui, audioSettings, updateAudioZone, removeAudioZone, checkPermission, handouts, addDrawing, removeDrawing, drawingSettings, rulerSettings } = useGameSession();
+    const { removeObstacle, ui, audioSettings, updateAudioZone, removeAudioZone, handouts, addDrawing, removeDrawing, drawingSettings, rulerSettings, permissionHelper } = useGameSession();
     const { openModal, closeModal } = useModal();
 
     const [isPanning, setIsPanning] = useState(false);
@@ -1134,11 +1134,8 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
 
             if (activeTool === 'eraser-drawing') {
                 if (clickedDrawing) {
-                    // Check if user can delete this drawing
-                    // const isOwnDrawing = clickedDrawing.userId === currentUser?.id;
-                    const canDelete = isGM || checkPermission('drawingDelete');
-
-                    if (canDelete) {
+                    // REGRA MILENAR: Use PermissionHelper
+                    if (permissionHelper.canDeleteDrawing(clickedDrawing.userId)) {
                         removeDrawing(clickedDrawing.id);
                     }
                 }
@@ -1159,8 +1156,8 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
             }
 
             if (clickedObstacle && activeTool === 'select' && ['door', 'window'].includes(clickedObstacle.type)) {
-                const canInteract = isGM || checkPermission('doorControl');
-                if (canInteract) {
+                // REGRA MILENAR: Use PermissionHelper
+                if (permissionHelper.canAsGMOr('doorControl')) {
                     const isOpen = !clickedObstacle.blocksMovement;
                     const newOpen = !isOpen;
 
@@ -1229,7 +1226,8 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
                 const isController = clickedToken.ownerId === currentUser?.id || clickedToken.controlledBy?.includes(currentUser?.id || '');
 
                 if (isGM || isController) {
-                    if (!isGM && !checkPermission('tokenMovement')) return;
+                    // REGRA MILENAR: Use PermissionHelper - Movement permission check
+                    if (!permissionHelper.canMoveToken(dragState.token)) return;
                     dragState.isDragging = true;
                     dragState.token = clickedToken;
                     dragState.dragStartX = pos.x;
