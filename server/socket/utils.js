@@ -1,4 +1,5 @@
 import * as db from '../db.js';
+import crypto from 'crypto';
 
 export const DEFAULT_PERMISSIONS = {
   tokenMovement: true,
@@ -57,6 +58,65 @@ export const createSocketUtils = (io, socket, client) => {
     }
   };
 
+  // Broadcast to all clients in room EXCEPT sender
+  const broadcast = (event, payload) => {
+    try {
+      if (!client.campaignId) {
+        console.warn('[WS] broadcast: no campaign ID');
+        return;
+      }
+      socket.to(client.campaignId).emit(event, payload);
+      console.log(`[WS] Broadcasted ${event} to room ${client.campaignId} (excluding sender)`);
+    } catch (err) {
+      console.error(`[WS] Failed to broadcast ${event}:`, err);
+    }
+  };
+
+  // Broadcast to all clients in room INCLUDING sender (alias for safeBroadcast)
+  const broadcastToRoom = (event, payload) => {
+    try {
+      if (!client.campaignId) {
+        console.warn('[WS] broadcastToRoom: no campaign ID');
+        return;
+      }
+      io.to(client.campaignId).emit(event, payload);
+      console.log(`[WS] Broadcasted ${event} to entire room ${client.campaignId}`);
+    } catch (err) {
+      console.error(`[WS] Failed to broadcast ${event}:`, err);
+    }
+  };
+
+  // Log change to campaign history for audit trail
+  const logChange = async (type, action, details) => {
+    try {
+      if (!client.campaignId) return;
+
+      const campaign = await db.getById('campaigns', client.campaignId);
+      if (!campaign) return;
+
+      const log = {
+        id: crypto.randomUUID(),
+        timestamp: new Date().toISOString(),
+        userId: client.userId,
+        userName: client.userName || 'Unknown',
+        type,
+        action,
+        details
+      };
+
+      const changeLog = campaign.changeLog || [];
+      changeLog.push(log);
+
+      // Keep last 500 log entries
+      const trimmedLog = changeLog.slice(-500);
+
+      await db.update('campaigns', client.campaignId, { changeLog: trimmedLog });
+      console.log(`[WS] Logged change: ${type} - ${action}`);
+    } catch (err) {
+      console.error('[WS] Failed to log change:', err);
+    }
+  };
+
   const checkPermission = async (perm) => {
     if (!client.campaignId) {
       console.warn('[WS] checkPermission: no campaign ID');
@@ -99,6 +159,9 @@ export const createSocketUtils = (io, socket, client) => {
   return {
     safeEmitError,
     safeBroadcast,
+    broadcast,
+    broadcastToRoom,
+    logChange,
     checkPermission,
     requireGM,
     validatePayload

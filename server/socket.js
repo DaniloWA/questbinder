@@ -108,7 +108,7 @@ export const setupSocket = (server) => {
     });
 
     // ==================== REGISTER HANDLERS ====================
-
+    console.log('[WS] Registering handlers for client:', client.userId);
     registerTokenHandlers(socket, client, utils);
     registerDrawingHandlers(socket, client, utils);
     registerChatHandlers(socket, client, utils);
