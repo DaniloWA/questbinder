@@ -56,7 +56,7 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
             console.log('[AudioZone] Entering zone, playing:', state.activeAudioZoneUrl, 'volume:', zoneVolume);
             audioService.playMusic(state.activeAudioZoneUrl, true, zoneVolume);
         } else {
-            console.log('[AudioZone] Exiting zone, stopping music');
+            // console.log('[AudioZone] Exiting zone, stopping music');
             audioService.stopMusic();
         }
     }, [state.activeAudioZoneUrl, state.scenes, state.activeSceneId]);

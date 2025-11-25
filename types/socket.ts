@@ -110,6 +110,11 @@ export interface CampaignPermissionsUpdatedPayload {
   permissions: any; // Full permissions object including tokenHover
 }
 
+export interface CampaignUpdatePermissionsPayload {
+  campaignId: string;
+  permissions: any;
+}
+
 export interface CombatUpdatePayload {
   combat: CombatState | null;
 }
@@ -231,6 +236,7 @@ export interface SocketEventMap {
   'scene:delete': SceneDeletePayload;
   'scene:switch': SceneSwitchPayload;
   'campaign:update': CampaignUpdatePayload;
+  'campaign:updatePermissions': CampaignUpdatePermissionsPayload;
   'campaign:permissionsUpdated': CampaignPermissionsUpdatedPayload;
   'cursor:move': CursorMovePayload;
   'handout:update': HandoutUpdatePayload;
@@ -247,6 +253,8 @@ export interface SocketEventMap {
   'player:leave': { userId: string; };
   'connect': void;
   'disconnect': void;
+  'error': { message: string; };
+  'chat_message:update': ChatMessage;
 }
 
 export interface SocketEvent<K extends keyof SocketEventMap> {

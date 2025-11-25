@@ -32,4 +32,26 @@ export const registerChatHandlers = (socket, client, utils) => {
       safeEmitError('Erro ao enviar mensagem.');
     }
   });
+
+  socket.on('dice:roll', async (payload) => {
+    try {
+      if (!client.campaignId) return;
+
+      // Check permission for dice rolling
+      if (!(await checkPermission('diceRolling'))) {
+        console.warn('[WS] dice:roll denied for user:', client.userId);
+        return safeEmitError('Sem permissão para rolar dados.');
+      }
+
+      const { result, user } = payload;
+
+      // Broadcast roll to all clients
+      safeBroadcast('dice:roll', { result, user });
+
+      console.log(`[WS] Dice roll from ${user.name}: ${result.formula} = ${result.total}`);
+    } catch (err) {
+      console.error('[WS] dice:roll error:', err);
+      safeEmitError('Erro ao processar rolagem.');
+    }
+  });
 };

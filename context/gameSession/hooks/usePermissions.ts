@@ -19,6 +19,10 @@ export const usePermissions = (
     const newPerms = { ...state.permissions, ...perms };
     setState(prev => ({ ...prev, permissions: newPerms }));
     socketService.emit('session:permissions', { permissions: newPerms });
+    socketService.emit('campaign:updatePermissions', {
+      campaignId: state.campaign?.id,
+      permissions: newPerms
+    });
   };
 
   return {

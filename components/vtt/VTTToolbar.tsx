@@ -369,6 +369,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 icon: <Dices />,
                 onClick: props.onToggleDiceRoller,
                 isActive: !!props.isDiceRollerOpen,
+                hidden: !hasPerm('diceRolling')
             },
             {
                 id: 'bestiary',

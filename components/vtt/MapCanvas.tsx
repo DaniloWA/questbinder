@@ -1134,7 +1134,13 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
 
             if (activeTool === 'eraser-drawing') {
                 if (clickedDrawing) {
-                    removeDrawing(clickedDrawing.id);
+                    // Check if user can delete this drawing
+                    // const isOwnDrawing = clickedDrawing.userId === currentUser?.id;
+                    const canDelete = isGM || checkPermission('drawingDelete');
+
+                    if (canDelete) {
+                        removeDrawing(clickedDrawing.id);
+                    }
                 }
                 return;
             }

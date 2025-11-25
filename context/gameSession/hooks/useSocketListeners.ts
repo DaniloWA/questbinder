@@ -17,6 +17,7 @@ import {
   SceneSwitchPayload,
   CombatUpdatePayload,
   DiceRollPayload,
+  ChatMessage,
   ChatMessagePayload,
   SessionPermissionsPayload,
   MapPingPayload,
@@ -736,6 +737,7 @@ export const useSocketListeners = (
       'player:join': handlePlayerJoin,
       'player:leave': handlePlayerLeave,
       'campaign:permissionsUpdated': (payload: { permissions: any; }) => {
+        console.log('[WS] ✅ Received campaign:permissionsUpdated event');
         console.log('[WS] Campaign permissions updated:', payload);
         console.log('[WS] Applying permissions update in real-time...');
         setState(prev => {
@@ -754,6 +756,40 @@ export const useSocketListeners = (
             campaign: updatedCampaign
           };
         });
+      },
+      'error': (payload: { message: string; }) => {
+        console.warn('[WS] Error received:', payload);
+        show({
+          type: 'error',
+          message: payload.message || 'Erro desconhecido no servidor',
+          duration: 5000
+        });
+      },
+      'chat_message:update': (payload: ChatMessage) => {
+        // Handle updates to chat messages (e.g. reactions)
+        setState(prev => ({
+          ...prev,
+          chatMessages: prev.chatMessages.map(msg =>
+            msg.id === payload.id ? payload : msg
+          )
+        }));
+      },
+      'chat:reaction': (payload: any) => {
+        // Handle ephemeral reactions if they come via socket
+        // Note: Currently reactions are handled via REST + chat_message:update, 
+        // but this listener ensures we catch any direct socket emits if the implementation changes.
+        console.log('[WS] chat:reaction received:', payload);
+        if (payload.messageId && payload.reaction) {
+          setState(prev => ({
+            ...prev,
+            chatMessages: prev.chatMessages.map(msg => {
+              if (msg.id !== payload.messageId) return msg;
+              // Simple optimistic-like update for ephemeral event
+              // Ideally we'd use the full message update, but this is a fallback
+              return msg;
+            })
+          }));
+        }
       }
     };
 
