@@ -19,7 +19,7 @@ export const useTokenActions = (
     const scene = activeScene;
     const token = scene?.tokens.find(t => t.id === tokenId);
 
-    const isControlledByMe = token && (token.ownerId === user?.id || token.controlledBy?.includes(user?.id || ''));
+
 
     if (!scene || !token) return;
 
@@ -28,7 +28,22 @@ export const useTokenActions = (
       setState,
       campaignId,
       validate: () => {
-        return permissionHelper ? (permissionHelper.isGameMaster() || (!!isControlledByMe && permissionHelper.can('tokenMovement'))) : false;
+        if (!permissionHelper) return false;
+        const canMove = permissionHelper.canMoveToken(token);
+
+        if (!canMove) {
+          console.warn('[TokenMove] Permission Denied:', {
+            tokenId: token.id,
+            tokenOwner: token.ownerId,
+            userId: user?.id,
+            isGM: state.isGM,
+            canControl: permissionHelper.canControlToken(token),
+            hasMovePermission: permissionHelper.can('tokenMovement'),
+            globalPermissions: state.permissions
+          });
+        }
+
+        return canMove;
       },
 
       optimisticUpdate: (prev) => {
@@ -52,7 +67,7 @@ export const useTokenActions = (
     });
 
     // Zone Triggers (Side Effect)
-    if (!state.isGM || isControlledByMe) {
+    if (!state.isGM || (permissionHelper && permissionHelper.canControlToken(token))) {
       const updatedToken = { ...token, x: newX, y: newY };
       const gridSize = scene.grid.size;
 
@@ -87,7 +102,7 @@ export const useTokenActions = (
         }
       }
     }
-  }, [activeScene, state, user, setState, campaignId]);
+  }, [activeScene, state, user, setState, campaignId, permissionHelper]);
 
   const moveTokens = (updates: { id: string, x: number, y: number; }[]) => { updates.forEach(u => moveToken(u.id, u.x, u.y)); };
 
@@ -131,10 +146,21 @@ export const useTokenActions = (
     }
 
     const { id, ...rest } = tokenData;
+
+    // Auto-assign owner if linked to a character
+    let ownerId = rest.ownerId;
+    if (rest.linkedId) {
+      const character = state.campaignCharacters.find(c => c.id === rest.linkedId);
+      if (character && character.ownerId) {
+        ownerId = character.ownerId;
+      }
+    }
+
     const newToken: Token = {
       id: Math.random().toString(36).substr(2, 9),
       x: 0, y: 0, size: 1, name: 'Novo Token', type: 'npc', imgUrl: '', isVisibleToPlayers: true,
-      ...rest
+      ...rest,
+      ownerId // Override or set ownerId
     };
 
     ActionHandlers.handleOptimisticAction({

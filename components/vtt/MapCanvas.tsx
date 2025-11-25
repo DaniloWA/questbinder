@@ -1223,11 +1223,21 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
                     selectToken(clickedToken.id, false);
                 }
 
-                const isController = clickedToken.ownerId === currentUser?.id || clickedToken.controlledBy?.includes(currentUser?.id || '');
+                const isController = clickedToken.controlledBy?.includes(currentUser?.id || '');
 
                 if (isGM || isController) {
                     // REGRA MILENAR: Use PermissionHelper - Movement permission check
-                    if (!permissionHelper.canMoveToken(dragState.token)) return;
+                    if (!permissionHelper.canMoveToken(clickedToken)) {
+                        console.warn('[MapCanvas] Token movement denied:', {
+                            tokenId: clickedToken.id,
+                            tokenOwner: clickedToken.ownerId,
+                            userId: currentUser?.id,
+                            isGM,
+                            canControl: permissionHelper.canControlToken(clickedToken),
+                            hasMovePermission: permissionHelper.can('tokenMovement')
+                        });
+                        return;
+                    }
                     dragState.isDragging = true;
                     dragState.token = clickedToken;
                     dragState.dragStartX = pos.x;

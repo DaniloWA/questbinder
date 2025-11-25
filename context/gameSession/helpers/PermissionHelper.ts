@@ -34,8 +34,10 @@ export class PermissionHelper {
     if (this.isGM) return true;
     if (!this.userId) return false;
 
-    const override = this.permissions.userOverrides?.[this.userId]?.[permission];
-    return (override !== undefined ? override : this.permissions[permission]) as boolean;
+    const userOverrides = this.permissions.userOverrides?.[this.userId];
+    const overrideValue = userOverrides?.[permission];
+
+    return (overrideValue !== undefined ? overrideValue : this.permissions[permission]) as boolean;
   }
 
   /**
@@ -48,7 +50,7 @@ export class PermissionHelper {
     if (this.isGM) return true;
     if (!this.userId) return false;
 
-    return token.ownerId === this.userId || token.controlledBy?.includes(this.userId) || false;
+    return token.controlledBy?.includes(this.userId) || false;
   }
 
   /**
@@ -170,9 +172,17 @@ export class PermissionHelper {
   getAllPermissions(): Record<string, boolean> {
     const result: Record<string, boolean> = {};
     const permissionKeys: BooleanPermissionKey[] = [
-      'tokenCreate', 'tokenEdit', 'tokenDelete', 'tokenMovement',
-      'drawings', 'drawingDelete', 'fogReveal', 'doorControl',
-      'pingMap', 'measure', 'diceRolling', 'sheetEdit', 'compendiumBrowse'
+      // Interação Básica
+      'tokenMovement', 'doorControl', 'drawings', 'measure', 'pingMap', 'diceRolling',
+      // Gestão de Tokens
+      'tokenCreate', 'tokenEdit', 'tokenDelete',
+      // Ferramentas Avançadas
+      'fogReveal',
+      // Novas Permissões (Total Control)
+      'compendiumBrowse', 'journalCreate', 'sheetEdit', 'initiativeRoll',
+      'drawingDelete', 'drawingClear',
+      // Privacidade
+      'shareCursor', 'allowSpectate'
     ];
 
     permissionKeys.forEach(key => {
