@@ -50,7 +50,7 @@ export const setupSocket = (server) => {
         }
 
         const { campaignId, userId } = payload;
-
+        console.log('[WS] room:join payload:', payload);
         if (client.campaignId && client.campaignId !== campaignId) {
           socket.leave(client.campaignId);
           // Notify previous room of leave? Maybe not needed if we handle disconnect/switch

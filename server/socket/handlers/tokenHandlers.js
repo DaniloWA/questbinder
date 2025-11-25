@@ -2,6 +2,7 @@ import * as db from '../../db.js';
 import crypto from 'crypto';
 
 export const registerTokenHandlers = (socket, client, utils) => {
+  console.log('[token] handlers registered');
   const { safeEmitError, validatePayload, checkPermission, safeBroadcast } = utils;
 
   socket.on('token:update', async (payload) => {

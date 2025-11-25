@@ -1,6 +1,7 @@
 import * as db from '../../db.js';
 
 export const registerAudioHandlers = (socket, client, utils) => {
+  console.log('[audio] handlers registered');
   const { requireGM, safeBroadcast } = utils;
 
   // Audio events are ephemeral (no DB persistence needed for play/pause state usually)
@@ -26,3 +27,4 @@ export const registerAudioHandlers = (socket, client, utils) => {
     safeBroadcast('audio:sfx', payload);
   }));
 };
+

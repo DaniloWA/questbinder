@@ -2,6 +2,7 @@ import * as db from '../../db.js';
 import crypto from 'crypto';
 
 export const registerDrawingHandlers = (socket, client, utils) => {
+  console.log('[drawing] handlers registered');
   const { safeEmitError, validatePayload, checkPermission, safeBroadcast } = utils;
 
   socket.on('drawing:add', async (payload) => {

@@ -1,6 +1,7 @@
 import * as db from '../../db.js';
 
 export const registerMapHandlers = (socket, client, utils) => {
+  console.log('[map] handlers registered');
   const { safeEmitError, validatePayload, checkPermission, safeBroadcast } = utils;
 
   // Ping Map - Ephemeral event with permission check

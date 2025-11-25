@@ -2,6 +2,7 @@ import * as db from '../../db.js';
 import crypto from 'crypto';
 
 export const registerChatHandlers = (socket, client, utils) => {
+  console.log('[chat] handlers registered');
   const { safeEmitError, safeBroadcast, checkPermission } = utils;
 
   socket.on('chat:message', async (message) => {

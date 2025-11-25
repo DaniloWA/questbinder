@@ -2,6 +2,7 @@
 import * as db from '../../db.js';
 
 export const registerCombatHandlers = (socket, client, utils) => {
+  console.log('[combat] handlers registered');
   const { broadcast, broadcastToRoom, logChange } = utils;
 
   // ==================== COMBAT:START ====================

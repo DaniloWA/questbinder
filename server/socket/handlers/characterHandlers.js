@@ -2,6 +2,7 @@ import * as db from '../../db.js';
 import { v4 as uuidv4 } from 'uuid';
 
 export const registerCharacterHandlers = (socket, client, utils) => {
+  console.log('[character] handlers registered');
   const { safeBroadcast, checkPermission } = utils;
 
   socket.on('character:update', async (payload) => {

@@ -2,6 +2,8 @@ import * as db from '../../db.js';
 import crypto from 'crypto';
 
 export const registerSceneHandlers = (socket, client, utils) => {
+  console.log('[scene] handlers registered');
+
   const { safeEmitError, validatePayload, requireGM, safeBroadcast, checkPermission } = utils;
 
   socket.on('campaign:update', requireGM(async (changes) => {

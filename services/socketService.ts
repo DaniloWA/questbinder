@@ -1,5 +1,5 @@
 import { io, Socket } from 'socket.io-client';
-import { SocketEventType, SocketEventMap } from '../types/socket';
+import { SocketEventMap } from '../types/socket';
 
 class RealSocketService {
   private socket: Socket | null = null;
@@ -77,20 +77,14 @@ class RealSocketService {
   }
 
   public emit<K extends keyof SocketEventMap>(event: K, payload?: SocketEventMap[K]) {
-    if (event != 'cursor:move') {
-      console.log('[SOCKET] emit called:', event, payload);
-    }
-
     if (!this.socket || !this.socket.connected) {
       console.warn(`[WS] Socket not connected. Queueing event: ${event}`);
       this.queue.push({ event, payload });
       return;
     }
-
-    if (event != 'cursor:move') {
-      console.log('[SOCKET] Emitting to server:', event);
+    if (event != 'cursor:move' && event != 'token:drag') {
+      console.log('[SOCKET] Emitting to server:', event, payload);
     }
-
     this.socket.emit(event, payload);
   }
 }

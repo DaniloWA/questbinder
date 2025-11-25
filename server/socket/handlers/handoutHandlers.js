@@ -2,6 +2,7 @@ import * as db from '../../db.js';
 import crypto from 'crypto';
 
 export const registerHandoutHandlers = (socket, client, utils) => {
+  console.log('[handout] handlers registered');
   const { requireGM, safeBroadcast } = utils;
 
   socket.on('handout:update', requireGM(async (payload) => {
