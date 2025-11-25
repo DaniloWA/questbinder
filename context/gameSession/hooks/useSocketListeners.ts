@@ -11,6 +11,7 @@ import {
   registerCharacterListeners,
   registerPlayerListeners
 } from './listeners';
+import React from 'react';
 
 /**
  * Main hook to register all socket listeners

@@ -118,20 +118,7 @@ export const setupSocket = (server) => {
     registerMapHandlers(socket, client, utils);
     registerCharacterHandlers(socket, client, utils);
     registerCombatHandlers(socket, client, utils);
-
-    // ==================== CAMPAIGN HANDLERS ====================
-    socket.on('campaign:updatePermissions', async (payload) => {
-      try {
-        const { campaignId, permissions } = payload;
-        // Validation could be added here
-
-        // Broadcast to everyone in the campaign
-        io.to(campaignId).emit('campaign:permissionsUpdated', { permissions });
-        console.log(`[WS] Permissions updated for campaign ${campaignId}`);
-      } catch (err) {
-        console.error('[WS] campaign:updatePermissions error:', err);
-      }
-    });
+    registerPermissionsHandlers(socket, client, utils);
 
     // ==================== DISCONNECT ====================
 

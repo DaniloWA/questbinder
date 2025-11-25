@@ -18,7 +18,6 @@ export const usePermissions = (
   const updatePermissions = (perms: Partial<SessionPermissions>) => {
     const newPerms = { ...state.permissions, ...perms };
     setState(prev => ({ ...prev, permissions: newPerms }));
-    socketService.emit('session:permissions', { permissions: newPerms });
     socketService.emit('campaign:updatePermissions', {
       campaignId: state.campaign?.id,
       permissions: newPerms
