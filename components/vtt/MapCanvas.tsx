@@ -33,6 +33,7 @@ interface MapCanvasProps {
     remoteDrags?: Record<string, TokenDragPayload>;
     remoteCursors: Record<string, CursorMovePayload>;
     permissions: SessionPermissions;
+    campaign?: any; // For accessing campaign.permissions.tokenHover
 
     setViewport: (newViewport: Partial<Viewport>) => void;
     moveToken: (tokenId: string, newX: number, newY: number) => void;
@@ -256,7 +257,7 @@ export const AudioZoneEditModalContent: React.FC<{
 
 export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
     const {
-        scene, tokens, viewport, isGM, gmViewMode, currentUser, activeTool, movementPath, pings, drawingObstacle, draftPolyPoints, selectedTokenIds = [], previewPlayerId = 'all', remoteDrags = {}, permissions, remoteCursors,
+        scene, tokens, viewport, isGM, gmViewMode, currentUser, activeTool, movementPath, pings, drawingObstacle, draftPolyPoints, selectedTokenIds = [], previewPlayerId = 'all', remoteDrags = {}, permissions, remoteCursors, campaign,
         setViewport, moveToken, moveTokens, updateFog, setActiveTool, onTokenContextMenu,
         onMapContextMenu, setMovementPath, addObstacles, updateObstacle, setDrawingObstacle, setDraftPolyPoints,
         selectToken, clearSelection, updateToken, onOpenSheet, emitTokenDrag,
@@ -265,6 +266,11 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
         drawingTriggerZone, setDrawingTriggerZone, addTriggerZones, removeTriggerZone,
         campaignCharacters = [], onRollDice, onCharacterUpdate
     } = props;
+
+    // Extract tokenHover permissions with useMemo to ensure React detects changes
+    const tokenHoverPermissions = useMemo(() => {
+        return campaign?.permissions?.tokenHover;
+    }, [campaign?.permissions?.tokenHover]);
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const lightCanvasRef = useRef<HTMLCanvasElement>(document.createElement('canvas'));
@@ -1429,11 +1435,13 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
 
         return (
             <TokenHoverCard
+                key={`${hoveredTokenId}-${JSON.stringify(tokenHoverPermissions)}`}
                 token={liveToken}
                 character={campaignCharacters ? campaignCharacters.find(c => c.id === liveToken.linkedId) : null}
                 position={{ x: screenX, y: screenY }}
                 isGM={isGM && gmViewMode === 'gm'}
                 currentUserId={currentUser?.id}
+                permissions={tokenHoverPermissions}
                 onUpdate={updateToken}
                 onCharacterUpdate={onCharacterUpdate}
                 onOpenSheet={onOpenSheet}

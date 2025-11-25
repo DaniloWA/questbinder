@@ -5,6 +5,7 @@ import { SEED_DATA } from './seed.js';
 
 // Default permissions definition to avoid importing TS in JS server
 const defaultTokenHoverPermissions = {
+  enabled: true, // Master toggle - hover enabled by default
   pc: {
     showName: true,
     showHP: true,
@@ -96,7 +97,7 @@ export const create = async (collection, data) => {
       tokenEdit: true,
       tokenDelete: true,
       fogReveal: true,
-      compendiumBrowse: true,
+      compendiumBrowse: false, // GM only by default
       journalCreate: true,
       sheetEdit: true,
       initiativeRoll: true,

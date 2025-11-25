@@ -26,6 +26,7 @@ export type SocketEventType =
   | 'scene:delete'
   | 'scene:switch'
   | 'campaign:update'
+  | 'campaign:permissionsUpdated'
   | 'cursor:move'
   | 'handout:update'
   | 'drawing:add'
@@ -103,6 +104,10 @@ export interface SceneSwitchPayload {
 
 export interface CampaignUpdatePayload {
   changes: Partial<Campaign>;
+}
+
+export interface CampaignPermissionsUpdatedPayload {
+  permissions: any; // Full permissions object including tokenHover
 }
 
 export interface CombatUpdatePayload {
@@ -226,6 +231,7 @@ export interface SocketEventMap {
   'scene:delete': SceneDeletePayload;
   'scene:switch': SceneSwitchPayload;
   'campaign:update': CampaignUpdatePayload;
+  'campaign:permissionsUpdated': CampaignPermissionsUpdatedPayload;
   'cursor:move': CursorMovePayload;
   'handout:update': HandoutUpdatePayload;
   'drawing:add': DrawingAddPayload;

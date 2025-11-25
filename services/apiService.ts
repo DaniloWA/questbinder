@@ -11,7 +11,7 @@ export interface ApiResponse<T> {
 // MUDE PARA true QUANDO QUISER USAR O BACKEND REAL (só isso!)
 const USE_REAL_BACKEND = true;
 
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = 'http://localhost:3001/api';
 
 const getHeaders = (): HeadersInit => ({
   'Content-Type': 'application/json',

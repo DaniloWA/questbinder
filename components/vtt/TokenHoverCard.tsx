@@ -105,6 +105,11 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
     const isController = token.ownerId === currentUserId || token.controlledBy?.includes(currentUserId || '');
     const canControl = isGM || isController;
 
+    // ⚠️ CRITICAL CHECK: If hover is globally disabled for players, don't render at all
+    if (!isGM && !isController && permissions && permissions.enabled === false) {
+        return null;
+    }
+
     // Stats Resolution Priority: Linked Character > Token Stats (NPC) > Default
     const stats = {
         ac: character?.armorClass ?? token.stats?.ac ?? 10,
@@ -264,7 +269,7 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
                 <div className="relative z-10 min-w-0 flex-1">
                     <div className="flex justify-between items-center">
                         <div className="min-w-0">
-                            <h4 className="font-bold text-sm text-white truncate leading-tight font-fantasy tracking-wide">{token.name}</h4>
+                            {canShow('showName') && <h4 className="font-bold text-sm text-white truncate leading-tight font-fantasy tracking-wide">{token.name}</h4>}
                             <div className="flex items-center gap-2 mt-0.5">
                                 <span className={`text-[9px] px-1.5 rounded-sm uppercase font-bold leading-none py-0.5 ${token.type === 'pc' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' : 'bg-red-500/20 text-red-300 border border-red-500/30'}`}>
                                     {token.type === 'pc' ? 'Herói' : 'Criatura'}

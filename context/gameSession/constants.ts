@@ -42,7 +42,7 @@ export const INITIAL_STATE: GameSessionState = {
     tokenEdit: false,
     tokenDelete: false,
     fogReveal: false,
-    compendiumBrowse: true,
+    compendiumBrowse: false, // GM only by default
     journalCreate: true,
     sheetEdit: true,
     initiativeRoll: true,

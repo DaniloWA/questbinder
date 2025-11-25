@@ -562,6 +562,7 @@ export interface SessionLogConfig {
 
 // Token Hover Visibility Permissions
 export interface TokenHoverPermissions {
+  enabled: boolean; // Master toggle - if false, hover card won't show for players at all
   pc: {  // Other players' Heroes
     showName: boolean;
     showHP: boolean;

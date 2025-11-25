@@ -1,6 +1,7 @@
 import { TokenHoverPermissions, SessionPermissions } from '../types/models';
 
 export const defaultTokenHoverPermissions: TokenHoverPermissions = {
+  enabled: true, // Master toggle - hover enabled by default
   pc: {
     showName: true,
     showHP: true,
@@ -41,7 +42,7 @@ export const getDefaultPermissions = (): SessionPermissions => ({
   fogReveal: false,
 
   // Novas Permissões
-  compendiumBrowse: true,
+  compendiumBrowse: false, // GM only by default, but configurable
   journalCreate: false,
   sheetEdit: true,
   initiativeRoll: true,

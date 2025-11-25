@@ -8,7 +8,7 @@ import {
     Plus, Trash2, Edit, Ruler, Lock, Eye, EyeOff, ScrollText, Share2, ScanEye, Book, FileText, Sword, Zap, Eraser, ScanFace
 } from 'lucide-react';
 import { Modal } from '../ui/Modal';
-import { TokenHoverPermissionsPanel } from '../CampaignSettings/TokenHoverPermissionsPanel';
+import { TokenHoverPermissionsCompact } from './TokenHoverPermissionsCompact';
 
 interface PermissionsModalProps {
     isOpen: boolean;
@@ -59,18 +59,35 @@ export const PermissionsModal: React.FC<PermissionsModalProps> = ({ isOpen, onCl
     const [localPerms, setLocalPerms] = useState<SessionPermissions>(permissions);
     const [activeTab, setActiveTab] = useState<Tab>('global');
     const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+    const [errors, setErrors] = useState<{ [key: string]: string; }>({});
+
+    // Local state for tokenHover permissions
+    const [localTokenHoverPerms, setLocalTokenHoverPerms] = useState(
+        permissions.tokenHover || {
+            enabled: true,
+            pc: { showName: true, showHP: true, showResource: true, showConditions: true, showStats: true, showAttributes: true },
+            npc: { showName: true, showHP: false, showResource: false, showConditions: true, showStats: false, showAttributes: false },
+            object: { showName: true, showConditions: false }
+        }
+    );
 
     // Reset state when opening
     React.useEffect(() => {
         if (isOpen) {
             setLocalPerms(permissions);
+            setLocalTokenHoverPerms(permissions.tokenHover || {
+                enabled: true,
+                pc: { showName: true, showHP: true, showResource: true, showConditions: true, showStats: true, showAttributes: true },
+                npc: { showName: true, showHP: false, showResource: false, showConditions: true, showStats: false, showAttributes: false },
+                object: { showName: true, showConditions: false }
+            });
             setActiveTab('global');
             setSelectedPlayerId(null);
         }
     }, [isOpen, permissions]);
 
     const handleSave = () => {
-        onUpdate(localPerms);
+        onUpdate({ ...localPerms, tokenHover: localTokenHoverPerms });
         onClose();
     };
 
@@ -333,7 +350,11 @@ export const PermissionsModal: React.FC<PermissionsModalProps> = ({ isOpen, onCl
 
                     {activeTab === 'tokenHover' && campaign && (
                         <div className="animate-in fade-in slide-in-from-right-4 duration-200">
-                            <TokenHoverPermissionsPanel campaign={campaign} onUpdate={() => { }} />
+                            <TokenHoverPermissionsCompact
+                                campaign={campaign}
+                                permissions={localTokenHoverPerms}
+                                onChange={setLocalTokenHoverPerms}
+                            />
                         </div>
                     )}
                 </div>
@@ -348,3 +369,5 @@ export const PermissionsModal: React.FC<PermissionsModalProps> = ({ isOpen, onCl
         </Modal>
     );
 };
+
+export default PermissionsModal;

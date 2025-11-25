@@ -737,10 +737,23 @@ export const useSocketListeners = (
       'player:leave': handlePlayerLeave,
       'campaign:permissionsUpdated': (payload: { permissions: any; }) => {
         console.log('[WS] Campaign permissions updated:', payload);
-        setState(prev => ({
-          ...prev,
-          campaign: prev.campaign ? { ...prev.campaign, permissions: payload.permissions } : null
-        }));
+        console.log('[WS] Applying permissions update in real-time...');
+        setState(prev => {
+          if (!prev.campaign) return prev;
+
+          // Create a NEW campaign object to ensure React detects the change
+          const updatedCampaign = {
+            ...prev.campaign,
+            permissions: { ...payload.permissions }
+          };
+
+          console.log('[WS] Updated campaign permissions:', updatedCampaign.permissions);
+
+          return {
+            ...prev,
+            campaign: updatedCampaign
+          };
+        });
       }
     };
 
