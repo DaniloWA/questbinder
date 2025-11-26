@@ -83,6 +83,9 @@ export const registerCharacterListeners = ({
       // Find the updated character to get all current values
       const updatedCharacter = updatedCharacters.find(char => char.id === characterId);
 
+      // Track tokens that need to be persisted
+      const tokensToUpdate: Array<{ sceneId: string, tokenId: string, changes: any; }> = [];
+
       const updatedScenes = previousState.scenes.map(scene => ({
         ...scene,
         tokens: scene.tokens.map(token => {
@@ -106,19 +109,18 @@ export const registerCharacterListeners = ({
           );
 
           // Build the token update object with ALL relevant character fields
-          const tokenUpdate: any = {
-            ...token,
+          const tokenChanges: any = {
             conditions: updatedConditions,
           };
 
           // Sync name
           if (updates.name !== undefined) {
-            tokenUpdate.name = updates.name;
+            tokenChanges.name = updates.name;
           }
 
           // Sync HP bars
           if (updates.hpCurrent !== undefined || updates.hpMax !== undefined) {
-            tokenUpdate.bars = {
+            tokenChanges.bars = {
               ...token.bars,
               bar1: {
                 ...(token.bars?.bar1 || { visible: true, color: '#ef4444' }),
@@ -130,8 +132,8 @@ export const registerCharacterListeners = ({
 
           // Sync Mana/Resource bars
           if (updates.manaCurrent !== undefined || updates.manaMax !== undefined) {
-            tokenUpdate.bars = {
-              ...(tokenUpdate.bars || token.bars),
+            tokenChanges.bars = {
+              ...(tokenChanges.bars || token.bars),
               bar2: {
                 ...(token.bars?.bar2 || { visible: true, color: '#3b82f6' }),
                 value: effectiveCurrentMana ?? (token.bars?.bar2?.value || 0),
@@ -146,7 +148,7 @@ export const registerCharacterListeners = ({
             updates.attributes !== undefined ||
             updates.passivePerception !== undefined) {
 
-            tokenUpdate.stats = {
+            tokenChanges.stats = {
               ...(token.stats || {}),
               ac: updates.armorClass ?? (updatedCharacter?.armorClass || token.stats?.ac || 10),
               speed: updates.speed !== undefined
@@ -160,20 +162,40 @@ export const registerCharacterListeners = ({
 
           // Sync vision ranges
           if (updates.visionRange !== undefined) {
-            tokenUpdate.visionRange = updates.visionRange;
+            tokenChanges.visionRange = updates.visionRange;
           }
           if (updates.darkvisionRange !== undefined) {
-            tokenUpdate.darkvisionRange = updates.darkvisionRange;
+            tokenChanges.darkvisionRange = updates.darkvisionRange;
           }
 
           // Sync speed (for movement ruler)
           if (updates.speed !== undefined) {
-            tokenUpdate.speed = updates.speed;
+            tokenChanges.speed = updates.speed;
           }
 
-          return tokenUpdate;
+          // Add to list of tokens to persist
+          tokensToUpdate.push({
+            sceneId: scene.id,
+            tokenId: token.id,
+            changes: tokenChanges
+          });
+
+          return { ...token, ...tokenChanges };
         })
       }));
+
+      // Emit token:update events to persist changes to database
+      // Do this AFTER state update to avoid race conditions
+      setTimeout(() => {
+        tokensToUpdate.forEach(({ sceneId, tokenId, changes }) => {
+          console.log('[CharacterListener] Persisting token update:', { sceneId, tokenId, changes });
+          socketService.emit('token:update', {
+            sceneId,
+            id: tokenId,
+            changes
+          });
+        });
+      }, 0);
 
       return {
         ...previousState,
