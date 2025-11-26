@@ -145,7 +145,7 @@ export interface GameSessionContextType extends GameSessionState {
   rollDice: (label: string, formula: string) => void;
   broadcastRoll: (result: RollResult) => void;
 
-  updateCharacter: (id: string, data: Partial<Character>) => void;
+  updateCharacter: (id: string, data: Partial<Character>, immediate?: boolean) => void;
 
   createHandout: (data: any) => Promise<void>;
   updateHandout: (id: string, data: any) => Promise<void>;

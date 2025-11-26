@@ -542,7 +542,7 @@ const GameSessionUI: React.FC = () => {
 
             {viewingCharacter && (
                 <Modal isOpen={!!viewingCharacter} onClose={() => setViewingCharacterId(null)} size="xl" hideCloseButton>
-                    <div className="h-[80vh]"><CharacterSheetViewer character={viewingCharacter} isGM={session.isGM} currentUserId={currentUser?.id} onClose={() => setViewingCharacterId(null)} onUpdate={(updates) => session.updateCharacter(viewingCharacter.id, updates)} onRoll={(label, formula) => session.rollDice(label, formula)} onShare={(type, data) => session.sendChatMessage(`Compartilhou ${data.name || 'algo'}`, 'message', undefined, { type, label: data.name, data, id: data.id })} /></div>
+                    <div className="h-[80vh]"><CharacterSheetViewer character={viewingCharacter} isGM={session.isGM} currentUserId={currentUser?.id} onClose={() => setViewingCharacterId(null)} onUpdate={(updates) => session.updateCharacter(viewingCharacter.id, updates, true)} onRoll={(label, formula) => session.rollDice(label, formula)} onShare={(type, data) => session.sendChatMessage(`Compartilhou ${data.name || 'algo'}`, 'message', undefined, { type, label: data.name, data, id: data.id })} /></div>
                 </Modal>
             )}
 

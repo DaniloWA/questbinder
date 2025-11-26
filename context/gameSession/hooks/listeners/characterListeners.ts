@@ -80,17 +80,24 @@ export const registerCharacterListeners = ({
           : character
       );
 
+      // Find the updated character to get all current values
+      const updatedCharacter = updatedCharacters.find(char => char.id === characterId);
+
       const updatedScenes = previousState.scenes.map(scene => ({
         ...scene,
         tokens: scene.tokens.map(token => {
           if (token.linkedId !== characterId) return token;
 
-          const character = previousState.campaignCharacters.find(
+          // Get the character BEFORE the update for fallback values
+          const previousCharacter = previousState.campaignCharacters.find(
             char => char.id === characterId
           );
 
-          const effectiveMaxHp = updates.hpMax ?? (character?.hpMax || 1);
-          const effectiveCurrentHp = updates.hpCurrent;
+          // Calculate effective values (prioritize updates, then current character, then previous)
+          const effectiveMaxHp = updates.hpMax ?? (updatedCharacter?.hpMax || previousCharacter?.hpMax || 1);
+          const effectiveCurrentHp = updates.hpCurrent ?? (updatedCharacter?.hpCurrent ?? previousCharacter?.hpCurrent);
+          const effectiveMaxMana = updates.manaMax ?? (updatedCharacter?.manaMax || previousCharacter?.manaMax || 0);
+          const effectiveCurrentMana = updates.manaCurrent ?? (updatedCharacter?.manaCurrent ?? previousCharacter?.manaCurrent);
 
           const updatedConditions = calculateTokenConditions(
             effectiveCurrentHp,
@@ -98,14 +105,73 @@ export const registerCharacterListeners = ({
             token.conditions || []
           );
 
-          return {
+          // Build the token update object with ALL relevant character fields
+          const tokenUpdate: any = {
             ...token,
             conditions: updatedConditions,
-            label: updates.name ?? token.label,
-            hpCurrent: effectiveCurrentHp,
-            hpMax: effectiveMaxHp,
-            ac: updates.armorClass ?? token.ac
           };
+
+          // Sync name
+          if (updates.name !== undefined) {
+            tokenUpdate.name = updates.name;
+          }
+
+          // Sync HP bars
+          if (updates.hpCurrent !== undefined || updates.hpMax !== undefined) {
+            tokenUpdate.bars = {
+              ...token.bars,
+              bar1: {
+                ...(token.bars?.bar1 || { visible: true, color: '#ef4444' }),
+                value: effectiveCurrentHp ?? (token.bars?.bar1?.value || 0),
+                max: effectiveMaxHp
+              }
+            };
+          }
+
+          // Sync Mana/Resource bars
+          if (updates.manaCurrent !== undefined || updates.manaMax !== undefined) {
+            tokenUpdate.bars = {
+              ...(tokenUpdate.bars || token.bars),
+              bar2: {
+                ...(token.bars?.bar2 || { visible: true, color: '#3b82f6' }),
+                value: effectiveCurrentMana ?? (token.bars?.bar2?.value || 0),
+                max: effectiveMaxMana
+              }
+            };
+          }
+
+          // Sync stats object for TokenHoverCard
+          if (updates.armorClass !== undefined ||
+            updates.speed !== undefined ||
+            updates.attributes !== undefined ||
+            updates.passivePerception !== undefined) {
+
+            tokenUpdate.stats = {
+              ...(token.stats || {}),
+              ac: updates.armorClass ?? (updatedCharacter?.armorClass || token.stats?.ac || 10),
+              speed: updates.speed !== undefined
+                ? `${updates.speed}m`
+                : (updatedCharacter?.speed ? `${updatedCharacter.speed}m` : token.stats?.speed || '9m'),
+              attributes: updates.attributes ?? (updatedCharacter?.attributes || token.stats?.attributes || {
+                str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10, cou: 10
+              })
+            };
+          }
+
+          // Sync vision ranges
+          if (updates.visionRange !== undefined) {
+            tokenUpdate.visionRange = updates.visionRange;
+          }
+          if (updates.darkvisionRange !== undefined) {
+            tokenUpdate.darkvisionRange = updates.darkvisionRange;
+          }
+
+          // Sync speed (for movement ruler)
+          if (updates.speed !== undefined) {
+            tokenUpdate.speed = updates.speed;
+          }
+
+          return tokenUpdate;
         })
       }));
 

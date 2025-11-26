@@ -1437,6 +1437,9 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
         const liveToken = tokens.find(t => t.id === hoveredTokenId);
         if (!liveToken) return null;
 
+        // Find linked character
+        const linkedCharacter = campaignCharacters ? campaignCharacters.find(c => c.id === liveToken.linkedId) : null;
+
         // Calculate precise anchor point: Top Center of the Token in Screen Coordinates
         const gridSize = scene.grid.size;
         // World coordinates
@@ -1447,11 +1450,31 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
         const screenX = (tokenWorldX * viewport.zoom) + viewport.x;
         const screenY = (tokenWorldY * viewport.zoom) + viewport.y;
 
+        // Build a reactive key that includes frequently changing data
+        // This ensures React re-renders when character stats change
+        const reactiveKey = [
+            hoveredTokenId,
+            linkedCharacter?.hpCurrent,
+            linkedCharacter?.hpMax,
+            linkedCharacter?.manaCurrent,
+            linkedCharacter?.manaMax,
+            linkedCharacter?.name,
+            linkedCharacter?.armorClass,
+            linkedCharacter?.speed,
+            liveToken.bars?.bar1?.value,
+            liveToken.bars?.bar1?.max,
+            liveToken.bars?.bar2?.value,
+            liveToken.bars?.bar2?.max,
+            liveToken.name,
+            liveToken.conditions?.join(','),
+            JSON.stringify(tokenHoverPermissions)
+        ].join('-');
+
         return (
             <TokenHoverCard
-                key={`${hoveredTokenId}-${JSON.stringify(tokenHoverPermissions)}`}
+                key={reactiveKey}
                 token={liveToken}
-                character={campaignCharacters ? campaignCharacters.find(c => c.id === liveToken.linkedId) : null}
+                character={linkedCharacter}
                 position={{ x: screenX, y: screenY }}
                 isGM={isGM && gmViewMode === 'gm'}
                 currentUserId={currentUser?.id}
