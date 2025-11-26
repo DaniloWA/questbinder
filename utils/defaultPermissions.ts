@@ -50,6 +50,10 @@ export const getDefaultPermissions = (): SessionPermissions => ({
   drawingDelete: false,
   drawingClear: false,
 
+  // Zonas de Ataque
+  attackZoneCreate: false, // Criar zonas customizadas restrito ao GM
+  attackZoneUse: true,     // Jogadores podem usar templates pré-configurados
+
   // Privacidade
   shareCursor: true,
   allowSpectate: true,

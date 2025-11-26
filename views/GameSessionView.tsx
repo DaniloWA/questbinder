@@ -32,6 +32,10 @@ import { HandoutPreviewModal } from '../components/vtt/HandoutPreviewModal';
 import { HandoutShareModal } from '../components/vtt/HandoutShareModal';
 import { CompendiumWindow } from '../components/vtt/CompendiumWindow';
 import { CombatInitiativeRoller } from '../components/vtt/CombatInitiativeRoller';
+import { AttackZonePanel } from '../components/vtt/AttackZonePanel';
+import { AttackZoneConfigModal } from '../components/vtt/AttackZoneConfigModal';
+import { useAttackZones } from '../context/gameSession/hooks/useAttackZones';
+import { renderAttackZones, renderPreviewZone } from '../utils/attackZoneRenderer';
 
 export const GameSessionView: React.FC = () => {
     const { params, navigateTo } = useNavigation();
@@ -135,6 +139,8 @@ const GameSessionUI: React.FC = () => {
     const [isPermissionsOpen, setIsPermissionsOpen] = useState(false);
     const [isHandoutTrayOpen, setIsHandoutTrayOpen] = useState(false);
     const [isCompendiumOpen, setIsCompendiumOpen] = useState(false);
+    const [isAttackZonePanelOpen, setIsAttackZonePanelOpen] = useState(false);
+    const [isAttackZoneConfigOpen, setIsAttackZoneConfigOpen] = useState(false);
 
     const [tokenContextMenu, setTokenContextMenu] = useState<{ x: number, y: number, token: Token; } | null>(null);
     const [mapContextMenu, setMapContextMenu] = useState<{ x: number, y: number, worldX: number, worldY: number, obstacleId?: string, triggerZoneId?: string, audioZoneId?: string; } | null>(null);
@@ -153,6 +159,13 @@ const GameSessionUI: React.FC = () => {
     // --- AUDIO ZONE EDIT STATE ---
     const [editingAudioZoneId, setEditingAudioZoneId] = useState<string | null>(null);
     const [isInitiativeRollerOpen, setIsInitiativeRollerOpen] = useState(false);
+
+    // --- ATTACK ZONES ---
+    const attackZones = useAttackZones(
+        session.activeScene?.tokens || [],
+        session.activeScene?.obstacles || [],
+        session.activeScene?.grid || { size: 60, color: '#ffffff', alpha: 0.3, cols: 50, rows: 50, unitsPerSquare: 5 }
+    );
 
     // ... (Logic for tools/permissions remains unchanged) ...
     useEffect(() => {
@@ -420,6 +433,10 @@ const GameSessionUI: React.FC = () => {
                     campaignCharacters={session.campaignCharacters}
                     onRollDice={(formula, label) => session.rollDice(label, formula)}
                     onCharacterUpdate={session.updateCharacter}
+
+                    // Attack Zones
+                    attackZoneResults={attackZones.activeZoneResults}
+                    previewZoneResult={attackZones.previewZoneResult}
                 />
             </div>
 
@@ -504,6 +521,8 @@ const GameSessionUI: React.FC = () => {
                         onToggleHandouts={() => setIsHandoutTrayOpen(!isHandoutTrayOpen)}
                         onToggleCompendium={() => setIsCompendiumOpen(!isCompendiumOpen)}
                         isCompendiumOpen={isCompendiumOpen}
+                        isAttackZonePanelOpen={isAttackZonePanelOpen}
+                        onToggleAttackZones={() => setIsAttackZonePanelOpen(!isAttackZonePanelOpen)}
                     />
                 </div>
             </div>
@@ -527,6 +546,61 @@ const GameSessionUI: React.FC = () => {
             <div className="pointer-events-auto">
                 <HandoutTray isOpen={isHandoutTrayOpen} onClose={() => setIsHandoutTrayOpen(false)} handouts={session.handouts} onCreate={() => setEditingHandout('new')} onEdit={(h) => setEditingHandout(h)} onShare={(h) => setSharingHandout(h)} onPreview={(h) => setPreviewingHandout(h)} />
             </div>
+
+            {/* Attack Zone Panel */}
+            <div className="pointer-events-auto">
+                <AttackZonePanel
+                    isOpen={isAttackZonePanelOpen}
+                    onClose={() => setIsAttackZonePanelOpen(false)}
+                    onSelectTemplate={(templateId) => {
+                        // Iniciar preview do template no centro da tela
+                        const centerX = Math.floor((-session.viewport.x + window.innerWidth / 2) / session.viewport.zoom);
+                        const centerY = Math.floor((-session.viewport.y + window.innerHeight / 2) / session.viewport.zoom);
+                        attackZones.startPreviewFromTemplate(templateId, { x: centerX, y: centerY });
+                        setIsAttackZonePanelOpen(false);
+                    }}
+                    onCreateCustom={() => {
+                        setIsAttackZoneConfigOpen(true);
+                        setIsAttackZonePanelOpen(false);
+                    }}
+                    activeZones={attackZones.activeZones}
+                    onRemoveZone={attackZones.removeZone}
+                    onToggleZoneVisibility={(zoneId) => {
+                        // TODO: Implementar toggle de visibilidade se necessário
+                        console.log('Toggle visibility:', zoneId);
+                    }}
+                    onDuplicateZone={(zoneId) => {
+                        const centerX = Math.floor((-session.viewport.x + window.innerWidth / 2) / session.viewport.zoom);
+                        const centerY = Math.floor((-session.viewport.y + window.innerHeight / 2) / session.viewport.zoom);
+                        attackZones.duplicateZone(zoneId, { x: centerX, y: centerY });
+                    }}
+                    onEditZone={(zoneId) => {
+                        // TODO: Implementar edição se necessário
+                        console.log('Edit zone:', zoneId);
+                    }}
+                />
+            </div>
+
+            {/* Attack Zone Config Modal */}
+            {isAttackZoneConfigOpen && (
+                <AttackZoneConfigModal
+                    isOpen={isAttackZoneConfigOpen}
+                    onClose={() => setIsAttackZoneConfigOpen(false)}
+                    onSave={(config) => {
+                        const centerX = Math.floor((-session.viewport.x + window.innerWidth / 2) / session.viewport.zoom);
+                        const centerY = Math.floor((-session.viewport.y + window.innerHeight / 2) / session.viewport.zoom);
+                        const zone = attackZones.createCustomZone({
+                            ...config,
+                            origin: { x: centerX, y: centerY },
+                        });
+                        attackZones.addZone(zone);
+                        setIsAttackZoneConfigOpen(false);
+                        show({ type: 'success', message: 'Zona de ataque criada!' });
+                    }}
+                    title="Criar Zona de Ataque Customizada"
+                />
+            )}
+
 
             <SharedHandoutViewer />
 

@@ -8,7 +8,7 @@ import {
     Square, Grid, MousePointer2, ChevronRight,
     User, Crown, Lightbulb, Sun, Hexagon, Users, Lock,
     LayoutGrid, RefreshCw, ArrowLeft, ScanEye, Dices, BookOpen,
-    Music, Speaker, FileText, Book, Zap, Brush, Wand2
+    Music, Speaker, FileText, Book, Zap, Brush, Wand2, Target
 } from 'lucide-react';
 import { Tooltip } from '../ui/Tooltip';
 import { useGameSession } from '../../context/GameSessionContext';
@@ -38,6 +38,7 @@ interface VTTToolbarProps {
     isAudioPanelOpen?: boolean;
     isHandoutTrayOpen?: boolean;
     isCompendiumOpen?: boolean;
+    isAttackZonePanelOpen?: boolean;
     onSetPreviewPlayer?: (id: string | 'all') => void;
     onToolSelect: (tool: VTTTool) => void;
     onResetFog: () => void;
@@ -47,6 +48,7 @@ interface VTTToolbarProps {
     onToggleAudioPanel?: () => void;
     onToggleHandouts?: () => void;
     onToggleCompendium?: () => void;
+    onToggleAttackZones?: () => void;
     onOpenSettings: () => void;
     onStartCombat: () => void;
     onEndCombat: () => void;
@@ -360,6 +362,15 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
         ];
 
         const gameplayGroup: ToolbarItemConfig[] = [
+            {
+                id: 'attack-zones',
+                type: 'action',
+                label: 'Zonas de Ataque',
+                icon: <Target />,
+                onClick: props.onToggleAttackZones,
+                isActive: !!props.isAttackZonePanelOpen,
+                hidden: !permissionHelper.canAsGMOr('attackZoneUse'),
+            },
             {
                 id: 'dice-roller',
                 type: 'action',

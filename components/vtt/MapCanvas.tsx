@@ -5,6 +5,7 @@ import { TokenDragPayload, CursorMovePayload } from '../../types/socket';
 import { TokenHoverCard } from './TokenHoverCard';
 import { calculateVisibilityPolygon, isPointInPolygon, distanceToSegment } from '../../utils/geometry';
 import { drawGrid, drawToken, drawRuler, drawObstacles, drawLabel, drawLightingLayer, drawAudioZones, drawAuras } from '../../utils/canvasRenderer';
+import { renderAttackZones, renderPreviewZone } from '../../utils/attackZoneRenderer';
 import { findPath } from '../../utils/pathfinding';
 import { getContourFromPoint } from '../../utils/imageProcessing';
 import { useGameSession } from '../../context/GameSessionContext';
@@ -66,6 +67,10 @@ interface MapCanvasProps {
     campaignCharacters?: Character[];
     onRollDice?: (formula: string, label: string) => void;
     onCharacterUpdate?: (id: string, data: Partial<Character>) => void;
+
+    // Attack Zones
+    attackZoneResults?: any[]; // AttackZoneResult[]
+    previewZoneResult?: any | null; // AttackZoneResult | null
 }
 
 const imageCache: { [src: string]: HTMLImageElement; } = {};

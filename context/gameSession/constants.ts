@@ -43,9 +43,12 @@ export const INITIAL_STATE: GameSessionState = {
     tokenDelete: false,
     fogReveal: false,
     compendiumBrowse: false, // GM only by default
+    bestiaryBrowse: false,
     journalCreate: true,
     sheetEdit: true,
     initiativeRoll: true,
+    attackZoneCreate: false, // Criar zonas customizadas restrito ao GM
+    attackZoneUse: true,     // Jogadores podem usar templates
     shareCursor: true,
     allowSpectate: true,
     logConfig: { movement: 'public', combat: 'public', rolls: 'public', system: 'public' },

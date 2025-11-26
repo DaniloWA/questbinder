@@ -614,6 +614,10 @@ export interface PermissionSet {
   drawingDelete: boolean;    // Apagar desenhos (próprios ou todos)
   drawingClear: boolean;     // Limpar todos os desenhos
 
+  // Zonas de Ataque
+  attackZoneCreate: boolean; // Criar zonas de ataque customizadas
+  attackZoneUse: boolean;    // Usar templates de zonas de ataque
+
   // Privacidade
   shareCursor: boolean;
   allowSpectate: boolean;

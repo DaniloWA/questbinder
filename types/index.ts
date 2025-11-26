@@ -5,3 +5,4 @@ export * from './models';
 export * from './ui';
 export * from './compendium';
 export * from './socket';
+export * from './attackZone';
