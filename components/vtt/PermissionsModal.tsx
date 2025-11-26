@@ -5,7 +5,7 @@ import { Button } from '../ui/Button';
 import {
     Shield, MousePointer2, DoorOpen, PenTool, Dices, Save,
     CloudFog, RadioTower, User as UserIcon, Globe, ChevronRight, Check,
-    Plus, Trash2, Edit, Ruler, Lock, Eye, EyeOff, ScrollText, Share2, ScanEye, Book, FileText, Sword, Zap, Eraser, ScanFace
+    Plus, Trash2, Edit, Ruler, Lock, Eye, EyeOff, ScrollText, Share2, ScanEye, Book, BookOpen, FileText, Sword, Zap, Eraser, ScanFace
 } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { TokenHoverPermissionsCompact } from './TokenHoverPermissionsCompact';
@@ -37,6 +37,7 @@ const PERM_DEFINITIONS: { key: Exclude<keyof PermissionSet, 'userOverrides' | 'l
 
     // Content Access
     { key: 'compendiumBrowse', label: 'Acessar Grimório', desc: 'Consultar monstros/magias/regras.', icon: <Book className="w-4 h-4" /> },
+    { key: 'bestiaryBrowse', label: 'Acessar Bestiário', desc: 'Ver lista de tokens e monstros.', icon: <BookOpen className="w-4 h-4" /> },
     { key: 'journalCreate', label: 'Criar Notas', desc: 'Criar handouts/recursos.', icon: <FileText className="w-4 h-4" /> },
     { key: 'sheetEdit', label: 'Editar Ficha', desc: 'Modificar valores da ficha de personagem.', icon: <Edit className="w-4 h-4" /> },
 

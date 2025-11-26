@@ -43,6 +43,7 @@ export const getDefaultPermissions = (): SessionPermissions => ({
 
   // Novas Permissões
   compendiumBrowse: true, // Grimório disponível por padrão
+  bestiaryBrowse: false,  // Bestiário restrito ao GM por padrão
   journalCreate: false,
   sheetEdit: true,
   initiativeRoll: true,

@@ -179,7 +179,7 @@ export class PermissionHelper {
       // Ferramentas Avançadas
       'fogReveal',
       // Novas Permissões (Total Control)
-      'compendiumBrowse', 'journalCreate', 'sheetEdit', 'initiativeRoll',
+      'compendiumBrowse', 'bestiaryBrowse', 'journalCreate', 'sheetEdit', 'initiativeRoll',
       'drawingDelete', 'drawingClear',
       // Privacidade
       'shareCursor', 'allowSpectate'

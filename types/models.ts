@@ -604,6 +604,7 @@ export interface PermissionSet {
 
   // Novas Permissões (Total Control)
   compendiumBrowse: boolean; // Acesso ao Compêndio
+  bestiaryBrowse: boolean;   // Acesso ao Bestiário
   journalCreate: boolean;    // Criar Notas/Handouts
   sheetEdit: boolean;        // Editar Ficha de Personagem
   initiativeRoll: boolean;   // Jogadores rolam sua própria iniciativa
