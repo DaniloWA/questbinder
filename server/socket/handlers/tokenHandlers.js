@@ -67,9 +67,6 @@ export const registerTokenHandlers = (socket, client, utils) => {
 
   socket.on('token:add', async (payload) => {
     console.log('[WS] ========== TOKEN:ADD EVENT RECEIVED ==========');
-    console.log('[WS] Payload:', JSON.stringify(payload, null, 2));
-    console.log('[WS] Client:', { userId: client.userId, campaignId: client.campaignId, isGM: client.isGM });
-
     try {
       console.log(`[WS] token:add from ${client.userId}`);
 
@@ -133,7 +130,13 @@ export const registerTokenHandlers = (socket, client, utils) => {
       if (!scene) return safeEmitError('Cena não encontrada.');
 
       const token = scene.tokens.find(t => t.id === id);
-      if (!token) return safeEmitError('Token não encontrado.');
+
+      // Graceful handling: if token not found, just broadcast remove to sync clients
+      if (!token) {
+        console.warn('[WS] token:remove: token not found, assuming already deleted. Broadcasting sync.');
+        safeBroadcast('token:remove', { sceneId, id });
+        return;
+      }
 
       // REGRA MILENAR: Use PermissionHelper
       const helper = await getPermissionHelper();

@@ -198,6 +198,15 @@ export const useTokenActions = (
       user,
       permissionHelper, // REGRA MILENAR
       requiredPermission: 'tokenDelete',
+      // Validate permission before proceeding
+      validate: () => {
+        if (!permissionHelper) return false;
+        const canDelete = permissionHelper.can('tokenDelete');
+        if (!canDelete) {
+          console.warn('[TokenDelete] Permission denied for token', id);
+        }
+        return canDelete;
+      },
 
       optimisticUpdate: (prev) => {
         const updatedScenes = StateHelpers.removeItemFromSceneList(
@@ -206,25 +215,26 @@ export const useTokenActions = (
           'tokens',
           id
         );
+        // Remove from selection only if present
+        const newSelected = prev.selectedTokenIds.includes(id)
+          ? prev.selectedTokenIds.filter(tid => tid !== id)
+          : prev.selectedTokenIds;
         return {
           ...prev,
           scenes: updatedScenes,
-          selectedTokenIds: prev.selectedTokenIds.filter(tid => tid !== id)
+          selectedTokenIds: newSelected,
         };
       },
 
       apiCall: async () => {
-        // The original code called campaignService.update. 
-        // We should replicate that if we want persistence.
-        // Wait, the original code updated the WHOLE scene list via campaignService.
-        // We can do that here too.
         const updatedScenes = StateHelpers.removeItemFromSceneList(state.scenes, state.activeSceneId, 'tokens', id);
         await campaignService.update(campaignId, { scenes: updatedScenes });
       },
 
+      // Always emit to server; server will enforce its own permission check
       socketEmit: () => {
         socketService.emit('token:remove', { sceneId: state.activeSceneId, id });
-      }
+      },
     });
   };
 
