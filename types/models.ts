@@ -192,6 +192,9 @@ export interface Character {
   gmNotes?: string;
   changeHistory?: CharacterChangeEntry[];
   createdAt: string;
+
+  // Privacy Control: Fields that are private (visible only to owner and GM)
+  privateFields?: string[];
 }
 
 // --- CAMPAIGN ---

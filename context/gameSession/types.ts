@@ -146,6 +146,7 @@ export interface GameSessionContextType extends GameSessionState {
   broadcastRoll: (result: RollResult) => void;
 
   updateCharacter: (id: string, data: Partial<Character>, immediate?: boolean) => void;
+  toggleFieldPrivacy: (characterId: string, fieldName: string) => Promise<void>;
 
   createHandout: (data: any) => Promise<void>;
   updateHandout: (id: string, data: any) => Promise<void>;

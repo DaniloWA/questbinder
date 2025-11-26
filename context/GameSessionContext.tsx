@@ -93,7 +93,7 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
         addLightZones, addLightToken, addTriggerZones, updateTriggerZone, removeTriggerZone, closeTriggeredHandout
     } = useZoneActions(state, setState, campaignId, addToken);
 
-    const { updateCharacter } = useCharacterActions(state, setState, user, permissionHelper, (message, type) => show({ message, type }));
+    const { updateCharacter, toggleFieldPrivacy } = useCharacterActions(state, setState, user, permissionHelper, (message, type) => show({ message, type }));
     const { saveTemplate, deleteTemplate } = useTemplateActions(state, setState, show);
 
     const uiActions = useUiActions(state, setState, campaignId, isCompendiumOpen, setIsCompendiumOpen);
@@ -149,6 +149,7 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
         rollDice,
         broadcastRoll,
         updateCharacter,
+        toggleFieldPrivacy,
         createHandout,
         updateHandout,
         deleteHandout,
