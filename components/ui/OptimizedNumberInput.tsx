@@ -75,19 +75,29 @@ export const OptimizedNumberInput = React.memo<OptimizedNumberInputProps>(({
     }, 300);
   }, [onChange, validateValue]);
 
-  // Incrementar/Decrementar (sem debounce)
+  // Incrementar/Decrementar (com buffer para cliques rápidos)
   const handleIncrement = useCallback(() => {
     const numValue = parseFloat(localValue) || 0;
     const newValue = validateValue(numValue + step);
     setLocalValue(String(newValue));
-    onChange(newValue);
+
+    // Buffer de 200ms para cliques rápidos
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      onChange(newValue);
+    }, 200);
   }, [localValue, step, validateValue, onChange]);
 
   const handleDecrement = useCallback(() => {
     const numValue = parseFloat(localValue) || 0;
     const newValue = validateValue(numValue - step);
     setLocalValue(String(newValue));
-    onChange(newValue);
+
+    // Buffer de 200ms para cliques rápidos
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      onChange(newValue);
+    }, 200);
   }, [localValue, step, validateValue, onChange]);
 
   // Focus handlers

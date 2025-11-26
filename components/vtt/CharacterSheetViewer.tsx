@@ -3,7 +3,8 @@ import { Character, Attributes, SkillName } from '../../types';
 import { SheetCard, SheetHeader } from '../ui/SheetPrimitives';
 import {
     Sword, Shield, Zap, Backpack, Dice5, X, Activity, Heart,
-    Eye, Crosshair, Share2, Moon, Wind, Skull, Award, Hourglass, User, Lock, Settings, ScrollText, NotebookPen, FileWarning, Clock
+    Eye, Crosshair, Share2, Moon, Wind, Skull, Award, Hourglass, User, Lock, Settings, ScrollText, NotebookPen, FileWarning, Clock,
+    Sparkles
 } from 'lucide-react';
 import { SKILLS_DATA } from '../../data/rules';
 import { Tooltip } from '../ui/Tooltip';
@@ -136,11 +137,11 @@ export const CharacterSheetViewer: React.FC<CharacterSheetViewerProps> = ({
                             <div className="flex-1 min-w-0 flex flex-col justify-center">
                                 <div className="flex justify-between items-baseline">
                                     {isEditing ? (
-                                        <input
-                                            type="number"
+                                        <OptimizedNumberInput
                                             value={score}
-                                            onChange={(e) => onUpdate({ attributes: { ...character.attributes, [attr]: parseInt(e.target.value) || 10 } })}
-                                            className="w-12 bg-zinc-900 text-xs font-bold text-zinc-300 border border-zinc-700 rounded px-1"
+                                            onChange={(val) => updateField('attributes', { ...character.attributes, [attr]: val })}
+                                            className="w-16"
+                                            showControls={false}
                                         />
                                     ) : (
                                         <span className="text-xs font-bold text-zinc-300">{score}</span>
@@ -182,7 +183,7 @@ export const CharacterSheetViewer: React.FC<CharacterSheetViewerProps> = ({
                                             newSkills.push(skill.id);
                                         }
 
-                                        onUpdate({ skills: newSkills, expertise: newExpertise });
+                                        updateFields({ skills: newSkills, expertise: newExpertise });
                                     }}
                                     className={`w-3 h-3 rounded-full border ${isExpert ? 'bg-yellow-500 border-yellow-500' : isProf ? 'bg-primary border-primary' : 'border-zinc-600'} hover:opacity-80`}
                                 />
@@ -227,12 +228,13 @@ export const CharacterSheetViewer: React.FC<CharacterSheetViewerProps> = ({
                         </div>
                     </div>
                     <div className="relative z-10 px-3 pb-2 flex items-end gap-2">
-                        <input
-                            type="number"
+                        <OptimizedNumberInput
                             value={character.hpCurrent}
-                            onChange={(e) => onUpdate({ hpCurrent: parseInt(e.target.value) || 0 })}
+                            onChange={(val) => updateField('hpCurrent', val, { immediate: true })}
                             disabled={!canEdit}
-                            className="bg-transparent text-4xl md:text-5xl font-black text-white w-full outline-none p-0 m-0 leading-none tracking-tighter disabled:opacity-90"
+                            className="w-full"
+                            inputClassName="bg-transparent text-4xl md:text-5xl font-black text-white w-full outline-none p-0 m-0 leading-none tracking-tighter disabled:opacity-90 border-none focus:ring-0 text-left"
+                            showControls={false}
                         />
                         {character.hpTemp > 0 && (
                             <span className="text-lg md:text-xl font-bold text-blue-400 mb-1">+{character.hpTemp}</span>
@@ -246,51 +248,56 @@ export const CharacterSheetViewer: React.FC<CharacterSheetViewerProps> = ({
                         <>
                             <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-2 flex flex-col items-center justify-center relative">
                                 <Shield className="w-4 h-4 text-zinc-500 mb-1" />
-                                <input
-                                    type="number"
+                                <OptimizedNumberInput
                                     value={character.armorClass}
-                                    onChange={(e) => onUpdate({ armorClass: parseInt(e.target.value) || 10 })}
-                                    className="w-16 bg-transparent text-center text-xl font-bold text-white border-b border-zinc-700 focus:border-primary outline-none"
+                                    onChange={(val) => updateField('armorClass', val)}
+                                    className="w-16"
+                                    inputClassName="bg-transparent text-center text-xl font-bold text-white border-b border-zinc-700 focus:border-primary outline-none"
+                                    showControls={false}
                                 />
                                 <span className="text-[9px] font-bold uppercase text-zinc-600 mt-1">CA</span>
                             </div>
                             <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-2 flex flex-col items-center justify-center relative">
                                 <RabbitIcon className="w-4 h-4 text-zinc-500 mb-1" />
-                                <input
-                                    type="number"
+                                <OptimizedNumberInput
                                     value={character.initiative}
-                                    onChange={(e) => onUpdate({ initiative: parseInt(e.target.value) || 0 })}
-                                    className="w-16 bg-transparent text-center text-xl font-bold text-white border-b border-zinc-700 focus:border-primary outline-none"
+                                    onChange={(val) => updateField('initiative', val)}
+                                    className="w-16"
+                                    inputClassName="bg-transparent text-center text-xl font-bold text-white border-b border-zinc-700 focus:border-primary outline-none"
+                                    showControls={false}
                                 />
                                 <span className="text-[9px] font-bold uppercase text-zinc-600 mt-1">Iniciativa</span>
                             </div>
                             <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-2 flex flex-col items-center justify-center relative">
                                 <Wind className="w-4 h-4 text-zinc-500 mb-1" />
-                                <input
-                                    type="number"
+                                <OptimizedNumberInput
                                     value={character.speed}
-                                    onChange={(e) => onUpdate({ speed: parseInt(e.target.value) || 0 })}
-                                    className="w-16 bg-transparent text-center text-xl font-bold text-white border-b border-zinc-700 focus:border-primary outline-none"
+                                    onChange={(val) => updateField('speed', val)}
+                                    className="w-16"
+                                    inputClassName="bg-transparent text-center text-xl font-bold text-white border-b border-zinc-700 focus:border-primary outline-none"
+                                    showControls={false}
                                 />
                                 <span className="text-[9px] font-bold uppercase text-zinc-600 mt-1">Desloc.</span>
                             </div>
                             <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-2 flex flex-col items-center justify-center relative">
                                 <Award className="w-4 h-4 text-zinc-500 mb-1" />
-                                <input
-                                    type="number"
+                                <OptimizedNumberInput
                                     value={character.profBonus}
-                                    onChange={(e) => onUpdate({ profBonus: parseInt(e.target.value) || 0 })}
-                                    className="w-16 bg-transparent text-center text-xl font-bold text-white border-b border-zinc-700 focus:border-primary outline-none"
+                                    onChange={(val) => updateField('profBonus', val)}
+                                    className="w-16"
+                                    inputClassName="bg-transparent text-center text-xl font-bold text-white border-b border-zinc-700 focus:border-primary outline-none"
+                                    showControls={false}
                                 />
                                 <span className="text-[9px] font-bold uppercase text-zinc-600 mt-1">Prof.</span>
                             </div>
                             <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-2 flex flex-col items-center justify-center relative">
                                 <Eye className="w-4 h-4 text-zinc-500 mb-1" />
-                                <input
-                                    type="number"
+                                <OptimizedNumberInput
                                     value={character.passivePerception}
-                                    onChange={(e) => onUpdate({ passivePerception: parseInt(e.target.value) || 0 })}
-                                    className="w-16 bg-transparent text-center text-xl font-bold text-white border-b border-zinc-700 focus:border-primary outline-none"
+                                    onChange={(val) => updateField('passivePerception', val)}
+                                    className="w-16"
+                                    inputClassName="bg-transparent text-center text-xl font-bold text-white border-b border-zinc-700 focus:border-primary outline-none"
+                                    showControls={false}
                                 />
                                 <span className="text-[9px] font-bold uppercase text-zinc-600 mt-1">Percepção</span>
                             </div>
@@ -308,7 +315,7 @@ export const CharacterSheetViewer: React.FC<CharacterSheetViewerProps> = ({
                     <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-2 flex flex-col items-center justify-center relative">
                         <span className="text-[9px] font-bold uppercase text-zinc-500 mb-1">Inspiração</span>
                         <button
-                            onClick={() => onUpdate({ heroicInspiration: !character.heroicInspiration })}
+                            onClick={() => updateField('heroicInspiration', !character.heroicInspiration, { immediate: true })}
                             disabled={!canEdit}
                             className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all ${character.heroicInspiration ? 'bg-yellow-500 border-yellow-400 text-black shadow-lg shadow-yellow-500/20' : 'bg-zinc-800 border-zinc-600 text-zinc-600 hover:border-zinc-400'}`}
                         >
@@ -346,45 +353,45 @@ export const CharacterSheetViewer: React.FC<CharacterSheetViewerProps> = ({
                                 <div className="min-w-0 flex-1">
                                     {isEditing ? (
                                         <div className="space-y-1 pr-2">
-                                            <input
-                                                type="text"
+                                            <OptimizedTextInput
                                                 value={atk.name}
-                                                onChange={(e) => {
-                                                    const newAttacks = character.attacks.map(a => a.id === atk.id ? { ...a, name: e.target.value } : a);
-                                                    onUpdate({ attacks: newAttacks });
+                                                onChange={(val) => {
+                                                    const newAttacks = character.attacks.map(a => a.id === atk.id ? { ...a, name: val } : a);
+                                                    updateFields({ attacks: newAttacks });
                                                 }}
-                                                className="w-full bg-zinc-950 text-sm font-bold text-white border border-zinc-700 rounded px-1 mb-1"
+                                                className="w-full"
+                                                inputClassName="bg-zinc-950 text-sm font-bold text-white border border-zinc-700 rounded px-1 mb-1"
                                                 placeholder="Nome do ataque"
                                             />
                                             <div className="flex gap-1">
-                                                <input
-                                                    type="text"
+                                                <OptimizedTextInput
                                                     value={atk.range}
-                                                    onChange={(e) => {
-                                                        const newAttacks = character.attacks.map(a => a.id === atk.id ? { ...a, range: e.target.value } : a);
-                                                        onUpdate({ attacks: newAttacks });
+                                                    onChange={(val) => {
+                                                        const newAttacks = character.attacks.map(a => a.id === atk.id ? { ...a, range: val } : a);
+                                                        updateFields({ attacks: newAttacks });
                                                     }}
-                                                    className="w-1/3 bg-zinc-950 text-[10px] text-zinc-400 border border-zinc-700 rounded px-1"
+                                                    className="w-1/3"
+                                                    inputClassName="bg-zinc-950 text-[10px] text-zinc-400 border border-zinc-700 rounded px-1"
                                                     placeholder="Alcance"
                                                 />
-                                                <input
-                                                    type="text"
+                                                <OptimizedTextInput
                                                     value={atk.type}
-                                                    onChange={(e) => {
-                                                        const newAttacks = character.attacks.map(a => a.id === atk.id ? { ...a, type: e.target.value } : a);
-                                                        onUpdate({ attacks: newAttacks });
+                                                    onChange={(val) => {
+                                                        const newAttacks = character.attacks.map(a => a.id === atk.id ? { ...a, type: val } : a);
+                                                        updateFields({ attacks: newAttacks });
                                                     }}
-                                                    className="w-1/3 bg-zinc-950 text-[10px] text-zinc-400 border border-zinc-700 rounded px-1"
+                                                    className="w-1/3"
+                                                    inputClassName="bg-zinc-950 text-[10px] text-zinc-400 border border-zinc-700 rounded px-1"
                                                     placeholder="Tipo"
                                                 />
-                                                <input
-                                                    type="text"
+                                                <OptimizedTextInput
                                                     value={atk.mastery || ''}
-                                                    onChange={(e) => {
-                                                        const newAttacks = character.attacks.map(a => a.id === atk.id ? { ...a, mastery: e.target.value } : a);
-                                                        onUpdate({ attacks: newAttacks });
+                                                    onChange={(val) => {
+                                                        const newAttacks = character.attacks.map(a => a.id === atk.id ? { ...a, mastery: val } : a);
+                                                        updateFields({ attacks: newAttacks });
                                                     }}
-                                                    className="w-1/3 bg-zinc-950 text-[10px] text-primary border border-zinc-700 rounded px-1"
+                                                    className="w-1/3"
+                                                    inputClassName="bg-zinc-950 text-[10px] text-primary border border-zinc-700 rounded px-1"
                                                     placeholder="Maestria"
                                                 />
                                             </div>
@@ -413,27 +420,27 @@ export const CharacterSheetViewer: React.FC<CharacterSheetViewerProps> = ({
                                     <>
                                         <div className="flex-1 flex items-center gap-1 bg-zinc-950 border border-zinc-700 rounded px-1">
                                             <Crosshair className="w-3 h-3 text-zinc-500" />
-                                            <input
-                                                type="text"
+                                            <OptimizedTextInput
                                                 value={atk.atkBonus}
-                                                onChange={(e) => {
-                                                    const newAttacks = character.attacks.map(a => a.id === atk.id ? { ...a, atkBonus: e.target.value } : a);
-                                                    onUpdate({ attacks: newAttacks });
+                                                onChange={(val) => {
+                                                    const newAttacks = character.attacks.map(a => a.id === atk.id ? { ...a, atkBonus: val } : a);
+                                                    updateFields({ attacks: newAttacks });
                                                 }}
-                                                className="w-full bg-transparent text-xs font-mono text-white outline-none text-center"
+                                                className="w-full"
+                                                inputClassName="bg-transparent text-xs font-mono text-white outline-none text-center border-none focus:ring-0"
                                                 placeholder="+0"
                                             />
                                         </div>
                                         <div className="flex-[2] flex items-center gap-1 bg-zinc-950 border border-zinc-700 rounded px-1">
                                             <Zap className="w-3 h-3 text-zinc-500" />
-                                            <input
-                                                type="text"
+                                            <OptimizedTextInput
                                                 value={atk.damage}
-                                                onChange={(e) => {
-                                                    const newAttacks = character.attacks.map(a => a.id === atk.id ? { ...a, damage: e.target.value } : a);
-                                                    onUpdate({ attacks: newAttacks });
+                                                onChange={(val) => {
+                                                    const newAttacks = character.attacks.map(a => a.id === atk.id ? { ...a, damage: val } : a);
+                                                    updateFields({ attacks: newAttacks });
                                                 }}
-                                                className="w-full bg-transparent text-xs font-mono text-white outline-none text-center"
+                                                className="w-full"
+                                                inputClassName="bg-transparent text-xs font-mono text-white outline-none text-center border-none focus:ring-0"
                                                 placeholder="1d6+2"
                                             />
                                         </div>
@@ -466,11 +473,11 @@ export const CharacterSheetViewer: React.FC<CharacterSheetViewerProps> = ({
                 <div className="flex flex-col">
                     <span className="text-[9px] font-bold uppercase text-zinc-500">Atributo</span>
                     {isEditing ? (
-                        <input
-                            type="text"
+                        <OptimizedTextInput
                             value={character.spellInfo.ability}
-                            onChange={(e) => onUpdate({ spellInfo: { ...character.spellInfo, ability: e.target.value } })}
-                            className="w-16 bg-zinc-900 text-sm font-bold text-primary uppercase border border-zinc-700 rounded px-1 text-center"
+                            onChange={(val) => updateField('spellInfo', { ...character.spellInfo, ability: val })}
+                            className="w-16"
+                            inputClassName="bg-zinc-900 text-sm font-bold text-primary uppercase border border-zinc-700 rounded px-1 text-center"
                         />
                     ) : (
                         <span className="text-sm font-bold text-primary uppercase">{character.spellInfo.ability}</span>
@@ -479,11 +486,12 @@ export const CharacterSheetViewer: React.FC<CharacterSheetViewerProps> = ({
                 <div className="flex flex-col text-center">
                     <span className="text-[9px] font-bold uppercase text-zinc-500">CD</span>
                     {isEditing ? (
-                        <input
-                            type="number"
+                        <OptimizedNumberInput
                             value={character.spellInfo.saveDc}
-                            onChange={(e) => onUpdate({ spellInfo: { ...character.spellInfo, saveDc: parseInt(e.target.value) || 0 } })}
-                            className="w-12 bg-zinc-900 text-xl font-bold text-white border border-zinc-700 rounded px-1 text-center mx-auto"
+                            onChange={(val) => updateField('spellInfo', { ...character.spellInfo, saveDc: val })}
+                            className="w-12 mx-auto"
+                            inputClassName="bg-zinc-900 text-xl font-bold text-white border border-zinc-700 rounded px-1 text-center"
+                            showControls={false}
                         />
                     ) : (
                         <span className="text-xl font-bold text-white">{character.spellInfo.saveDc}</span>
@@ -492,11 +500,12 @@ export const CharacterSheetViewer: React.FC<CharacterSheetViewerProps> = ({
                 <div className="flex flex-col text-right">
                     <span className="text-[9px] font-bold uppercase text-zinc-500">Ataque</span>
                     {isEditing ? (
-                        <input
-                            type="number"
+                        <OptimizedNumberInput
                             value={character.spellInfo.atkBonus}
-                            onChange={(e) => onUpdate({ spellInfo: { ...character.spellInfo, atkBonus: parseInt(e.target.value) || 0 } })}
-                            className="w-12 bg-zinc-900 text-xl font-bold text-white border border-zinc-700 rounded px-1 text-center ml-auto"
+                            onChange={(val) => updateField('spellInfo', { ...character.spellInfo, atkBonus: val })}
+                            className="w-12 ml-auto"
+                            inputClassName="bg-zinc-900 text-xl font-bold text-white border border-zinc-700 rounded px-1 text-center"
+                            showControls={false}
                         />
                     ) : (
                         <span className="text-xl font-bold text-white">+{character.spellInfo.atkBonus}</span>
@@ -584,12 +593,13 @@ export const CharacterSheetViewer: React.FC<CharacterSheetViewerProps> = ({
                     {(Object.keys(character.currency) as Array<keyof typeof character.currency>).map(k => (
                         <div key={k as string} className="flex flex-col items-center">
                             <span className="text-[9px] font-bold uppercase text-zinc-500 mb-1">{k}</span>
-                            <input
-                                type="number"
+                            <OptimizedNumberInput
                                 value={character.currency[k]}
-                                onChange={(e) => onUpdate({ currency: { ...character.currency, [k]: parseInt(e.target.value) || 0 } })}
-                                className="w-12 bg-transparent text-center font-mono font-bold text-white text-sm outline-none border-b border-transparent focus:border-primary focus:bg-white/5 rounded px-0"
+                                onChange={(val) => updateField('currency', { ...character.currency, [k]: val })}
+                                className="w-12"
+                                inputClassName="bg-transparent text-center font-mono font-bold text-white text-sm outline-none border-b border-transparent focus:border-primary focus:bg-white/5 rounded px-0"
                                 disabled={!canEdit}
+                                showControls={false}
                             />
                         </div>
                     ))}
@@ -602,14 +612,15 @@ export const CharacterSheetViewer: React.FC<CharacterSheetViewerProps> = ({
                     <div key={item.id} className="flex items-center justify-between p-2 rounded-lg border border-zinc-800 bg-zinc-900/20 hover:bg-zinc-900 hover:border-zinc-700 transition-all group">
                         <div className="flex items-center gap-3 min-w-0">
                             {isEditing ? (
-                                <input
-                                    type="number"
+                                <OptimizedNumberInput
                                     value={item.qty}
-                                    onChange={(e) => {
-                                        const newInventory = character.inventory.map(i => i.id === item.id ? { ...i, qty: parseInt(e.target.value) || 1 } : i);
-                                        onUpdate({ inventory: newInventory });
+                                    onChange={(val) => {
+                                        const newInventory = character.inventory.map(i => i.id === item.id ? { ...i, qty: val } : i);
+                                        updateFields({ inventory: newInventory });
                                     }}
-                                    className="bg-zinc-950 text-zinc-300 text-[10px] font-mono px-1 py-0.5 rounded border border-zinc-700 w-10 text-center outline-none focus:border-primary"
+                                    className="w-10"
+                                    inputClassName="bg-zinc-950 text-zinc-300 text-[10px] font-mono px-1 py-0.5 rounded border border-zinc-700 w-10 text-center outline-none focus:border-primary"
+                                    showControls={false}
                                 />
                             ) : (
                                 <div className="bg-zinc-950 text-zinc-500 text-[10px] font-mono px-1.5 py-0.5 rounded border border-zinc-800 min-w-[24px] text-center">{item.qty}</div>
@@ -627,73 +638,60 @@ export const CharacterSheetViewer: React.FC<CharacterSheetViewerProps> = ({
     );
 
     const renderFeaturesTab = () => (
-        <div className="p-3 md:p-5 space-y-4 pb-20">
-            <SheetHeader title="Características & Talentos" icon={Award} />
-            <div className="grid grid-cols-1 gap-3">
-                {character.features.map(f => {
-                    const isOpen = openFeatures[f.id];
-                    return (
-                        <div key={f.id} className={`bg-zinc-900 border ${isOpen ? 'border-zinc-700 ring-1 ring-zinc-700' : 'border-zinc-800'} rounded-lg transition-all`}>
-                            <div
-                                className="p-3 flex items-center justify-between cursor-pointer select-none"
-                                onClick={() => setOpenFeatures(prev => ({ ...prev, [f.id]: !prev[f.id] }))}
-                            >
-                                <div className="min-w-0 flex-1 mr-2">
-                                    {isEditing ? (
-                                        <div className="space-y-1" onClick={(e) => e.stopPropagation()}>
-                                            <input
-                                                type="text"
-                                                value={f.name}
-                                                onChange={(e) => {
-                                                    const newFeatures = character.features.map(feat => feat.id === f.id ? { ...feat, name: e.target.value } : feat);
-                                                    onUpdate({ features: newFeatures });
-                                                }}
-                                                className="w-full bg-zinc-950 text-sm font-bold text-white border border-zinc-700 rounded px-1 mb-1"
-                                                placeholder="Nome da característica"
-                                            />
-                                            <select
-                                                value={f.source}
-                                                onChange={(e) => {
-                                                    const newFeatures = character.features.map(feat => feat.id === f.id ? { ...feat, source: e.target.value as any } : feat);
-                                                    onUpdate({ features: newFeatures });
-                                                }}
-                                                className="bg-zinc-950 text-[10px] uppercase text-zinc-500 border border-zinc-700 rounded px-1"
-                                            >
-                                                <option value="class">Classe</option>
-                                                <option value="race">Raça</option>
-                                                <option value="feat">Talento</option>
-                                                <option value="other">Outro</option>
-                                            </select>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <h4 className={`font-bold text-sm truncate ${isOpen ? 'text-white' : 'text-zinc-300'}`}>{f.name}</h4>
-                                            <span className="text-[10px] uppercase text-zinc-500 tracking-wider">{f.source}</span>
-                                        </>
-                                    )}
+        <div className="p-3 md:p-5 space-y-5 pb-20">
+            <SheetHeader title="Características e Talentos" icon={Sparkles} />
+            <div className="space-y-2">
+                {character.features.map(feat => (
+                    <div key={feat.id} className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-3 hover:border-zinc-700 transition-all group">
+                        <div className="flex justify-between items-start mb-1">
+                            {isEditing ? (
+                                <div className="flex-1 pr-2 space-y-1">
+                                    <OptimizedTextInput
+                                        value={feat.name}
+                                        onChange={(val) => {
+                                            const newFeatures = character.features.map(f => f.id === feat.id ? { ...f, name: val } : f);
+                                            updateFields({ features: newFeatures });
+                                        }}
+                                        className="w-full"
+                                        inputClassName="bg-zinc-950 text-sm font-bold text-white border border-zinc-700 rounded px-1"
+                                        placeholder="Nome da característica"
+                                    />
+                                    <OptimizedTextInput
+                                        value={feat.source}
+                                        onChange={(val) => {
+                                            const newFeatures = character.features.map(f => f.id === feat.id ? { ...f, source: val } : f);
+                                            updateFields({ features: newFeatures });
+                                        }}
+                                        className="w-full"
+                                        inputClassName="bg-zinc-950 text-[10px] text-zinc-500 border border-zinc-700 rounded px-1"
+                                        placeholder="Fonte (ex: Raça, Classe)"
+                                    />
                                 </div>
-                                {onShare && <button onClick={(e) => { e.stopPropagation(); onShare('feature', f); }} className="p-2 text-zinc-600 hover:text-white"><Share2 className="w-3.5 h-3.5" /></button>}
-                            </div>
-                            {isOpen && (
-                                <div className="px-3 pb-3 pt-0 text-sm text-zinc-400 leading-relaxed border-t border-zinc-800/50 mt-1 pt-2">
-                                    {isEditing ? (
-                                        <textarea
-                                            value={f.description}
-                                            onChange={(e) => {
-                                                const newFeatures = character.features.map(feat => feat.id === f.id ? { ...feat, description: e.target.value } : feat);
-                                                onUpdate({ features: newFeatures });
-                                            }}
-                                            className="w-full bg-zinc-950 text-sm text-zinc-300 border border-zinc-700 rounded p-2 min-h-[100px] focus:border-primary outline-none"
-                                            placeholder="Descrição da característica"
-                                        />
-                                    ) : (
-                                        f.description
-                                    )}
+                            ) : (
+                                <div>
+                                    <div className="font-bold text-sm text-zinc-200">{feat.name}</div>
+                                    <div className="text-[10px] text-zinc-500">{feat.source}</div>
                                 </div>
                             )}
+                            {onShare && <button onClick={() => onShare('feature', feat)} className="text-zinc-600 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"><Share2 className="w-3.5 h-3.5" /></button>}
                         </div>
-                    );
-                })}
+                        {isEditing ? (
+                            <OptimizedTextInput
+                                value={feat.description}
+                                onChange={(val) => {
+                                    const newFeatures = character.features.map(f => f.id === feat.id ? { ...f, description: val } : f);
+                                    updateFields({ features: newFeatures });
+                                }}
+                                className="w-full"
+                                inputClassName="bg-zinc-950 text-xs text-zinc-400 border border-zinc-700 rounded px-1 w-full"
+                                multiline
+                                placeholder="Descrição..."
+                            />
+                        ) : (
+                            <p className="text-xs text-zinc-400 leading-relaxed whitespace-pre-wrap">{feat.description}</p>
+                        )}
+                    </div>
+                ))}
             </div>
         </div>
     );
@@ -708,11 +706,11 @@ export const CharacterSheetViewer: React.FC<CharacterSheetViewerProps> = ({
                         <div key={key} className="bg-zinc-900 border border-zinc-800 rounded-lg p-2">
                             <span className="text-[9px] font-bold uppercase text-zinc-500 block mb-1">{key}</span>
                             {isEditing ? (
-                                <input
-                                    type="text"
+                                <OptimizedTextInput
                                     value={character.appearance[key]}
-                                    onChange={(e) => onUpdate({ appearance: { ...character.appearance, [key]: e.target.value } })}
-                                    className="w-full bg-transparent text-sm text-white border-b border-zinc-700 focus:border-primary outline-none"
+                                    onChange={(val) => updateField('appearance', { ...character.appearance, [key]: val })}
+                                    className="w-full"
+                                    inputClassName="bg-transparent text-sm text-white border-b border-zinc-700 focus:border-primary outline-none"
                                 />
                             ) : (
                                 <span className="text-sm text-zinc-300">{character.appearance[key] || '-'}</span>
@@ -730,10 +728,12 @@ export const CharacterSheetViewer: React.FC<CharacterSheetViewerProps> = ({
                         <div key={key} className="bg-zinc-900 border border-zinc-800 rounded-lg p-3">
                             <span className="text-[10px] font-bold uppercase text-primary block mb-2">{key}</span>
                             {isEditing ? (
-                                <textarea
+                                <OptimizedTextInput
                                     value={character.personality[key]}
-                                    onChange={(e) => onUpdate({ personality: { ...character.personality, [key]: e.target.value } })}
-                                    className="w-full bg-zinc-950/50 text-xs text-zinc-300 border border-zinc-800 rounded p-2 min-h-[80px] focus:border-primary outline-none resize-none"
+                                    onChange={(val) => updateField('personality', { ...character.personality, [key]: val })}
+                                    className="w-full"
+                                    inputClassName="bg-zinc-950/50 text-xs text-zinc-300 border border-zinc-800 rounded p-2 min-h-[80px] focus:border-primary outline-none resize-none"
+                                    multiline
                                 />
                             ) : (
                                 <p className="text-xs text-zinc-400 italic leading-relaxed">{character.personality[key] || '...'}</p>
@@ -748,10 +748,12 @@ export const CharacterSheetViewer: React.FC<CharacterSheetViewerProps> = ({
                 <div className="space-y-2">
                     <SheetHeader title="Biografia" icon={ScrollText} />
                     {isEditing ? (
-                        <textarea
+                        <OptimizedTextInput
                             value={character.bio || ''}
-                            onChange={(e) => onUpdate({ bio: e.target.value })}
-                            className="w-full bg-zinc-900 text-sm text-zinc-300 border border-zinc-800 rounded-lg p-3 min-h-[150px] focus:border-primary outline-none"
+                            onChange={(val) => updateField('bio', val)}
+                            className="w-full"
+                            inputClassName="bg-zinc-900 text-sm text-zinc-300 border border-zinc-800 rounded-lg p-3 min-h-[150px] focus:border-primary outline-none"
+                            multiline
                             placeholder="Escreva a história do seu personagem..."
                         />
                     ) : (
@@ -767,10 +769,12 @@ export const CharacterSheetViewer: React.FC<CharacterSheetViewerProps> = ({
                         <div className="space-y-1">
                             <span className="text-xs font-bold text-zinc-500 uppercase">Aliados & Organizações</span>
                             {isEditing ? (
-                                <textarea
+                                <OptimizedTextInput
                                     value={character.alliesAndOrgs || ''}
-                                    onChange={(e) => onUpdate({ alliesAndOrgs: e.target.value })}
-                                    className="w-full bg-zinc-900 text-xs text-zinc-300 border border-zinc-800 rounded p-2 min-h-[100px] focus:border-primary outline-none"
+                                    onChange={(val) => updateField('alliesAndOrgs', val)}
+                                    className="w-full"
+                                    inputClassName="bg-zinc-900 text-xs text-zinc-300 border border-zinc-800 rounded p-2 min-h-[100px] focus:border-primary outline-none"
+                                    multiline
                                 />
                             ) : (
                                 <div className="bg-zinc-900/30 border border-zinc-800 rounded p-2 text-xs text-zinc-400 min-h-[60px] whitespace-pre-wrap">
@@ -781,10 +785,12 @@ export const CharacterSheetViewer: React.FC<CharacterSheetViewerProps> = ({
                         <div className="space-y-1">
                             <span className="text-xs font-bold text-zinc-500 uppercase">Tesouro & Itens Especiais</span>
                             {isEditing ? (
-                                <textarea
+                                <OptimizedTextInput
                                     value={character.treasure || ''}
-                                    onChange={(e) => onUpdate({ treasure: e.target.value })}
-                                    className="w-full bg-zinc-900 text-xs text-zinc-300 border border-zinc-800 rounded p-2 min-h-[100px] focus:border-primary outline-none"
+                                    onChange={(val) => updateField('treasure', val)}
+                                    className="w-full"
+                                    inputClassName="bg-zinc-900 text-xs text-zinc-300 border border-zinc-800 rounded p-2 min-h-[100px] focus:border-primary outline-none"
+                                    multiline
                                 />
                             ) : (
                                 <div className="bg-zinc-900/30 border border-zinc-800 rounded p-2 text-xs text-zinc-400 min-h-[60px] whitespace-pre-wrap">

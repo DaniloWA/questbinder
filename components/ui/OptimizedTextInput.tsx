@@ -87,6 +87,7 @@ export const OptimizedTextInput = React.memo<OptimizedTextInputProps>(({
       if (debounceTimer.current) {
         clearTimeout(debounceTimer.current);
       }
+      // Flush imediato
       onChange(localValue);
     }
   }, [localValue, value, onChange]);

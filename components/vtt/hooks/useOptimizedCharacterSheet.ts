@@ -66,66 +66,116 @@ export const useOptimizedCharacterSheet = ({
   /**
    * Atualiza um campo com debounce inteligente
    */
+  // Queue global de atualizações para batching
+  const updateQueue = useRef<Record<string, any>>({});
+  const batchTimer = useRef<NodeJS.Timeout | null>(null);
+
+  /**
+   * Processa a fila de atualizações (flush)
+   */
+  const processQueue = useCallback(() => {
+    if (Object.keys(updateQueue.current).length === 0) return;
+
+    const updates = { ...updateQueue.current };
+    updateQueue.current = {}; // Limpa a fila
+
+    // Remove chaves da lista de "dirty fields" (timers)
+    Object.keys(updates).forEach(key => {
+      if (fieldTimers.current[key]) {
+        clearTimeout(fieldTimers.current[key]);
+        delete fieldTimers.current[key];
+      }
+    });
+
+    onUpdate(updates, false);
+    batchTimer.current = null;
+  }, [onUpdate]);
+
+  /**
+   * Atualiza um campo com debounce inteligente e batching
+   */
   const updateField = useCallback((
     fieldName: keyof Character,
     value: any,
     options: FieldUpdateOptions = {}
   ) => {
-    console.log('[useOptimizedCharacterSheet] updateField called:', fieldName, value, options);
     const {
       immediate = criticalFields.has(fieldName as string),
-      debounceMs = 800
+      debounceMs = 1000 // Aumentado para 1s para garantir batching eficaz
     } = options;
 
-    // Atualizar estado local imediatamente para UI responsiva
+    // 1. Atualização Otimista Local
     setLocalCharacter(prev => ({ ...prev, [fieldName]: value }));
 
-    // Limpar timer anterior deste campo
-    if (fieldTimers.current[fieldName]) {
-      clearTimeout(fieldTimers.current[fieldName]);
-    }
-
-    // Armazenar atualização pendente
-    pendingUpdates.current[fieldName] = value;
-
+    // 2. Se for crítico, envia imediatamente e limpa qualquer pendência desse campo
     if (immediate) {
-      // Atualização imediata para campos críticos
-      const updates = { [fieldName]: value };
-      onUpdate(updates, true);
-      delete pendingUpdates.current[fieldName];
-    } else {
-      // Debounce para campos normais
-      fieldTimers.current[fieldName] = setTimeout(() => {
-        const updates = { [fieldName]: pendingUpdates.current[fieldName] };
-        onUpdate(updates, false);
-        delete pendingUpdates.current[fieldName];
-        delete fieldTimers.current[fieldName];
-      }, debounceMs);
+      // Se houver algo na fila para este campo, sobrescreve
+      delete updateQueue.current[fieldName as string];
+
+      // Se houver timer específico, limpa
+      if (fieldTimers.current[fieldName as string]) {
+        clearTimeout(fieldTimers.current[fieldName as string]);
+        delete fieldTimers.current[fieldName as string];
+      }
+
+      onUpdate({ [fieldName]: value }, true);
+      return;
     }
-  }, [criticalFields, onUpdate]);
+
+    // 3. Adiciona à fila de batching
+    updateQueue.current[fieldName as string] = value;
+
+    // 4. Gerencia o timer de batching global
+    // Se já existe um timer rodando, deixamos ele continuar (debounce)
+    // OU reiniciamos ele para adiar o envio (debounce clássico)?
+    // Para campos de texto, queremos adiar. Para múltiplos campos diferentes, queremos agrupar.
+
+    // Estratégia Híbrida:
+    // - Se já tem timer para ESSE campo específico, cancela (debounce por campo)
+    if (fieldTimers.current[fieldName as string]) {
+      clearTimeout(fieldTimers.current[fieldName as string]);
+    }
+
+    // Define um novo timer para este campo que vai disparar o processamento da fila
+    fieldTimers.current[fieldName as string] = setTimeout(() => {
+      processQueue();
+    }, debounceMs);
+
+  }, [criticalFields, onUpdate, processQueue]);
 
   /**
-   * Atualiza múltiplos campos de uma vez (batching)
+   * Atualiza múltiplos campos de uma vez (batching explícito)
    */
   const updateFields = useCallback((
     updates: Partial<Character>,
     immediate: boolean = false
   ) => {
-    // Atualizar estado local
+    // 1. Atualização Otimista Local
     setLocalCharacter(prev => ({ ...prev, ...updates }));
 
-    // Limpar timers dos campos sendo atualizados
-    Object.keys(updates).forEach(field => {
-      if (fieldTimers.current[field]) {
-        clearTimeout(fieldTimers.current[field]);
-        delete fieldTimers.current[field];
-      }
-      delete pendingUpdates.current[field];
-    });
+    if (immediate) {
+      // Remove da fila qualquer campo que esteja sendo atualizado agora
+      Object.keys(updates).forEach(key => {
+        delete updateQueue.current[key];
+        if (fieldTimers.current[key]) {
+          clearTimeout(fieldTimers.current[key]);
+          delete fieldTimers.current[key];
+        }
+      });
+      onUpdate(updates, true);
+    } else {
+      // Adiciona tudo à fila
+      Object.entries(updates).forEach(([key, value]) => {
+        updateQueue.current[key] = value;
 
-    // Enviar atualização
-    onUpdate(updates, immediate);
-  }, [onUpdate]);
+        // Reinicia timer para esses campos
+        if (fieldTimers.current[key]) {
+          clearTimeout(fieldTimers.current[key]);
+        }
+        fieldTimers.current[key] = setTimeout(() => processQueue(), 1000);
+      });
+    }
+  }, [onUpdate, processQueue]);
 
   /**
    * Verifica se um campo é privado
