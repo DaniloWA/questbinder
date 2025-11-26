@@ -172,15 +172,13 @@ export const useTokenActions = (
       requiredPermission: 'tokenCreate',
 
       optimisticUpdate: (prev) => {
-        // Note: We don't strictly need optimistic update here if we trust the socket echo, 
-        // but for consistency we can do it. However, usually addToken relies on server echo 
-        // to avoid ID conflicts if we generated ID here. 
-        // But since we generate ID here, we can be optimistic.
-        // BUT, the original code didn't do optimistic update for addToken? 
-        // Wait, original code: socketService.emit('token:add'...) -> handleTokenAdd -> setState.
-        // It was NOT optimistic.
-        // Let's make it optimistic for better UX!
-        return prev;
+        const updatedScenes = StateHelpers.addItemToSceneList(
+          prev.scenes,
+          prev.activeSceneId,
+          'tokens',
+          newToken
+        );
+        return { ...prev, scenes: updatedScenes };
       },
 
       socketEmit: () => {
@@ -226,10 +224,8 @@ export const useTokenActions = (
         };
       },
 
-      apiCall: async () => {
-        const updatedScenes = StateHelpers.removeItemFromSceneList(state.scenes, state.activeSceneId, 'tokens', id);
-        await campaignService.update(campaignId, { scenes: updatedScenes });
-      },
+      // apiCall removed to avoid double-write and race conditions. 
+      // Server handles persistence via socket event.
 
       // Always emit to server; server will enforce its own permission check
       socketEmit: () => {
@@ -251,7 +247,7 @@ export const useTokenActions = (
     const updatedScenesStep2 = StateHelpers.addItemToSceneList(updatedScenesStep1, sceneId, 'tokens', { ...token, x: 5, y: 5 });
 
     setState(prev => ({ ...prev, scenes: updatedScenesStep2 }));
-    campaignService.update(campaignId, { scenes: updatedScenesStep2 });
+    // campaignService.update(campaignId, { scenes: updatedScenesStep2 }); // Removed to avoid double-write
 
     socketService.emit('token:remove', { sceneId: currentScene.id, id: tokenId });
     socketService.emit('token:add', { sceneId, token: { ...token, x: 5, y: 5 } });

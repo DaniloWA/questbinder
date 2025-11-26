@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useMemo } from 'react';
+import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { Character } from '../../../types';
 
 interface UseOptimizedCharacterSheetProps {
@@ -42,9 +42,26 @@ export const useOptimizedCharacterSheet = ({
   ]), []);
 
   // Sincronizar estado local quando character externo mudar
-  useState(() => {
-    setLocalCharacter(character);
-  });
+  // Sincronizar estado local quando character externo mudar
+  // Sincronizar estado local quando character externo mudar
+  useEffect(() => {
+    setLocalCharacter(prev => {
+      // Começa com o novo estado externo
+      const newState = { ...character };
+
+      // Restaura campos que estão sendo editados localmente (têm timer ativo)
+      // para evitar sobrescrever o que o usuário está digitando
+      Object.keys(fieldTimers.current).forEach(key => {
+        // @ts-ignore - Chaves dinâmicas
+        if (prev[key] !== undefined) {
+          // @ts-ignore
+          newState[key] = prev[key];
+        }
+      });
+
+      return newState;
+    });
+  }, [character]);
 
   /**
    * Atualiza um campo com debounce inteligente
@@ -54,6 +71,7 @@ export const useOptimizedCharacterSheet = ({
     value: any,
     options: FieldUpdateOptions = {}
   ) => {
+    console.log('[useOptimizedCharacterSheet] updateField called:', fieldName, value, options);
     const {
       immediate = criticalFields.has(fieldName as string),
       debounceMs = 800
@@ -127,7 +145,7 @@ export const useOptimizedCharacterSheet = ({
    * Limpa todos os timers pendentes (cleanup)
    */
   const cleanup = useCallback(() => {
-    Object.values(fieldTimers.current).forEach(timer => clearTimeout(timer));
+    Object.values(fieldTimers.current).forEach((timer: NodeJS.Timeout) => clearTimeout(timer));
     fieldTimers.current = {};
     pendingUpdates.current = {};
   }, []);

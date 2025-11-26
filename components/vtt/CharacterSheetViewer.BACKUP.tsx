@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Character, Attributes, SkillName } from '../../types';
 import { SheetCard, SheetHeader } from '../ui/SheetPrimitives';
 import {
@@ -9,10 +9,6 @@ import { SKILLS_DATA } from '../../data/rules';
 import { Tooltip } from '../ui/Tooltip';
 import { Counter } from '../ui/Counter';
 import { useGameSession } from '../../context/GameSessionContext';
-import { SaveIndicator, useSaveIndicator } from '../ui/SaveIndicator';
-import { OptimizedNumberInput } from '../ui/OptimizedNumberInput';
-import { OptimizedTextInput } from '../ui/OptimizedTextInput';
-import { useOptimizedCharacterSheet } from './hooks/useOptimizedCharacterSheet';
 
 interface CharacterSheetViewerProps {
     character: Character;
@@ -29,20 +25,16 @@ const calcMod = (score: number) => Math.floor((score - 10) / 2);
 const fmtMod = (mod: number) => (mod >= 0 ? `+${mod}` : `${mod}`);
 
 export const CharacterSheetViewer: React.FC<CharacterSheetViewerProps> = ({
-    character: initialCharacter, onClose, onUpdate: onUpdateProp, onRoll, onShare, isGM = false, currentUserId
+    character, onClose, onUpdate, onRoll, onShare, isGM = false, currentUserId
 }) => {
     const [activeTab, setActiveTab] = useState<'combat' | 'spells' | 'inventory' | 'features' | 'bio' | 'history' | 'gmnotes'>('combat');
     const [openFeatures, setOpenFeatures] = useState<Record<string, boolean>>({});
     const [isEditing, setIsEditing] = useState(false);
 
-    // Save indicator
-    const { status: saveStatus, setSaving, setSaved, setError: setSaveError } = useSaveIndicator();
-
     // Try to get game session context, but don't fail if not available (e.g., in Dashboard)
-    let gameSession: any;
     let permissionHelper: any = { can: () => true, isGameMaster: () => isGM };
     try {
-        gameSession = useGameSession();
+        const gameSession = useGameSession();
         permissionHelper = gameSession.permissionHelper;
     } catch (e) {
         // Not in GameSessionContext, use default permission (allow all for now)
@@ -50,43 +42,7 @@ export const CharacterSheetViewer: React.FC<CharacterSheetViewerProps> = ({
 
     // REGRA MILENAR: Use PermissionHelper
     // GM always true, Owner needs 'sheetEdit' perm
-    const canEdit = permissionHelper.isGameMaster() || (initialCharacter.ownerId === currentUserId && permissionHelper.can('sheetEdit'));
-
-    // Optimized character sheet hook
-    const {
-        character,
-        derivedValues,
-        updateField,
-        updateFields,
-        isFieldPrivate,
-        toggleFieldPrivacy,
-        cleanup
-    } = useOptimizedCharacterSheet({
-        character: initialCharacter,
-        onUpdate: useCallback(async (updates: Partial<Character>, immediate?: boolean) => {
-            setSaving();
-            try {
-                // @ts-ignore
-                await onUpdateProp(updates, immediate);
-                setSaved();
-            } catch (err) {
-                setSaveError();
-            }
-        }, [onUpdateProp, setSaving, setSaved, setSaveError]),
-        onTogglePrivacy: useCallback(async (fieldName: string) => {
-            if (gameSession?.toggleFieldPrivacy) {
-                await gameSession.toggleFieldPrivacy(initialCharacter.id, fieldName);
-            }
-        }, [gameSession, initialCharacter.id])
-    });
-
-    // Use optimized update function for all UI interactions
-    const onUpdate = updateFields;
-
-    // Cleanup on unmount
-    useEffect(() => {
-        return () => cleanup();
-    }, [cleanup]);
+    const canEdit = permissionHelper.isGameMaster() || (character.ownerId === currentUserId && permissionHelper.can('sheetEdit'));
 
     // --- ACTIONS ---
     const handleRoll = (label: string, mod: number | string, type: 'd20' | 'dmg' = 'd20') => {
@@ -923,8 +879,6 @@ export const CharacterSheetViewer: React.FC<CharacterSheetViewerProps> = ({
                 </div>
 
                 <div className="flex items-center gap-2 md:gap-4 shrink-0">
-                    <SaveIndicator status={saveStatus} />
-
                     {canEdit && (
                         <>
                             <button

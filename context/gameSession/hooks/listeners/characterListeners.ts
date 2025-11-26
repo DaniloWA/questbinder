@@ -83,8 +83,8 @@ export const registerCharacterListeners = ({
       // Find the updated character to get all current values
       const updatedCharacter = updatedCharacters.find(char => char.id === characterId);
 
-      // Track tokens that need to be persisted
-      const tokensToUpdate: Array<{ sceneId: string, tokenId: string, changes: any; }> = [];
+      // Track tokens for local state updates only
+      // Server handles persistence when it receives character:update
 
       const updatedScenes = previousState.scenes.map(scene => ({
         ...scene,
@@ -173,29 +173,14 @@ export const registerCharacterListeners = ({
             tokenChanges.speed = updates.speed;
           }
 
-          // Add to list of tokens to persist
-          tokensToUpdate.push({
-            sceneId: scene.id,
-            tokenId: token.id,
-            changes: tokenChanges
-          });
+          // Local state update only - no need to track for persistence
 
           return { ...token, ...tokenChanges };
         })
       }));
 
-      // Emit token:update events to persist changes to database
-      // Do this AFTER state update to avoid race conditions
-      setTimeout(() => {
-        tokensToUpdate.forEach(({ sceneId, tokenId, changes }) => {
-          console.log('[CharacterListener] Persisting token update:', { sceneId, tokenId, changes });
-          socketService.emit('token:update', {
-            sceneId,
-            id: tokenId,
-            changes
-          });
-        });
-      }, 0);
+      // NOTE: Token persistence removed to prevent infinite loop
+      // Server handles token updates when it receives character:update
 
       return {
         ...previousState,
