@@ -6,20 +6,13 @@ import {
 } from '../../../../types';
 import { ListenerDeps, ListenerCleanup } from './types';
 
-/**
- * Registers listeners for chat and dice-related events
- * - chat:message
- * - chat_message:update
- * - chat:reaction
- * - dice:roll
- */
+
 export const registerChatListeners = ({
   setState,
   user,
   campaignId
 }: ListenerDeps): ListenerCleanup => {
 
-  // Handler: chat:message
   const handleChatMessage = (payload: ChatMessagePayload) => {
     setState(previousState => {
       const messageExists = previousState.chatMessages.some(
@@ -35,7 +28,6 @@ export const registerChatListeners = ({
     });
   };
 
-  // Handler: dice:roll
   const handleDiceRoll = (payload: DiceRollPayload) => {
     if (payload.user.id === user?.id) return;
 
@@ -62,9 +54,7 @@ export const registerChatListeners = ({
     }));
   };
 
-  // Handler: chat_message:update
   const handleChatMessageUpdate = (payload: ChatMessage) => {
-    // Handle updates to chat messages (e.g. reactions)
     setState(prev => ({
       ...prev,
       chatMessages: prev.chatMessages.map(msg =>
@@ -73,29 +63,25 @@ export const registerChatListeners = ({
     }));
   };
 
-  // Handler: chat:reaction
   const handleChatReaction = (payload: any) => {
-    // Handle ephemeral reactions if they come via socket
-    console.log('[WS] chat:reaction received:', payload);
     if (payload.messageId && payload.reaction) {
       setState(prev => ({
         ...prev,
         chatMessages: prev.chatMessages.map(msg => {
           if (msg.id !== payload.messageId) return msg;
-          // Simple optimistic-like update for ephemeral event
           return msg;
         })
       }));
     }
   };
 
-  // Register listeners
+
   socketService.on('chat:message', handleChatMessage);
   socketService.on('dice:roll', handleDiceRoll);
   socketService.on('chat_message:update', handleChatMessageUpdate);
   socketService.on('chat:reaction', handleChatReaction);
 
-  // Return cleanup function
+
   return () => {
     socketService.off('chat:message', handleChatMessage);
     socketService.off('dice:roll', handleDiceRoll);

@@ -1,4 +1,4 @@
-// socketServer.js - VERSÃO ROBUSTA E MODULAR (2025)
+
 import { Server } from 'socket.io';
 import * as db from './db.js';
 import { createSocketUtils, validatePayload } from './socket/utils.js';
@@ -27,10 +27,8 @@ export const setupSocket = (server) => {
     },
     pingTimeout: parseInt(process.env.WS_PING_TIMEOUT || '20000'),
     pingInterval: parseInt(process.env.WS_PING_INTERVAL || '25000'),
-    // CRITICAL: Increase buffer size to support large Base64 images
-    // Base64 encoding increases file size by ~33%
-    // 10MB image → ~13MB Base64, so we set 20MB to be safe
-    maxHttpBufferSize: parseInt(process.env.WS_MAX_HTTP_BUFFER_SIZE || '20971520'), // 20MB (default is 1MB)
+    pingInterval: parseInt(process.env.WS_PING_INTERVAL || '25000'),
+    maxHttpBufferSize: parseInt(process.env.WS_MAX_HTTP_BUFFER_SIZE || '20971520'), // 20MB
   });
 
   io.on('connection', (socket) => {
@@ -42,10 +40,16 @@ export const setupSocket = (server) => {
       isGM: false,
     };
 
-    // Initialize Utils
     const utils = createSocketUtils(io, socket, client);
 
-    // ==================== ROOM JOIN ====================
+    // Log all incoming events
+    socket.onAny((event, ...args) => {
+      if (!ephemeralEvents.includes(event)) {
+        console.log(`[WS] Listener received: ${event}`, args);
+      }
+    });
+
+
 
     socket.on('room:join', async (payload) => {
       try {
@@ -56,10 +60,9 @@ export const setupSocket = (server) => {
         }
 
         const { campaignId, userId } = payload;
-        console.log('[WS] room:join payload:', payload);
+
         if (client.campaignId && client.campaignId !== campaignId) {
           socket.leave(client.campaignId);
-          // Notify previous room of leave? Maybe not needed if we handle disconnect/switch
         }
 
         socket.join(campaignId);
@@ -69,25 +72,14 @@ export const setupSocket = (server) => {
         const campaign = await db.getById('campaigns', campaignId);
         client.isGM = campaign?.ownerId === userId || campaign?.gms?.includes(userId) || false;
 
-        // Fetch user details to broadcast
-        const user = await db.getById('users', userId); // Assuming 'users' table exists
-        // If users table doesn't exist or we don't have access, we might need to pass user info in payload
-        // But let's assume we can get it or construct it. 
-        // If 'users' db is not available here, we might rely on payload if we change it.
-        // For now, let's try to get it from db or mock it if needed.
-        // Actually, looking at db.js (I haven't seen it), but usually we have users.
-
-        // Fallback if db.getById('users') fails or returns null (e.g. if using mock auth)
+        const user = await db.getById('users', userId);
         const playerInfo = user || { id: userId, name: 'Unknown', color: '#ffffff', role: client.isGM ? 'gm' : 'player' };
 
-        // Store userName in client object for change history
         client.userName = playerInfo.name || 'Unknown';
 
-        // Ensure role is set correctly based on campaign
         const role = client.isGM ? 'gm' : 'player';
         const playerPayload = { ...playerInfo, role };
 
-        // Broadcast to others in the room
         socket.to(campaignId).emit('player:join', { user: playerPayload });
 
         const roomSize = io.sockets.adapter.rooms.get(campaignId)?.size || 0;
@@ -98,7 +90,7 @@ export const setupSocket = (server) => {
       }
     });
 
-    // ==================== EPHEMERAL EVENTS ====================
+
 
     const ephemeralEvents = ['token:drag', 'cursor:move', 'chat:reaction'];
 
@@ -113,8 +105,6 @@ export const setupSocket = (server) => {
       });
     });
 
-    // ==================== REGISTER HANDLERS ====================
-    console.log('[WS] Registering handlers for client:', client.userId);
     registerTokenHandlers(socket, client, utils);
     registerDrawingHandlers(socket, client, utils);
     registerChatHandlers(socket, client, utils);
@@ -125,8 +115,6 @@ export const setupSocket = (server) => {
     registerCharacterHandlers(socket, client, utils);
     registerCombatHandlers(socket, client, utils);
     registerPermissionsHandlers(socket, client, utils);
-
-    // ==================== DISCONNECT ====================
 
     socket.on('disconnect', () => {
       console.log(`[WS] Client disconnected: ${socket.id}`);

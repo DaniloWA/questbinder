@@ -27,8 +27,6 @@ export const useSocketListeners = (
   useEffect(() => {
     if (!state.isConnected) return;
 
-    console.log('[WS] Registering socket listeners...');
-
     // Create dependencies object for all listeners
     const deps = { state, setState, campaignId, user, show };
 
@@ -45,11 +43,8 @@ export const useSocketListeners = (
       registerPlayerListeners(deps)
     ];
 
-    console.log('[WS] All socket listeners registered successfully');
-
     // Cleanup function called on unmount or when dependencies change
     return () => {
-      console.log('[WS] Cleaning up socket listeners...');
       cleanups.forEach(cleanup => cleanup());
     };
   }, [state.isConnected, campaignId, user?.id]);

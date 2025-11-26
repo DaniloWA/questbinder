@@ -41,13 +41,10 @@ class RealSocketService {
       this.socket?.on('connect', () => {
         console.log('[WS] Connected to Server');
         if (this.userId && this.campaignId) {
-          console.log('[WS] Emitting room:join with:', { userId: this.userId, campaignId: this.campaignId });
           this.socket?.emit('room:join', { userId: this.userId, campaignId: this.campaignId });
         }
 
-        // Flush queue
         if (this.queue.length > 0) {
-          console.log(`[WS] Flushing ${this.queue.length} queued events...`);
           this.queue.forEach(({ event, payload }) => {
             this.socket?.emit(event, payload);
           });
@@ -55,6 +52,12 @@ class RealSocketService {
         }
 
         resolve(true);
+      });
+
+      this.socket?.onAny((event, ...args) => {
+        if (event !== 'cursor:move' && event !== 'token:drag') {
+          console.log(`[WS] Listener received: ${event}`, args);
+        }
       });
 
       this.socket?.on('connect_error', (err) => {
@@ -87,12 +90,11 @@ class RealSocketService {
 
   public emit<K extends keyof SocketEventMap>(event: K, payload?: SocketEventMap[K]) {
     if (!this.socket || !this.socket.connected) {
-      console.warn(`[WS] Socket not connected. Queueing event: ${event}`);
       this.queue.push({ event, payload });
       return;
     }
     if (event != 'cursor:move' && event != 'token:drag') {
-      console.log('[SOCKET] Emitting to server:', event, payload);
+      console.log('[WS] Emitting:', event, payload);
     }
     this.socket.emit(event, payload);
   }

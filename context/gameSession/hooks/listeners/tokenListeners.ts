@@ -20,7 +20,6 @@ export const registerTokenListeners = ({
 
   // Handler: token:update
   const handleTokenUpdate = (payload: TokenUpdatePayload) => {
-    console.log('[WS] handleTokenUpdate received:', payload);
     setState(previousState => ({
       ...previousState,
       scenes: StateHelpers.updateItemInSceneList(

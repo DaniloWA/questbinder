@@ -29,7 +29,6 @@ export const registerCombatListeners = ({
 
   // Handler: combat:start
   const handleCombatStart = (payload: { combat: any; }) => {
-    console.log('[WS] Combat started:', payload);
     setState(prev => ({
       ...prev,
       combat: payload.combat
@@ -46,7 +45,6 @@ export const registerCombatListeners = ({
 
   // Handler: combat:end
   const handleCombatEnd = (payload: { stats: any; }) => {
-    console.log('[WS] Combat ended:', payload);
     setState(prev => ({
       ...prev,
       combat: null
@@ -63,7 +61,6 @@ export const registerCombatListeners = ({
 
   // Handler: combat:next-turn
   const handleCombatNextTurn = (payload: { combat: any; }) => {
-    console.log('[WS] Combat turn advanced:', payload);
     setState(prev => ({
       ...prev,
       combat: payload.combat
@@ -81,7 +78,6 @@ export const registerCombatListeners = ({
 
   // Handler: combat:combatant:add
   const handleCombatCombatantAdd = (payload: { combatant: any; }) => {
-    console.log('[WS] Combatant added:', payload);
     setState(prev => {
       if (!prev.combat) return prev;
       return {
@@ -97,7 +93,6 @@ export const registerCombatListeners = ({
 
   // Handler: combat:combatant:update
   const handleCombatCombatantUpdate = (payload: { id: string; updates: any; }) => {
-    console.log('[WS] Combatant updated:', payload);
     setState(prev => {
       if (!prev.combat) return prev;
       return {
@@ -114,7 +109,6 @@ export const registerCombatListeners = ({
 
   // Handler: combat:combatant:remove
   const handleCombatCombatantRemove = (payload: { id: string; }) => {
-    console.log('[WS] Combatant removed:', payload);
     setState(prev => {
       if (!prev.combat) return prev;
       return {
@@ -129,7 +123,6 @@ export const registerCombatListeners = ({
 
   // Handler: combat:action
   const handleCombatAction = (payload: { action: any; }) => {
-    console.log('[WS] Combat action:', payload);
     setState(prev => {
       if (!prev.combat) return prev;
       return {

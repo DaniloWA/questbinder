@@ -2,12 +2,10 @@ import * as db from '../../db.js';
 import crypto from 'crypto';
 
 export const registerTokenHandlers = (socket, client, utils) => {
-  console.log('[token] handlers registered');
   const { safeEmitError, validatePayload, getPermissionHelper, safeBroadcast } = utils;
 
   socket.on('token:update', async (payload) => {
     try {
-      console.log(`[WS] token:update from ${client.userId}`);
 
       const validation = validatePayload(payload, ['sceneId', 'id', 'changes']);
       if (!validation.valid) {
@@ -42,10 +40,7 @@ export const registerTokenHandlers = (socket, client, utils) => {
 
       const token = scene.tokens[tokenIndex];
 
-      // REGRA MILENAR: Use PermissionHelper
       const helper = await getPermissionHelper();
-
-      // Determine which permission to check based on changes
       const isMovement = changes.x !== undefined || changes.y !== undefined;
       const canPerform = isMovement ? helper.canMoveToken(token) : helper.canEditToken(token);
 
@@ -66,9 +61,7 @@ export const registerTokenHandlers = (socket, client, utils) => {
   });
 
   socket.on('token:add', async (payload) => {
-    console.log('[WS] ========== TOKEN:ADD EVENT RECEIVED ==========');
     try {
-      console.log(`[WS] token:add from ${client.userId}`);
 
       const validation = validatePayload(payload, ['sceneId', 'token']);
       if (!validation.valid) {
@@ -76,7 +69,6 @@ export const registerTokenHandlers = (socket, client, utils) => {
         return safeEmitError('Dados inválidos para criação de token.');
       }
 
-      // REGRA MILENAR: Use PermissionHelper
       const helper = await getPermissionHelper();
       if (!helper.can('tokenCreate')) {
         console.warn('[WS] token:add denied: missing tokenCreate permission');
@@ -102,7 +94,6 @@ export const registerTokenHandlers = (socket, client, utils) => {
 
       scene.tokens.push(token);
       await db.update('campaigns', client.campaignId, campaign);
-      console.log('[WS] token:add saved to database');
 
       safeBroadcast('token:add', { sceneId, token });
     } catch (err) {
@@ -113,7 +104,6 @@ export const registerTokenHandlers = (socket, client, utils) => {
 
   socket.on('token:remove', async (payload) => {
     try {
-      console.log(`[WS] token:remove from ${client.userId}`);
 
       const validation = validatePayload(payload, ['sceneId', 'id']);
       if (!validation.valid) {
@@ -131,14 +121,11 @@ export const registerTokenHandlers = (socket, client, utils) => {
 
       const token = scene.tokens.find(t => t.id === id);
 
-      // Graceful handling: if token not found, just broadcast remove to sync clients
       if (!token) {
-        console.warn('[WS] token:remove: token not found, assuming already deleted. Broadcasting sync.');
         safeBroadcast('token:remove', { sceneId, id });
         return;
       }
 
-      // REGRA MILENAR: Use PermissionHelper
       const helper = await getPermissionHelper();
       if (!helper.canDeleteToken(token)) {
         console.warn('[WS] token:remove denied: cannot delete token');

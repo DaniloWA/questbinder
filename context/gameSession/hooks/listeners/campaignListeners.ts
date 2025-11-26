@@ -5,12 +5,7 @@ import {
 } from '../../../../types';
 import { ListenerDeps, ListenerCleanup } from './types';
 
-/**
- * Registers listeners for campaign-related events
- * - campaign:update
- * - campaign:permissionsUpdated
- * - handout:update
- */
+
 export const registerCampaignListeners = ({
   state,
   setState,
@@ -18,9 +13,7 @@ export const registerCampaignListeners = ({
   show
 }: ListenerDeps): ListenerCleanup => {
 
-  // Handler: campaign:update
   const handleCampaignUpdate = (payload: CampaignUpdatePayload) => {
-    console.log('[WS] Campaign update received:', payload);
 
     if (!payload.changes) return;
 
@@ -33,7 +26,6 @@ export const registerCampaignListeners = ({
       }
 
       if (payload.changes.audioSettings) {
-        console.log('[WS] Audio settings synced:', payload.changes.audioSettings);
         newState.audioSettings = payload.changes.audioSettings!;
 
         if (!previousState.isGM) {
@@ -49,15 +41,12 @@ export const registerCampaignListeners = ({
     });
   };
 
-  // Handler: handout:update
   const handleHandoutUpdate = (payload: HandoutUpdatePayload) => {
-    console.log('[WS] Handout update received:', payload);
 
     setState(previousState => {
       let updatedHandouts = [...previousState.handouts];
       const currentUserId = user?.id || '';
 
-      // Operação: Criar
       if (payload.operation === 'create' && payload.handout) {
         const handoutExists = updatedHandouts.some(
           handout => handout.id === payload.handout!.id
@@ -65,13 +54,11 @@ export const registerCampaignListeners = ({
 
         if (!handoutExists) {
           updatedHandouts.push(payload.handout);
-          console.log('[WS] Handout created:', payload.handout.name);
         }
 
         return { ...previousState, handouts: updatedHandouts };
       }
 
-      // Operação: Atualizar
       if (payload.operation === 'update' && payload.handout) {
         const oldHandout = previousState.handouts.find(
           handout => handout.id === payload.handout!.id
@@ -84,7 +71,6 @@ export const registerCampaignListeners = ({
         const wasSharedWithUser = oldHandout?.sharedWith.includes(currentUserId);
         const isNowSharedWithUser = payload.handout.sharedWith.includes(currentUserId);
 
-        // Handout compartilhado com o jogador
         if (!previousState.isGM && isNowSharedWithUser && !wasSharedWithUser) {
           show({
             type: 'info',
@@ -99,7 +85,6 @@ export const registerCampaignListeners = ({
           };
         }
 
-        // Handout ocultado do jogador
         if (!previousState.isGM && !isNowSharedWithUser && wasSharedWithUser) {
           show({
             type: 'info',
@@ -117,7 +102,6 @@ export const registerCampaignListeners = ({
         }
       }
 
-      // Operação: Deletar
       if (payload.operation === 'delete' && payload.handoutId) {
         updatedHandouts = updatedHandouts.filter(
           handout => handout.id !== payload.handoutId
@@ -128,12 +112,7 @@ export const registerCampaignListeners = ({
     });
   };
 
-  // Handler: campaign:permissionsUpdated (consolidado)
   const handlePermissionsUpdated = (payload: { permissions: any; }) => {
-    console.log('[WS] ========== CAMPAIGN:PERMISSIONSUPDATED EVENT RECEIVED ==========');
-    console.log('[WS] Payload:', JSON.stringify(payload, null, 2));
-    console.log('[WS] Current state permissions:', state.permissions);
-    console.log('[WS] Applying permissions update in real-time...');
 
     setState(prev => {
       if (!prev.campaign) {
@@ -141,32 +120,25 @@ export const registerCampaignListeners = ({
         return prev;
       }
 
-      // Create a NEW campaign object to ensure React detects the change
       const updatedCampaign = {
         ...prev.campaign,
         permissions: { ...payload.permissions }
       };
 
-      console.log('[WS] ✅ Updated campaign permissions:', updatedCampaign.permissions);
-      console.log('[WS] ✅ Updated state permissions:', payload.permissions);
-
-      // Update both campaign.permissions AND state.permissions for full compatibility
       return {
         ...prev,
         campaign: updatedCampaign,
         permissions: payload.permissions
       };
     });
-
-    console.log('[WS] ✅ Permissions update completed');
   };
 
-  // Register listeners
+
   socketService.on('campaign:update', handleCampaignUpdate);
   socketService.on('handout:update', handleHandoutUpdate);
   socketService.on('campaign:permissionsUpdated', handlePermissionsUpdated);
 
-  // Return cleanup function
+
   return () => {
     socketService.off('campaign:update', handleCampaignUpdate);
     socketService.off('handout:update', handleHandoutUpdate);
