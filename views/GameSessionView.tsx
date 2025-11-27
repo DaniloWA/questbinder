@@ -7,7 +7,8 @@ import { Token, TokenTemplate, VTTTool, Character, Condition, Handout } from '..
 import { Loader2, Sparkles, ChevronLeft, Settings, BookOpen, Trash2, X, Lightbulb, MessageSquare, Swords, Wifi, WifiOff, Music, FileText } from 'lucide-react';
 import { Tooltip } from '../components/ui/Tooltip';
 import { Button } from '../components/ui/Button';
-import { MapCanvas, TriggerZoneConfigModalContent, AudioZoneEditModalContent } from '../components/vtt/MapCanvas';
+import { MapCanvas } from '../components/vtt/map/MapCanvas';
+import { TriggerZoneConfigModalContent, AudioZoneEditModalContent } from '../components/vtt/map/modals';
 import { VTTToolbar } from '../components/vtt/VTTToolbar';
 import { DrawingToolbar } from '../components/vtt/DrawingToolbar';
 import { RulerToolbar } from '../components/vtt/RulerToolbar';
