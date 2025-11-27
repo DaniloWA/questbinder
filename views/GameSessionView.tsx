@@ -34,8 +34,8 @@ import { CompendiumWindow } from '../components/vtt/CompendiumWindow';
 import { CombatInitiativeRoller } from '../components/vtt/CombatInitiativeRoller';
 import { AttackZonePanel } from '../components/vtt/AttackZonePanel';
 import { AttackZoneConfigModal } from '../components/vtt/AttackZoneConfigModal';
+import { AttackZoneContextMenu } from '../components/vtt/AttackZoneContextMenu';
 import { useAttackZones } from '../context/gameSession/hooks/useAttackZones';
-import { renderAttackZones, renderPreviewZone } from '../utils/attackZoneRenderer';
 
 export const GameSessionView: React.FC = () => {
     const { params, navigateTo } = useNavigation();
@@ -144,6 +144,7 @@ const GameSessionUI: React.FC = () => {
 
     const [tokenContextMenu, setTokenContextMenu] = useState<{ x: number, y: number, token: Token; } | null>(null);
     const [mapContextMenu, setMapContextMenu] = useState<{ x: number, y: number, worldX: number, worldY: number, obstacleId?: string, triggerZoneId?: string, audioZoneId?: string; } | null>(null);
+    const [attackZoneContextMenu, setAttackZoneContextMenu] = useState<{ x: number, y: number, zoneId: string; } | null>(null);
 
     // --- SHEET STATE ---
     const [viewingCharacterId, setViewingCharacterId] = useState<string | null>(null);
@@ -158,6 +159,8 @@ const GameSessionUI: React.FC = () => {
     const [editingTriggerZoneId, setEditingTriggerZoneId] = useState<string | null>(null);
     // --- AUDIO ZONE EDIT STATE ---
     const [editingAudioZoneId, setEditingAudioZoneId] = useState<string | null>(null);
+    // --- ATTACK ZONE EDIT STATE ---
+    const [editingAttackZoneId, setEditingAttackZoneId] = useState<string | null>(null);
     const [isInitiativeRollerOpen, setIsInitiativeRollerOpen] = useState(false);
 
     // --- ATTACK ZONES ---
@@ -346,6 +349,31 @@ const GameSessionUI: React.FC = () => {
         setMapContextMenu(null);
     };
 
+    const handleAttackZoneContextMenu = (e: React.MouseEvent, zoneId: string) => {
+        setAttackZoneContextMenu({ x: e.clientX, y: e.clientY, zoneId });
+    };
+
+    const handleEditAttackZone = (zoneId: string) => {
+        setEditingAttackZoneId(zoneId);
+        setAttackZoneContextMenu(null);
+    };
+
+    const handleDuplicateAttackZone = (zoneId: string) => {
+        const centerX = Math.floor((-session.viewport.x + window.innerWidth / 2) / session.viewport.zoom);
+        const centerY = Math.floor((-session.viewport.y + window.innerHeight / 2) / session.viewport.zoom);
+        attackZones.duplicateZone(zoneId, { x: centerX, y: centerY });
+        setAttackZoneContextMenu(null);
+        show({ type: 'success', message: 'Zona duplicada!' });
+    };
+
+    const handleDeleteAttackZone = () => {
+        if (attackZoneContextMenu) {
+            attackZones.removeZone(attackZoneContextMenu.zoneId);
+            setAttackZoneContextMenu(null);
+            show({ type: 'success', message: 'Zona removida!' });
+        }
+    };
+
     if (session.isLoading) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-950 text-white">
@@ -437,6 +465,8 @@ const GameSessionUI: React.FC = () => {
                     // Attack Zones
                     attackZoneResults={attackZones.activeZoneResults}
                     previewZoneResult={attackZones.previewZoneResult}
+                    onAttackZoneContextMenu={handleAttackZoneContextMenu}
+                    onUpdateAttackZone={attackZones.updateZone}
                 />
             </div>
 
@@ -697,6 +727,40 @@ const GameSessionUI: React.FC = () => {
                     />
                 </Modal>
             )}
+
+            {/* Attack Zone Context Menu */}
+            {attackZoneContextMenu && (() => {
+                const zone = attackZones.activeZones.find(z => z.id === attackZoneContextMenu.zoneId);
+                return zone ? (
+                    <AttackZoneContextMenu
+                        x={attackZoneContextMenu.x}
+                        y={attackZoneContextMenu.y}
+                        zone={zone}
+                        onClose={() => setAttackZoneContextMenu(null)}
+                        onEdit={() => handleEditAttackZone(attackZoneContextMenu.zoneId)}
+                        onDuplicate={() => handleDuplicateAttackZone(attackZoneContextMenu.zoneId)}
+                        onDelete={handleDeleteAttackZone}
+                    />
+                ) : null;
+            })()}
+
+            {/* Attack Zone Edit Modal */}
+            {editingAttackZoneId && (() => {
+                const zone = attackZones.activeZones.find(z => z.id === editingAttackZoneId);
+                return zone ? (
+                    <AttackZoneConfigModal
+                        isOpen={!!editingAttackZoneId}
+                        onClose={() => setEditingAttackZoneId(null)}
+                        onSave={(updates) => {
+                            attackZones.updateZone(editingAttackZoneId, updates);
+                            setEditingAttackZoneId(null);
+                            show({ type: 'success', message: 'Zona atualizada!' });
+                        }}
+                        initialConfig={zone}
+                        title="Editar Zona de Ataque"
+                    />
+                ) : null;
+            })()}
 
             {/* Combat Initiative Roller */}
             <CombatInitiativeRoller

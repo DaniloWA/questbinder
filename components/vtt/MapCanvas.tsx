@@ -71,6 +71,8 @@ interface MapCanvasProps {
     // Attack Zones
     attackZoneResults?: any[]; // AttackZoneResult[]
     previewZoneResult?: any | null; // AttackZoneResult | null
+    onAttackZoneContextMenu?: (e: React.MouseEvent, zoneId: string) => void;
+    onUpdateAttackZone?: (zoneId: string, updates: any) => void;
 }
 
 const imageCache: { [src: string]: HTMLImageElement; } = {};
@@ -269,7 +271,9 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
         drawingLightZone, setDrawingLightZone, addLightZones,
         drawingAudioZone, setDrawingAudioZone, addAudioZones, emitCursorMove,
         drawingTriggerZone, setDrawingTriggerZone, addTriggerZones, removeTriggerZone,
-        campaignCharacters = [], onRollDice, onCharacterUpdate
+        campaignCharacters = [], onRollDice, onCharacterUpdate,
+        attackZoneResults = [], previewZoneResult = null,
+        onAttackZoneContextMenu, onUpdateAttackZone
     } = props;
 
     // Extract tokenHover permissions with useMemo to ensure React detects changes
@@ -288,6 +292,7 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
     const [mouseWorldPos, setMouseWorldPos] = useState({ x: 0, y: 0 });
     const [hoveredObstacleId, setHoveredObstacleId] = useState<string | null>(null);
     const [calculatedPath, setCalculatedPath] = useState<{ x: number, y: number; }[]>([]);
+    const [draggedAttackZone, setDraggedAttackZone] = useState<{ id: string, startX: number, startY: number, originX: number, originY: number; } | null>(null);
 
     // Drawing State (Ref for performance, State for syncing)
     // We use a Ref to track points during the drag to avoid react renders on every mousemove
@@ -925,6 +930,24 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
         return null;
     };
 
+    const findAttackZoneAt = (worldX: number, worldY: number) => {
+        if (!attackZoneResults || attackZoneResults.length === 0) return null;
+
+        // Check each zone's origin point (within 20px tolerance)
+        const tolerance = 20 / viewport.zoom;
+
+        for (const result of attackZoneResults) {
+            const origin = result.config.origin;
+            const dist = Math.hypot(worldX - origin.x, worldY - origin.y);
+
+            if (dist <= tolerance) {
+                return result.config;
+            }
+        }
+
+        return null;
+    };
+
     const openAudioZoneConfigModal = (onSaveConfig: (config: { audioUrl: string; volume: number; radius: number; }) => void) => {
         openModal(<AudioZoneConfigModalContent audioSettings={audioSettings} onSave={onSaveConfig} onClose={closeModal} />, { title: 'Configurar Zona de Áudio', size: 'md' });
     };
@@ -937,6 +960,22 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
         const pos = getMousePos(e);
         const worldPos = screenToWorld(pos.x, pos.y);
         setMouseWorldPos(worldPos);
+
+        // Handle Attack Zone dragging
+        if (draggedAttackZone) {
+            const dx = worldPos.x - draggedAttackZone.startX;
+            const dy = worldPos.y - draggedAttackZone.startY;
+            const newOrigin = {
+                x: draggedAttackZone.originX + dx,
+                y: draggedAttackZone.originY + dy
+            };
+
+            if (onUpdateAttackZone) {
+                onUpdateAttackZone(draggedAttackZone.id, { origin: newOrigin });
+            }
+            lastMousePos.current = pos;
+            return;
+        }
 
         const now = Date.now();
         if (now - lastCursorEmit.current > 50) {
@@ -1054,14 +1093,22 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
         const clickedAudioZone = findAudioZoneAt(worldPos.x, worldPos.y);
         const clickedTriggerZone = findTriggerZoneAt(worldPos.x, worldPos.y);
         const clickedDrawing = findDrawingAt(worldPos.x, worldPos.y);
+        const clickedAttackZone = findAttackZoneAt(worldPos.x, worldPos.y);
 
         if (e.button === 1 || (e.button === 0 && (e.metaKey || e.ctrlKey))) { setIsPanning(true); return; }
 
         if (e.button === 2) {
             e.stopPropagation();
             if (dragState.isDragging) { dragState.isDragging = false; dragState.token = null; setCalculatedPath([]); return; }
+            if (draggedAttackZone) { setDraggedAttackZone(null); return; }
 
             if (isGM) {
+                // Check for attack zone context menu
+                if (clickedAttackZone && onAttackZoneContextMenu) {
+                    onAttackZoneContextMenu(e, clickedAttackZone.id);
+                    return;
+                }
+
                 if (clickedAudioZone) {
                     onMapContextMenu(e, worldPos.x, worldPos.y, undefined, undefined, clickedAudioZone.id);
                     return;
@@ -1219,6 +1266,18 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
 
             if (['draw-door', 'draw-window'].includes(activeTool)) { setDrawingObstacle({ type: activeTool === 'draw-door' ? 'door' : 'window', p1: worldPos }); return; }
 
+            // Check if clicking on attack zone origin to start dragging
+            if (isGM && clickedAttackZone && activeTool === 'select') {
+                setDraggedAttackZone({
+                    id: clickedAttackZone.id,
+                    startX: worldPos.x,
+                    startY: worldPos.y,
+                    originX: clickedAttackZone.origin.x,
+                    originY: clickedAttackZone.origin.y
+                });
+                return;
+            }
+
             if (clickedToken) {
                 const alreadySelected = selectedTokenIds?.includes(clickedToken.id);
                 if (e.shiftKey) {
@@ -1270,6 +1329,12 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
     const handleMouseUp = (e: React.MouseEvent) => {
         if (isPanning) {
             setIsPanning(false);
+            return;
+        }
+
+        // Handle Attack Zone drag completion
+        if (draggedAttackZone) {
+            setDraggedAttackZone(null);
             return;
         }
 

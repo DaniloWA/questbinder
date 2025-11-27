@@ -14,6 +14,7 @@ export const renderAttackZone = (
     showBlockedTokens?: boolean;
     showStats?: boolean;
     isPreview?: boolean;
+    gridSize?: number;
   } = {}
 ) => {
   const { config, affectedArea, affectedTokens, blockedTokens } = result;
@@ -22,6 +23,7 @@ export const renderAttackZone = (
     showBlockedTokens = true,
     showStats = false,
     isPreview = false,
+    gridSize = 60,
   } = options;
 
   ctx.save();
@@ -63,14 +65,14 @@ export const renderAttackZone = (
   // 2. Highlight em tokens afetados
   if (showAffectedTokens && config.showAffectedTokens) {
     for (const token of affectedTokens) {
-      highlightToken(ctx, token, config.affectedTokenColor || 'rgba(0, 255, 0, 0.5)');
+      highlightToken(ctx, token, config.affectedTokenColor || 'rgba(0, 255, 0, 0.5)', false, gridSize);
     }
   }
 
   // 3. Highlight em tokens bloqueados
   if (showBlockedTokens) {
     for (const token of blockedTokens) {
-      highlightToken(ctx, token, 'rgba(255, 0, 0, 0.3)', true);
+      highlightToken(ctx, token, 'rgba(255, 0, 0, 0.3)', true, gridSize);
     }
   }
 
@@ -95,13 +97,14 @@ const highlightToken = (
   ctx: CanvasRenderingContext2D,
   token: any,
   color: string,
-  isBlocked: boolean = false
+  isBlocked: boolean = false,
+  gridSize: number = 60
 ) => {
   ctx.save();
 
-  const size = token.size * 60; // Assumindo grid de 60px
-  const x = token.x;
-  const y = token.y;
+  const size = token.size * gridSize;
+  const x = token.x * gridSize; // Token x is in grid units
+  const y = token.y * gridSize; // Token y is in grid units
 
   // Círculo ao redor do token
   ctx.beginPath();
@@ -264,6 +267,7 @@ export const renderAttackZones = (
     showAffectedTokens?: boolean;
     showBlockedTokens?: boolean;
     showStats?: boolean;
+    gridSize?: number;
   } = {}
 ) => {
   for (const result of results) {
@@ -281,6 +285,7 @@ export const renderPreviewZone = (
     showAffectedTokens?: boolean;
     showBlockedTokens?: boolean;
     showStats?: boolean;
+    gridSize?: number;
   } = {}
 ) => {
   renderAttackZone(ctx, result, { ...options, isPreview: true });
