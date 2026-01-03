@@ -1,0 +1,45 @@
+# ============================================
+# 🎲 QUESTBINDER - Docker Compose (Standalone)
+# ============================================
+#
+# Usage:
+#   cd C:\Users\ddani\Documents\Projetos\QuestBinder
+#   docker compose up -d
+#
+# Access:
+#   http://127.0.0.1:3002 (API + Frontend)
+#
+# ============================================
+
+services:
+  # ========================================
+  # QuestBinder - API + Frontend
+  # ========================================
+  questbinder:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: questbinder
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3002
+      HOST: 0.0.0.0
+      DB_PATH: /app/data
+      CORS_ORIGIN_1: ${CORS_ORIGIN_1:-http://localhost:3002}
+      CORS_ORIGIN_2: ${CORS_ORIGIN_2:-http://127.0.0.1:3002}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    volumes:
+      # SQLite data persistence
+      - questbinder_data:/app/data
+    ports:
+      - "3002:3002"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3002/api/campaigns"]
+      interval: 30s
+      timeout: 10s
+      start_period: 10s
+      retries: 3
+
+volumes:
+  questbinder_data:

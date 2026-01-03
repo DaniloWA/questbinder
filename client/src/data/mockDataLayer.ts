@@ -1,0 +1,114 @@
+// src/data/mockDataLayer.ts  
+import { User, Campaign, Character, ChatMessage, JournalEntry, Project, TokenTemplate, Handout, TranslationEntry } from '../types';
+
+const DB_PREFIX = 'questbinder_db_';
+
+export type CollectionName =
+  | 'users' | 'campaigns' | 'characters' | 'chat_messages'
+  | 'journal_entries' | 'projects' | 'token_templates'
+  | 'handouts' | 'translations';
+
+export interface DatabaseSchema {
+  users: User[];
+  campaigns: Campaign[];
+  characters: Character[];
+  chat_messages: ChatMessage[];
+  journal_entries: JournalEntry[];
+  projects: Project[];
+  token_templates: TokenTemplate[];
+  handouts: Handout[];
+  translations: TranslationEntry[];
+}
+
+// SEED DATA COMPLETO (mantenha aqui!)
+const SEED_DATA: DatabaseSchema = {
+  users: [
+    {
+      id: 'u-demo',
+      name: 'Mestre da Masmorra',
+      email: 'demo@demo.com',
+      password: 'password', // Em produção use hash!
+      avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mestre',
+      createdAt: new Date().toISOString(),
+    },
+  ],
+  campaigns: [
+    {
+      id: 'c-mock-1',
+      gmId: 'u-demo', // Adicionei gmId (importante pro socket!)
+      ownerId: 'u-demo',
+      name: 'A Lenda do Dragão de Aço',
+      system: 'dnd5e',
+      description: 'Uma aventura épica em Nortúndria...',
+      coverUrl: 'https://images.unsplash.com/photo-1519074069444-1ba4fff66d16?q=80&w=1000&auto=format&fit=crop',
+      theme: 'heroic' as const,
+      status: 'active' as const,
+      schedule: { frequency: 'weekly', day: 'Sábado', time: '19:00' },
+      players: { current: 5, max: 6, list: ['u-alice', 'u-bob', 'u-charlie', 'u-diana', 'u-evan'] },
+      lore: { worldName: 'Nortúndria', hooks: 'Um antigo dragão desperta...' },
+      scenes: [
+        {
+          id: 'scene-initial',
+          name: 'Taverna do Javali Caolho',
+          imageUrl: 'https://cdn.builder.io/api/v1/image/assets%2F3926222235484de6a54f738596b4317f%2F7f1a3962b9a74284812f864e43f110c9',
+          grid: { size: 70, color: '#FFFFFF', alpha: 0.2, cols: 40, rows: 30, unitsPerSquare: 1.5 },
+          ambientLight: 0.4,
+          fogPath: '',
+          obstacles: [],
+          lightZones: [],
+          audioZones: [],
+          triggerZones: [],
+          drawings: [],
+          tokens: [],
+          chatMessages: [], // Adicionei aqui (melhor que coleção separada no mock)
+          handouts: []      // Handouts dentro da campanha no mock também
+        }
+      ],
+      activeSceneId: 'scene-initial',
+      audioSettings: { playlists: [], soundboard: [] },
+      chatMessages: [],   // Chat global da campanha
+      handouts: [],       // Handouts da campanha
+      createdAt: new Date().toISOString(),
+    }
+  ],
+  characters: [],
+  chat_messages: [],      // ← Vamos descontinuar (agora fica dentro da campaign)
+  journal_entries: [],
+  projects: [],
+  token_templates: [],
+  handouts: [],           // ← Descontinuar (agora dentro da campaign)
+  translations: []
+};
+
+// Inicialização segura
+export const initMockDatabase = () => {
+  if (typeof window === 'undefined') return; // SSR safe
+
+  const hasData = localStorage.getItem(`${DB_PREFIX}users`);
+  if (!hasData) {
+    console.log('Inicializando Mock Database com Seed...');
+    Object.entries(SEED_DATA).forEach(([key, value]) => {
+      localStorage.setItem(`${DB_PREFIX}${key}`, JSON.stringify(value));
+    });
+  }
+};
+
+// DataLayer (só mock)
+export const MockDataLayer = {
+  readTable: <K extends CollectionName>(table: K): DatabaseSchema[K] => {
+    if (typeof window === 'undefined') return [] as any;
+    const raw = localStorage.getItem(`${DB_PREFIX}${table}`);
+    if (!raw) return [] as any;
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [] as any;
+    }
+  },
+
+  writeTable: <K extends CollectionName>(table: K, data: DatabaseSchema[K]) => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(`${DB_PREFIX}${table}`, JSON.stringify(data));
+  }
+};

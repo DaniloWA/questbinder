@@ -1,0 +1,128 @@
+
+import { Server } from 'socket.io';
+import * as db from './db.js';
+import { createSocketUtils, validatePayload } from './socket/utils.js';
+import { registerTokenHandlers } from './socket/handlers/tokenHandlers.js';
+import { registerDrawingHandlers } from './socket/handlers/drawingHandlers.js';
+import { registerChatHandlers } from './socket/handlers/chatHandlers.js';
+import { registerSceneHandlers } from './socket/handlers/sceneHandlers.js';
+import { registerHandoutHandlers } from './socket/handlers/handoutHandlers.js';
+import { registerAudioHandlers } from './socket/handlers/audioHandlers.js';
+import { registerMapHandlers } from './socket/handlers/mapHandlers.js';
+import { registerCharacterHandlers } from './socket/handlers/characterHandlers.js';
+import { registerCombatHandlers } from './socket/handlers/combatHandlers.js';
+import { registerPermissionsHandlers } from './socket/handlers/permissionsHandlers.js';
+
+export const setupSocket = (server) => {
+  const corsOrigins = [
+    process.env.CORS_ORIGIN_1 || 'http://localhost:5173',
+    process.env.CORS_ORIGIN_2 || 'http://127.0.0.1:5173'
+  ];
+
+  const io = new Server(server, {
+    cors: {
+      origin: corsOrigins,
+      methods: ['GET', 'POST'],
+      credentials: true
+    },
+    pingTimeout: parseInt(process.env.WS_PING_TIMEOUT || '20000'),
+    pingInterval: parseInt(process.env.WS_PING_INTERVAL || '25000'),
+    pingInterval: parseInt(process.env.WS_PING_INTERVAL || '25000'),
+    maxHttpBufferSize: parseInt(process.env.WS_MAX_HTTP_BUFFER_SIZE || '20971520'), // 20MB
+  });
+
+  io.on('connection', (socket) => {
+    console.log('[WS] Client connected:', socket.id);
+
+    const client = {
+      campaignId: null,
+      userId: null,
+      isGM: false,
+    };
+
+    const utils = createSocketUtils(io, socket, client);
+
+    // Log all incoming events
+    socket.onAny((event, ...args) => {
+      if (!ephemeralEvents.includes(event)) {
+        console.log(`[WS] Listener received: ${event}`, args);
+      }
+    });
+
+
+
+    socket.on('room:join', async (payload) => {
+      try {
+        const validation = validatePayload(payload, ['campaignId', 'userId']);
+        if (!validation.valid) {
+          console.warn('[WS] room:join validation failed:', validation.error);
+          return socket.disconnect(true);
+        }
+
+        const { campaignId, userId } = payload;
+
+        if (client.campaignId && client.campaignId !== campaignId) {
+          socket.leave(client.campaignId);
+        }
+
+        socket.join(campaignId);
+        client.campaignId = campaignId;
+        client.userId = userId;
+
+        const campaign = await db.getById('campaigns', campaignId);
+        client.isGM = campaign?.ownerId === userId || campaign?.gms?.includes(userId) || false;
+
+        const user = await db.getById('users', userId);
+        const playerInfo = user || { id: userId, name: 'Unknown', color: '#ffffff', role: client.isGM ? 'gm' : 'player' };
+
+        client.userName = playerInfo.name || 'Unknown';
+
+        const role = client.isGM ? 'gm' : 'player';
+        const playerPayload = { ...playerInfo, role };
+
+        socket.to(campaignId).emit('player:join', { user: playerPayload });
+
+        const roomSize = io.sockets.adapter.rooms.get(campaignId)?.size || 0;
+        console.log(`[WS] ${userId} joined campaign ${campaignId} | GM: ${client.isGM} | Players: ${roomSize}`);
+      } catch (err) {
+        console.error('[WS] room:join error:', err);
+        socket.disconnect(true);
+      }
+    });
+
+
+
+    const ephemeralEvents = ['token:drag', 'cursor:move', 'chat:reaction'];
+
+    ephemeralEvents.forEach(event => {
+      socket.on(event, (payload) => {
+        try {
+          if (!client.campaignId) return;
+          socket.to(client.campaignId).emit(event, { ...payload, userId: client.userId });
+        } catch (err) {
+          console.error(`[WS] ${event} error:`, err);
+        }
+      });
+    });
+
+    registerTokenHandlers(socket, client, utils);
+    registerDrawingHandlers(socket, client, utils);
+    registerChatHandlers(socket, client, utils);
+    registerSceneHandlers(socket, client, utils);
+    registerHandoutHandlers(socket, client, utils);
+    registerAudioHandlers(socket, client, utils);
+    registerMapHandlers(socket, client, utils);
+    registerCharacterHandlers(socket, client, utils);
+    registerCombatHandlers(socket, client, utils);
+    registerPermissionsHandlers(socket, client, utils);
+
+    socket.on('disconnect', () => {
+      console.log(`[WS] Client disconnected: ${socket.id}`);
+      if (client.campaignId && client.userId) {
+        io.to(client.campaignId).emit('player:leave', { userId: client.userId });
+      }
+    });
+  });
+
+  return io;
+};
