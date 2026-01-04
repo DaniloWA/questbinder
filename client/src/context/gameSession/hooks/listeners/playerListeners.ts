@@ -1,5 +1,5 @@
 import { socketService } from '../../../../services/socketService';
-import { CursorMovePayload, ViewportUpdatePayload, GMForceViewPayload } from '../../../../types/socket';
+import { CursorMovePayload, ViewportUpdatePayload, GMForceViewPayload, ViewportRestorePayload } from '../../../../types/socket';
 import { ListenerDeps, ListenerCleanup } from './types';
 
 /**
@@ -35,7 +35,7 @@ export const registerPlayerListeners = ({
     });
 
     show({
-      type: 'info',
+      type: 'success',
       message: `${payload.user.name} entrou na sessão`,
       duration: 3000
     });
@@ -49,13 +49,24 @@ export const registerPlayerListeners = ({
   };
 
   // Handler: player:leave
-  const handlePlayerLeave = (payload: { userId: string; }) => {
+  const handlePlayerLeave = (payload: { userId: string; userName?: string; }) => {
+    // Find player name before removing from state
+    const leavingPlayer = stateRef.current.players.find(p => p.id === payload.userId);
+    const playerName = payload.userName || leavingPlayer?.name || 'Jogador';
+
     setState(previousState => ({
       ...previousState,
       players: previousState.players.filter(
         player => player.id !== payload.userId
       )
     }));
+
+    // Show notification for player leaving
+    show({
+      type: 'error',
+      message: `${playerName} saiu da sessão`,
+      duration: 3000
+    });
   };
 
   // Handler: cursor:move
@@ -174,11 +185,25 @@ export const registerPlayerListeners = ({
     });
   };
 
+  // Handler: viewport:restore - Restore saved viewport on reconnect
+  const handleViewportRestore = (payload: ViewportRestorePayload) => {
+    console.log('[WS] Restoring saved viewport:', payload);
+    if (setViewport && payload) {
+      setViewport({ x: payload.x, y: payload.y, zoom: payload.zoom });
+      show({
+        type: 'success',
+        message: 'Posição restaurada',
+        duration: 2000
+      });
+    }
+  };
+
   // Register listeners (Cleaned up duplicates)
   socketService.on('player:join', handlePlayerJoin);
   socketService.on('player:leave', handlePlayerLeave);
   socketService.on('cursor:move', handleCursorMove);
   socketService.on('viewport:update', handleViewportUpdate);
+  socketService.on('viewport:restore', handleViewportRestore);
   socketService.on('gm:force_view', handleGMForceView);
   socketService.on('gm:follow_mode_change', handleGMFollowModeChange);
   socketService.on('gm:viewport_sync', handleGMViewportSync);
@@ -190,6 +215,7 @@ export const registerPlayerListeners = ({
     socketService.off('player:leave', handlePlayerLeave);
     socketService.off('cursor:move', handleCursorMove);
     socketService.off('viewport:update', handleViewportUpdate);
+    socketService.off('viewport:restore', handleViewportRestore);
     socketService.off('gm:force_view', handleGMForceView);
     socketService.off('gm:follow_mode_change', handleGMFollowModeChange);
     socketService.off('gm:viewport_sync', handleGMViewportSync);

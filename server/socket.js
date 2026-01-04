@@ -13,6 +13,9 @@ import { registerCharacterHandlers } from './socket/handlers/characterHandlers.j
 import { registerCombatHandlers } from './socket/handlers/combatHandlers.js';
 import { registerPermissionsHandlers } from './socket/handlers/permissionsHandlers.js';
 
+// In-memory store for player viewports: Map<campaignId, Map<userId, viewport>>
+const playerViewports = new Map();
+
 export const setupSocket = (server) => {
   const corsOrigins = [
     process.env.CORS_ORIGIN_1 || 'http://localhost:5173',
@@ -38,6 +41,7 @@ export const setupSocket = (server) => {
       campaignId: null,
       userId: null,
       isGM: false,
+      lastViewport: null, // Track last known viewport for this client
     };
 
     const utils = createSocketUtils(io, socket, client);
@@ -82,6 +86,14 @@ export const setupSocket = (server) => {
 
         socket.to(campaignId).emit('player:join', { user: playerPayload });
 
+        // Check for saved viewport and restore if exists
+        const campaignViewports = playerViewports.get(campaignId);
+        if (campaignViewports && campaignViewports.has(userId)) {
+          const savedViewport = campaignViewports.get(userId);
+          console.log(`[WS] Restoring viewport for ${userId}:`, savedViewport);
+          socket.emit('viewport:restore', savedViewport);
+        }
+
         const roomSize = io.sockets.adapter.rooms.get(campaignId)?.size || 0;
         console.log(`[WS] ${userId} joined campaign ${campaignId} | GM: ${client.isGM} | Players: ${roomSize}`);
       } catch (err) {
@@ -98,6 +110,17 @@ export const setupSocket = (server) => {
       socket.on(event, (payload) => {
         try {
           if (!client.campaignId) return;
+
+          // Track viewport updates for persistence
+          if (event === 'viewport:update' && payload) {
+            client.lastViewport = {
+              x: payload.x,
+              y: payload.y,
+              zoom: payload.zoom,
+              sceneId: payload.sceneId
+            };
+          }
+
           socket.to(client.campaignId).emit(event, { ...payload, userId: client.userId });
         } catch (err) {
           console.error(`[WS] ${event} error:`, err);
@@ -193,7 +216,20 @@ export const setupSocket = (server) => {
     socket.on('disconnect', () => {
       console.log(`[WS] Client disconnected: ${socket.id}`);
       if (client.campaignId && client.userId) {
-        io.to(client.campaignId).emit('player:leave', { userId: client.userId });
+        // Save viewport for later restoration
+        if (client.lastViewport) {
+          if (!playerViewports.has(client.campaignId)) {
+            playerViewports.set(client.campaignId, new Map());
+          }
+          playerViewports.get(client.campaignId).set(client.userId, client.lastViewport);
+          console.log(`[WS] Saved viewport for ${client.userId}:`, client.lastViewport);
+        }
+
+        // Emit leave with user name for notification
+        io.to(client.campaignId).emit('player:leave', {
+          userId: client.userId,
+          userName: client.userName || 'Jogador'
+        });
       }
     });
   });

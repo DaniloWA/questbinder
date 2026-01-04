@@ -117,6 +117,13 @@ export interface GMViewportSyncPayload {
   centerY?: number;
 }
 
+export interface ViewportRestorePayload {
+  x: number;
+  y: number;
+  zoom: number;
+  sceneId?: string;
+}
+
 export interface TokenDragPayload {
   userId: string;
   tokenId: string;
@@ -329,7 +336,8 @@ export interface SocketEventMap {
   'character:update': { characterId: string; updates: Partial<Character>; updatedBy?: string; };
   'character:delete': { id: string; };
   'player:join': { user: { id: string; name: string; color: string; avatar?: string; role: 'gm' | 'player'; }; };
-  'player:leave': { userId: string; };
+  'player:leave': { userId: string; userName?: string; };
+  'viewport:restore': ViewportRestorePayload;
   'connect': void;
   'disconnect': void;
   'error': { message: string; };
