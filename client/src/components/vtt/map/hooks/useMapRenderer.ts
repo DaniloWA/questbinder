@@ -11,6 +11,7 @@ import { easeOutCubic, adjustAlpha } from '../utils';
 import { Token, Point, User } from '../../../../types';
 import { getContrastColor } from '../../../../utils/colors';
 import { getCursorShape } from '../../constants/cursorShapes';
+import { renderCursorToImage } from '../../../../utils/cursorRenderer';
 
 interface UseMapRendererProps extends MapCanvasProps {
   canvasRef: React.RefObject<HTMLCanvasElement>;
@@ -644,31 +645,42 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
         ctx.scale(1 / z, 1 / z); // Normalize to screen pixels
 
         // Apply Rotation (Visual Physics)
-        // Only rotate if it's the sword or arrow - things that "point"
-        // Apply Rotation (Visual Physics)
         ctx.rotate(effectiveAngle);
 
-        if (shape.imageUrl) {
-          // Draw Image (SVG)
+        // Render size for the cursor
+        const renderSize = 38;
+
+        // Try to render the React component first
+        if (shape.Component) {
+          const cacheKey = `${cursor.userShape || 'default'}_${color}_${renderSize}`;
+          const img = renderCursorToImage(shape.Component, color, renderSize, cacheKey);
+
+          if (img && img.complete && img.naturalWidth > 0) {
+            ctx.save();
+            // Apply simple shadow
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            ctx.shadowBlur = 4;
+            // Center the image on the cursor position
+            ctx.drawImage(img, -renderSize / 2, -renderSize / 2, renderSize, renderSize);
+            ctx.restore();
+          }
+        } else if (shape.imageUrl) {
+          // Fallback to imageUrl for legacy support
           const img = new Image();
           img.src = shape.imageUrl;
           if (img.complete && img.naturalWidth > 0) {
             ctx.save();
             ctx.scale(shape.scale || 1, shape.scale || 1);
-            // Center based on hotspot
             ctx.translate(-shape.hotspot.x, -shape.hotspot.y);
-
-            // Apply simple shadow
             ctx.shadowColor = 'rgba(0,0,0,0.5)';
             ctx.shadowBlur = 4;
-
             ctx.drawImage(img, 0, 0);
             ctx.restore();
           } else {
             img.onload = () => { /* triggers next frame */ };
           }
-        } else {
-          // Draw Path
+        } else if (shape.path) {
+          // Fallback to path for simple shapes
           const p = new Path2D(shape.path);
           ctx.scale(shape.scale || 1, shape.scale || 1);
           ctx.translate(-shape.hotspot.x, -shape.hotspot.y);
@@ -676,7 +688,6 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
           ctx.fillStyle = color;
           ctx.fill(p);
 
-          // Stroke for contrast
           ctx.strokeStyle = '#FFFFFF';
           ctx.lineWidth = 1.5;
           ctx.lineJoin = 'round';

@@ -373,7 +373,9 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
               {/* Preview */}
               <div className="flex justify-center py-2 bg-zinc-900/50 rounded-lg border border-dashed border-zinc-800">
                 <div className="relative">
-                  {selectedShape.imageUrl ? (
+                  {selectedShape.Component ? (
+                    <selectedShape.Component color={effectiveColor} size={50} className="drop-shadow-md" />
+                  ) : selectedShape.imageUrl ? (
                     <img
                       src={selectedShape.imageUrl}
                       alt={selectedShape.label}
@@ -390,9 +392,9 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
                   )}
                   <div
                     className="absolute left-[42px] top-[42px] px-1 py-0.5 rounded text-[9px] font-semibold whitespace-nowrap shadow-sm z-10"
-                    style={{ backgroundColor: myOverride.color || color, color: getContrastColor(myOverride.color || color) }}
+                    style={{ backgroundColor: effectiveColor, color: getContrastColor(effectiveColor) }}
                   >
-                    {myOverride.name || name || user?.name || 'Nome'}
+                    {effectiveName || user?.name || 'Nome'}
                   </div>
                 </div>
               </div>
@@ -433,7 +435,9 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
                             } ${!canEditShape ? 'cursor-not-allowed' : ''}`}
                           title={s.label}
                         >
-                          {s.imageUrl ? (
+                          {s.Component ? (
+                            <s.Component color={effectiveShapeId === s.id ? effectiveColor : '#71717a'} size={18} />
+                          ) : s.imageUrl ? (
                             <img src={s.imageUrl} alt={s.label} className="w-5 h-5 object-contain" />
                           ) : (
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -666,15 +670,13 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
                               }`}
                             title={s.label}
                           >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                              <g transform={`scale(${s.scale || 1})`}>
-                                {s.imageUrl ? (
-                                  <image href={s.imageUrl} width="512" height="512" />
-                                ) : (
-                                  <path d={s.path} fill={currentOverride.shape === s.id ? (currentOverride.color || '#fbbf24') : '#71717a'} />
-                                )}
-                              </g>
-                            </svg>
+                            {s.Component ? (
+                              <s.Component color={currentOverride.shape === s.id ? (currentOverride.color || '#fbbf24') : '#71717a'} size={18} />
+                            ) : (
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                <path d={s.path} fill={currentOverride.shape === s.id ? (currentOverride.color || '#fbbf24') : '#71717a'} />
+                              </svg>
+                            )}
                           </button>
                         ))}
                       </div>
