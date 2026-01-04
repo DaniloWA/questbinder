@@ -8,10 +8,13 @@ import {
     Square, Grid, MousePointer2, ChevronRight,
     User, Crown, Lightbulb, Sun, Hexagon, Users, Lock,
     LayoutGrid, RefreshCw, ArrowLeft, ScanEye, Dices, BookOpen,
-    Music, Speaker, FileText, Book, Zap, Brush, Wand2, Target
+    Music, Speaker, FileText, Book, Zap, Brush, Wand2, Target,
+    Link, Monitor, Magnet
 } from 'lucide-react';
 import { Tooltip } from '../ui/Tooltip';
 import { useGameSession } from '../../context/GameSessionContext';
+import { useModal } from '../../context/ModalContext';
+import { ConfirmationModal } from '../ui/ConfirmationModal';
 
 export interface ToolbarItemConfig {
     id: string;
@@ -56,6 +59,7 @@ interface VTTToolbarProps {
     onToggleGhostWalls?: () => void;
     onOpenPermissions?: () => void;
     onOpenCursorSettings?: () => void;
+    onOpenViewSettings?: () => void;
 }
 
 const SubMenuPortal: React.FC<{
@@ -277,7 +281,8 @@ const MenuItem: React.FC<{
 };
 
 export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
-    const { permissionHelper, toggleVisionRanges, ui, permissions } = useGameSession();
+    const { permissionHelper, toggleVisionRanges, ui, permissions, pullView, viewport, toggleFollowMode, isFollowingGM, updatePermissions } = useGameSession();
+    const { openModal, closeModal } = useModal();
 
     // Check if all cursor permissions are disabled (for non-GM players)
     const allCursorPermsDisabled = !permissionHelper.isGameMaster() &&
@@ -447,41 +452,13 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 hidden: !permissionHelper.isGameMaster(),
                 children: [
                     {
-                        id: 'view-mode',
+                        id: 'view-settings',
                         type: 'action',
-                        label: `Modo: ${props.gmViewMode === 'gm' ? 'Mestre (Onisciente)' : 'Jogador (Visão Limitada)'}`,
-                        icon: props.gmViewMode === 'gm' ? <Eye /> : <User />,
-                        onClick: props.onToggleViewMode
-                    },
-                    {
-                        id: 'preview-player-select',
-                        type: 'action',
-                        label: `Visão: ${props.previewPlayerId === 'all' ? 'Todos' : props.players?.find(p => p.id === props.previewPlayerId)?.name.split(' ')[0] || '...'}`,
-                        icon: <ScanEye />,
-                        hidden: props.gmViewMode !== 'player',
-                        children: [
-                            {
-                                id: 'preview-all',
-                                type: 'action',
-                                label: 'Ver como Todos',
-                                icon: <Users />,
-                                onClick: () => props.onSetPreviewPlayer?.('all')
-                            },
-                            ...(props.players || []).map(p => ({
-                                id: `preview-${p.id}`,
-                                type: 'action' as const,
-                                label: p.name,
-                                icon: <User />,
-                                onClick: () => props.onSetPreviewPlayer?.(p.id)
-                            }))
-                        ]
-                    },
-                    {
-                        id: 'ghost-walls',
-                        type: 'action',
-                        label: `Paredes Fantasmas: ${props.gmHideObstacles ? 'Ocultas' : 'Visíveis'}`,
-                        icon: props.gmHideObstacles ? <EyeOff /> : <Eye />,
-                        onClick: props.onToggleGhostWalls
+                        label: 'Visualizar & Sincronizar',
+                        icon: <Eye />,
+                        onClick: () => {
+                            if (props.onOpenViewSettings) props.onOpenViewSettings();
+                        }
                     },
                     {
                         id: 'permissions',
@@ -489,13 +466,6 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                         label: 'Permissões',
                         icon: <Lock />,
                         onClick: props.onOpenPermissions
-                    },
-                    {
-                        id: 'show-vision-ranges',
-                        type: 'action',
-                        label: `Mostrar Alcances: ${ui.showVisionRanges ? 'Ligado' : 'Desligado'}`,
-                        icon: <ScanEye />,
-                        onClick: toggleVisionRanges
                     },
                     {
                         id: 'settings',
@@ -516,7 +486,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
         ];
 
         return groups.filter(g => g.length > 0);
-    }, [props, permissionHelper, toggleVisionRanges, ui]);
+    }, [props, permissionHelper, toggleVisionRanges, ui, isFollowingGM, permissions]); // Dependencies updated
 
     return (
         <div className="flex items-center gap-2 p-2 bg-zinc-950/80 backdrop-blur-xl border border-zinc-800 rounded-2xl shadow-2xl ring-1 ring-white/10 pointer-events-auto animate-in slide-in-from-bottom-8 duration-500">

@@ -27,6 +27,7 @@ export const INITIAL_STATE: GameSessionState = {
   pings: [],
   remoteDrags: {},
   remoteCursors: {},
+  remoteViewports: {},
   isConnected: false,
   isLoading: true,
   // Settings
@@ -60,18 +61,24 @@ export const INITIAL_STATE: GameSessionState = {
     cursorAllowColorChange: true,
     cursorAllowShapeChange: true,
     cursorAllowNameChange: true,
+    cursorAllowAnimationChange: true,
+    cursorAllowAnimationColorChange: true,
     cursorOverrides: {},
     chatGlobalAllowed: true,
     chatPrivateAllowed: true,
     shareCursor: true,
     allowSpectate: true,
     logConfig: { movement: 'public', combat: 'public', rolls: 'public', system: 'public', broadcastConditions: true },
-    userOverrides: {}
+    userOverrides: {},
+    showRemoteViewports: false, // Default false, GM moves toggle to enable
+    shareViewport: true         // Default true, you are visible unless you hide
   },
   audioSettings: { playlists: [], soundboard: [] },
   activeAudioZoneUrl: null,
+  followMode: { active: false, targets: [] },
   triggeredHandoutId: null,
   lastTriggeredZoneId: null,
+  pullNotification: false,
   ui: {
     isRightSidebarOpen: true,
     isLibraryOpen: false,

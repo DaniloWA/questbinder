@@ -1,5 +1,5 @@
 
-import { Token, CombatState, RollResult, ChatMessage, SessionPermissions, MapScene, Campaign, Handout, MapDrawing } from './models';
+import { Token, CombatState, RollResult, ChatMessage, SessionPermissions, MapScene, Campaign, Handout, MapDrawing, Character } from './models';
 
 export type SocketEventType =
   | 'room:join'
@@ -35,6 +35,9 @@ export type SocketEventType =
   | 'audio:pause'
   | 'audio:stop'
   | 'audio:sfx'
+  | 'viewport:update'
+  | 'gm:pull_view'
+  | 'gm:force_view'
   | 'connect'
   | 'disconnect';
 
@@ -51,11 +54,67 @@ export interface RoomSyncPayload {
   activeSceneId: string;
 }
 
-import { Character } from "./models";
 export interface TokenUpdatePayload {
   sceneId: string;
   id: string;
   changes: Partial<Token>;
+}
+
+export interface ViewportUpdatePayload {
+  x: number;
+  y: number;
+  zoom: number;
+  w: number;
+  h: number;
+  userId?: string;
+}
+
+export interface GMPullViewPayload {
+  targetId: string | 'all';
+  x?: number; // Legacy Pan X
+  y?: number; // Legacy Pan Y
+  centerX?: number;
+  centerY?: number;
+  zoom: number;
+}
+
+export interface GMForceViewPayload {
+  x?: number;
+  y?: number;
+  centerX?: number;
+  centerY?: number;
+  zoom: number;
+  targets?: string[];
+}
+
+export interface GMToggleFollowPayload {
+  active: boolean;
+  targets: string[] | 'all';
+}
+
+export interface GMFollowModeChangePayload {
+  active: boolean;
+  targets: string[] | 'all';
+}
+
+export interface GMSyncViewPayload {
+  x: number;
+  y: number;
+  zoom: number;
+  w: number;
+  h: number;
+  centerX?: number;
+  centerY?: number;
+}
+
+export interface GMViewportSyncPayload {
+  x: number;
+  y: number;
+  zoom: number;
+  w: number;
+  h: number;
+  centerX?: number;
+  centerY?: number;
 }
 
 export interface TokenDragPayload {
@@ -252,6 +311,13 @@ export interface SocketEventMap {
   'campaign:permissionsUpdated': CampaignPermissionsUpdatedPayload;
   'cursor:move': CursorMovePayload;
   'cursor:click': CursorClickPayload;
+  'viewport:update': ViewportUpdatePayload;
+  'gm:pull_view': GMPullViewPayload;
+  'gm:force_view': GMForceViewPayload;
+  'gm:toggle_follow': GMToggleFollowPayload;
+  'gm:follow_mode_change': GMFollowModeChangePayload;
+  'gm:sync_view': GMSyncViewPayload;
+  'gm:viewport_sync': GMViewportSyncPayload;
   'handout:update': HandoutUpdatePayload;
   'drawing:add': DrawingAddPayload;
   'drawing:remove': DrawingRemovePayload;

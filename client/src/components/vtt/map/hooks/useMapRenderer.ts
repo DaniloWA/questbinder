@@ -31,6 +31,7 @@ interface UseMapRendererProps extends MapCanvasProps {
   visionTokens: Token[];
   imageCache: { [src: string]: HTMLImageElement; };
   currentUser: User | null;
+  remoteViewports?: Record<string, { x: number, y: number, zoom: number, w: number, h: number; }>;
   clickAnimationsRef?: React.MutableRefObject<{ x: number, y: number, color: string, style?: 'ripple' | 'burst' | 'sparkle' | 'pulse' | 'vortex' | 'shard' | 'ring' | 'echo' | 'orb', startTime: number; }[]>;
 }
 
@@ -41,7 +42,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
     animatingTokens, animationsRef, setAnimatingTokens, mouseWorldPos, dragState, hoveredObstacleId, calculatedPath,
     draggedAttackZone, liveDrawingPointsRef, isDrawingRef, currentFogRect, hoveredTokenId, visionTokens, imageCache,
     drawingLightZone, drawingAudioZone, drawingTriggerZone, attackZoneResults, previewZoneResult,
-    campaignCharacters = [], currentUser
+    campaignCharacters = [], currentUser, remoteViewports
   } = props;
 
   const { ui, drawingSettings, rulerSettings } = useGameSession();
@@ -51,6 +52,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
   // Structure: { userId: { x: number, y: number, angle: number, targetAngle: number, lastUpdateTime: number } }
   const cursorPhysics = React.useRef<Record<string, { x: number, y: number, angle: number, targetAngle: number, velocity: number; }>>({});
   // We use a ref because we update it inside the animation loop without triggering re-renders
+
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -749,6 +751,95 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
         }
       });
 
+      // --- REMOTE VIEWPORTS ---
+      if (remoteViewports) {
+        // Group viewports by proximity to handle overlaps
+        const groups: { [key: string]: string[]; } = {};
+        const threshold = 50 / viewport.zoom; // Distance to consider overlapping
+
+        const visibleViewports = Object.entries(remoteViewports).filter(([uid, vp]) => {
+          if (uid === currentUser?.id) return false; // Never show own viewport
+
+          // Check if user is sharing their viewport (default true)
+          const remoteUserOverrides = permissions?.userOverrides?.[uid];
+          const isSharing = remoteUserOverrides?.shareViewport !== undefined
+            ? remoteUserOverrides.shareViewport
+            : (permissions?.shareViewport ?? true); // Default global might be used if we had one for "default share state", but usually per-user. Assuming defaults in constants.
+
+          if (!isSharing && !effectiveIsGM) return false; // GM always sees (or should they respect stealth? Plan implies GM sees setup in modal, likely GM sees all)
+
+          // Show if GM OR if permission to see others is enabled
+          return effectiveIsGM || permissions?.showRemoteViewports;
+        });
+
+        // Calculate groups (using filtered list)
+        visibleViewports.forEach(([uid, vp]) => {
+          let added = false;
+          for (const key in groups) {
+            const [otherUid] = groups[key];
+            const otherVp = remoteViewports[otherUid];
+            if (Math.abs(vp.x - otherVp.x) < threshold && Math.abs(vp.y - otherVp.y) < threshold) {
+              groups[key].push(uid);
+              added = true;
+              break;
+            }
+          }
+          if (!added) {
+            groups[uid] = [uid];
+          }
+        });
+
+        // Render groups
+        Object.entries(groups).forEach(([leaderId, uids]) => {
+          const vp = remoteViewports[leaderId];
+          const wx = -vp.x / vp.zoom;
+          const wy = -vp.y / vp.zoom;
+          const ww = vp.w / vp.zoom;
+          const wh = vp.h / vp.zoom;
+
+          ctx.save();
+
+          // Draw rectangles for all (slightly offset if multiple, or just one main rect)
+          // For cleaner look, we just draw the leader's rect since they are overlapping
+          const cursor = remoteCursors ? remoteCursors[leaderId] : null;
+          const color = cursor?.userColor || '#808080';
+
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2 / viewport.zoom;
+          ctx.setLineDash([10 / viewport.zoom, 5 / viewport.zoom]);
+          ctx.strokeRect(wx, wy, ww, wh);
+
+          // Draw Labels Stacked
+          const fontSize = 12 / viewport.zoom;
+          ctx.font = `bold ${fontSize}px sans-serif`;
+          const padding = 4 / viewport.zoom;
+          let currentY = wy;
+
+          uids.forEach((uid, index) => {
+            const uCursor = remoteCursors ? remoteCursors[uid] : null;
+            const uName = uCursor?.userName || 'Player';
+            const uColor = uCursor?.userColor || '#808080';
+
+            const textMetrics = ctx.measureText(uName);
+            const tagW = textMetrics.width + padding * 2;
+            const tagH = fontSize + padding * 2;
+
+            // Alternate sides if many? For now just stack on top left
+            const tagX = wx + (index * (tagW + 5 / viewport.zoom)); // Stack horizontally? 
+            // User asked for "side by side up there" -> "lado a lado la encima"
+
+            ctx.fillStyle = uColor;
+            ctx.fillRect(tagX, wy, tagW, tagH);
+
+            ctx.fillStyle = getContrastColor(uColor);
+            ctx.textBaseline = 'top';
+            ctx.fillText(uName, tagX + padding, wy + padding);
+          });
+
+          ctx.restore();
+        });
+      }
+
       // --- REMOTE CURSORS (New Design) ---
       Object.values(remoteCursors).forEach((cursor: any) => {
         if (cursor.userId === currentUser?.id) return;
@@ -923,6 +1014,6 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
     scene, tokens, viewport, isGM, gmViewMode, currentUser, activeTool, movementPath, pings, drawingObstacle, draftPolyPoints,
     currentFogRect, selectedTokenIds, mouseWorldPos, animatingTokens, calculatedPath, hoveredObstacleId, ui.gmHideObstacles,
     ui.showVisionRanges, drawingLightZone, drawingAudioZone, drawingTriggerZone, previewPlayerId, visionTokens, remoteDrags,
-    remoteCursors, drawingSettings, rulerSettings, imageCache, attackZoneResults, previewZoneResult, campaignCharacters
+    remoteCursors, drawingSettings, rulerSettings, imageCache, attackZoneResults, previewZoneResult, campaignCharacters, remoteViewports
   ]);
 };

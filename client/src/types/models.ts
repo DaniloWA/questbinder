@@ -660,6 +660,10 @@ export interface PermissionSet {
   // Token Hover Visibility
   tokenHover: TokenHoverPermissions;
 
+  // Viewport Visibility
+  showRemoteViewports: boolean;
+  shareViewport: boolean; // Se o viewport deste jogador é visível para outros
+
   // Logs
   logConfig: SessionLogConfig;
 

@@ -1,13 +1,15 @@
 import { GameSessionState } from '../../types';
+import { User, Viewport } from '../../../../types';
 import React from 'react';
 
 // Dependencies passed to listener functions
 export interface ListenerDeps {
   state: GameSessionState;
   setState: React.Dispatch<React.SetStateAction<GameSessionState>>;
-  campaignId: string;
-  user: any;
-  show: (notification: any) => void;
+  user: User | null;
+  show: (options: any) => void;
+  setViewport?: (v: Partial<Viewport>) => void;
+  stateRef: React.MutableRefObject<GameSessionState>;
 }
 
 // Cleanup function returned by each listener registrar

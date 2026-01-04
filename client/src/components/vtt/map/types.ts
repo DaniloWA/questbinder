@@ -1,3 +1,4 @@
+import React from 'react';
 import { MapScene, Token, Viewport, Ping, Obstacle, User, PolygonObstacle, LineObstacle, VTTTool, LightZone, SessionPermissions, AudioZone, TriggerZone, Character } from '../../../types';
 import { TokenDragPayload, CursorMovePayload } from '../../../types/socket';
 
@@ -20,6 +21,7 @@ export interface MapCanvasProps {
   previewPlayerId?: string | 'all';
   remoteDrags?: Record<string, TokenDragPayload>;
   remoteCursors: Record<string, CursorMovePayload>;
+  remoteViewports?: Record<string, { x: number, y: number, zoom: number, w: number, h: number; }>;
   permissions: SessionPermissions;
   campaign?: any;
   cursorSettings?: {

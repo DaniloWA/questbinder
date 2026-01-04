@@ -59,6 +59,10 @@ const PERM_DEFINITIONS: { key: Exclude<keyof PermissionSet, 'userOverrides' | 'l
     // Chat Permissions
     { key: 'chatGlobalAllowed', label: 'Chat Global', desc: 'Jogador pode enviar mensagens públicas no chat.', icon: <MessageSquare className="w-4 h-4" /> },
     { key: 'chatPrivateAllowed', label: 'Mensagens Privadas', desc: 'Jogador pode enviar mensagens privadas para outros.', icon: <MessageSquare className="w-4 h-4" /> },
+
+    // Visibility
+    { key: 'showRemoteViewports', label: 'Ver Outros Jogadores', desc: 'Pode ver onde outros jogadores estão olhando (retângulos).', icon: <ScanEye className="w-4 h-4" /> },
+    { key: 'shareViewport', label: 'Compartilhar Visão', desc: 'Outros podem ver onde este jogador está olhando.', icon: <Eye className="w-4 h-4" /> },
 ];
 
 const PRIVACY_PERMS: { key: 'shareCursor' | 'allowSpectate'; label: string; desc: string; icon: React.ReactNode; }[] = [
@@ -261,33 +265,141 @@ export const PermissionsModal: React.FC<PermissionsModalProps> = ({ isOpen, onCl
                 {/* CONTENT */}
                 <div className="flex-1 bg-zinc-950 p-6 overflow-y-auto custom-scrollbar">
                     {activeTab === 'global' && (
-                        <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-200">
-                            <div className="mb-4 pb-2 border-b border-zinc-800">
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-200">
+                            <div className="mb-2 pb-2 border-b border-zinc-800">
                                 <h3 className="text-lg font-bold text-white flex items-center gap-2"><Globe className="w-5 h-5 text-primary" /> Regras Globais</h3>
                                 <p className="text-sm text-zinc-500">Estas regras se aplicam a todos, a menos que substituídas.</p>
                             </div>
-                            {PERM_DEFINITIONS.map(def => renderToggle(def, localPerms[def.key as any], () => toggleGlobal(def.key as keyof PermissionSet), true))}
+
+                            {/* Visibility Section */}
+                            <div>
+                                <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 flex items-center gap-2"><Eye className="w-3 h-3" /> Visibilidade & Câmera</h4>
+                                {PERM_DEFINITIONS.filter(d => ['showRemoteViewports', 'shareViewport'].includes(d.key)).map(def =>
+                                    renderToggle(def, localPerms[def.key as any], () => toggleGlobal(def.key as keyof PermissionSet), true)
+                                )}
+                            </div>
+
+                            {/* Interaction Section */}
+                            <div>
+                                <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 flex items-center gap-2"><MousePointer2 className="w-3 h-3" /> Interação</h4>
+                                {PERM_DEFINITIONS.filter(d => ['tokenMovement', 'doorControl'].includes(d.key)).map(def =>
+                                    renderToggle(def, localPerms[def.key as any], () => toggleGlobal(def.key as keyof PermissionSet), true)
+                                )}
+                            </div>
+
+                            {/* Tools Section */}
+                            <div>
+                                <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 flex items-center gap-2"><PenTool className="w-3 h-3" /> Ferramentas & Conteúdo</h4>
+                                {PERM_DEFINITIONS.filter(d => ['drawings', 'drawingDelete', 'drawingClear', 'measure', 'pingMap', 'diceRolling', 'initiativeRoll'].includes(d.key)).map(def =>
+                                    renderToggle(def, localPerms[def.key as any], () => toggleGlobal(def.key as keyof PermissionSet), true)
+                                )}
+                            </div>
+
+                            {/* Access Section */}
+                            <div>
+                                <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 flex items-center gap-2"><Book className="w-3 h-3" /> Acesso</h4>
+                                {PERM_DEFINITIONS.filter(d => ['compendiumBrowse', 'bestiaryBrowse', 'journalCreate', 'sheetEdit'].includes(d.key)).map(def =>
+                                    renderToggle(def, localPerms[def.key as any], () => toggleGlobal(def.key as keyof PermissionSet), true)
+                                )}
+                            </div>
+
+                            {/* Creator Section */}
+                            <div>
+                                <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 flex items-center gap-2"><Plus className="w-3 h-3" /> Criação & Manipulação</h4>
+                                {PERM_DEFINITIONS.filter(d => ['tokenCreate', 'tokenEdit', 'tokenDelete'].includes(d.key)).map(def =>
+                                    renderToggle(def, localPerms[def.key as any], () => toggleGlobal(def.key as keyof PermissionSet), true)
+                                )}
+                            </div>
+
+                            {/* Chat Section */}
+                            <div>
+                                <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 flex items-center gap-2"><MessageSquare className="w-3 h-3" /> Chat</h4>
+                                {PERM_DEFINITIONS.filter(d => ['chatGlobalAllowed', 'chatPrivateAllowed'].includes(d.key)).map(def =>
+                                    renderToggle(def, localPerms[def.key as any], () => toggleGlobal(def.key as keyof PermissionSet), true)
+                                )}
+                            </div>
+
+                            {/* Cursor Section */}
+                            <div>
+                                <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 flex items-center gap-2"><MousePointer2 className="w-3 h-3" /> Personalização de Cursor</h4>
+                                {PERM_DEFINITIONS.filter(d => d.key.startsWith('cursor')).map(def =>
+                                    renderToggle(def, localPerms[def.key as any], () => toggleGlobal(def.key as keyof PermissionSet), true)
+                                )}
+                            </div>
 
                             <div className="pt-4 mt-4 border-t border-zinc-800">
-                                <h3 className="text-base font-bold text-white flex items-center gap-2 mb-2"><Lock className="w-4 h-4 text-primary" /> Privacidade</h3>
+                                <h3 className="text-base font-bold text-white flex items-center gap-2 mb-2"><Lock className="w-4 h-4 text-primary" /> Privacidade Global</h3>
                             </div>
                             {PRIVACY_PERMS.map(def => renderToggle(def, localPerms[def.key as any], () => toggleGlobal(def.key as keyof PermissionSet), true))}
                         </div>
                     )}
 
                     {activeTab === 'players' && selectedPlayerId && (
-                        <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-200">
-                            <div className="mb-4 pb-2 border-b border-zinc-800">
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-200">
+                            <div className="mb-2 pb-2 border-b border-zinc-800">
                                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
                                     <UserIcon className="w-5 h-5 text-primary" />
                                     {players.find(p => p.id === selectedPlayerId)?.name}
                                 </h3>
                                 <p className="text-sm text-zinc-500">Exceções específicas para este jogador.</p>
                             </div>
-                            {PERM_DEFINITIONS.map(def => {
-                                const override = localPerms.userOverrides[selectedPlayerId]?.[def.key as any];
-                                return renderToggle(def, override, () => toggleUserOverride(selectedPlayerId, def.key as keyof PermissionSet), false);
-                            })}
+
+                            {/* Visibility Section */}
+                            <div>
+                                <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 flex items-center gap-2"><Eye className="w-3 h-3" /> Visibilidade & Câmera</h4>
+                                {PERM_DEFINITIONS.filter(d => ['showRemoteViewports', 'shareViewport'].includes(d.key)).map(def => {
+                                    const override = localPerms.userOverrides[selectedPlayerId]?.[def.key as any];
+                                    return renderToggle(def, override, () => toggleUserOverride(selectedPlayerId, def.key as keyof PermissionSet), false);
+                                })}
+                            </div>
+
+                            {/* Other Sections (Grouped simply to avoid code duplication if possible, or just render remaining) */}
+                            {/* For players, we can flatten the rest or group them similarly. Let's group for consistency */}
+
+                            {/* Interaction */}
+                            <div>
+                                <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 flex items-center gap-2"><MousePointer2 className="w-3 h-3" /> Interação</h4>
+                                {PERM_DEFINITIONS.filter(d => ['tokenMovement', 'doorControl'].includes(d.key)).map(def => {
+                                    const override = localPerms.userOverrides[selectedPlayerId]?.[def.key as any];
+                                    return renderToggle(def, override, () => toggleUserOverride(selectedPlayerId, def.key as keyof PermissionSet), false);
+                                })}
+                            </div>
+
+                            {/* Tools */}
+                            <div>
+                                <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 flex items-center gap-2"><PenTool className="w-3 h-3" /> Ferramentas</h4>
+                                {PERM_DEFINITIONS.filter(d => ['drawings', 'drawingDelete', 'drawingClear', 'measure', 'pingMap', 'diceRolling', 'initiativeRoll', 'fogReveal'].includes(d.key)).map(def => {
+                                    const override = localPerms.userOverrides[selectedPlayerId]?.[def.key as any];
+                                    return renderToggle(def, override, () => toggleUserOverride(selectedPlayerId, def.key as keyof PermissionSet), false);
+                                })}
+                            </div>
+
+                            {/* Content */}
+                            <div>
+                                <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 flex items-center gap-2"><Book className="w-3 h-3" /> Conteúdo</h4>
+                                {PERM_DEFINITIONS.filter(d => ['compendiumBrowse', 'bestiaryBrowse', 'journalCreate', 'sheetEdit', 'tokenCreate', 'tokenEdit', 'tokenDelete'].includes(d.key)).map(def => {
+                                    const override = localPerms.userOverrides[selectedPlayerId]?.[def.key as any];
+                                    return renderToggle(def, override, () => toggleUserOverride(selectedPlayerId, def.key as keyof PermissionSet), false);
+                                })}
+                            </div>
+
+                            {/* Chat */}
+                            <div>
+                                <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 flex items-center gap-2"><MessageSquare className="w-3 h-3" /> Chat</h4>
+                                {PERM_DEFINITIONS.filter(d => ['chatGlobalAllowed', 'chatPrivateAllowed'].includes(d.key)).map(def => {
+                                    const override = localPerms.userOverrides[selectedPlayerId]?.[def.key as any];
+                                    return renderToggle(def, override, () => toggleUserOverride(selectedPlayerId, def.key as keyof PermissionSet), false);
+                                })}
+                            </div>
+
+                            {/* Cursor */}
+                            <div>
+                                <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 flex items-center gap-2"><MousePointer2 className="w-3 h-3" /> Cursor</h4>
+                                {PERM_DEFINITIONS.filter(d => d.key.startsWith('cursor')).map(def => {
+                                    const override = localPerms.userOverrides[selectedPlayerId]?.[def.key as any];
+                                    return renderToggle(def, override, () => toggleUserOverride(selectedPlayerId, def.key as keyof PermissionSet), false);
+                                })}
+                            </div>
 
                             <div className="pt-4 mt-4 border-t border-zinc-800">
                                 <h3 className="text-base font-bold text-white flex items-center gap-2 mb-2"><Lock className="w-4 h-4 text-primary" /> Privacidade</h3>

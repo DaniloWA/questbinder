@@ -30,7 +30,10 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
     } = useGameState(campaignId);
 
     const { checkPermission, updatePermissions, permissionHelper } = usePermissions(state, setState, user);
-    const { setViewport, addPing, setRulerSettings } = useMapInteraction(state, setState, user, permissionHelper);
+    const { setViewport, addPing, setRulerSettings, pullView, toggleFollowMode } = useMapInteraction(state, setState, user, permissionHelper);
+
+    const setPullNotification = (show: boolean) => setState(prev => ({ ...prev, pullNotification: show }));
+
     const {
         moveToken, moveTokens, updateToken, addToken, removeToken,
         moveTokenToScene, selectToken, clearSelection, emitTokenDrag, emitCursorMove
@@ -40,7 +43,7 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
         sendChatMessage, toggleChatReaction, handleChatLinkClick, rollDice, broadcastRoll
     } = useChatActions(state, setState, campaignId, user, show, setIsCompendiumOpen, setViewport, addPing, selectToken, permissionHelper);
 
-    useSocketListeners(state, setState, campaignId, user, show);
+    useSocketListeners(state, setState, campaignId, user, show, setViewport);
     useAuraSystem(state, updateToken, campaignId, state.isGM);
 
     // Audio Zone Playback Effect
@@ -143,6 +146,7 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
         checkConcentration,
         getCombatStats,
         exportCombatLog,
+        pullView,
         sendChatMessage,
         toggleChatReaction,
         handleChatLinkClick,
@@ -179,6 +183,8 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
         updateMapSettings,
         emitTokenDrag,
         emitCursorMove,
+        setPullNotification,
+        toggleFollowMode,
         ...uiActions
     };
 

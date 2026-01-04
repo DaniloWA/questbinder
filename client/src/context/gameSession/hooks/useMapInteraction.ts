@@ -11,6 +11,23 @@ export const useMapInteraction = (
 ) => {
   const setViewport = (v: Partial<Viewport>) => setState(prev => ({ ...prev, viewport: { ...prev.viewport, ...v } }));
 
+  // Broadcast viewport changes
+  React.useEffect(() => {
+    if (!state.isConnected || !user) return;
+
+    const handler = setTimeout(() => {
+      socketService.emit('viewport:update', {
+        x: state.viewport.x,
+        y: state.viewport.y,
+        zoom: state.viewport.zoom,
+        w: window.innerWidth,
+        h: window.innerHeight
+      });
+    }, 100); // 100ms debounce
+
+    return () => clearTimeout(handler);
+  }, [state.viewport, state.isConnected, user]);
+
   const addPing = (x: number, y: number) => {
     if (!user) return;
     // REGRA MILENAR: Use PermissionHelper
@@ -53,9 +70,42 @@ export const useMapInteraction = (
     setState(prev => ({ ...prev, rulerSettings: settings }));
   };
 
+  const pullView = (targetId: string | 'all', panX: number, panY: number, zoom: number) => {
+    if (!state.isGM) return;
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const centerX = (-panX + w / 2) / zoom;
+    const centerY = (-panY + h / 2) / zoom;
+    socketService.emit('gm:pull_view', { targetId, centerX, centerY, zoom });
+  };
+
+  const toggleFollowMode = (active: boolean, targets: string[] | 'all' = 'all') => {
+    if (!permissionHelper?.isGameMaster()) return;
+    setState(prev => ({ ...prev, followMode: { active, targets } }));
+    socketService.emit('gm:toggle_follow', { active, targets });
+  };
+
+  // React to viewport changes for Follow Mode
+  React.useEffect(() => {
+    if (!state.isGM || !state.isConnected || !state.followMode?.active) return;
+
+    socketService.emit('gm:sync_view', {
+      centerX: (-state.viewport.x + window.innerWidth / 2) / state.viewport.zoom,
+      centerY: (-state.viewport.y + window.innerHeight / 2) / state.viewport.zoom,
+      zoom: state.viewport.zoom,
+      x: state.viewport.x,
+      y: state.viewport.y,
+      w: window.innerWidth,
+      h: window.innerHeight,
+      targets: state.followMode.targets // Include targets in sync payload
+    });
+  }, [state.viewport, state.followMode, state.isGM, state.isConnected]);
+
   return {
     setViewport,
     addPing,
-    setRulerSettings
+    setRulerSettings,
+    pullView,
+    toggleFollowMode
   };
 };

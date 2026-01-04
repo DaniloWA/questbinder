@@ -92,7 +92,7 @@ export const setupSocket = (server) => {
 
 
 
-    const ephemeralEvents = ['token:drag', 'cursor:move', 'chat:reaction', 'cursor:click'];
+    const ephemeralEvents = ['token:drag', 'cursor:move', 'chat:reaction', 'cursor:click', 'viewport:update'];
 
     ephemeralEvents.forEach(event => {
       socket.on(event, (payload) => {
@@ -103,6 +103,80 @@ export const setupSocket = (server) => {
           console.error(`[WS] ${event} error:`, err);
         }
       });
+    });
+
+    socket.on('gm:pull_view', (payload) => {
+      console.log('[WS] Received gm:pull_view', { userId: client.userId, isGM: client.isGM, campaignId: client.campaignId, payload });
+
+      if (!client.isGM) {
+        console.warn('[WS] gm:pull_view rejected: User is not GM');
+        return;
+      }
+      if (!client.campaignId) {
+        console.warn('[WS] gm:pull_view rejected: No campaignId');
+        return;
+      }
+
+      const { targetId, x, y, centerX, centerY, zoom } = payload;
+      const forcePayload = { x, y, centerX, centerY, zoom };
+
+      console.log(`[WS] Re-emitting gm:force_view to ${targetId === 'all' ? 'all' : 'targets'}`);
+
+      if (targetId === 'all') {
+        socket.to(client.campaignId).emit('gm:force_view', forcePayload);
+      } else if (Array.isArray(targetId)) {
+        socket.to(client.campaignId).emit('gm:force_view', { ...forcePayload, targets: targetId });
+      } else {
+        socket.to(client.campaignId).emit('gm:force_view', { ...forcePayload, targets: [targetId] });
+      }
+    });
+
+    // Follow Mode Events
+    socket.on('gm:toggle_follow', (payload) => {
+      // payload: { active: boolean, targets: string[] | 'all' }
+      if (!client.isGM) return;
+
+      const { active, targets } = payload;
+      // Emit to everyone so they know the mode status (for indicators)
+      io.to(client.campaignId).emit('gm:follow_mode_change', { active, targets });
+    });
+
+    socket.on('gm:sync_view', (payload) => {
+      // payload: { x, y, zoom, w, h, targets? } - actually targets should probably be stored in server state or passed every time?
+      // For simplicity, let's assume the GM client passes the targets in the sync payload OR we broadcast to all and clients decide.
+      // BUT, efficient networking suggests sending only to relevant.
+      // HOWEVER, the `gm:toggle_follow` just updates state. The `gm:sync_view` is the continuous stream.
+      // Let's modify the client to send `targets` in `gm:sync_view` too, or just broadcast to room and let clients filter.
+      // Broadcasting to room is easiest for now. Clients can check if they are in the target list (which they know from gm:follow_mode_change).
+      if (!client.isGM) return;
+
+      socket.to(client.campaignId).emit('gm:viewport_sync', payload);
+    });
+
+    socket.on('gm:pull_view', (payload) => {
+      console.log('[WS] Received gm:pull_view', { userId: client.userId, isGM: client.isGM, campaignId: client.campaignId, payload });
+
+      if (!client.isGM) {
+        console.warn('[WS] gm:pull_view rejected: User is not GM');
+        return;
+      }
+      if (!client.campaignId) {
+        console.warn('[WS] gm:pull_view rejected: No campaignId');
+        return;
+      }
+
+      const { targetId, x, y, centerX, centerY, zoom } = payload;
+      const forcePayload = { x, y, centerX, centerY, zoom };
+
+      console.log(`[WS] Re-emitting gm:force_view to ${targetId === 'all' ? 'all' : 'targets'}`);
+
+      if (targetId === 'all') {
+        socket.to(client.campaignId).emit('gm:force_view', forcePayload);
+      } else if (Array.isArray(targetId)) {
+        socket.to(client.campaignId).emit('gm:force_view', { ...forcePayload, targets: targetId });
+      } else {
+        socket.to(client.campaignId).emit('gm:force_view', { ...forcePayload, targets: [targetId] });
+      }
     });
 
     registerTokenHandlers(socket, client, utils);

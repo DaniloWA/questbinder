@@ -54,6 +54,7 @@ export interface GameSessionState {
   pings: Ping[];
   remoteDrags: Record<string, TokenDragPayload>;
   remoteCursors: Record<string, CursorMovePayload>;
+  remoteViewports: Record<string, Viewport & { w: number, h: number; }>;
   isConnected: boolean;
   isLoading: boolean;
 
@@ -78,6 +79,12 @@ export interface GameSessionState {
   // Trigger State
   triggeredHandoutId: string | null;
   lastTriggeredZoneId: string | null;
+
+  pullNotification: boolean;
+  followMode: {
+    active: boolean;
+    targets: string[] | 'all';
+  };
 
   // UI State
   ui: {
@@ -230,6 +237,11 @@ export interface GameSessionContextType extends GameSessionState {
 
   emitTokenDrag: (id: string, x: number, y: number, path: { x: number, y: number; }[]) => void;
   emitCursorMove: (x: number, y: number) => void;
+  pullView: (targetId: string | 'all', x: number, y: number, zoom: number) => void;
+  toggleFollowMode: (active: boolean, targets?: string[] | 'all') => void;
 
   activeScene: MapScene | null;
+  pullNotification: boolean;
+  setPullNotification: (show: boolean) => void;
+  isFollowingGM: boolean;
 }

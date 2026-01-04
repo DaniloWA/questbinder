@@ -38,6 +38,9 @@ import { AttackZoneConfigModal } from '../components/vtt/AttackZoneConfigModal';
 import { AttackZoneContextMenu } from '../components/vtt/AttackZoneContextMenu';
 import { useAttackZones } from '../context/gameSession/hooks/useAttackZones';
 import { CursorSettingsModal } from '../components/vtt/CursorSettingsModal';
+import { PullViewNotification } from '../components/vtt/notifications/PullViewNotification';
+import { FollowModeIndicator } from '../components/vtt/notifications/FollowModeIndicator';
+import { ViewSettingsModal } from '../components/vtt/settings/ViewSettingsModal';
 
 export const GameSessionView: React.FC = () => {
     const { params, navigateTo } = useNavigation();
@@ -126,6 +129,8 @@ const TokenLibrary: React.FC<{
                     </div>
                 )}
             </div>
+            {/* Notifications */}
+            {/* Removed internal notifications to place them globally */}
         </div>
     );
 };
@@ -144,6 +149,7 @@ const GameSessionUI: React.FC = () => {
     const [isCompendiumOpen, setIsCompendiumOpen] = useState(false);
     const [isAttackZonePanelOpen, setIsAttackZonePanelOpen] = useState(false);
     const [isAttackZoneConfigOpen, setIsAttackZoneConfigOpen] = useState(false);
+    const [isViewSettingsOpen, setIsViewSettingsOpen] = useState(false);
 
     const [tokenContextMenu, setTokenContextMenu] = useState<{ x: number, y: number, token: Token; } | null>(null);
     const [mapContextMenu, setMapContextMenu] = useState<{ x: number, y: number, worldX: number, worldY: number, obstacleId?: string, triggerZoneId?: string, audioZoneId?: string; } | null>(null);
@@ -409,6 +415,10 @@ const GameSessionUI: React.FC = () => {
                 </div>
             )}
 
+            {/* Global Notifications - Always Visible */}
+            <PullViewNotification show={session.pullNotification} />
+            <FollowModeIndicator />
+
             <div className="absolute inset-0 z-0">
                 <MapCanvas
                     scene={session.activeScene}
@@ -455,6 +465,7 @@ const GameSessionUI: React.FC = () => {
                     addAudioZones={session.addAudioZones}
                     emitCursorMove={session.emitCursorMove}
                     remoteCursors={session.remoteCursors}
+                    remoteViewports={session.remoteViewports}
 
                     drawingTriggerZone={session.drawingTriggerZone}
                     setDrawingTriggerZone={session.setDrawingTriggerZone}
@@ -558,6 +569,7 @@ const GameSessionUI: React.FC = () => {
                         isCompendiumOpen={isCompendiumOpen}
                         isAttackZonePanelOpen={isAttackZonePanelOpen}
                         onToggleAttackZones={() => setIsAttackZonePanelOpen(!isAttackZonePanelOpen)}
+                        onOpenViewSettings={() => setIsViewSettingsOpen(true)}
                     />
                 </div>
             </div>
@@ -774,6 +786,19 @@ const GameSessionUI: React.FC = () => {
             />
 
             <CursorSettingsModal isOpen={isCursorSettingsOpen} onClose={() => setIsCursorSettingsOpen(false)} />
+
+            {/* View Settings Modal */}
+            {isViewSettingsOpen && (
+                <Modal
+                    isOpen={isViewSettingsOpen}
+                    onClose={() => setIsViewSettingsOpen(false)}
+                    title="Configurações de Visualização"
+                    size="lg"
+                    transparent
+                >
+                    <ViewSettingsModal />
+                </Modal>
+            )}
         </div>
     );
 };
