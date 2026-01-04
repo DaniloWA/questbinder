@@ -14,6 +14,7 @@ export const useUiActions = (
   const setGmHideObstacles = (val: boolean) => setState(prev => ({ ...prev, ui: { ...prev.ui, gmHideObstacles: val } }));
   const setDefaultObstacleHidden = (val: boolean) => setState(prev => ({ ...prev, ui: { ...prev.ui, defaultObstacleHidden: val } }));
   const toggleVisionRanges = () => setState(prev => ({ ...prev, ui: { ...prev.ui, showVisionRanges: !prev.ui.showVisionRanges } }));
+  const toggleGridCoordinates = () => setState(prev => ({ ...prev, ui: { ...prev.ui, showGridCoordinates: !prev.ui.showGridCoordinates } }));
   const toggleRightSidebar = () => setState(prev => ({ ...prev, ui: { ...prev.ui, isRightSidebarOpen: !prev.ui.isRightSidebarOpen } }));
   const toggleLibrary = () => setState(prev => ({ ...prev, ui: { ...prev.ui, isLibraryOpen: !prev.ui.isLibraryOpen } }));
   const toggleDiceRoller = () => setState(prev => ({ ...prev, ui: { ...prev.ui, isDiceRollerOpen: !prev.ui.isDiceRollerOpen } }));
@@ -39,6 +40,7 @@ export const useUiActions = (
     setGmHideObstacles,
     setDefaultObstacleHidden,
     toggleVisionRanges,
+    toggleGridCoordinates,
     toggleRightSidebar,
     toggleLibrary,
     toggleDiceRoller,

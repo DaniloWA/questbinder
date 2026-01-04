@@ -26,7 +26,8 @@ export const drawGrid = (
     gridSize: number,
     color: string,
     alpha: number,
-    zoom: number
+    zoom: number,
+    showCoordinates: boolean = false
 ) => {
     ctx.strokeStyle = color;
     ctx.globalAlpha = alpha;
@@ -36,6 +37,104 @@ export const drawGrid = (
     for (let y = 0; y <= mapHeight; y += gridSize) { ctx.moveTo(0, y); ctx.lineTo(mapWidth, y); }
     ctx.stroke();
     ctx.globalAlpha = 1.0;
+
+    // Draw coordinates if enabled
+    if (showCoordinates) {
+        drawGridCoordinates(ctx, mapWidth, mapHeight, gridSize, zoom);
+    }
+};
+
+// Convert column index to chess-style letter (A, B, C, ... Z, AA, AB, ...)
+const columnToLetter = (col: number): string => {
+    let result = '';
+    let n = col;
+    while (n >= 0) {
+        result = String.fromCharCode(65 + (n % 26)) + result;
+        n = Math.floor(n / 26) - 1;
+    }
+    return result;
+};
+
+// Draw grid coordinates - chess-style labels on borders + small coords in each tile
+const drawGridCoordinates = (
+    ctx: CanvasRenderingContext2D,
+    mapWidth: number,
+    mapHeight: number,
+    gridSize: number,
+    zoom: number
+) => {
+    const cols = Math.floor(mapWidth / gridSize);
+    const rows = Math.floor(mapHeight / gridSize);
+
+    // Border label size (responsive to zoom)
+    const borderLabelSize = Math.max(10, Math.min(16, gridSize * 0.25)) / zoom;
+    const tileLabelSize = Math.max(6, Math.min(10, gridSize * 0.12)) / zoom;
+    const borderWidth = Math.max(20, gridSize * 0.4);
+
+    // Draw border backgrounds (left and top edges)
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+
+    // Left border (row numbers)
+    ctx.fillRect(-borderWidth, 0, borderWidth, mapHeight);
+
+    // Top border (column letters)
+    ctx.fillRect(0, -borderWidth, mapWidth, borderWidth);
+
+    // Corner
+    ctx.fillRect(-borderWidth, -borderWidth, borderWidth, borderWidth);
+
+    // Draw column letters (A, B, C, ...) on top border
+    ctx.font = `bold ${borderLabelSize}px "Inter", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#ffffff';
+
+    for (let col = 0; col < cols; col++) {
+        const x = col * gridSize + gridSize / 2;
+        const y = -borderWidth / 2;
+        const letter = columnToLetter(col);
+
+        // Alternate colors for readability
+        ctx.fillStyle = col % 2 === 0 ? '#ffffff' : '#a0a0a0';
+        ctx.fillText(letter, x, y);
+    }
+
+    // Draw row numbers (1, 2, 3, ...) on left border
+    for (let row = 0; row < rows; row++) {
+        const x = -borderWidth / 2;
+        const y = row * gridSize + gridSize / 2;
+        const rowNum = (row + 1).toString();
+
+        // Alternate colors for readability
+        ctx.fillStyle = row % 2 === 0 ? '#ffffff' : '#a0a0a0';
+        ctx.fillText(rowNum, x, y);
+    }
+
+    // Draw small coordinates inside each tile (e.g., "A1", "B2")
+    ctx.font = `${tileLabelSize}px "Inter", monospace`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+
+    for (let col = 0; col < cols; col++) {
+        for (let row = 0; row < rows; row++) {
+            const x = col * gridSize + 2 / zoom;
+            const y = row * gridSize + 2 / zoom;
+            const coord = `${columnToLetter(col)}${row + 1}`;
+
+            // Semi-transparent background for readability
+            const textMetrics = ctx.measureText(coord);
+            const textWidth = textMetrics.width;
+            const textHeight = tileLabelSize;
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillRect(x - 1 / zoom, y - 1 / zoom, textWidth + 4 / zoom, textHeight + 2 / zoom);
+
+            // Checkerboard coloring for visual clarity
+            const isLight = (col + row) % 2 === 0;
+            ctx.fillStyle = isLight ? 'rgba(255, 255, 255, 0.7)' : 'rgba(180, 180, 180, 0.7)';
+            ctx.fillText(coord, x, y);
+        }
+    }
 };
 
 // Helper for Hex Color to RGBA

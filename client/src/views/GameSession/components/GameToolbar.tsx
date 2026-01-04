@@ -52,7 +52,10 @@ export const GameToolbar: React.FC<GameToolbarProps> = ({
           onSetPreviewPlayer={session.setPreviewPlayerId}
           onToolSelect={session.setActiveTool}
           onResetFog={() => session.updateFog('')}
-          onAddToken={() => onOpenTokenModal('new', { x: Math.floor((-session.viewport.x + window.innerWidth / 2) / session.viewport.zoom / 70), y: Math.floor((-session.viewport.y + window.innerHeight / 2) / session.viewport.zoom / 70) })}
+          onAddToken={() => {
+            const gridSize = session.activeScene?.grid.size || 70;
+            onOpenTokenModal('new', { x: Math.floor((-session.viewport.x + window.innerWidth / 2) / session.viewport.zoom / gridSize), y: Math.floor((-session.viewport.y + window.innerHeight / 2) / session.viewport.zoom / gridSize) });
+          }}
           onToggleLibrary={session.toggleLibrary}
           isLibraryOpen={session.ui.isLibraryOpen}
           onToggleDiceRoller={session.toggleDiceRoller}

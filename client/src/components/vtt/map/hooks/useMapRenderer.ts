@@ -105,7 +105,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
       if (effectiveIsGM) {
         if (mapImage?.complete) ctx.drawImage(mapImage, 0, 0, mapWidth, mapHeight);
         else { ctx.fillStyle = '#202020'; ctx.fillRect(0, 0, mapWidth, mapHeight); }
-        drawGrid(ctx, mapWidth, mapHeight, gridSize, gridColor, gridAlpha, viewport.zoom);
+        drawGrid(ctx, mapWidth, mapHeight, gridSize, gridColor, gridAlpha, viewport.zoom, ui.showGridCoordinates);
         if (scene.fogPath) {
           ctx.save();
           ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
@@ -156,7 +156,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
         ctx.clip(visibilityPath);
         if (mapImage?.complete) ctx.drawImage(mapImage, 0, 0, mapWidth, mapHeight);
         else { ctx.fillStyle = '#202020'; ctx.fillRect(0, 0, mapWidth, mapHeight); }
-        drawGrid(ctx, mapWidth, mapHeight, gridSize, gridColor, gridAlpha, viewport.zoom);
+        drawGrid(ctx, mapWidth, mapHeight, gridSize, gridColor, gridAlpha, viewport.zoom, ui.showGridCoordinates);
         ctx.restore();
       }
 

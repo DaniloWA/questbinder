@@ -94,6 +94,7 @@ export interface GameSessionState {
     isAudioPanelOpen: boolean;
     gmHideObstacles: boolean;
     showVisionRanges: boolean;
+    showGridCoordinates: boolean; // Debug mode for grid coordinates
     defaultObstacleHidden: boolean;
   };
 
@@ -101,6 +102,7 @@ export interface GameSessionState {
 }
 
 export interface GameSessionContextType extends GameSessionState {
+  user: User | null;
   // Actions
   setViewport: (v: Partial<Viewport>) => void;
   switchScene: (id: string) => void;
@@ -217,6 +219,7 @@ export interface GameSessionContextType extends GameSessionState {
   setGmHideObstacles: (val: boolean) => void;
   setDefaultObstacleHidden: (val: boolean) => void;
   toggleVisionRanges: () => void;
+  toggleGridCoordinates: () => void;
 
   toggleRightSidebar: () => void;
   toggleLibrary: () => void;

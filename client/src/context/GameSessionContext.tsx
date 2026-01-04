@@ -109,6 +109,7 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
 
     const value: GameSessionContextType = {
         ...state,
+        user,
         activeScene,
         sharedHandout,
         activeHandout,

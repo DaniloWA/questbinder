@@ -549,7 +549,10 @@ const GameSessionUI: React.FC = () => {
                         onSetPreviewPlayer={session.setPreviewPlayerId}
                         onToolSelect={session.setActiveTool}
                         onResetFog={() => session.updateFog('')}
-                        onAddToken={() => handleOpenTokenModal('new', { x: Math.floor((-session.viewport.x + window.innerWidth / 2) / session.viewport.zoom / 70), y: Math.floor((-session.viewport.y + window.innerHeight / 2) / session.viewport.zoom / 70) })}
+                        onAddToken={() => {
+                            const gridSize = session.activeScene?.grid.size || 70;
+                            handleOpenTokenModal('new', { x: Math.floor((-session.viewport.x + window.innerWidth / 2) / session.viewport.zoom / gridSize), y: Math.floor((-session.viewport.y + window.innerHeight / 2) / session.viewport.zoom / gridSize) });
+                        }}
                         onToggleLibrary={session.toggleLibrary}
                         isLibraryOpen={session.ui.isLibraryOpen}
                         onToggleDiceRoller={session.toggleDiceRoller}
@@ -695,8 +698,14 @@ const GameSessionUI: React.FC = () => {
                     triggerZoneId={mapContextMenu.triggerZoneId}
                     audioZoneId={mapContextMenu.audioZoneId}
                     onClose={() => setMapContextMenu(null)}
-                    onAddToken={() => handleOpenTokenModal('new', { x: Math.floor(mapContextMenu.worldX / 70), y: Math.floor(mapContextMenu.worldY / 70) })}
-                    onAddLight={() => session.addLightToken(Math.floor(mapContextMenu.worldX / 70), Math.floor(mapContextMenu.worldY / 70))}
+                    onAddToken={() => {
+                        const gridSize = session.activeScene?.grid.size || 70;
+                        handleOpenTokenModal('new', { x: Math.floor(mapContextMenu.worldX / gridSize), y: Math.floor(mapContextMenu.worldY / gridSize) });
+                    }}
+                    onAddLight={() => {
+                        const gridSize = session.activeScene?.grid.size || 70;
+                        session.addLightToken(Math.floor(mapContextMenu.worldX / gridSize), Math.floor(mapContextMenu.worldY / gridSize));
+                    }}
                     onPing={() => session.addPing(mapContextMenu.worldX, mapContextMenu.worldY)}
                     onToggleObstacleVisibility={handleToggleObstacleVisibility}
                     onDeleteObstacle={handleDeleteObstacle}

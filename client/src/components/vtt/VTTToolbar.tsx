@@ -281,7 +281,7 @@ const MenuItem: React.FC<{
 };
 
 export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
-    const { permissionHelper, toggleVisionRanges, ui, permissions, pullView, viewport, toggleFollowMode, isFollowingGM, updatePermissions } = useGameSession();
+    const { permissionHelper, toggleVisionRanges, toggleGridCoordinates, ui, permissions, pullView, viewport, toggleFollowMode, isFollowingGM, updatePermissions } = useGameSession();
     const { openModal, closeModal } = useModal();
 
     // Check if all cursor permissions are disabled (for non-GM players)
@@ -468,6 +468,14 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                         onClick: props.onOpenPermissions
                     },
                     {
+                        id: 'grid-coords',
+                        type: 'action',
+                        label: 'Coordenadas da Grade',
+                        icon: <Grid />,
+                        isActive: ui.showGridCoordinates,
+                        onClick: toggleGridCoordinates
+                    },
+                    {
                         id: 'settings',
                         type: 'action',
                         label: 'Configurações do Mapa',
@@ -486,7 +494,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
         ];
 
         return groups.filter(g => g.length > 0);
-    }, [props, permissionHelper, toggleVisionRanges, ui, isFollowingGM, permissions]); // Dependencies updated
+    }, [props, permissionHelper, toggleVisionRanges, toggleGridCoordinates, ui, isFollowingGM, permissions]); // Dependencies updated
 
     return (
         <div className="flex items-center gap-2 p-2 bg-zinc-950/80 backdrop-blur-xl border border-zinc-800 rounded-2xl shadow-2xl ring-1 ring-white/10 pointer-events-auto animate-in slide-in-from-bottom-8 duration-500">

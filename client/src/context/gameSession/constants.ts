@@ -86,6 +86,7 @@ export const INITIAL_STATE: GameSessionState = {
     isAudioPanelOpen: false,
     gmHideObstacles: false,
     showVisionRanges: false,
+    showGridCoordinates: false,
     defaultObstacleHidden: false
   }
 };
