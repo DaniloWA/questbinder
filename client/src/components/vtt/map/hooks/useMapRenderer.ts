@@ -276,7 +276,16 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
       });
 
       // --- TOKENS ---
-      tokens.forEach(token => {
+      // Sort tokens so controllable tokens render on top of non-controllable ones
+      const sortedTokens = [...tokens].sort((a, b) => {
+        const aControllable = effectiveIsGM || a.ownerId === currentUser?.id || a.controlledBy?.includes(currentUser?.id || '');
+        const bControllable = effectiveIsGM || b.ownerId === currentUser?.id || b.controlledBy?.includes(currentUser?.id || '');
+        if (aControllable && !bControllable) return 1; // a goes after b (renders on top)
+        if (!aControllable && bControllable) return -1; // b goes after a
+        return 0; // Keep original order
+      });
+
+      sortedTokens.forEach(token => {
         const isOwner = token.ownerId === currentUser?.id || token.controlledBy?.includes(currentUser?.id || '');
         let shouldRender = true;
         if (!effectiveIsGM) {
