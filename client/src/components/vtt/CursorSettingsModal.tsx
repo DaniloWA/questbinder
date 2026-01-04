@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useGameSession } from '../../context/GameSessionContext';
 import { useAuth } from '../../context/AuthContext';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { ColorPicker } from '../ui/ColorPicker';
-import { Check, RefreshCw, User as UserIcon, Lock, Crown, Stars, Activity, CircleDot, Zap, Wind, Triangle, Target, Disc, Sun, Podcast } from 'lucide-react';
+import { Check, RefreshCw, User as UserIcon, Lock, Crown, Stars, Activity, CircleDot, Zap, Wind, Triangle, Target, Disc, Sun, Podcast, Radio } from 'lucide-react';
 import { getContrastColor } from '../../utils/colors';
-import { CURSOR_SHAPES, getCursorShape } from './constants/cursorShapes';
+import { CURSOR_SHAPES, getCursorShape, CursorShape } from './constants/cursorShapes';
 
 interface CursorSettingsModalProps {
   isOpen: boolean;
@@ -19,8 +19,11 @@ const PRESET_COLORS = [
   '#06b6d4', '#3b82f6', '#6366f1', '#a855f7', '#d946ef', '#f43f5e',
 ];
 
+// Animation preview that only animates when active (hovered or in viewport)
 const AnimationPreview: React.FC<{ style: string; color: string; size?: number; }> = React.memo(({ style, color, size = 60 }) => {
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
+  const [isActive, setIsActive] = useState(true); // Start active, pause after initial cycle
+  const initialCycleRef = useRef(true);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -28,8 +31,14 @@ const AnimationPreview: React.FC<{ style: string; color: string; size?: number; 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    // Only animate if active
+    if (!isActive && !initialCycleRef.current) {
+      return;
+    }
+
     let startTime = Date.now();
     let animationFrame: number;
+    let cycleCount = 0;
 
     const render = () => {
       const now = Date.now();
@@ -39,6 +48,12 @@ const AnimationPreview: React.FC<{ style: string; color: string; size?: number; 
       // Reset loop
       if (now - startTime > LOOP_DELAY) {
         startTime = now;
+        cycleCount++;
+        // After 1 initial cycle, stop animating unless hovered
+        if (cycleCount >= 1 && !isActive) {
+          initialCycleRef.current = false;
+          return;
+        }
       }
 
       const progress = Math.min(1, (now - startTime) / DURATION);
@@ -56,7 +71,84 @@ const AnimationPreview: React.FC<{ style: string; color: string; size?: number; 
 
         ctx.globalAlpha = 1 - easeOut;
 
-        if (style === 'burst') {
+        if (style === 'radar') {
+          // Radar Scan
+          ctx.rotate(progress * Math.PI * 4);
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.arc(0, 0, size / 2 * scale * 1.5, 0, Math.PI / 4);
+          ctx.lineTo(0, 0);
+          const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, size / 2 * scale * 1.5);
+          grad.addColorStop(0, color);
+          grad.addColorStop(1, 'transparent'); // adjustAlpha not avail here, imply opacity via color usually but here simple
+          ctx.fillStyle = color; // Simple fill for preview
+          ctx.globalAlpha = 0.5;
+          ctx.fill();
+          ctx.rotate(-progress * Math.PI * 4);
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 1;
+          ctx.globalAlpha = 1 - progress;
+          ctx.beginPath(); ctx.arc(0, 0, size / 2 * scale * 2 * progress, 0, Math.PI * 2); ctx.stroke();
+        } else if (style === 'beacon') {
+          const h = size / 2 * scale * 2 * easeOut;
+          ctx.globalAlpha = 1 - progress;
+          ctx.fillStyle = color;
+          ctx.beginPath(); ctx.arc(0, 0, 3, 0, Math.PI * 2); ctx.fill();
+          for (let i = 0; i < 4; i++) {
+            ctx.rotate(Math.PI / 2 * i + (progress * 2));
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(size / 2 * scale * 2, 0);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          }
+        } else if (style === 'target') {
+          const r = size / 2 * scale * 1.5 * (1 - easeOut);
+          ctx.globalAlpha = Math.min(1, easeOut * 2);
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2;
+          ctx.setLineDash([4, 2]);
+          ctx.beginPath(); ctx.arc(0, 0, Math.max(0, r), 0, Math.PI * 2); ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.beginPath();
+          ctx.moveTo(-size / 4, 0); ctx.lineTo(size / 4, 0);
+          ctx.moveTo(0, -size / 4); ctx.lineTo(0, size / 4);
+          ctx.stroke();
+        } else if (style === 'sonar') {
+          for (let i = 0; i < 3; i++) {
+            const waveProgress = (progress * 3 + i) % 3 / 3;
+            const r = size / 2 * scale * 2 * waveProgress;
+            ctx.globalAlpha = 1 - waveProgress;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
+          }
+        } else if (style === 'flare') {
+          ctx.globalAlpha = Math.pow(1 - progress, 5);
+          ctx.fillStyle = color;
+          ctx.beginPath(); ctx.arc(0, 0, size / 2 * scale * 2, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#FFFFFF';
+          ctx.beginPath(); ctx.arc(0, 0, 3, 0, Math.PI * 2); ctx.fill();
+        } else if (style === 'diamond') {
+          ctx.rotate(progress * Math.PI);
+          const r = size / 2 * scale * (1 + easeOut);
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 1;
+          ctx.globalAlpha = 1 - progress;
+          ctx.strokeRect(-r / 2, -r / 2, r, r);
+          ctx.rotate(Math.PI / 4);
+          ctx.strokeRect(-r / 2, -r / 2, r, r);
+        } else if (style === 'cross') {
+          const s = 1 + easeOut;
+          ctx.scale(s, s);
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = color;
+          ctx.globalAlpha = 1 - progress;
+          const len = size / 4;
+          ctx.beginPath();
+          ctx.moveTo(-len, -len); ctx.lineTo(len, len);
+          ctx.moveTo(len, -len); ctx.lineTo(-len, len);
+          ctx.stroke();
+        } else if (style === 'burst') {
           const maxR = size * scale;
           const currentR = maxR * easeOut;
           const lines = 8;
@@ -150,10 +242,46 @@ const AnimationPreview: React.FC<{ style: string; color: string; size?: number; 
 
     render();
     return () => cancelAnimationFrame(animationFrame);
-  }, [style, color, size]);
+  }, [style, color, size, isActive]);
 
-  return <canvas ref={canvasRef} width={size} height={size} className="bg-zinc-950/30 rounded-lg border border-zinc-800/50" />;
+  return (
+    <canvas
+      ref={canvasRef}
+      width={size}
+      height={size}
+      className="bg-zinc-950/30 rounded-lg border border-zinc-800/50 cursor-pointer"
+      onMouseEnter={() => { setIsActive(true); initialCycleRef.current = true; }}
+      onMouseLeave={() => setIsActive(false)}
+    />
+  );
 });
+
+// Memoized cursor shape button to prevent unnecessary re-renders
+const CursorShapeButton: React.FC<{
+  shape: CursorShape;
+  isSelected: boolean;
+  color: string;
+  onClick: () => void;
+  disabled?: boolean;
+}> = React.memo(({ shape, isSelected, color, onClick, disabled }) => (
+  <button
+    onClick={onClick}
+    disabled={disabled}
+    className={`aspect-square rounded transition-all flex items-center justify-center border overflow-hidden ${isSelected ? 'bg-primary/20 border-primary' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-600'
+      } ${disabled ? 'cursor-not-allowed' : ''}`}
+    title={shape.label}
+  >
+    {shape.Component ? (
+      <shape.Component color={isSelected ? color : '#71717a'} size={18} />
+    ) : shape.imageUrl ? (
+      <img src={shape.imageUrl} alt={shape.label} className="w-5 h-5 object-contain" />
+    ) : (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d={shape.path} fill={isSelected ? color : '#71717a'} />
+      </svg>
+    )}
+  </button>
+));
 
 
 export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen, onClose }) => {
@@ -161,18 +289,24 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
   const { user } = useAuth();
 
   // For self-editing
-  const [activeTab, setActiveTab] = useState<'general' | 'animations'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'animations' | 'ping'>('general');
   const [name, setName] = useState('');
   const [color, setColor] = useState('#fbbf24');
   const [shapeId, setShapeId] = useState('default');
   const [clickAnimation, setClickAnimation] = useState<'ripple' | 'burst' | 'sparkle' | 'pulse' | 'vortex' | 'shard' | 'ring' | 'echo' | 'orb'>('ripple');
   const [clickColorLeft, setClickColorLeft] = useState('#3b82f6');
   const [clickColorRight, setClickColorRight] = useState('#f59e0b');
+  const [pingColor, setPingColor] = useState('#fbbf24');
+  const [pingAnimation, setPingAnimation] = useState<'radar' | 'beacon' | 'sonar' | 'pulse' | 'target' | 'ripple' | 'flare' | 'diamond' | 'cross'>('radar');
 
   // For GM player management
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
-  const [activeOverrideTab, setActiveOverrideTab] = useState<'general' | 'animations'>('general');
-  const [localOverrides, setLocalOverrides] = useState<Record<string, { color?: string, shape?: string, name?: string; clickAnimation?: string; clickColorLeft?: string; clickColorRight?: string; }>>({});
+  const [activeOverrideTab, setActiveOverrideTab] = useState<'general' | 'animations' | 'ping'>('general');
+  const [localOverrides, setLocalOverrides] = useState<Record<string, {
+    color?: string, shape?: string, name?: string;
+    clickAnimation?: string; clickColorLeft?: string; clickColorRight?: string;
+    pingColor?: string; pingAnimation?: string;
+  }>>({});
 
   // Check permissions - use flat permissions with per-user override support
   const canChangeColor = isGM || (permissions?.cursorAllowColorChange ?? true);
@@ -180,9 +314,15 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
   const canChangeName = isGM || (permissions?.cursorAllowNameChange ?? true);
   const canChangeAnimation = isGM || (permissions?.cursorAllowAnimationChange ?? true);
   const canChangeAnimationColor = isGM || (permissions?.cursorAllowAnimationColorChange ?? true);
+  // Ping permissions (reuse animation permissions for simplicity or add new ones if strictly required, sticking to plan: reuse/mirror)
+  const canChangePing = isGM || (permissions?.cursorAllowAnimationChange ?? true); // Reusing logic as per conversation
 
   // Check if there's a GM override for current user
-  const myOverride = (permissions?.cursorOverrides?.[user?.id || ''] || {}) as { color?: string, shape?: string, name?: string; clickAnimation?: string; clickColorLeft?: string; clickColorRight?: string; };
+  const myOverride = (permissions?.cursorOverrides?.[user?.id || ''] || {}) as {
+    color?: string, shape?: string, name?: string;
+    clickAnimation?: string; clickColorLeft?: string; clickColorRight?: string;
+    pingColor?: string; pingAnimation?: string;
+  };
 
   // Determine effective values and lock status
   const isShapeOverridden = !!myOverride.shape;
@@ -191,6 +331,8 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
   const isAnimOverridden = !!myOverride.clickAnimation;
   const isLeftColorOverridden = !!myOverride.clickColorLeft;
   const isRightColorOverridden = !!myOverride.clickColorRight;
+  const isPingColorOverridden = !!myOverride.pingColor;
+  const isPingAnimOverridden = !!myOverride.pingAnimation;
 
   const canEditShape = (canChangeShape && !isShapeOverridden);
   const canEditName = (canChangeName && !isNameOverridden);
@@ -198,6 +340,8 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
   const canEditAnim = (canChangeAnimation && !isAnimOverridden);
   const canEditLeft = (canChangeAnimationColor && !isLeftColorOverridden);
   const canEditRight = (canChangeAnimationColor && !isRightColorOverridden);
+  const canEditPingColor = (canChangeColor && !isPingColorOverridden); // Reuse global color change permission? Or AnimColor? Let's use AnimColor for Ping Color
+  const canEditPingAnim = (canChangeAnimation && !isPingAnimOverridden);
 
   const effectiveShapeId = myOverride.shape || shapeId;
   const effectiveColor = myOverride.color || color;
@@ -205,6 +349,8 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
   const effectiveAnim = myOverride.clickAnimation || clickAnimation;
   const effectiveLeft = myOverride.clickColorLeft || clickColorLeft;
   const effectiveRight = myOverride.clickColorRight || clickColorRight;
+  const effectivePingColor = myOverride.pingColor || pingColor;
+  const effectivePingAnim = myOverride.pingAnimation || pingAnimation;
 
   // Filter players: exclude campaign owner (GM)
   const nonGMPlayers = players.filter(p => p.id !== campaign?.ownerId);
@@ -217,6 +363,8 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
       setClickAnimation(cursorSettings?.clickAnimation || 'ripple');
       setClickColorLeft(cursorSettings?.clickColorLeft || '#3b82f6');
       setClickColorRight(cursorSettings?.clickColorRight || '#f59e0b');
+      setPingColor(cursorSettings?.pingColor || cursorSettings?.color || '#fbbf24');
+      setPingAnimation(cursorSettings?.pingAnimation || 'radar');
       setLocalOverrides(permissions?.cursorOverrides || {});
       setSelectedPlayerId(null);
       setActiveTab('general');
@@ -243,7 +391,9 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
       name, color, shape: shapeId,
       clickAnimation,
       clickColorLeft,
-      clickColorRight
+      clickColorRight,
+      pingAnimation: pingAnimation as any,
+      pingColor
     });
     if (isGM) {
       updatePermissions({ cursorOverrides: localOverrides });
@@ -255,7 +405,7 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
   const currentOverride = selectedPlayerId ? (localOverrides[selectedPlayerId] || {}) : {};
   const selectedShape = getCursorShape(shapeId);
 
-  const updateOverride = (field: 'color' | 'shape' | 'name' | 'clickAnimation' | 'clickColorLeft' | 'clickColorRight', value: string | undefined) => {
+  const updateOverride = (field: 'color' | 'shape' | 'name' | 'clickAnimation' | 'clickColorLeft' | 'clickColorRight' | 'pingColor' | 'pingAnimation', value: string | undefined) => {
     if (!selectedPlayerId) return;
 
     const newOverrides = { ...localOverrides };
@@ -413,6 +563,12 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
                 >
                   Animações
                 </button>
+                <button
+                  onClick={() => setActiveTab('ping')}
+                  className={`flex-1 text-[10px] py-1 rounded transition-all ${activeTab === 'ping' ? 'bg-zinc-700 text-white shadow font-bold' : 'text-zinc-500 hover:text-zinc-300'}`}
+                >
+                  Ping
+                </button>
               </div>
 
               {/* Content: General */}
@@ -427,24 +583,14 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
                     </label>
                     <div className="grid grid-cols-9 gap-0.5">
                       {CURSOR_SHAPES.map(s => (
-                        <button
+                        <CursorShapeButton
                           key={s.id}
+                          shape={s}
+                          isSelected={effectiveShapeId === s.id}
+                          color={effectiveColor}
                           onClick={() => canEditShape && setShapeId(s.id)}
                           disabled={!canEditShape}
-                          className={`aspect-square rounded transition-all flex items-center justify-center border overflow-hidden ${effectiveShapeId === s.id ? 'bg-primary/20 border-primary' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-600'
-                            } ${!canEditShape ? 'cursor-not-allowed' : ''}`}
-                          title={s.label}
-                        >
-                          {s.Component ? (
-                            <s.Component color={effectiveShapeId === s.id ? effectiveColor : '#71717a'} size={18} />
-                          ) : s.imageUrl ? (
-                            <img src={s.imageUrl} alt={s.label} className="w-5 h-5 object-contain" />
-                          ) : (
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                              <path d={s.path} fill={effectiveShapeId === s.id ? effectiveColor : '#71717a'} />
-                            </svg>
-                          )}
-                        </button>
+                        />
                       ))}
                     </div>
                   </div>
@@ -597,6 +743,99 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
                 </div>
               )}
 
+              {/* Content: Ping */}
+              {activeTab === 'ping' && (
+                <div className="space-y-3 pt-1">
+
+                  {!canChangePing && (
+                    <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] px-2 py-1.5 rounded flex items-center gap-2">
+                      <Lock className="w-3 h-3" />
+                      <span>Configuração bloqueada pelo Mestre</span>
+                    </div>
+                  )}
+
+                  {/* Preview */}
+                  <div className="flex justify-center py-4 bg-zinc-950/50 rounded-lg border border-dashed border-zinc-800 relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-zinc-800/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="flex flex-col items-center gap-1">
+                      <AnimationPreview style={effectivePingAnim} color={effectivePingColor} size={100} />
+                      <span className="text-[9px] text-zinc-500">Visualização do Ping</span>
+                    </div>
+                  </div>
+
+                  {/* Style Selection */}
+                  <div>
+                    <label className={`text-[10px] font-medium text-muted-foreground mb-1 block ${!canEditPingAnim ? 'opacity-50' : ''} flex items-center gap-1`}>
+                      Estilo do Ping
+                      {isPingAnimOverridden && <><Crown className="w-3 h-3 text-amber-500" /><span className="text-amber-500">Definido pelo GM</span></>}
+                      {!canChangePing && !isPingAnimOverridden && <><Lock className="w-3 h-3 text-red-400" /><span className="text-red-400">Bloqueado</span></>}
+                    </label>
+                    <div className={`grid grid-cols-3 gap-2 ${!canEditPingAnim ? 'pointer-events-none opacity-50' : ''}`}>
+                      {[
+                        { id: 'radar', label: 'Radar', icon: Radio },
+                        { id: 'beacon', label: 'Beacon', icon: Zap },
+                        { id: 'sonar', label: 'Sonar', icon: Podcast },
+                        { id: 'pulse', label: 'Pulso', icon: Activity },
+                        { id: 'target', label: 'Alvo', icon: Target },
+                        { id: 'ripple', label: 'Ondas', icon: CircleDot },
+                        { id: 'flare', label: 'Clarão', icon: Sun },
+                        { id: 'diamond', label: 'Losango', icon: Triangle },
+                        { id: 'cross', label: 'Cruz', icon: Wind }, // Using Wind as placeholder for Cross/X
+                      ].map(type => (
+                        <button
+                          key={type.id}
+                          onClick={() => {
+                            if (canEditPingAnim) {
+                              setPingAnimation(type.id as any);
+                              handleLiveUpdate({ pingAnimation: type.id });
+                            }
+                          }}
+                          className={`flex flex-col items-center gap-1 p-2 rounded border transition-all ${effectivePingAnim === type.id
+                            ? 'bg-primary/20 border-primary text-white'
+                            : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-600'
+                            }`}
+                        >
+                          <type.icon className="w-4 h-4" />
+                          <span className="text-[10px]">{type.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Color Selection */}
+                  <div className={`mt-2 ${!canEditPingColor ? 'opacity-60 pointer-events-none' : ''}`}>
+                    <label className="text-[10px] font-medium text-muted-foreground mb-1 block flex items-center gap-1">
+                      Cor do Ping
+                      {isPingColorOverridden && <><Crown className="w-3 h-3 text-amber-500" /><span className="text-amber-500">Definido pelo GM</span></>}
+                    </label>
+                    <div className="flex items-center gap-1.5">
+                      <div className="grid grid-cols-12 gap-0.5 flex-1">
+                        {PRESET_COLORS.map(c => (
+                          <button
+                            key={c}
+                            onClick={() => { if (canEditPingColor) { setPingColor(c); handleLiveUpdate({ pingColor: c }); } }}
+                            className={`w-5 h-5 rounded-full transition-all flex items-center justify-center ${effectivePingColor === c ? 'ring-2 ring-white scale-110' : 'hover:scale-105 opacity-80 hover:opacity-100'
+                              }`}
+                            style={{ backgroundColor: c }}
+                          >
+                            {effectivePingColor === c && <Check className="w-2.5 h-2.5 text-white drop-shadow-md" />}
+                          </button>
+                        ))}
+                      </div>
+                      <input
+                        type="color"
+                        value={effectivePingColor}
+                        onChange={(e) => { if (canEditPingColor) { setPingColor(e.target.value); handleLiveUpdate({ pingColor: e.target.value }); } }}
+                        className="w-7 h-7 rounded cursor-pointer bg-transparent border border-zinc-700"
+                        title="Cor personalizada"
+                      />
+                    </div>
+                  </div>
+
+                </div>
+              )}
+
+
             </div>
           )}
 
@@ -629,6 +868,13 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
                 >
                   Animações
                   {currentOverride.clickAnimation && <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />}
+                </button>
+                <button
+                  onClick={() => setActiveOverrideTab('ping')}
+                  className={`flex-1 text-[10px] py-1 rounded transition-all flex items-center justify-center gap-1 ${activeOverrideTab === 'ping' ? 'bg-zinc-700 text-white shadow font-bold' : 'text-zinc-500 hover:text-zinc-300'}`}
+                >
+                  Ping
+                  {(currentOverride.pingAnimation || currentOverride.pingColor) && <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />}
                 </button>
               </div>
 
@@ -663,21 +909,13 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
                       <label className="text-[10px] font-medium text-muted-foreground mb-1 block">Formato</label>
                       <div className="grid grid-cols-9 gap-0.5">
                         {CURSOR_SHAPES.map(s => (
-                          <button
+                          <CursorShapeButton
                             key={s.id}
+                            shape={s}
+                            isSelected={currentOverride.shape === s.id}
+                            color={currentOverride.color || '#fbbf24'}
                             onClick={() => updateOverride('shape', currentOverride.shape === s.id ? undefined : s.id)}
-                            className={`aspect-square rounded transition-all flex items-center justify-center border ${currentOverride.shape === s.id ? 'bg-amber-500/20 border-amber-500' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-600'
-                              }`}
-                            title={s.label}
-                          >
-                            {s.Component ? (
-                              <s.Component color={currentOverride.shape === s.id ? (currentOverride.color || '#fbbf24') : '#71717a'} size={18} />
-                            ) : (
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                                <path d={s.path} fill={currentOverride.shape === s.id ? (currentOverride.color || '#fbbf24') : '#71717a'} />
-                              </svg>
-                            )}
-                          </button>
+                          />
                         ))}
                       </div>
                     </div>
@@ -767,6 +1005,51 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
                       <div className="flex items-center justify-between bg-zinc-900/50 p-1.5 rounded border border-zinc-800">
                         <span className="text-[9px] text-zinc-400">Dir.</span>
                         <ColorPicker value={currentOverride.clickColorRight || '#f59e0b'} onChange={(v) => updateOverride('clickColorRight', v)} />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeOverrideTab === 'ping' && (
+                  <div>
+                    <label className="text-[10px] font-medium text-muted-foreground mb-1 block">Animação de Ping e Cor</label>
+                    <div className="flex gap-2">
+                      {/* Tiny Preview */}
+                      <div className="shrink-0 pt-1">
+                        <AnimationPreview style={currentOverride.pingAnimation || 'radar'} color={currentOverride.pingColor || currentOverride.color || '#fbbf24'} size={40} />
+                      </div>
+                      {/* Grid */}
+                      <div className="flex-1 grid grid-cols-5 gap-1">
+                        {[
+                          { id: 'radar', label: 'Ra', icon: Radio },
+                          { id: 'beacon', label: 'Be', icon: Zap },
+                          { id: 'sonar', label: 'So', icon: Podcast },
+                          { id: 'pulse', label: 'Pu', icon: Activity },
+                          { id: 'target', label: 'Ta', icon: Target },
+                          { id: 'ripple', label: 'Ri', icon: CircleDot },
+                          { id: 'flare', label: 'Fl', icon: Sun },
+                          { id: 'diamond', label: 'Di', icon: Triangle },
+                          { id: 'cross', label: 'Cr', icon: Wind },
+                        ].map(type => (
+                          <button
+                            key={type.id}
+                            onClick={() => updateOverride('pingAnimation', currentOverride.pingAnimation === type.id ? undefined : type.id)}
+                            className={`aspect-square rounded transition-all flex items-center justify-center border ${currentOverride.pingAnimation === type.id
+                              ? 'bg-amber-500/20 border-amber-500 text-amber-500'
+                              : 'bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-600'
+                              }`}
+                            title={`Ping Animation: ${type.id}`}
+                          >
+                            <type.icon className="w-3 h-3" />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {/* Ping Color Override */}
+                    <div className="mt-2">
+                      <div className="flex items-center justify-between bg-zinc-900/50 p-1.5 rounded border border-zinc-800">
+                        <span className="text-[9px] text-zinc-400">Cor do Ping</span>
+                        <ColorPicker value={currentOverride.pingColor || currentOverride.color || '#fbbf24'} onChange={(v) => updateOverride('pingColor', v)} />
                       </div>
                     </div>
                   </div>

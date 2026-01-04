@@ -89,7 +89,9 @@ export const registerSceneListeners = ({
       y: payload.y,
       color: payload.color,
       createdAt: Date.now(),
-      userId: payload.userId
+      userId: payload.userId,
+      userName: payload.userName,
+      animationStyle: payload.animationStyle
     };
 
     setState(previousState => ({

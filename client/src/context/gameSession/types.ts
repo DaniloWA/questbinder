@@ -65,6 +65,9 @@ export interface GameSessionState {
     clickAnimation?: 'ripple' | 'burst' | 'sparkle' | 'pulse' | 'vortex' | 'shard' | 'ring' | 'echo' | 'orb';
     clickColorLeft?: string;
     clickColorRight?: string;
+    // Ping settings
+    pingColor?: string;
+    pingAnimation?: 'radar' | 'beacon' | 'sonar' | 'pulse' | 'target' | 'ripple' | 'flare' | 'diamond' | 'cross';
   };
   permissions: SessionPermissions;
   audioSettings: { playlists: Playlist[], soundboard: SoundEffect[]; };
@@ -191,7 +194,16 @@ export interface GameSessionContextType extends GameSessionState {
   updatePermissions: (perms: Partial<SessionPermissions>) => void;
   permissionHelper: PermissionHelper; // Global permission helper instance
   updateMapSettings: (settings: Partial<MapScene>) => void;
-  setCursorSettings: (settings: { color: string, name: string, shape?: string; }) => void;
+  setCursorSettings: (settings: {
+    color: string;
+    name: string;
+    shape?: string;
+    clickAnimation?: 'ripple' | 'burst' | 'sparkle' | 'pulse' | 'vortex' | 'shard' | 'ring' | 'echo' | 'orb';
+    clickColorLeft?: string;
+    clickColorRight?: string;
+    pingColor?: string;
+    pingAnimation?: 'radar' | 'beacon' | 'sonar' | 'pulse' | 'target' | 'ripple' | 'flare' | 'diamond' | 'cross';
+  }) => void;
 
   toggleGMViewMode: () => void;
   setPreviewPlayerId: (id: string | 'all') => void;

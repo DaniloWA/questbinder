@@ -159,6 +159,8 @@ export interface MapPingPayload {
   y: number;
   color: string;
   userId: string;
+  userName: string;
+  animationStyle?: 'radar' | 'beacon' | 'sonar' | 'pulse' | 'target' | 'ripple' | 'flare' | 'diamond' | 'cross';
 }
 
 export interface ChatMessagePayload {

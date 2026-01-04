@@ -381,6 +381,9 @@ export interface Viewport {
   zoom: number;
 }
 
+// Ping animation styles - distinct "radar ping" style animations
+export type PingAnimationType = 'radar' | 'beacon' | 'sonar' | 'pulse' | 'target' | 'ripple' | 'flare' | 'diamond' | 'cross';
+
 export interface Ping {
   id: string;
   x: number;
@@ -388,6 +391,8 @@ export interface Ping {
   color: string;
   createdAt: number;
   userId?: string;
+  userName?: string;
+  animationStyle?: PingAnimationType;
 }
 
 // --- COMBAT SYSTEM ---

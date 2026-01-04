@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { GameSessionState, BooleanPermissionKey } from '../types';
 import { socketService } from '../../../services/socketService';
+import { campaignService } from '../../../services/campaignService';
 import { SessionPermissions } from '../../../types';
 import { PermissionHelper } from '../helpers/PermissionHelper';
 
@@ -31,11 +32,18 @@ export const usePermissions = (
     setState(prev => ({ ...prev, permissions: newPerms }));
     console.log('[CLIENT] ✅ Local state updated');
 
-    console.log('[CLIENT] Emitting campaign:updatePermissions via WebSocket...');
-    socketService.emit('campaign:updatePermissions', {
-      campaignId: state.campaign?.id,
-      permissions: newPerms
+    console.log('[CLIENT] Emitting campaign:update via WebSocket for permissions...');
+    socketService.emit('campaign:update', {
+      changes: { permissions: newPerms }
     });
+
+    // Persist via API to ensure durability
+    if (state.campaign?.id) {
+      // Fire and forget (optimistic)
+      campaignService.updatePermissions(state.campaign.id, newPerms)
+        .catch(err => console.error('[CLIENT] Failed to persist permissions via API:', err));
+    }
+
     console.log('[CLIENT] ✅ WebSocket emit completed');
   };
 

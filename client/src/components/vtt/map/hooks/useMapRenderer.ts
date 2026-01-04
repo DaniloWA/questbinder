@@ -570,11 +570,183 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
       }
 
       pings.forEach(ping => {
-        const duration = 3000; const elapsed = Date.now() - ping.createdAt; const progress = Math.min(1, elapsed / duration);
+        const duration = 3000;
+        const elapsed = Date.now() - ping.createdAt;
+        const progress = Math.min(1, elapsed / duration);
         if (progress >= 1) return;
-        const easeOut = 1 - Math.pow(1 - progress, 3); const maxRadius = gridSize * 1.5;
-        ctx.save(); ctx.translate(ping.x, ping.y); ctx.globalAlpha = Math.max(0, 1 - progress * 1.5); ctx.beginPath(); ctx.arc(0, 0, (gridSize * 0.2) * (1 - progress * 0.5), 0, Math.PI * 2); ctx.fillStyle = ping.color; ctx.fill();
-        ctx.globalAlpha = 1; ctx.globalAlpha = (1 - progress); ctx.lineWidth = Math.max(0.5, (5 - progress * 4) / viewport.zoom); ctx.strokeStyle = ping.color; ctx.beginPath(); ctx.arc(0, 0, maxRadius * easeOut, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const style = ping.animationStyle || 'radar';
+        const color = ping.color;
+        const baseSize = gridSize;
+
+        ctx.save();
+        ctx.translate(ping.x, ping.y);
+
+        // --- PING ANIMATION RENDERING ---
+        if (style === 'radar') {
+          // Classic Radar Scan
+          ctx.rotate(progress * Math.PI * 4);
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.arc(0, 0, baseSize * 1.5, 0, Math.PI / 4);
+          ctx.lineTo(0, 0);
+          const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, baseSize * 1.5);
+          grad.addColorStop(0, adjustAlpha(color, 0.5));
+          grad.addColorStop(1, 'transparent');
+          ctx.fillStyle = grad;
+          ctx.fill();
+          // Rings
+          ctx.rotate(-progress * Math.PI * 4); // Reset rotation for rings
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2 / viewport.zoom;
+          ctx.globalAlpha = 1 - progress;
+          ctx.beginPath(); ctx.arc(0, 0, baseSize * progress * 2, 0, Math.PI * 2); ctx.stroke();
+          ctx.beginPath(); ctx.arc(0, 0, baseSize * progress * 1, 0, Math.PI * 2); ctx.stroke();
+        } else if (style === 'beacon') {
+          // Vertical Beacon (simulated top-down)
+          const h = baseSize * 2 * easeOut;
+          ctx.globalAlpha = 1 - progress;
+          ctx.fillStyle = color;
+          ctx.beginPath(); ctx.arc(0, 0, baseSize * 0.2, 0, Math.PI * 2); ctx.fill();
+          // Rays
+          for (let i = 0; i < 4; i++) {
+            ctx.rotate(Math.PI / 2 * i + (progress * 2));
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(baseSize * 2, 0);
+            ctx.strokeStyle = adjustAlpha(color, 0.5 * (1 - progress));
+            ctx.lineWidth = 4 / viewport.zoom;
+            ctx.stroke();
+          }
+        } else if (style === 'sonar') {
+          // Concatric waves
+          for (let i = 0; i < 3; i++) {
+            const waveProgress = (progress * 3 + i) % 3 / 3; // 0 to 1 loop
+            const r = baseSize * 2 * waveProgress;
+            ctx.globalAlpha = 1 - waveProgress;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2 / viewport.zoom;
+            ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
+          }
+        } else if (style === 'target') {
+          // Locking Target
+          const r = baseSize * 1.5 * (1 - easeOut); // Shrinking
+          ctx.globalAlpha = Math.min(1, easeOut * 2);
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 3 / viewport.zoom;
+          ctx.setLineDash([10 / viewport.zoom, 5 / viewport.zoom]);
+          ctx.beginPath(); ctx.arc(0, 0, Math.max(0, r), 0, Math.PI * 2); ctx.stroke();
+          // Crosshair
+          ctx.setLineDash([]);
+          ctx.beginPath();
+          ctx.moveTo(-baseSize / 2, 0); ctx.lineTo(baseSize / 2, 0);
+          ctx.moveTo(0, -baseSize / 2); ctx.lineTo(0, baseSize / 2);
+          ctx.stroke();
+        } else if (style === 'flare') {
+          // Bright flash
+          const decay = Math.pow(1 - progress, 5);
+          ctx.globalAlpha = decay;
+          const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, baseSize * 2);
+          grad.addColorStop(0, color);
+          grad.addColorStop(0.4, adjustAlpha(color, 0.2));
+          grad.addColorStop(1, 'transparent');
+          ctx.fillStyle = grad;
+          ctx.beginPath(); ctx.arc(0, 0, baseSize * 2, 0, Math.PI * 2); ctx.fill();
+          // Core
+          ctx.fillStyle = '#FFFFFF';
+          ctx.beginPath(); ctx.arc(0, 0, baseSize * 0.2, 0, Math.PI * 2); ctx.fill();
+        } else if (style === 'diamond') {
+          // Rotating squares
+          ctx.rotate(progress * Math.PI);
+          const r = baseSize * (1 + easeOut);
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2 / viewport.zoom;
+          ctx.globalAlpha = 1 - progress;
+          ctx.strokeRect(-r / 2, -r / 2, r, r);
+          ctx.rotate(Math.PI / 4);
+          ctx.strokeRect(-r / 2, -r / 2, r, r);
+        } else if (style === 'cross') {
+          // X Marks the spot
+          const scale = 1 + easeOut;
+          ctx.scale(scale, scale);
+          ctx.lineWidth = 4 / viewport.zoom;
+          ctx.strokeStyle = color;
+          ctx.globalAlpha = 1 - progress;
+          ctx.beginPath();
+          ctx.moveTo(-baseSize / 2, -baseSize / 2); ctx.lineTo(baseSize / 2, baseSize / 2);
+          ctx.moveTo(baseSize / 2, -baseSize / 2); ctx.lineTo(-baseSize / 2, baseSize / 2);
+          ctx.stroke();
+        } else {
+          // Default/Pulse (Fallback)
+          const maxRadius = gridSize * 1.5;
+          ctx.globalAlpha = Math.max(0, 1 - progress * 1.5);
+          ctx.beginPath();
+          ctx.arc(0, 0, (gridSize * 0.2) * (1 - progress * 0.5), 0, Math.PI * 2);
+          ctx.fillStyle = color;
+          ctx.fill();
+          ctx.globalAlpha = (1 - progress);
+          ctx.lineWidth = Math.max(0.5, (5 - progress * 4) / viewport.zoom);
+          ctx.strokeStyle = color;
+          ctx.beginPath();
+          ctx.arc(0, 0, maxRadius * easeOut, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        ctx.restore();
+
+        // --- NAME DISPLAY (Separate Restore to avoid rotation/scale effects) ---
+        if (ping.userName) {
+          const nameProgress = Math.min(1, elapsed / 1500); // 1.5s fade out separately
+          if (nameProgress < 1) {
+            const nameOpacity = 1 - Math.pow(nameProgress, 0.5); // Fast fade out at end
+
+            ctx.save();
+            ctx.translate(ping.x, ping.y);
+            ctx.translate(0, -baseSize * 1.5); // Above the ping
+
+            const fontSize = 12;
+            ctx.font = `bold ${fontSize / viewport.zoom}px "Inter", sans-serif`;
+            ctx.textBaseline = 'middle';
+            ctx.textAlign = 'center'; // Center text
+            const textMetrics = ctx.measureText(ping.userName);
+
+            const paddingX = 8 / viewport.zoom;
+            const paddingY = 4 / viewport.zoom;
+            const badgeH = (fontSize + 6) / viewport.zoom;
+            const badgeW = textMetrics.width + (paddingX * 2);
+
+            ctx.globalAlpha = nameOpacity;
+
+            // Background Badge
+            ctx.fillStyle = color;
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            ctx.shadowBlur = 4;
+
+            // Rounded Rect center
+            const x = -badgeW / 2;
+            const y = -badgeH / 2;
+            const r = 4 / viewport.zoom;
+
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + badgeW - r, y);
+            ctx.quadraticCurveTo(x + badgeW, y, x + badgeW, y + r);
+            ctx.lineTo(x + badgeW, y + badgeH - r);
+            ctx.quadraticCurveTo(x + badgeW, y + badgeH, x + badgeW - r, y + badgeH);
+            ctx.lineTo(x + r, y + badgeH);
+            ctx.quadraticCurveTo(x, y + badgeH, x, y + badgeH - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+            ctx.fill();
+
+            // Text
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = getContrastColor(color);
+            ctx.fillText(ping.userName, 0, 0);
+
+            ctx.restore();
+          }
+        }
       });
 
       // --- REMOTE CURSORS (New Design) ---
