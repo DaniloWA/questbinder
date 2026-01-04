@@ -58,6 +58,7 @@ export interface GameSessionState {
   isLoading: boolean;
 
   // Settings
+  cursorSettings: { color: string, name: string, shape?: string; };
   permissions: SessionPermissions;
   audioSettings: { playlists: Playlist[], soundboard: SoundEffect[]; };
 
@@ -183,6 +184,7 @@ export interface GameSessionContextType extends GameSessionState {
   updatePermissions: (perms: Partial<SessionPermissions>) => void;
   permissionHelper: PermissionHelper; // Global permission helper instance
   updateMapSettings: (settings: Partial<MapScene>) => void;
+  setCursorSettings: (settings: { color: string, name: string, shape?: string; }) => void;
 
   toggleGMViewMode: () => void;
   setPreviewPlayerId: (id: string | 'all') => void;

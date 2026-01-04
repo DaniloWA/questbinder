@@ -55,6 +55,7 @@ interface VTTToolbarProps {
     onToggleViewMode: () => void;
     onToggleGhostWalls?: () => void;
     onOpenPermissions?: () => void;
+    onOpenCursorSettings?: () => void;
 }
 
 const SubMenuPortal: React.FC<{
@@ -276,9 +277,16 @@ const MenuItem: React.FC<{
 };
 
 export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
-    const { permissionHelper, toggleVisionRanges, ui } = useGameSession();
+    const { permissionHelper, toggleVisionRanges, ui, permissions } = useGameSession();
+
+    // Check if all cursor permissions are disabled (for non-GM players)
+    const allCursorPermsDisabled = !permissionHelper.isGameMaster() &&
+        permissions?.cursorAllowColorChange === false &&
+        permissions?.cursorAllowShapeChange === false &&
+        permissions?.cursorAllowNameChange === false;
 
     const toolbarConfig = useMemo<ToolbarItemConfig[][]>(() => {
+
 
         const interactionGroup: ToolbarItemConfig[] = [
             { id: 'select', type: 'tool', label: 'Selecionar', icon: <MousePointer2 />, shortcut: 'V' },
@@ -293,6 +301,10 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                     { id: 'brush', type: 'tool', label: 'Pincel Livre', icon: <PenTool /> },
                     { id: 'eraser-drawing', type: 'tool', label: 'Apagar Desenhos', icon: <Eraser />, danger: true, hidden: !permissionHelper.canAsGMOr('drawingDelete') }
                 ]
+            },
+            {
+                id: 'cursor-settings', type: 'action', label: 'Cursores', icon: <MousePointer2 />, onClick: props.onOpenCursorSettings,
+                hidden: allCursorPermsDisabled
             }
         ];
 

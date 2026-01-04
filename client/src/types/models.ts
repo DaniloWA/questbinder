@@ -618,6 +618,14 @@ export interface PermissionSet {
   attackZoneCreate: boolean; // Criar zonas de ataque customizadas
   attackZoneUse: boolean;    // Usar templates de zonas de ataque
 
+  // Cursor Customization Permissions (flat for per-player overrides)
+  cursorAllowColorChange: boolean;   // Players can change their cursor color
+  cursorAllowShapeChange: boolean;   // Players can change their cursor shape
+  cursorAllowNameChange: boolean;    // Players can change their display name
+
+  // GM Cursor Overrides (per-player settings set by GM)
+  cursorOverrides: Record<string, { color?: string, shape?: string, name?: string; }>;
+
   // Privacidade
   shareCursor: boolean;
   allowSpectate: boolean;

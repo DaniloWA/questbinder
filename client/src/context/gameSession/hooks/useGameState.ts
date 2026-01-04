@@ -12,7 +12,18 @@ import { TokenTemplate } from '../../../types';
 
 export const useGameState = (campaignId: string) => {
   const { user } = useAuth();
-  const [state, setState] = useState<GameSessionState>(INITIAL_STATE);
+  const [state, setState] = useState<GameSessionState>(() => {
+    const savedCursor = localStorage.getItem('qb_cursor_settings');
+    const initialCursor = savedCursor ? JSON.parse(savedCursor) : {};
+    return {
+      ...INITIAL_STATE,
+      cursorSettings: {
+        color: initialCursor.color || '#fbbf24',
+        name: initialCursor.name || user?.name || '',
+        shape: initialCursor.shape || 'default'
+      }
+    };
+  });
   const [isCompendiumOpen, setIsCompendiumOpen] = useState(false);
 
   // Derived

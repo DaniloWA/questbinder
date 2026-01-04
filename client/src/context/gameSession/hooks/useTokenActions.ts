@@ -262,7 +262,17 @@ export const useTokenActions = (
   };
 
   const emitCursorMove = (x: number, y: number) => {
-    socketService.emit('cursor:move', { userId: user?.id || '', userName: user?.name || '?', userColor: '#fff', x, y });
+    const userId = user?.id || '';
+    const override = (state.permissions?.cursorOverrides?.[userId] || {}) as { color?: string, shape?: string, name?: string; };
+    const settings = state.cursorSettings || {};
+
+    socketService.emit('cursor:move', {
+      userId,
+      userName: override.name || settings.name || user?.name || '?',
+      userColor: override.color || settings.color || '#fbbf24',
+      userShape: override.shape || settings.shape || 'default',
+      x, y
+    });
   };
 
   return {

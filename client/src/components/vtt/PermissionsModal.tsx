@@ -48,6 +48,11 @@ const PERM_DEFINITIONS: { key: Exclude<keyof PermissionSet, 'userOverrides' | 'l
 
     // Admin
     { key: 'fogReveal', label: 'Revelar Neblina', desc: 'Remover neblina de guerra manualmente.', icon: <CloudFog className="w-4 h-4" /> },
+
+    // Cursor Customization
+    { key: 'cursorAllowColorChange', label: 'Alterar Cor do Cursor', desc: 'Jogadores podem mudar a cor do cursor.', icon: <MousePointer2 className="w-4 h-4" /> },
+    { key: 'cursorAllowShapeChange', label: 'Alterar Formato do Cursor', desc: 'Jogadores podem mudar o formato do cursor.', icon: <MousePointer2 className="w-4 h-4" /> },
+    { key: 'cursorAllowNameChange', label: 'Alterar Nome do Cursor', desc: 'Jogadores podem mudar o nome exibido no cursor.', icon: <Edit className="w-4 h-4" /> },
 ];
 
 const PRIVACY_PERMS: { key: 'shareCursor' | 'allowSpectate'; label: string; desc: string; icon: React.ReactNode; }[] = [

@@ -1,5 +1,6 @@
 import React from 'react';
-import { GameSessionState, VTTTool } from '../types';
+import { GameSessionState } from '../types';
+import { VTTTool } from '../../../types';
 
 export const useUiActions = (
   state: GameSessionState,
@@ -27,6 +28,11 @@ export const useUiActions = (
   const setDrawingAudioZone = (z: any) => setState(prev => ({ ...prev, drawingAudioZone: z }));
   const setDrawingTriggerZone = (z: any) => setState(prev => ({ ...prev, drawingTriggerZone: z }));
 
+  const setCursorSettings = (settings: { color: string, name: string; }) => {
+    setState(prev => ({ ...prev, cursorSettings: settings }));
+    localStorage.setItem('qb_cursor_settings', JSON.stringify(settings));
+  };
+
   return {
     toggleGMViewMode,
     setPreviewPlayerId,
@@ -45,6 +51,7 @@ export const useUiActions = (
     setDraftPolyPoints,
     setDrawingLightZone,
     setDrawingAudioZone,
-    setDrawingTriggerZone
+    setDrawingTriggerZone,
+    setCursorSettings
   };
 };

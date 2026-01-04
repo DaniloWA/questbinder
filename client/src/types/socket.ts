@@ -71,6 +71,7 @@ export interface CursorMovePayload {
   userId: string;
   userName: string;
   userColor: string;
+  userShape?: string;
   x: number; // World coordinates (not grid)
   y: number;
 }

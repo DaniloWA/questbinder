@@ -37,6 +37,7 @@ import { AttackZonePanel } from '../components/vtt/AttackZonePanel';
 import { AttackZoneConfigModal } from '../components/vtt/AttackZoneConfigModal';
 import { AttackZoneContextMenu } from '../components/vtt/AttackZoneContextMenu';
 import { useAttackZones } from '../context/gameSession/hooks/useAttackZones';
+import { CursorSettingsModal } from '../components/vtt/CursorSettingsModal';
 
 export const GameSessionView: React.FC = () => {
     const { params, navigateTo } = useNavigation();
@@ -137,6 +138,7 @@ const GameSessionUI: React.FC = () => {
     const { show } = useNotification();
 
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isCursorSettingsOpen, setIsCursorSettingsOpen] = useState(false);
     const [isPermissionsOpen, setIsPermissionsOpen] = useState(false);
     const [isHandoutTrayOpen, setIsHandoutTrayOpen] = useState(false);
     const [isCompendiumOpen, setIsCompendiumOpen] = useState(false);
@@ -541,6 +543,7 @@ const GameSessionUI: React.FC = () => {
                         onToggleDiceRoller={session.toggleDiceRoller}
                         isDiceRollerOpen={session.ui.isDiceRollerOpen}
                         onOpenSettings={() => setIsSettingsOpen(true)}
+                        onOpenCursorSettings={() => setIsCursorSettingsOpen(true)}
                         onStartCombat={() => setIsInitiativeRollerOpen(true)}
                         onEndCombat={session.endCombat}
                         onToggleViewMode={session.toggleGMViewMode}
@@ -768,6 +771,8 @@ const GameSessionUI: React.FC = () => {
                 isOpen={isInitiativeRollerOpen}
                 onClose={() => setIsInitiativeRollerOpen(false)}
             />
+
+            <CursorSettingsModal isOpen={isCursorSettingsOpen} onClose={() => setIsCursorSettingsOpen(false)} />
         </div>
     );
 };

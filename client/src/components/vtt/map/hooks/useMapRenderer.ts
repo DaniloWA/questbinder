@@ -9,6 +9,8 @@ import { renderAttackZones, renderPreviewZone } from '../../../../utils/attackZo
 import { calculateVisibilityPolygon, isPointInPolygon } from '../../../../utils/geometry';
 import { easeOutCubic, adjustAlpha } from '../utils';
 import { Token, Point, User } from '../../../../types';
+import { getContrastColor } from '../../../../utils/colors';
+import { getCursorShape } from '../../constants/cursorShapes';
 
 interface UseMapRendererProps extends MapCanvasProps {
   canvasRef: React.RefObject<HTMLCanvasElement>;
@@ -455,23 +457,24 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
         ctx.shadowOffsetX = 1;
         ctx.shadowOffsetY = 2;
 
-        // 1. Draw Cursor Arrow (Figma-style pointer)
-        // Scaled by 1/z to ensure constant screen size
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(6 / z, 18 / z); // Long tip
-        ctx.lineTo(10 / z, 11 / z); // Notch
-        ctx.lineTo(17 / z, 11 / z); // Wing
-        ctx.closePath();
+        // 1. Draw Cursor Shape
+        const shape = getCursorShape(cursor.userShape || 'default');
+        const p = new Path2D(shape.path);
+
+        ctx.save();
+        ctx.scale(1 / z, 1 / z); // Normalize to screen pixels
+        ctx.scale(shape.scale || 1, shape.scale || 1);
+        ctx.translate(-shape.hotspot.x, -shape.hotspot.y);
 
         ctx.fillStyle = color;
-        ctx.fill();
+        ctx.fill(p);
 
         // Stroke for contrast
         ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 1.5 / z;
+        ctx.lineWidth = 1.5;
         ctx.lineJoin = 'round';
-        ctx.stroke();
+        ctx.stroke(p);
+        ctx.restore();
 
         // 2. Draw Name Badge
         // Configure Font
@@ -509,7 +512,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
         ctx.fill();
 
         // Draw Name Text
-        ctx.fillStyle = '#FFFFFF'; // Always white text on colored badge
+        ctx.fillStyle = getContrastColor(color); // Dynamic contrast color
         ctx.fillText(cursor.userName, badgeX + paddingX, badgeY + (badgeHeight / 2));
 
         ctx.restore();

@@ -29,8 +29,16 @@ export const INITIAL_STATE: GameSessionState = {
   remoteCursors: {},
   isConnected: false,
   isLoading: true,
+  // Settings
+  cursorSettings: { color: '#fbbf24', name: '' },
   permissions: {
     tokenMovement: true,
+    tokenHover: {
+      enabled: true,
+      pc: { showName: true, showHP: true, showResource: true, showConditions: true, showStats: false, showAttributes: false },
+      npc: { showName: true, showHP: false, showResource: false, showConditions: true, showStats: false, showAttributes: false },
+      object: { showName: true, showConditions: true }
+    },
     doorControl: true,
     drawings: true,
     drawingDelete: false,
@@ -49,9 +57,13 @@ export const INITIAL_STATE: GameSessionState = {
     initiativeRoll: true,
     attackZoneCreate: false, // Criar zonas customizadas restrito ao GM
     attackZoneUse: true,     // Jogadores podem usar templates
+    cursorAllowColorChange: true,
+    cursorAllowShapeChange: true,
+    cursorAllowNameChange: true,
+    cursorOverrides: {},
     shareCursor: true,
     allowSpectate: true,
-    logConfig: { movement: 'public', combat: 'public', rolls: 'public', system: 'public' },
+    logConfig: { movement: 'public', combat: 'public', rolls: 'public', system: 'public', broadcastConditions: true },
     userOverrides: {}
   },
   audioSettings: { playlists: [], soundboard: [] },
