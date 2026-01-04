@@ -69,7 +69,11 @@ export const registerChatListeners = ({
         ...prev,
         chatMessages: prev.chatMessages.map(msg => {
           if (msg.id !== payload.messageId) return msg;
-          return msg;
+          // Merge reactions
+          return {
+            ...msg,
+            reactions: payload.reaction
+          };
         })
       }));
     }

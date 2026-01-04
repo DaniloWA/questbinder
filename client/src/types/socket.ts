@@ -167,8 +167,9 @@ export interface ChatMessagePayload {
 
 export interface ChatReactionPayload {
   messageId: string;
-  userId: string;
-  reactionType: 'like' | 'dislike';
+  reaction: any; // Record<string, ChatMessageReaction>;
+  userId?: string;
+  reactionType?: 'like' | 'dislike';
 }
 
 export interface SessionPermissionsPayload {

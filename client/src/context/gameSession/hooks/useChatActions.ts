@@ -19,7 +19,34 @@ export const useChatActions = (
 ) => {
   const activeScene = state.scenes.find(s => s.id === state.activeSceneId) || null;
 
-  const sendChatMessage = (content: string, type: any = 'message', rollDetails?: any, link?: any) => {
+  const sendChatMessage = (
+    content: string,
+    type: any = 'message',
+    rollDetails?: any,
+    link?: any,
+    options?: {
+      characterId?: string;
+      characterName?: string;
+      characterAvatarUrl?: string;
+      recipientId?: string;
+      recipientName?: string;
+    }
+  ) => {
+    const isPrivate = !!options?.recipientId;
+    const isPublic = !isPrivate;
+
+    // Check permissions
+    if (permissionHelper && !permissionHelper.isGameMaster()) {
+      if (isPublic && !permissionHelper.canAsGMOr('chatGlobalAllowed')) {
+        show({ type: 'warning', message: 'Você não pode enviar mensagens no chat global.' });
+        return;
+      }
+      if (isPrivate && !permissionHelper.canAsGMOr('chatPrivateAllowed')) {
+        show({ type: 'warning', message: 'Mensagens privadas estão desativadas pelo Mestre.' });
+        return;
+      }
+    }
+
     const msg: ChatMessage = {
       id: Date.now().toString(),
       campaignId: campaignId,
@@ -27,38 +54,78 @@ export const useChatActions = (
       senderName: user?.name || 'User',
       content,
       type,
-      visibility: 'public',
+      visibility: isPrivate ? 'private' : 'public',
       timestamp: Date.now(),
       rollDetails,
-      link
+      link,
+      characterId: options?.characterId,
+      characterName: options?.characterName,
+      characterAvatarUrl: options?.characterAvatarUrl,
+      recipientId: options?.recipientId,
+      recipientName: options?.recipientName,
     };
 
-    chatService.sendMessage(campaignId, user?.id || '', user?.name || 'User', content, type, rollDetails, link);
+    chatService.sendMessage(
+      campaignId,
+      user?.id || '',
+      user?.name || 'User',
+      content,
+      type,
+      rollDetails,
+      link,
+      msg.visibility,
+      {
+        characterId: msg.characterId,
+        characterName: msg.characterName,
+        characterAvatarUrl: msg.characterAvatarUrl,
+        recipientId: msg.recipientId,
+        recipientName: msg.recipientName
+      }
+    );
     setState(prev => ({ ...prev, chatMessages: [...prev.chatMessages, msg] }));
     socketService.emit('chat:message', { message: msg });
   };
 
   const toggleChatReaction = async (msg: ChatMessage, type: 'like' | 'dislike') => {
-    if (!user) return;
-    // Optimistic update
-    const updatedMsgs = state.chatMessages.map(m => {
-      if (m.id !== msg.id) return m;
-      const reactions = m.reactions || {};
-      const current = reactions[type] || { type, count: 0, users: [] };
-      let newUsers = [...current.users];
-      let newCount = current.count;
-      if (newUsers.includes(user.id)) {
-        newUsers = newUsers.filter(u => u !== user.id);
-        newCount--;
-      } else {
-        newUsers.push(user.id);
-        newCount++;
-      }
-      return { ...m, reactions: { ...reactions, [type]: { ...current, count: newCount, users: newUsers } } };
+    // Get latest version of message from state to avoid stale closure
+    const latestMsg = state.chatMessages.find(m => m.id === msg.id) || msg;
+
+    const reactions = latestMsg.reactions || {};
+    const current = reactions[type] || { type, count: 0, users: [] };
+
+    let newUsers = [...current.users];
+    let newCount = current.count;
+
+    if (newUsers.includes(user?.id || '')) {
+      newUsers = newUsers.filter(id => id !== user?.id);
+      newCount = Math.max(0, newCount - 1);
+    } else {
+      newUsers.push(user?.id || '');
+      newCount++;
+    }
+
+    const newReactions = {
+      ...reactions,
+      [type]: { ...current, count: newCount, users: newUsers }
+    };
+
+    // Optimistic Update
+    setState(prev => ({
+      ...prev,
+      chatMessages: prev.chatMessages.map(m => m.id === msg.id ? { ...m, reactions: newReactions } : m)
+    }));
+
+    // Emit socket event for others
+    socketService.emit('chat:reaction', {
+      messageId: msg.id,
+      reaction: newReactions
     });
 
-    setState(prev => ({ ...prev, chatMessages: updatedMsgs }));
-    await chatService.toggleReaction(msg, user.id, type);
+    try {
+      await chatService.toggleReaction(msg, user?.id || '', type);
+    } catch (err) {
+      console.error('Failed to toggle reaction:', err);
+    }
   };
 
   const broadcastRoll = (result: RollResult) => {

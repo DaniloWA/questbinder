@@ -10,6 +10,11 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',
       watch: {
         usePolling: true,
+        interval: 100,
+      },
+      hmr: {
+        host: 'localhost',
+        clientPort: 5173,
       }
     },
     plugins: [react()],

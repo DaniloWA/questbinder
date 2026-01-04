@@ -139,7 +139,7 @@ export interface GameSessionContextType extends GameSessionState {
   getCombatStats: () => any;
   exportCombatLog: () => string;
 
-  sendChatMessage: (content: string, type?: 'message' | 'roll' | 'system', rollDetails?: any, link?: ChatLinkMetadata) => void;
+  sendChatMessage: (content: string, type?: 'message' | 'roll' | 'system', rollDetails?: any, link?: ChatLinkMetadata, options?: { characterId?: string; characterName?: string; characterAvatarUrl?: string; recipientId?: string; recipientName?: string; }) => void;
   toggleChatReaction: (msg: ChatMessage, type: 'like' | 'dislike') => void;
   handleChatLinkClick: (link: ChatLinkMetadata) => void;
 

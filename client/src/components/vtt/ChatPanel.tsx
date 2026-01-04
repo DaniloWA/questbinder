@@ -4,15 +4,15 @@ import { createPortal } from 'react-dom';
 import { useGameSession } from '../../context/GameSessionContext';
 import { useAuth } from '../../context/AuthContext';
 import { ChatMessage, ChatLinkMetadata } from '../../types';
-import { Send, Dices, MapPin, User, Sword, Zap, Backpack, ThumbsUp, ThumbsDown, ChevronDown, MessageSquare, ExternalLink, Maximize2, Minimize2, X, Move, GripHorizontal, ArrowRightToLine, MonitorPlay, EyeOff, Hash } from 'lucide-react';
+import { Send, Dices, MapPin, User, Sword, Zap, Backpack, ThumbsUp, ThumbsDown, ChevronDown, MessageSquare, ExternalLink, Maximize2, Minimize2, X, Move, GripHorizontal, ArrowRightToLine, MonitorPlay, EyeOff, Hash, Lock, UserPlus } from 'lucide-react';
 import { Tooltip } from '../ui/Tooltip';
 
 // --- RICH LINK CARD COMPONENT (Unchanged logic, kept for completeness) ---
-const RichLinkCard: React.FC<{ link: ChatLinkMetadata; onClick: () => void }> = ({ link, onClick }) => {
+const RichLinkCard: React.FC<{ link: ChatLinkMetadata; onClick: () => void; }> = ({ link, onClick }) => {
     // ... (RichLinkCard content unchanged)
     const [isExpanded, setIsExpanded] = useState(false);
     const { type, data, label } = link;
-    
+
     if (!data) return null;
 
     const config = {
@@ -60,263 +60,426 @@ const RichLinkCard: React.FC<{ link: ChatLinkMetadata; onClick: () => void }> = 
                 {renderDetails()}
                 {data.description && (<div className={`text-[10px] text-zinc-400 leading-relaxed cursor-pointer break-words ${isExpanded ? '' : 'line-clamp-2 hover:text-zinc-300'}`} onClick={() => setIsExpanded(!isExpanded)}>{data.description}</div>)}
                 <div className="mt-2 pt-2 border-t border-white/5 flex justify-end">
-                     <button onClick={(e) => { e.stopPropagation(); onClick(); }} className={`flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider hover:underline ${config.accent}`}>{type === 'attack' ? 'Rolar Ataque' : 'Ver Detalhes'} <ExternalLink className="w-2.5 h-2.5" /></button>
+                    <button onClick={(e) => { e.stopPropagation(); onClick(); }} className={`flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider hover:underline ${config.accent}`}>{type === 'attack' ? 'Rolar Ataque' : 'Ver Detalhes'} <ExternalLink className="w-2.5 h-2.5" /></button>
                 </div>
             </div>
         </div>
     );
-}
+};
 
 export type ChatViewMode = 'sidebar' | 'floating' | 'fullscreen';
 
 interface ChatPanelProps {
-    onModeChange?: (mode: ChatViewMode) => void; 
+    onModeChange?: (mode: ChatViewMode) => void;
 }
 
 export const ChatPanel: React.FC<ChatPanelProps> = ({ onModeChange }) => {
-  const { chatMessages, sendChatMessage, toggleChatReaction, handleChatLinkClick, campaignCharacters, isGM } = useGameSession();
-  const { user } = useAuth();
-  
-  const [inputText, setInputText] = useState('');
-  const [speakingAs, setSpeakingAs] = useState<'player' | string>('player');
-  const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
-  const [viewMode, setViewMode] = useState<ChatViewMode>('sidebar');
-  
-  // Floating Window State
-  const [position, setPosition] = useState({ x: 100, y: 100 });
-  const [size, setSize] = useState({ w: 400, h: 600 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [isResizing, setIsResizing] = useState(false);
-  
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const endRef = useRef<HTMLDivElement>(null);
-  const dragStartRef = useRef({ x: 0, y: 0 });
-  const resizeStartRef = useRef({ x: 0, y: 0, w: 0, h: 0 });
+    const { chatMessages, sendChatMessage, toggleChatReaction, handleChatLinkClick, campaignCharacters, isGM, permissions, players } = useGameSession();
+    const { user } = useAuth();
 
-  const myCharacter = campaignCharacters.find(c => c.ownerId === user?.id);
+    const [inputText, setInputText] = useState('');
+    const [speakingAs, setSpeakingAs] = useState<'player' | string>('player');
+    const [whisperTo, setWhisperTo] = useState<string | null>(null); // userId or null for public
+    const [showWhisperMenu, setShowWhisperMenu] = useState(false);
+    const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
+    const [viewMode, setViewMode] = useState<ChatViewMode>('sidebar');
 
-  // Sync mode with parent
-  useEffect(() => {
-      if (onModeChange) onModeChange(viewMode);
-  }, [viewMode, onModeChange]);
+    // Floating Window State
+    const [position, setPosition] = useState({ x: 100, y: 100 });
+    const [size, setSize] = useState({ w: 400, h: 600 });
+    const [isDragging, setIsDragging] = useState(false);
+    const [isResizing, setIsResizing] = useState(false);
 
-  // Initial Position for floating
-  useEffect(() => {
-      if (viewMode === 'floating' && position.x === 100) {
-          // Center initially
-          setPosition({ x: window.innerWidth / 2 - 200, y: window.innerHeight / 2 - 300 });
-      }
-  }, [viewMode]);
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const endRef = useRef<HTMLDivElement>(null);
+    const dragStartRef = useRef({ x: 0, y: 0 });
+    const resizeStartRef = useRef({ x: 0, y: 0, w: 0, h: 0 });
+    const whisperMenuRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll logic
-  useEffect(() => {
-    if (isScrolledToBottom) {
-      endRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [chatMessages, isScrolledToBottom, viewMode]);
+    const myCharacter = campaignCharacters.find(c => c.ownerId === user?.id);
 
-  // --- DRAG & RESIZE LOGIC ---
-  useEffect(() => {
-      const handleMouseMove = (e: MouseEvent) => {
-          if (isDragging) {
-              e.preventDefault();
-              let newX = e.clientX - dragStartRef.current.x;
-              let newY = e.clientY - dragStartRef.current.y;
-              newX = Math.max(-100, Math.min(newX, window.innerWidth - 50));
-              newY = Math.max(0, Math.min(newY, window.innerHeight - 50));
-              setPosition({ x: newX, y: newY });
-          }
-          if (isResizing) {
-              e.preventDefault();
-              const dx = e.clientX - resizeStartRef.current.x;
-              const dy = e.clientY - resizeStartRef.current.y;
-              setSize({ w: Math.max(300, resizeStartRef.current.w + dx), h: Math.max(400, resizeStartRef.current.h + dy) });
-          }
-      };
-      const handleMouseUp = () => { setIsDragging(false); setIsResizing(false); };
-      if (isDragging || isResizing) { document.addEventListener('mousemove', handleMouseMove); document.addEventListener('mouseup', handleMouseUp); }
-      return () => { document.removeEventListener('mousemove', handleMouseMove); document.removeEventListener('mouseup', handleMouseUp); };
-  }, [isDragging, isResizing]);
+    // Check chat permissions
+    const canChatGlobal = isGM || (permissions?.chatGlobalAllowed ?? true);
+    const canChatPrivate = isGM || (permissions?.chatPrivateAllowed ?? true);
 
-  const startDrag = (e: React.MouseEvent) => { if (viewMode !== 'floating') return; if ((e.target as HTMLElement).closest('button')) return; setIsDragging(true); dragStartRef.current = { x: e.clientX - position.x, y: e.clientY - position.y }; };
-  const startResize = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); setIsResizing(true); resizeStartRef.current = { x: e.clientX, y: e.clientY, w: size.w, h: size.h }; };
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (whisperMenuRef.current && !whisperMenuRef.current.contains(event.target as Node)) {
+                setShowWhisperMenu(false);
+            }
+        };
+        if (showWhisperMenu) document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showWhisperMenu]);
 
-  // --- HANDLERS ---
-  const handleScroll = () => { if (!scrollRef.current) return; const { scrollTop, scrollHeight, clientHeight } = scrollRef.current; setIsScrolledToBottom(scrollHeight - scrollTop - clientHeight < 100); };
-  const handleSend = (e?: React.FormEvent) => { e?.preventDefault(); if (!inputText.trim()) return; let type: 'message' | 'system' = 'message'; let content = inputText; let senderName = user?.name || 'Anon'; if (speakingAs !== 'player' && myCharacter && !content.startsWith('/')) { senderName = myCharacter.name; } sendChatMessage(content, type); setInputText(''); };
-  const formatTime = (timestamp: number) => { return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); };
+    // Sync mode with parent
+    useEffect(() => {
+        if (onModeChange) onModeChange(viewMode);
+    }, [viewMode, onModeChange]);
 
-  const groupedMessages = chatMessages.reduce((acc, msg, index) => {
-      const prevMsg = chatMessages[index - 1];
-      const isSameSender = prevMsg && prevMsg.senderId === msg.senderId && prevMsg.senderName === msg.senderName && prevMsg.type === msg.type && (msg.timestamp - prevMsg.timestamp < 60000); 
-      if (isSameSender) acc[acc.length - 1].push(msg); else acc.push([msg]);
-      return acc;
-  }, [] as ChatMessage[][]);
+    // Initial Position for floating
+    useEffect(() => {
+        if (viewMode === 'floating' && position.x === 100) {
+            // Center initially
+            setPosition({ x: window.innerWidth / 2 - 200, y: window.innerHeight / 2 - 300 });
+        }
+    }, [viewMode]);
 
-  const renderLink = (link: ChatLinkMetadata) => {
-      if (['item', 'spell', 'attack', 'feature'].includes(link.type) && link.data) return <RichLinkCard link={link} onClick={() => handleChatLinkClick(link)} />;
-      const iconMap: any = { token: <User className="w-3 h-3" />, position: <MapPin className="w-3 h-3" /> };
-      const styles: any = { token: 'border-blue-500/30 bg-blue-500/5 text-blue-300 hover:bg-blue-500/10 hover:border-blue-500/50', position: 'border-amber-500/30 bg-amber-500/5 text-amber-300 hover:bg-amber-500/10 hover:border-amber-500/50' };
-      return <button onClick={() => handleChatLinkClick(link)} className={`mt-2 flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-medium transition-all w-fit shadow-sm max-w-full truncate ${styles[link.type] || 'border-zinc-700 bg-zinc-800 text-zinc-300'}`}>{iconMap[link.type]} <span className="truncate">{link.type === 'position' ? `Ir para ${link.label}` : link.label}</span></button>;
-  };
+    // Auto-scroll logic
+    useEffect(() => {
+        if (isScrolledToBottom) {
+            endRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [chatMessages, isScrolledToBottom, viewMode]);
 
-  const renderRoll = (msg: ChatMessage) => {
-      if (!msg.rollDetails) return null;
-      
-      const { visibility = 'public' } = msg.rollDetails;
-      const isMe = msg.senderId === user?.id;
-      const canSee = visibility === 'public' || isGM || isMe;
-      const isObfuscated = visibility === 'total';
+    // --- DRAG & RESIZE LOGIC ---
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            if (isDragging) {
+                e.preventDefault();
+                let newX = e.clientX - dragStartRef.current.x;
+                let newY = e.clientY - dragStartRef.current.y;
+                newX = Math.max(-100, Math.min(newX, window.innerWidth - 50));
+                newY = Math.max(0, Math.min(newY, window.innerHeight - 50));
+                setPosition({ x: newX, y: newY });
+            }
+            if (isResizing) {
+                e.preventDefault();
+                const dx = e.clientX - resizeStartRef.current.x;
+                const dy = e.clientY - resizeStartRef.current.y;
+                setSize({ w: Math.max(300, resizeStartRef.current.w + dx), h: Math.max(400, resizeStartRef.current.h + dy) });
+            }
+        };
+        const handleMouseUp = () => { setIsDragging(false); setIsResizing(false); };
+        if (isDragging || isResizing) { document.addEventListener('mousemove', handleMouseMove); document.addEventListener('mouseup', handleMouseUp); }
+        return () => { document.removeEventListener('mousemove', handleMouseMove); document.removeEventListener('mouseup', handleMouseUp); };
+    }, [isDragging, isResizing]);
 
-      if (!canSee && !isObfuscated) {
-          return (
-              <div className="p-3 rounded-lg border bg-zinc-900/50 border-zinc-800 flex items-center gap-2 text-zinc-500 italic text-xs">
-                  <EyeOff className="w-4 h-4" /> Rolagem Oculta (GM)
-              </div>
-          );
-      }
+    const startDrag = (e: React.MouseEvent) => { if (viewMode !== 'floating') return; if ((e.target as HTMLElement).closest('button')) return; setIsDragging(true); dragStartRef.current = { x: e.clientX - position.x, y: e.clientY - position.y }; };
+    const startResize = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); setIsResizing(true); resizeStartRef.current = { x: e.clientX, y: e.clientY, w: size.w, h: size.h }; };
 
-      return (
-        <div className={`relative p-3 rounded-lg border shadow-sm overflow-hidden w-full ${msg.rollDetails.isCritical ? 'bg-yellow-950/20 border-yellow-500/40 shadow-[0_0_10px_rgba(234,179,8,0.1)]' : msg.rollDetails.isFumble ? 'bg-red-950/20 border-red-500/40' : 'bg-zinc-800/50 border-zinc-700'}`}>
-            <div className="flex items-center justify-between gap-2 mb-2 border-b border-white/5 pb-2">
-                <span className="font-bold text-xs text-zinc-300 truncate">{msg.rollDetails.label || 'Rolagem'}</span>
-                <div className="flex gap-1">
-                    {visibility === 'gm' && <EyeOff className="w-3 h-3 text-purple-400" />}
-                    {visibility === 'total' && <Hash className="w-3 h-3 text-amber-400" />}
-                    <Dices className={`w-3 h-3 shrink-0 ${msg.rollDetails.isCritical ? 'text-yellow-400' : msg.rollDetails.isFumble ? 'text-red-400' : 'text-zinc-500'}`} />
+    // --- HANDLERS ---
+    const handleScroll = () => { if (!scrollRef.current) return; const { scrollTop, scrollHeight, clientHeight } = scrollRef.current; setIsScrolledToBottom(scrollHeight - scrollTop - clientHeight < 100); };
+
+    const handleSend = (e?: React.FormEvent) => {
+        e?.preventDefault();
+        if (!inputText.trim()) return;
+
+        const type: 'message' | 'system' = 'message';
+        const content = inputText;
+        const recipient = whisperTo ? players.find(p => p.id === whisperTo) : null;
+
+        // Build character options if speaking as character
+        const options = {
+            characterId: speakingAs !== 'player' && myCharacter ? myCharacter.id : undefined,
+            characterName: speakingAs !== 'player' && myCharacter ? myCharacter.name : undefined,
+            characterAvatarUrl: speakingAs !== 'player' && myCharacter ? myCharacter.avatarUrl : undefined,
+            recipientId: recipient?.id,
+            recipientName: recipient?.name,
+        };
+
+        sendChatMessage(content, type, undefined, undefined, options);
+        setInputText('');
+    };
+
+    const formatTime = (timestamp: number) => { return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); };
+
+    // Filter messages: public, or I'm sender/recipient, or I'm GM
+    const visibleMessages = chatMessages.filter(msg => {
+        if (msg.visibility === 'public') return true;
+        if (isGM) return true; // GM sees all
+        if (msg.senderId === user?.id) return true; // I sent it
+        if (msg.recipientId === user?.id) return true; // It's for me
+        return false;
+    });
+
+    const groupedMessages = visibleMessages.reduce((acc, msg, index) => {
+        const prevMsg = visibleMessages[index - 1];
+        const isSameSender = prevMsg && prevMsg.senderId === msg.senderId && prevMsg.senderName === msg.senderName && prevMsg.type === msg.type && (msg.timestamp - prevMsg.timestamp < 60000) && prevMsg.recipientId === msg.recipientId;
+        if (isSameSender) acc[acc.length - 1].push(msg); else acc.push([msg]);
+        return acc;
+    }, [] as ChatMessage[][]);
+
+    const renderLink = (link: ChatLinkMetadata) => {
+        if (['item', 'spell', 'attack', 'feature'].includes(link.type) && link.data) return <RichLinkCard link={link} onClick={() => handleChatLinkClick(link)} />;
+        const iconMap: any = { token: <User className="w-3 h-3" />, position: <MapPin className="w-3 h-3" /> };
+        const styles: any = { token: 'border-blue-500/30 bg-blue-500/5 text-blue-300 hover:bg-blue-500/10 hover:border-blue-500/50', position: 'border-amber-500/30 bg-amber-500/5 text-amber-300 hover:bg-amber-500/10 hover:border-amber-500/50' };
+        return <button onClick={() => handleChatLinkClick(link)} className={`mt-2 flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-medium transition-all w-fit shadow-sm max-w-full truncate ${styles[link.type] || 'border-zinc-700 bg-zinc-800 text-zinc-300'}`}>{iconMap[link.type]} <span className="truncate">{link.type === 'position' ? `Ir para ${link.label}` : link.label}</span></button>;
+    };
+
+    const renderRoll = (msg: ChatMessage) => {
+        if (!msg.rollDetails) return null;
+
+        const { visibility = 'public' } = msg.rollDetails;
+        const isMe = msg.senderId === user?.id;
+        const canSee = visibility === 'public' || isGM || isMe;
+        const isObfuscated = visibility === 'total';
+
+        if (!canSee && !isObfuscated) {
+            return (
+                <div className="p-3 rounded-lg border bg-zinc-900/50 border-zinc-800 flex items-center gap-2 text-zinc-500 italic text-xs">
+                    <EyeOff className="w-4 h-4" /> Rolagem Oculta (GM)
                 </div>
-            </div>
-            
-            <div className="flex justify-between items-end gap-2">
-                {isObfuscated && !isGM && !isMe ? (
-                    <div className="text-[10px] text-zinc-600 font-mono italic flex-1">Detalhes ocultos...</div>
-                ) : (
-                    <div className="text-[10px] text-zinc-500 font-mono truncate opacity-70 flex-1" title={msg.rollDetails.breakdown}>{msg.rollDetails.formula}</div>
+            );
+        }
+
+        return (
+            <div className={`relative p-3 rounded-lg border shadow-sm overflow-hidden w-full ${msg.rollDetails.isCritical ? 'bg-yellow-950/20 border-yellow-500/40 shadow-[0_0_10px_rgba(234,179,8,0.1)]' : msg.rollDetails.isFumble ? 'bg-red-950/20 border-red-500/40' : 'bg-zinc-800/50 border-zinc-700'}`}>
+                <div className="flex items-center justify-between gap-2 mb-2 border-b border-white/5 pb-2">
+                    <span className="font-bold text-xs text-zinc-300 truncate">{msg.rollDetails.label || 'Rolagem'}</span>
+                    <div className="flex gap-1">
+                        {visibility === 'gm' && <EyeOff className="w-3 h-3 text-purple-400" />}
+                        {visibility === 'total' && <Hash className="w-3 h-3 text-amber-400" />}
+                        <Dices className={`w-3 h-3 shrink-0 ${msg.rollDetails.isCritical ? 'text-yellow-400' : msg.rollDetails.isFumble ? 'text-red-400' : 'text-zinc-500'}`} />
+                    </div>
+                </div>
+
+                <div className="flex justify-between items-end gap-2">
+                    {isObfuscated && !isGM && !isMe ? (
+                        <div className="text-[10px] text-zinc-600 font-mono italic flex-1">Detalhes ocultos...</div>
+                    ) : (
+                        <div className="text-[10px] text-zinc-500 font-mono truncate opacity-70 flex-1" title={msg.rollDetails.breakdown}>{msg.rollDetails.formula}</div>
+                    )}
+
+                    <div className={`text-2xl font-black font-mono leading-none ${msg.rollDetails.isCritical ? 'text-yellow-400 animate-pulse' : msg.rollDetails.isFumble ? 'text-red-500' : 'text-white'}`}>
+                        {msg.rollDetails.total}
+                    </div>
+                </div>
+
+                {isObfuscated && !isGM && !isMe && (
+                    <div className="absolute inset-0 bg-black/10 pointer-events-none"></div>
                 )}
-                
-                <div className={`text-2xl font-black font-mono leading-none ${msg.rollDetails.isCritical ? 'text-yellow-400 animate-pulse' : msg.rollDetails.isFumble ? 'text-red-500' : 'text-white'}`}>
-                    {msg.rollDetails.total}
-                </div>
             </div>
-            
-            {isObfuscated && !isGM && !isMe && (
-                <div className="absolute inset-0 bg-black/10 pointer-events-none"></div>
-            )}
-        </div>
-      );
-  };
+        );
+    };
 
-  // --- CONTENT RENDERER ---
-  const renderContent = () => (
-    <div className={`flex flex-col h-full relative ${viewMode === 'floating' ? 'bg-zinc-950/95 backdrop-blur-md' : 'bg-zinc-950'}`}>
-        
-        {/* HEADER */}
-        <div 
-            className={`
+    // --- CONTENT RENDERER ---
+    const renderContent = () => (
+        <div className={`flex flex-col h-full relative ${viewMode === 'floating' ? 'bg-zinc-950/95 backdrop-blur-md' : 'bg-zinc-950'}`}>
+
+            {/* HEADER */}
+            <div
+                className={`
                 flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0 select-none
                 ${viewMode === 'floating' ? 'cursor-grab active:cursor-grabbing bg-zinc-900/80' : 'bg-zinc-900/50'}
             `}
-            onMouseDown={startDrag}
-        >
-            <div className="flex items-center gap-2 text-zinc-300">
-                {viewMode === 'floating' && <Move className="w-4 h-4 opacity-50 mr-1" />}
-                <MessageSquare className="w-4 h-4" />
-                <span className="font-bold font-fantasy tracking-wider text-sm">Chat da Campanha</span>
+                onMouseDown={startDrag}
+            >
+                <div className="flex items-center gap-2 text-zinc-300">
+                    {viewMode === 'floating' && <Move className="w-4 h-4 opacity-50 mr-1" />}
+                    <MessageSquare className="w-4 h-4" />
+                    <span className="font-bold font-fantasy tracking-wider text-sm">Chat da Campanha (v3)</span>
+                </div>
+
+                <div className="flex items-center gap-1">
+                    {viewMode !== 'sidebar' && <Tooltip content="Acoplar na Barra"><button onClick={() => setViewMode('sidebar')} className="p-1.5 hover:bg-white/10 rounded text-zinc-400 hover:text-white"><ArrowRightToLine className="w-4 h-4" /></button></Tooltip>}
+                    {viewMode === 'sidebar' && <Tooltip content="Janela Flutuante"><button onClick={() => setViewMode('floating')} className="p-1.5 hover:bg-white/10 rounded text-zinc-400 hover:text-white"><ExternalLink className="w-4 h-4" /></button></Tooltip>}
+                    {viewMode !== 'fullscreen' ? <Tooltip content="Tela Cheia"><button onClick={() => setViewMode('fullscreen')} className="p-1.5 hover:bg-white/10 rounded text-zinc-400 hover:text-white"><Maximize2 className="w-4 h-4" /></button></Tooltip> : <Tooltip content="Sair da Tela Cheia"><button onClick={() => setViewMode('sidebar')} className="p-1.5 hover:bg-white/10 rounded text-zinc-400 hover:text-white"><Minimize2 className="w-4 h-4" /></button></Tooltip>}
+                </div>
             </div>
-            
-            <div className="flex items-center gap-1">
-                {viewMode !== 'sidebar' && <Tooltip content="Acoplar na Barra"><button onClick={() => setViewMode('sidebar')} className="p-1.5 hover:bg-white/10 rounded text-zinc-400 hover:text-white"><ArrowRightToLine className="w-4 h-4" /></button></Tooltip>}
-                {viewMode === 'sidebar' && <Tooltip content="Janela Flutuante"><button onClick={() => setViewMode('floating')} className="p-1.5 hover:bg-white/10 rounded text-zinc-400 hover:text-white"><ExternalLink className="w-4 h-4" /></button></Tooltip>}
-                {viewMode !== 'fullscreen' ? <Tooltip content="Tela Cheia"><button onClick={() => setViewMode('fullscreen')} className="p-1.5 hover:bg-white/10 rounded text-zinc-400 hover:text-white"><Maximize2 className="w-4 h-4" /></button></Tooltip> : <Tooltip content="Sair da Tela Cheia"><button onClick={() => setViewMode('sidebar')} className="p-1.5 hover:bg-white/10 rounded text-zinc-400 hover:text-white"><Minimize2 className="w-4 h-4" /></button></Tooltip>}
-            </div>
-        </div>
 
-        {/* MESSAGES */}
-        <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-6 custom-scrollbar relative">
-            {chatMessages.length === 0 && <div className="flex flex-col items-center justify-center h-full text-zinc-600 gap-3 opacity-50"><MessageSquare className="w-10 h-10" /><p className="text-xs italic">O silêncio precede a aventura...</p></div>}
-            
-            {groupedMessages.map((group, gIndex) => {
-              const firstMsg = group[0];
-              const isMe = firstMsg.senderId === user?.id;
-              const isSystem = firstMsg.type === 'system';
+            {/* MESSAGES */}
+            <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-6 custom-scrollbar relative">
+                {chatMessages.length === 0 && <div className="flex flex-col items-center justify-center h-full text-zinc-600 gap-3 opacity-50"><MessageSquare className="w-10 h-10" /><p className="text-xs italic">O silêncio precede a aventura...</p></div>}
 
-              if (isSystem) return <div key={`g-${gIndex}`} className="flex flex-col items-center gap-1 my-4 opacity-70 w-full px-2">{group.map(msg => (<div key={msg.id} className="text-[10px] font-bold uppercase tracking-widest bg-zinc-900 px-3 py-1 rounded-full text-zinc-500 border border-zinc-800/50 text-center max-w-full break-words">{msg.content}</div>))}</div>;
+                {groupedMessages.map((group, gIndex) => {
+                    const firstMsg = group[0];
+                    const isMe = firstMsg.senderId === user?.id;
+                    const isSystem = firstMsg.type === 'system';
+                    const isPrivate = !!firstMsg.recipientId;
 
-              return (
-                <div key={`g-${gIndex}`} className={`flex gap-3 group w-full ${isMe ? 'flex-row-reverse' : ''}`}>
-                    <div className="shrink-0 flex flex-col items-center pt-1">
-                        <div className={`w-9 h-9 rounded-lg border border-white/10 overflow-hidden shadow-md ${isMe ? 'ring-1 ring-primary/40' : ''}`}>
-                            {(() => { const char = campaignCharacters.find(c => c.name === firstMsg.senderName); const avatar = char ? char.avatarUrl : `https://api.dicebear.com/7.x/avataaars/svg?seed=${firstMsg.senderName}`; return <img src={avatar} className="w-full h-full object-cover" alt="Avatar" />; })()}
-                        </div>
-                    </div>
-                    <div className={`flex-1 min-w-0 flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
-                        <div className={`flex items-baseline gap-2 mb-0.5 px-1 ${isMe ? 'flex-row-reverse' : ''}`}>
-                            <span className={`text-xs font-bold truncate max-w-[150px] ${isMe ? 'text-primary' : 'text-zinc-300'}`}>{firstMsg.senderName}</span>
-                            <span className="text-[9px] text-zinc-600 shrink-0">{formatTime(firstMsg.timestamp)}</span>
-                        </div>
-                        <div className={`flex flex-col gap-1 w-full ${isMe ? 'items-end' : 'items-start'}`}>
-                            {group.map((msg) => {
-                                const isRoll = msg.type === 'roll';
-                                const hasReactions = msg.reactions && (msg.reactions.like?.count > 0 || msg.reactions.dislike?.count > 0);
-                                
-                                // Check visibility for entire message block if it's a roll
-                                if (isRoll && msg.rollDetails?.visibility === 'gm' && !isGM && !isMe) {
-                                    return null; // Hide completely if GM Only and not GM/Sender
-                                }
+                    // Use character name/avatar if speaking as character
+                    const displayName = firstMsg.characterName || firstMsg.senderName;
+                    const displayAvatar = firstMsg.characterAvatarUrl ||
+                        campaignCharacters.find(c => c.name === displayName)?.avatarUrl ||
+                        `https://api.dicebear.com/7.x/avataaars/svg?seed=${displayName}`;
 
-                                return (
-                                    <div key={msg.id} className={`max-w-[95%] lg:max-w-[85%] relative ${isRoll ? 'w-64' : ''}`}>
-                                        {isRoll ? renderRoll(msg) : (
-                                            <div className={`px-3 py-2 text-sm rounded-xl leading-relaxed shadow-sm break-words whitespace-pre-wrap w-full ${isMe ? 'bg-primary/10 text-zinc-100 rounded-tr-none border border-primary/10' : 'bg-zinc-800/80 text-zinc-300 rounded-tl-none border border-zinc-700/50'}`}>
-                                                {msg.content} {msg.link && renderLink(msg.link)}
+                    if (isSystem) return <div key={`g-${gIndex}`} className="flex flex-col items-center gap-1 my-4 opacity-70 w-full px-2">{group.map(msg => (<div key={msg.id} className="text-[10px] font-bold uppercase tracking-widest bg-zinc-900 px-3 py-1 rounded-full text-zinc-500 border border-zinc-800/50 text-center max-w-full break-words">{msg.content}</div>))}</div>;
+
+                    return (
+                        <div key={`g-${gIndex}`} className={`flex gap-3 group w-full ${isMe ? 'flex-row-reverse' : ''}`}>
+                            <div className="shrink-0 flex flex-col items-center pt-1">
+                                <div className={`w-9 h-9 rounded-lg border overflow-hidden shadow-md ${isPrivate ? 'border-purple-500/50 ring-1 ring-purple-500/30' : isMe ? 'border-white/10 ring-1 ring-primary/40' : 'border-white/10'}`}>
+                                    <img src={displayAvatar} className="w-full h-full object-cover" alt="Avatar" />
+                                </div>
+                            </div>
+                            <div className={`flex-1 min-w-0 flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+                                <div className={`flex items-baseline gap-2 mb-0.5 px-1 ${isMe ? 'flex-row-reverse' : ''}`}>
+                                    <span className={`text-xs font-bold truncate max-w-[150px] ${isPrivate ? 'text-purple-400' : isMe ? 'text-primary' : 'text-zinc-300'}`}>{displayName}</span>
+                                    {isPrivate && (
+                                        <span className="text-[9px] text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded flex items-center gap-1">
+                                            <EyeOff className="w-2 h-2" />
+                                            {isGM ? `${firstMsg.senderName} → ${firstMsg.recipientName}` : 'Privado'}
+                                        </span>
+                                    )}
+                                    {firstMsg.characterName ? (
+                                        <span className="text-[9px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 rounded" title={`Interpretando ${firstMsg.characterName} (Jogador: ${firstMsg.senderName})`}>RP</span>
+                                    ) : (
+                                        <span className="text-[9px] text-zinc-500 bg-zinc-800 border border-zinc-700 px-1.5 rounded" title="Out of Character">OOC</span>
+                                    )}
+                                    <span className="text-[9px] text-zinc-600 shrink-0">{formatTime(firstMsg.timestamp)}</span>
+                                </div>
+                                <div className={`flex flex-col gap-1 w-full ${isMe ? 'items-end' : 'items-start'}`}>
+                                    {group.map((msg) => {
+                                        const isRoll = msg.type === 'roll';
+                                        const hasReactions = msg.reactions && (msg.reactions.like?.count > 0 || msg.reactions.dislike?.count > 0);
+
+                                        // Check visibility for entire message block if it's a roll
+                                        if (isRoll && msg.rollDetails?.visibility === 'gm' && !isGM && !isMe) {
+                                            return null; // Hide completely if GM Only and not GM/Sender
+                                        }
+
+                                        return (
+                                            <div key={msg.id} className={`max-w-[95%] lg:max-w-[85%] relative ${isRoll ? 'w-64' : ''}`}>
+                                                {isRoll ? renderRoll(msg) : (
+                                                    <div className={`px-3 py-2 text-sm rounded-xl leading-relaxed shadow-sm break-words whitespace-pre-wrap w-full ${isPrivate
+                                                        ? 'bg-purple-500/10 text-purple-100 border border-purple-500/30' + (isMe ? ' rounded-tr-none' : ' rounded-tl-none')
+                                                        : isMe
+                                                            ? 'bg-primary/10 text-zinc-100 rounded-tr-none border border-primary/10'
+                                                            : 'bg-zinc-800/80 text-zinc-300 rounded-tl-none border border-zinc-700/50'
+                                                        }`}>
+                                                        {msg.content} {msg.link && renderLink(msg.link)}
+                                                    </div>
+                                                )}
+                                                <div className={`absolute -right-14 top-1/2 -translate-y-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-zinc-900 border border-zinc-700 rounded p-0.5 z-10 shadow-lg`}><button onClick={() => toggleChatReaction(msg, 'like')} className="p-1 hover:bg-white/10 rounded text-zinc-500 hover:text-green-400"><ThumbsUp className="w-3 h-3" /></button><button onClick={() => toggleChatReaction(msg, 'dislike')} className="p-1 hover:bg-white/10 rounded text-zinc-500 hover:text-red-400"><ThumbsDown className="w-3 h-3" /></button></div>
+                                                {hasReactions && (<div className={`flex gap-2 mt-1 ${isMe ? 'justify-end' : 'justify-start'}`}>{msg.reactions?.like && msg.reactions.like.count > 0 && (<div className="flex items-center gap-1 text-[9px] bg-zinc-800 px-1.5 py-0.5 rounded-full text-green-400 border border-zinc-700"><ThumbsUp className="w-2 h-2" /> {msg.reactions.like.count}</div>)}{msg.reactions?.dislike && msg.reactions.dislike.count > 0 && (<div className="flex items-center gap-1 text-[9px] bg-zinc-800 px-1.5 py-0.5 rounded-full text-red-400 border border-zinc-700"><ThumbsDown className="w-2 h-2" /> {msg.reactions.dislike.count}</div>)}</div>)}
                                             </div>
-                                        )}
-                                        <div className={`absolute -right-14 top-1/2 -translate-y-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-zinc-900 border border-zinc-700 rounded p-0.5 z-10 shadow-lg`}><button onClick={() => toggleChatReaction(msg, 'like')} className="p-1 hover:bg-white/10 rounded text-zinc-500 hover:text-green-400"><ThumbsUp className="w-3 h-3"/></button><button onClick={() => toggleChatReaction(msg, 'dislike')} className="p-1 hover:bg-white/10 rounded text-zinc-500 hover:text-red-400"><ThumbsDown className="w-3 h-3"/></button></div>
-                                        {hasReactions && (<div className={`flex gap-2 mt-1 ${isMe ? 'justify-end' : 'justify-start'}`}>{msg.reactions?.like && msg.reactions.like.count > 0 && (<div className="flex items-center gap-1 text-[9px] bg-zinc-800 px-1.5 py-0.5 rounded-full text-green-400 border border-zinc-700"><ThumbsUp className="w-2 h-2" /> {msg.reactions.like.count}</div>)}{msg.reactions?.dislike && msg.reactions.dislike.count > 0 && (<div className="flex items-center gap-1 text-[9px] bg-zinc-800 px-1.5 py-0.5 rounded-full text-red-400 border border-zinc-700"><ThumbsDown className="w-2 h-2" /> {msg.reactions.dislike.count}</div>)}</div>)}
-                                    </div>
-                                );
-                            })}
+                                        );
+                                    })}
+                                </div>
+                            </div>
                         </div>
+                    );
+                })}
+                <div ref={endRef} />
+            </div>
+
+            {/* INPUT */}
+            <div className="p-3 bg-zinc-900/90 border-t border-white/10 space-y-2 shrink-0 z-20">
+                {/* Header Controls */}
+                {/* Unified Header Controls */}
+                <div className="flex items-center justify-between gap-2">
+                    <div className="relative flex-1" ref={whisperMenuRef}>
+                        <button
+                            onClick={() => setShowWhisperMenu(!showWhisperMenu)}
+                            className={`flex items-center gap-2 px-3 py-2 w-full rounded-lg border transition-all text-xs text-left shadow-sm ${whisperTo ? 'bg-purple-900/20 border-purple-500/50 text-purple-200' :
+                                speakingAs !== 'player' ? 'bg-zinc-800 border-primary/40 text-primary' :
+                                    'bg-zinc-900 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
+                                }`}
+                        >
+                            {whisperTo ? (
+                                <>
+                                    <EyeOff className="w-3.5 h-3.5" />
+                                    <span className="flex-1 truncate font-medium">Privado: {players.find(p => p.id === whisperTo)?.name}</span>
+                                    <ChevronDown className="w-3.5 h-3.5 opacity-50" />
+                                </>
+                            ) : speakingAs !== 'player' && myCharacter ? (
+                                <>
+                                    <img src={myCharacter.avatarUrl} className="w-3.5 h-3.5 rounded-full object-cover" />
+                                    <span className="flex-1 truncate font-bold">{myCharacter.name}</span>
+                                    <ChevronDown className="w-3.5 h-3.5 opacity-50" />
+                                </>
+                            ) : (
+                                <>
+                                    <User className="w-3.5 h-3.5" />
+                                    <span className="flex-1 truncate font-medium">{user?.name} (OOC)</span>
+                                    <ChevronDown className="w-3.5 h-3.5 opacity-50" />
+                                </>
+                            )}
+                        </button>
+
+                        {/* Unified Menu */}
+                        {showWhisperMenu && (
+                            <div className="absolute bottom-full left-0 mb-2 w-64 bg-zinc-900 border border-zinc-700 rounded-lg shadow-2xl overflow-hidden py-1 z-50 flex flex-col gap-1">
+
+                                {/* IDENTITY SECTION */}
+                                <div className="px-3 py-1.5 text-[10px] font-bold text-zinc-600 uppercase tracking-wider bg-black/20">Identidade (Quem fala)</div>
+                                <button
+                                    onClick={() => { setSpeakingAs('player'); setShowWhisperMenu(false); }}
+                                    className={`px-3 py-2 text-xs flex items-center gap-2 hover:bg-white/5 transition-colors ${speakingAs === 'player' ? 'text-zinc-200 bg-white/5 font-bold' : 'text-zinc-400'}`}
+                                >
+                                    <div className={`w-1 h-full absolute left-0 ${speakingAs === 'player' ? 'bg-zinc-400' : 'bg-transparent'}`} />
+                                    <User className="w-3.5 h-3.5" />
+                                    {user?.name} (OOC)
+                                </button>
+                                {myCharacter && (
+                                    <button
+                                        onClick={() => { setSpeakingAs(myCharacter.id); setShowWhisperMenu(false); }}
+                                        className={`px-3 py-2 text-xs flex items-center gap-2 hover:bg-white/5 transition-colors ${speakingAs !== 'player' ? 'text-primary bg-primary/10 font-bold' : 'text-zinc-400'}`}
+                                    >
+                                        <div className={`w-1 h-full absolute left-0 ${speakingAs !== 'player' ? 'bg-primary' : 'bg-transparent'}`} />
+                                        <img src={myCharacter.avatarUrl} className="w-3.5 h-3.5 rounded-full object-cover" />
+                                        {myCharacter.name}
+                                    </button>
+                                )}
+
+                                {/* SCOPE SECTION */}
+                                {canChatPrivate && (
+                                    <>
+                                        <div className="h-px bg-white/5 my-1" />
+                                        <div className="px-3 py-1.5 text-[10px] font-bold text-zinc-600 uppercase tracking-wider bg-black/20">Destinatário (Para quem)</div>
+
+                                        <button
+                                            onClick={() => { setWhisperTo(null); setShowWhisperMenu(false); }}
+                                            className={`px-3 py-2 text-xs flex items-center gap-2 hover:bg-white/5 transition-colors ${!whisperTo ? 'text-zinc-200 bg-white/5 font-bold' : 'text-zinc-400'}`}
+                                        >
+                                            <div className={`w-1 h-full absolute left-0 ${!whisperTo ? 'bg-zinc-400' : 'bg-transparent'}`} />
+                                            <MessageSquare className="w-3.5 h-3.5" />
+                                            Todos (Público)
+                                        </button>
+
+                                        {players.filter(p => p.id !== user?.id).map(p => (
+                                            <button
+                                                key={p.id}
+                                                onClick={() => { setWhisperTo(p.id); setShowWhisperMenu(false); }}
+                                                className={`px-3 py-2 text-xs flex items-center gap-2 hover:bg-white/5 transition-colors ${whisperTo === p.id ? 'text-purple-400 bg-purple-500/10 font-bold' : 'text-zinc-400'}`}
+                                            >
+                                                <div className={`w-1 h-full absolute left-0 ${whisperTo === p.id ? 'bg-purple-500' : 'bg-transparent'}`} />
+                                                <div className="relative">
+                                                    <div className="w-4 h-4 rounded-full bg-zinc-800 flex items-center justify-center text-[9px] border border-zinc-700">{p.name.charAt(0).toUpperCase()}</div>
+                                                    <div className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-zinc-900 ${'bg-green-500'}`} />
+                                                </div>
+                                                {p.name}
+                                            </button>
+                                        ))}
+                                    </>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
-              );
-            })}
-            <div ref={endRef} />
-        </div>
 
-        {/* INPUT */}
-        <div className="p-3 bg-zinc-900/90 border-t border-white/10 space-y-2 shrink-0">
-             {myCharacter && (
-                  <div className="flex justify-start">
-                      <button onClick={() => setSpeakingAs(speakingAs === 'player' ? myCharacter.id : 'player')} className={`flex items-center gap-2 px-2 py-1 rounded-t-md text-[10px] font-bold uppercase tracking-wider border-t border-x border-white/10 transition-all ${speakingAs !== 'player' ? 'bg-zinc-800 text-primary border-primary/30 -mb-px z-10 pb-2' : 'bg-transparent text-zinc-500 hover:text-zinc-300'}`}>
-                          {speakingAs !== 'player' ? (<><img src={myCharacter.avatarUrl} className="w-3 h-3 rounded-full"/> {myCharacter.name}</>) : (<><User className="w-3 h-3"/> {user?.name} (OOC)</>)} <ChevronDown className="w-3 h-3 opacity-50" />
-                      </button>
-                  </div>
-              )}
-              <form onSubmit={handleSend} className="relative flex items-center gap-2">
-                  <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} placeholder={speakingAs === 'player' ? "Mensagem fora do personagem..." : `Falando como ${myCharacter?.name}...`} className={`flex-1 bg-zinc-950 border rounded-xl px-4 py-3 text-sm text-white placeholder:text-zinc-600 outline-none transition-all ${speakingAs !== 'player' ? 'border-primary/50 focus:ring-1 focus:ring-primary' : 'border-zinc-700 focus:border-zinc-500'}`} />
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                      <Tooltip content="Rolar Dados (Atalho)"><div className="p-1.5 text-zinc-600 hover:text-white cursor-pointer transition-colors"><Dices className="w-4 h-4" /></div></Tooltip>
-                      <button type="submit" disabled={!inputText.trim()} className={`p-2 rounded-lg transition-all shadow-lg ${inputText.trim() ? 'bg-primary text-white hover:bg-primary/90 scale-100' : 'bg-zinc-800 text-zinc-600 scale-90 cursor-not-allowed'}`}><Send className="w-4 h-4" /></button>
-                  </div>
-              </form>
-        </div>
-
-        {/* RESIZE HANDLE (Floating Only) */}
-        {viewMode === 'floating' && (
-            <div 
-                className="absolute bottom-0 right-0 w-5 h-5 cursor-nwse-resize flex items-end justify-end p-0.5 text-zinc-600 hover:text-white z-20"
-                onMouseDown={startResize}
-            >
-                <GripHorizontal className="w-4 h-4 rotate-45" />
+                <form onSubmit={handleSend} className="relative flex items-center gap-2">
+                    <input
+                        type="text"
+                        value={inputText}
+                        onChange={(e) => setInputText(e.target.value)}
+                        placeholder={whisperTo ? `Whisper para ${players.find(p => p.id === whisperTo)?.name}...` : speakingAs === 'player' ? "Mensagem fora do personagem..." : `Falando como ${myCharacter?.name}...`}
+                        disabled={!canChatGlobal && !whisperTo}
+                        className={`flex-1 bg-zinc-950 border rounded-xl px-4 py-3 text-sm text-white placeholder:text-zinc-600 outline-none transition-all ${whisperTo ? 'border-purple-500/50 focus:ring-1 focus:ring-purple-500' : speakingAs !== 'player' ? 'border-primary/50 focus:ring-1 focus:ring-primary' : 'border-zinc-700 focus:border-zinc-500'} ${!canChatGlobal && !whisperTo ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    />
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                        <Tooltip content="Rolar Dados (Atalho)"><div className="p-1.5 text-zinc-600 hover:text-white cursor-pointer transition-colors"><Dices className="w-4 h-4" /></div></Tooltip>
+                        <button type="submit" disabled={!inputText.trim() || (!canChatGlobal && !whisperTo)} className={`p-2 rounded-lg transition-all shadow-lg ${inputText.trim() && (canChatGlobal || whisperTo) ? 'bg-primary text-white hover:bg-primary/90 scale-100' : 'bg-zinc-800 text-zinc-600 scale-90 cursor-not-allowed'}`}><Send className="w-4 h-4" /></button>
+                    </div>
+                </form>
             </div>
-        )}
-    </div>
-  );
 
-  // --- RENDER BASED ON MODE ---
+            {/* RESIZE HANDLE (Floating Only) */}
+            {viewMode === 'floating' && (
+                <div
+                    className="absolute bottom-0 right-0 w-5 h-5 cursor-nwse-resize flex items-end justify-end p-0.5 text-zinc-600 hover:text-white z-20"
+                    onMouseDown={startResize}
+                >
+                    <GripHorizontal className="w-4 h-4 rotate-45" />
+                </div>
+            )}
+        </div>
+    );
 
-  if (viewMode === 'sidebar') { return <div className="h-full border-l border-white/10 shadow-2xl w-full">{renderContent()}</div>; }
-  if (viewMode === 'fullscreen') { return createPortal(<div className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-sm"><div className="w-full h-full flex flex-col">{renderContent()}</div></div>, document.body); }
-  return createPortal(<div style={{ position: 'fixed', left: position.x, top: position.y, width: size.w, height: size.h, zIndex: 9990 }} className="rounded-xl overflow-hidden shadow-2xl border border-zinc-700 ring-1 ring-black/50">{renderContent()}</div>, document.body);
+    // --- RENDER BASED ON MODE ---
+
+    if (viewMode === 'sidebar') { return <div className="h-full border-l border-white/10 shadow-2xl w-full">{renderContent()}</div>; }
+    if (viewMode === 'fullscreen') { return createPortal(<div className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-sm"><div className="w-full h-full flex flex-col">{renderContent()}</div></div>, document.body); }
+    return createPortal(<div style={{ position: 'fixed', left: position.x, top: position.y, width: size.w, height: size.h, zIndex: 9990 }} className="rounded-xl overflow-hidden shadow-2xl border border-zinc-700 ring-1 ring-black/50">{renderContent()}</div>, document.body);
 };

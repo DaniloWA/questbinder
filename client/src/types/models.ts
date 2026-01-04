@@ -553,6 +553,15 @@ export interface ChatMessage {
   rollDetails?: RollResult;
   link?: ChatLinkMetadata;
   reactions?: Record<string, ChatMessageReaction>;
+
+  // Character speaking (null/undefined = OOC)
+  characterId?: string;
+  characterName?: string;
+  characterAvatarUrl?: string;
+
+  // Private messaging (null = public)
+  recipientId?: string;
+  recipientName?: string;
 }
 
 export interface SessionLogConfig {
@@ -625,6 +634,10 @@ export interface PermissionSet {
 
   // GM Cursor Overrides (per-player settings set by GM)
   cursorOverrides: Record<string, { color?: string, shape?: string, name?: string; }>;
+
+  // Chat Permissions
+  chatGlobalAllowed: boolean;   // Players can send messages to public chat
+  chatPrivateAllowed: boolean;  // Players can send private messages
 
   // Privacidade
   shareCursor: boolean;

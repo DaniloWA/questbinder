@@ -61,6 +61,8 @@ export const INITIAL_STATE: GameSessionState = {
     cursorAllowShapeChange: true,
     cursorAllowNameChange: true,
     cursorOverrides: {},
+    chatGlobalAllowed: true,
+    chatPrivateAllowed: true,
     shareCursor: true,
     allowSpectate: true,
     logConfig: { movement: 'public', combat: 'public', rolls: 'public', system: 'public', broadcastConditions: true },
