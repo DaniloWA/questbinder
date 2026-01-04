@@ -1,45 +1,63 @@
 # ============================================
-# 🎲 QUESTBINDER - Docker Compose (Standalone)
+# 🎲 QUESTBINDER - Docker Compose (DEV)
 # ============================================
-#
-# Usage:
-#   cd C:\Users\ddani\Documents\Projetos\QuestBinder
-#   docker compose up -d
-#
-# Access:
-#   http://127.0.0.1:3002 (API + Frontend)
-#
+# Hot Reload Enabled via Volume Mounting
 # ============================================
 
 services:
   # ========================================
-  # QuestBinder - API + Frontend
+  # Backend Service (Node + Nodemon)
   # ========================================
-  questbinder:
+  server:
     build:
       context: .
-      dockerfile: Dockerfile
-    container_name: questbinder
+      dockerfile: Dockerfile.dev
+    container_name: questbinder_server
     restart: unless-stopped
+    command: sh -c "cd server && npm install && npm run dev"
     environment:
-      NODE_ENV: ${NODE_ENV:-development}
+      NODE_ENV: development
       PORT: 3002
       HOST: 0.0.0.0
       DB_PATH: /app/data
-      CORS_ORIGIN_1: ${CORS_ORIGIN_1:-http://localhost:3002}
-      CORS_ORIGIN_2: ${CORS_ORIGIN_2:-http://127.0.0.1:3002}
+      # Allow CORS from the frontend container
+      CORS_ORIGIN_1: http://localhost:5173
+      CORS_ORIGIN_2: http://127.0.0.1:5173
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
     volumes:
-      # SQLite data persistence
+      # Mount source code for hot reload
+      - ./server:/app/server
+      # Persist data
       - questbinder_data:/app/data
+      # Prevent node_modules from being overwritten by host (optional but recommended)
+      - /app/server/node_modules
     ports:
       - "3002:3002"
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3002/api/campaigns"]
-      interval: 30s
-      timeout: 10s
-      start_period: 10s
-      retries: 3
+
+  # ========================================
+  # Frontend Service (Vite)
+  # ========================================
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: questbinder_client
+    restart: unless-stopped
+    # Install dependencies and start vite with host flag
+    command: sh -c "cd client && npm install && npm run dev -- --host"
+    environment:
+      NODE_ENV: development
+      VITE_WS_URL: http://127.0.0.1:3002
+      VITE_API_URL: http://127.0.0.1:3002/api
+    volumes:
+      # Mount source code for hot reload
+      - ./client:/app/client
+      # Prevent node_modules collision
+      - /app/client/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - server
 
 volumes:
   questbinder_data:

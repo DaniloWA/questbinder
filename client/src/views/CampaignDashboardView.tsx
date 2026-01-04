@@ -37,8 +37,17 @@ const CharacterSelectionModal: React.FC<{
     useEffect(() => {
         const load = async () => {
             if (!user) return;
-            const res = await characterService.getUnassignedCharacters(user.id);
-            if (res.success && res.data) setCharacters(res.data);
+            const res = await characterService.getAll(user.id);
+            if (res.success && res.data) {
+                // Show characters that are unassigned OR assigned to this campaign
+                const available = res.data.filter(c =>
+                    !c.campaignId ||
+                    c.campaignId === '' ||
+                    c.campaignId === 'undefined' ||
+                    c.campaignId === campaign.id
+                );
+                setCharacters(available);
+            }
             setIsLoading(false);
         };
         load();
@@ -191,6 +200,7 @@ export const CampaignDashboardView: React.FC = () => {
             if (res.success) {
                 show({ type: 'success', message: `Você entrou em "${campaign.name}"!` });
                 loadData();
+                navigateTo('game-session', { id: campaign.id });
             }
             setIsLoading(false);
         };

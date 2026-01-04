@@ -1,0 +1,20 @@
+# ============================================
+# 🎲 QUESTBINDER - Development Dockerfile
+# ============================================
+
+# Base image
+FROM node:20-alpine
+
+# Set working directory for app
+WORKDIR /app
+
+# Install nodemon globally for backend hot-reload
+RUN npm install -g nodemon
+
+# Expose ports for both services
+# 3002: Backend (Socket.io/API)
+# 5173: Frontend (Vite)
+EXPOSE 3002 5173
+
+# The command will be overridden by docker-compose
+CMD ["sh"]

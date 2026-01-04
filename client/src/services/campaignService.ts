@@ -59,7 +59,7 @@ export const campaignService = {
     const campaign = campRes.data;
 
     if (campaign.players.list.includes(userId)) {
-      return { success: false, message: 'Jogador já está na campanha.' };
+      return { success: true, message: 'Jogador já está na campanha.' };
     }
     if (campaign.players.current >= campaign.players.max) {
       return { success: false, message: 'Campanha cheia.' };

@@ -62,7 +62,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
     const render = () => {
       const now = Date.now();
       let animationsChanged = false;
-      const newAnimations = new Map(animationsRef.current);
+      const newAnimations = new Map<string, TokenAnimation>(animationsRef.current);
       animationsRef.current.forEach((anim, id) => {
         if (now > anim.startTime + anim.duration) {
           newAnimations.delete(id);
@@ -439,13 +439,80 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
         ctx.globalAlpha = 1; ctx.globalAlpha = (1 - progress); ctx.lineWidth = Math.max(0.5, (5 - progress * 4) / viewport.zoom); ctx.strokeStyle = ping.color; ctx.beginPath(); ctx.arc(0, 0, maxRadius * easeOut, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
       });
 
+      // --- REMOTE CURSORS (New Design) ---
       Object.values(remoteCursors).forEach((cursor: any) => {
         if (cursor.userId === currentUser?.id) return;
-        ctx.save(); ctx.translate(cursor.x, cursor.y); ctx.fillStyle = cursor.userColor || '#FFFFFF'; ctx.strokeStyle = 'rgba(0,0,0,0.8)'; ctx.lineWidth = 2 / viewport.zoom;
-        ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(12 / viewport.zoom, 20 / viewport.zoom); ctx.lineTo(4 / viewport.zoom, 12 / viewport.zoom); ctx.closePath(); ctx.fill(); ctx.stroke();
-        ctx.font = `bold ${12 / viewport.zoom}px sans-serif`; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-        const textX = 16 / viewport.zoom; const textY = 16 / viewport.zoom; ctx.strokeStyle = 'rgba(0,0,0,0.9)'; ctx.lineWidth = 4 / viewport.zoom;
-        ctx.strokeText(cursor.userName, textX, textY); ctx.fillStyle = 'white'; ctx.fillText(cursor.userName, textX, textY); ctx.restore();
+
+        const z = viewport.zoom;
+        const color = cursor.userColor || '#fbbf24'; // Fallback amber
+
+        ctx.save();
+        ctx.translate(cursor.x, cursor.y);
+
+        // Add subtle shadow for depth
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 2;
+
+        // 1. Draw Cursor Arrow (Figma-style pointer)
+        // Scaled by 1/z to ensure constant screen size
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(6 / z, 18 / z); // Long tip
+        ctx.lineTo(10 / z, 11 / z); // Notch
+        ctx.lineTo(17 / z, 11 / z); // Wing
+        ctx.closePath();
+
+        ctx.fillStyle = color;
+        ctx.fill();
+
+        // Stroke for contrast
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 1.5 / z;
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+
+        // 2. Draw Name Badge
+        // Configure Font
+        const fontSize = 11;
+        ctx.font = `600 ${fontSize / z}px "Inter", sans-serif`; // Use Inter/Sans
+        ctx.textBaseline = 'middle';
+        const textMetrics = ctx.measureText(cursor.userName);
+
+        // Badge Dimensions
+        const paddingX = 6 / z;
+        const paddingY = 3 / z;
+        const badgeHeight = (fontSize + 6) / z;
+        const badgeWidth = textMetrics.width + (paddingX * 2);
+
+        // Badge Position (Offset from cursor)
+        const badgeX = 14 / z;
+        const badgeY = 14 / z;
+
+        // Draw Badge Background (Rounded Rect manually for compatibility)
+        ctx.fillStyle = color;
+        const r = 4 / z; // Corner radius
+        const bx = badgeX, by = badgeY, bw = badgeWidth, bh = badgeHeight;
+
+        ctx.beginPath();
+        ctx.moveTo(bx + r, by);
+        ctx.lineTo(bx + bw - r, by);
+        ctx.quadraticCurveTo(bx + bw, by, bx + bw, by + r);
+        ctx.lineTo(bx + bw, by + bh - r);
+        ctx.quadraticCurveTo(bx + bw, by + bh, bx + bw - r, by + bh);
+        ctx.lineTo(bx + r, by + bh);
+        ctx.quadraticCurveTo(bx, by + bh, bx, by + bh - r);
+        ctx.lineTo(bx, by + r);
+        ctx.quadraticCurveTo(bx, by, bx + r, by);
+        ctx.closePath();
+        ctx.fill();
+
+        // Draw Name Text
+        ctx.fillStyle = '#FFFFFF'; // Always white text on colored badge
+        ctx.fillText(cursor.userName, badgeX + paddingX, badgeY + (badgeHeight / 2));
+
+        ctx.restore();
       });
 
       ctx.restore();

@@ -12,7 +12,7 @@ export interface ApiResponse<T> {
 const USE_REAL_BACKEND = true;
 
 // Use environment variable for API URL, fallback to localhost for dev
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
 
 const getHeaders = (): HeadersInit => ({
   'Content-Type': 'application/json',

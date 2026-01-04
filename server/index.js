@@ -197,22 +197,29 @@ app.patch('/api/campaigns/:id/permissions', async (req, res) => {
   }
 });
 
-// ======================= STATIC FILES (Production) =======================
-// Serve frontend static files in production
-const DIST_PATH = path.resolve(__dirname, '../dist');
-console.log(`📁 Static files path: ${DIST_PATH}`);
+// ======================= STATIC FILES (Production Only) =======================
+if (process.env.NODE_ENV === 'production') {
+  // Serve frontend static files in production
+  const DIST_PATH = path.resolve(__dirname, '../dist');
+  console.log(`📁 Static files path: ${DIST_PATH}`);
 
-// Serve static assets
-app.use(express.static(DIST_PATH));
+  // Serve static assets
+  app.use(express.static(DIST_PATH));
 
-// SPA fallback - serve index.html for any non-API routes
-app.get('*', (req, res) => {
-  // Don't serve index.html for API routes
-  if (req.path.startsWith('/api/') || req.path.startsWith('/socket.io/')) {
-    return res.status(404).json({ error: 'Not found' });
-  }
-  res.sendFile(path.join(DIST_PATH, 'index.html'));
-});
+  // SPA fallback - serve index.html for any non-API routes
+  app.get('*', (req, res) => {
+    // Don't serve index.html for API routes
+    if (req.path.startsWith('/api/') || req.path.startsWith('/socket.io/')) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+    res.sendFile(path.join(DIST_PATH, 'index.html'));
+  });
+} else {
+  console.log('🚧 Development mode: Skipping static file serving (Use Frontend Dev Server)');
+  app.get('/', (req, res) => {
+    res.send('QuestBinder API Server Running (Development Mode). Access Frontend via Vite (port 5173).');
+  });
+}
 
 // ======================= START SERVER =======================
 server.listen(PORT, HOST, () => {
