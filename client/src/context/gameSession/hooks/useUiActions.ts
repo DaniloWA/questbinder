@@ -28,7 +28,7 @@ export const useUiActions = (
   const setDrawingAudioZone = (z: any) => setState(prev => ({ ...prev, drawingAudioZone: z }));
   const setDrawingTriggerZone = (z: any) => setState(prev => ({ ...prev, drawingTriggerZone: z }));
 
-  const setCursorSettings = (settings: { color: string, name: string; }) => {
+  const setCursorSettings = (settings: GameSessionState['cursorSettings']) => {
     setState(prev => ({ ...prev, cursorSettings: settings }));
     localStorage.setItem('qb_cursor_settings', JSON.stringify(settings));
   };

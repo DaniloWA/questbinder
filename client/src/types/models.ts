@@ -631,9 +631,18 @@ export interface PermissionSet {
   cursorAllowColorChange: boolean;   // Players can change their cursor color
   cursorAllowShapeChange: boolean;   // Players can change their cursor shape
   cursorAllowNameChange: boolean;    // Players can change their display name
+  cursorAllowAnimationChange: boolean; // Players can change their click animation
+  cursorAllowAnimationColorChange: boolean; // Players can change their click animation color
 
   // GM Cursor Overrides (per-player settings set by GM)
-  cursorOverrides: Record<string, { color?: string, shape?: string, name?: string; }>;
+  cursorOverrides: Record<string, {
+    color?: string;
+    shape?: string;
+    name?: string;
+    clickAnimation?: 'ripple' | 'burst' | 'sparkle' | 'pulse' | 'vortex' | 'shard' | 'ring' | 'echo' | 'orb';
+    clickColorLeft?: string;
+    clickColorRight?: string;
+  }>;
 
   // Chat Permissions
   chatGlobalAllowed: boolean;   // Players can send messages to public chat

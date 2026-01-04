@@ -7,6 +7,7 @@ import { getContourFromPoint } from '../../../../utils/imageProcessing';
 import { isPointInPolygon, distanceToSegment } from '../../../../utils/geometry';
 import { AudioZoneConfigModalContent, TriggerZoneConfigModalContent } from '../modals';
 import { AudioZone, TriggerZone, MapDrawing } from '../../../../types';
+import { socketService } from '../../../../services/socketService';
 
 interface UseMapInteractionProps extends MapCanvasProps {
   canvasRef: React.RefObject<HTMLCanvasElement>;
@@ -22,6 +23,7 @@ interface UseMapInteractionProps extends MapCanvasProps {
   hoveredTokenId: string | null;
   setHoveredTokenId: (id: string | null) => void;
   setHoveredObstacleId: (id: string | null) => void;
+  calculatedPath: { x: number, y: number; }[];
   setCalculatedPath: (path: { x: number, y: number; }[]) => void;
   draggedAttackZone: { id: string, startX: number, startY: number, originX: number, originY: number; } | null;
   setDraggedAttackZone: (z: { id: string, startX: number, startY: number, originX: number, originY: number; } | null) => void;
@@ -32,6 +34,7 @@ interface UseMapInteractionProps extends MapCanvasProps {
   hoverOpenTimerRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>;
   hoverCloseTimerRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>;
   imageCache: { [src: string]: HTMLImageElement; };
+  clickAnimationsRef?: React.MutableRefObject<{ x: number, y: number, color: string, style?: 'ripple' | 'burst' | 'sparkle' | 'pulse' | 'vortex' | 'shard' | 'ring' | 'echo' | 'orb', startTime: number; }[]>;
 }
 
 export const useMapInteraction = (props: UseMapInteractionProps) => {
@@ -259,6 +262,28 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
     const pos = getMousePos(e);
     lastMousePos.current = pos;
     let worldPos = screenToWorld(pos.x, pos.y);
+
+    // --- TRIGGER CLICK ANIMATION ---
+    if ((e.button === 0 || e.button === 2) && props.clickAnimationsRef) {
+      const isLeft = e.button === 0;
+      const defaultColor = isLeft ? '#3b82f6' : '#f59e0b';
+
+      // Check for GM override first, then user settings, then defaults
+      const myOverride = currentUser ? permissions?.cursorOverrides?.[currentUser.id] : undefined;
+
+      const customColor = isLeft
+        ? (myOverride?.clickColorLeft || props.cursorSettings?.clickColorLeft)
+        : (myOverride?.clickColorRight || props.cursorSettings?.clickColorRight);
+      const color = customColor || defaultColor;
+      const style = (myOverride?.clickAnimation || props.cursorSettings?.clickAnimation || 'ripple') as 'ripple' | 'burst' | 'sparkle' | 'pulse' | 'vortex' | 'shard' | 'ring' | 'echo' | 'orb';
+
+      props.clickAnimationsRef.current.push({ x: worldPos.x, y: worldPos.y, color, style, startTime: Date.now() });
+
+      // Broadcast to other users
+      if (currentUser) {
+        socketService.emit('cursor:click', { userId: currentUser.id, x: worldPos.x, y: worldPos.y, color, style });
+      }
+    }
 
     if (activeTool === 'measure-path' && rulerSettings.snapToGrid && scene) {
       const gridSize = scene.grid.size;

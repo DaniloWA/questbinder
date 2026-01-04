@@ -58,7 +58,14 @@ export interface GameSessionState {
   isLoading: boolean;
 
   // Settings
-  cursorSettings: { color: string, name: string, shape?: string; };
+  cursorSettings: {
+    color: string;
+    name: string;
+    shape?: string;
+    clickAnimation?: 'ripple' | 'burst' | 'sparkle' | 'pulse' | 'vortex' | 'shard' | 'ring' | 'echo' | 'orb';
+    clickColorLeft?: string;
+    clickColorRight?: string;
+  };
   permissions: SessionPermissions;
   audioSettings: { playlists: Playlist[], soundboard: SoundEffect[]; };
 

@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useGameSession } from '../../context/GameSessionContext';
 import { useAuth } from '../../context/AuthContext';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { Check, RefreshCw, User as UserIcon, Lock, Crown } from 'lucide-react';
+import { ColorPicker } from '../ui/ColorPicker';
+import { Check, RefreshCw, User as UserIcon, Lock, Crown, Stars, Activity, CircleDot, Zap, Wind, Triangle, Target, Disc, Sun, Podcast } from 'lucide-react';
 import { getContrastColor } from '../../utils/colors';
 import { CURSOR_SHAPES, getCursorShape } from './constants/cursorShapes';
 
@@ -18,26 +19,192 @@ const PRESET_COLORS = [
   '#06b6d4', '#3b82f6', '#6366f1', '#a855f7', '#d946ef', '#f43f5e',
 ];
 
+const AnimationPreview: React.FC<{ style: string; color: string; size?: number; }> = React.memo(({ style, color, size = 60 }) => {
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let startTime = Date.now();
+    let animationFrame: number;
+
+    const render = () => {
+      const now = Date.now();
+      const DURATION = 500;
+      const LOOP_DELAY = 1500;
+
+      // Reset loop
+      if (now - startTime > LOOP_DELAY) {
+        startTime = now;
+      }
+
+      const progress = Math.min(1, (now - startTime) / DURATION);
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+
+      ctx.clearRect(0, 0, size, size);
+
+      // Don't render if waiting for loop delay (gap between animations)
+      if (now - startTime <= DURATION) {
+        ctx.save();
+        ctx.translate(size / 2, size / 2);
+
+        // Scale down slightly to fit canvas
+        const scale = 0.5;
+
+        ctx.globalAlpha = 1 - easeOut;
+
+        if (style === 'burst') {
+          const maxR = size * scale;
+          const currentR = maxR * easeOut;
+          const lines = 8;
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2;
+          for (let i = 0; i < lines; i++) {
+            const angle = (Math.PI * 2 / lines) * i;
+            const x1 = Math.cos(angle) * (currentR * 0.4);
+            const y1 = Math.sin(angle) * (currentR * 0.4);
+            const x2 = Math.cos(angle) * currentR;
+            const y2 = Math.sin(angle) * currentR;
+            ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+          }
+        } else if (style === 'sparkle') {
+          const maxDist = size * scale * 0.8;
+          const particles = 5;
+          ctx.fillStyle = color;
+          for (let i = 0; i < particles; i++) {
+            const angle = (Math.PI * 2 / particles) * i + (now / 200);
+            const dist = maxDist * easeOut;
+            const px = Math.cos(angle) * dist;
+            const py = Math.sin(angle) * dist;
+            ctx.beginPath(); ctx.arc(px, py, 2, 0, Math.PI * 2); ctx.fill();
+          }
+        } else if (style === 'pulse') {
+          const maxR = size * scale * 0.8;
+          ctx.fillStyle = color;
+          ctx.beginPath(); ctx.arc(0, 0, maxR * easeOut, 0, Math.PI * 2); ctx.fill();
+        } else if (style === 'vortex') {
+          const maxR = size * scale;
+          const spirals = 3;
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2;
+          for (let j = 0; j < spirals; j++) {
+            const angleOffset = (Math.PI * 2 / spirals) * j + (easeOut * Math.PI * 2);
+            ctx.beginPath();
+            for (let i = 0; i < 15; i++) {
+              const r = (i / 15) * maxR * easeOut;
+              const a = angleOffset + (i / 4);
+              const x = Math.cos(a) * r;
+              const y = Math.sin(a) * r;
+              if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+          }
+        } else if (style === 'shard') {
+          const shards = 5;
+          const dist = size * scale * 0.8 * easeOut;
+          ctx.fillStyle = color;
+          for (let i = 0; i < shards; i++) {
+            const angle = (Math.PI * 2 / shards) * i;
+            const sx = Math.cos(angle) * dist;
+            const sy = Math.sin(angle) * dist;
+            ctx.beginPath(); ctx.moveTo(sx, sy);
+            const s = 4;
+            ctx.lineTo(sx + Math.cos(angle + 2.5) * s, sy + Math.sin(angle + 2.5) * s);
+            ctx.lineTo(sx + Math.cos(angle - 2.5) * s, sy + Math.sin(angle - 2.5) * s);
+            ctx.fill();
+          }
+        } else if (style === 'ring') {
+          const r1 = size * scale * 0.6 * easeOut;
+          const r2 = size * scale * 0.4 * easeOut;
+          ctx.strokeStyle = color; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.arc(0, 0, r1, 0, Math.PI * 2); ctx.stroke();
+          ctx.beginPath(); ctx.arc(0, 0, r2, 0, Math.PI * 2); ctx.stroke();
+        } else if (style === 'echo') {
+          const count = 3;
+          ctx.strokeStyle = color; ctx.lineWidth = 1.5;
+          for (let i = 0; i < count; i++) {
+            const r = (size * scale) * easeOut * (1 - i * 0.25);
+            if (r > 0) { ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke(); }
+          }
+        } else if (style === 'orb') {
+          const r = size * scale * 0.5 * easeOut;
+          ctx.fillStyle = color;
+          ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+          ctx.globalAlpha = (1 - easeOut) * 0.5;
+          ctx.beginPath(); ctx.arc(0, 0, r * 1.5, 0, Math.PI * 2); ctx.fill();
+        } else {
+          // Ripple
+          const radius = (size * scale * 0.4) + (size * scale * 0.4 * easeOut);
+          ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2);
+          ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.stroke();
+        }
+
+        ctx.restore();
+      }
+
+      animationFrame = requestAnimationFrame(render);
+    };
+
+    render();
+    return () => cancelAnimationFrame(animationFrame);
+  }, [style, color, size]);
+
+  return <canvas ref={canvasRef} width={size} height={size} className="bg-zinc-950/30 rounded-lg border border-zinc-800/50" />;
+});
+
+
 export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen, onClose }) => {
   const { cursorSettings, setCursorSettings, permissions, isGM, players, updatePermissions, campaign } = useGameSession();
   const { user } = useAuth();
 
   // For self-editing
+  const [activeTab, setActiveTab] = useState<'general' | 'animations'>('general');
   const [name, setName] = useState('');
   const [color, setColor] = useState('#fbbf24');
   const [shapeId, setShapeId] = useState('default');
+  const [clickAnimation, setClickAnimation] = useState<'ripple' | 'burst' | 'sparkle' | 'pulse' | 'vortex' | 'shard' | 'ring' | 'echo' | 'orb'>('ripple');
+  const [clickColorLeft, setClickColorLeft] = useState('#3b82f6');
+  const [clickColorRight, setClickColorRight] = useState('#f59e0b');
 
   // For GM player management
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
-  const [localOverrides, setLocalOverrides] = useState<Record<string, { color?: string, shape?: string, name?: string; }>>({});
+  const [activeOverrideTab, setActiveOverrideTab] = useState<'general' | 'animations'>('general');
+  const [localOverrides, setLocalOverrides] = useState<Record<string, { color?: string, shape?: string, name?: string; clickAnimation?: string; clickColorLeft?: string; clickColorRight?: string; }>>({});
 
   // Check permissions - use flat permissions with per-user override support
   const canChangeColor = isGM || (permissions?.cursorAllowColorChange ?? true);
   const canChangeShape = isGM || (permissions?.cursorAllowShapeChange ?? true);
   const canChangeName = isGM || (permissions?.cursorAllowNameChange ?? true);
+  const canChangeAnimation = isGM || (permissions?.cursorAllowAnimationChange ?? true);
+  const canChangeAnimationColor = isGM || (permissions?.cursorAllowAnimationColorChange ?? true);
 
   // Check if there's a GM override for current user
-  const myOverride = (permissions?.cursorOverrides?.[user?.id || ''] || {}) as { color?: string, shape?: string, name?: string; };
+  const myOverride = (permissions?.cursorOverrides?.[user?.id || ''] || {}) as { color?: string, shape?: string, name?: string; clickAnimation?: string; clickColorLeft?: string; clickColorRight?: string; };
+
+  // Determine effective values and lock status
+  const isShapeOverridden = !!myOverride.shape;
+  const isNameOverridden = !!myOverride.name;
+  const isColorOverridden = !!myOverride.color;
+  const isAnimOverridden = !!myOverride.clickAnimation;
+  const isLeftColorOverridden = !!myOverride.clickColorLeft;
+  const isRightColorOverridden = !!myOverride.clickColorRight;
+
+  const canEditShape = (canChangeShape && !isShapeOverridden);
+  const canEditName = (canChangeName && !isNameOverridden);
+  const canEditColor = (canChangeColor && !isColorOverridden);
+  const canEditAnim = (canChangeAnimation && !isAnimOverridden);
+  const canEditLeft = (canChangeAnimationColor && !isLeftColorOverridden);
+  const canEditRight = (canChangeAnimationColor && !isRightColorOverridden);
+
+  const effectiveShapeId = myOverride.shape || shapeId;
+  const effectiveColor = myOverride.color || color;
+  const effectiveName = myOverride.name || name;
+  const effectiveAnim = myOverride.clickAnimation || clickAnimation;
+  const effectiveLeft = myOverride.clickColorLeft || clickColorLeft;
+  const effectiveRight = myOverride.clickColorRight || clickColorRight;
 
   // Filter players: exclude campaign owner (GM)
   const nonGMPlayers = players.filter(p => p.id !== campaign?.ownerId);
@@ -47,13 +214,37 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
       setName(cursorSettings?.name || user?.name || '');
       setColor(cursorSettings?.color || '#fbbf24');
       setShapeId(cursorSettings?.shape || 'default');
+      setClickAnimation(cursorSettings?.clickAnimation || 'ripple');
+      setClickColorLeft(cursorSettings?.clickColorLeft || '#3b82f6');
+      setClickColorRight(cursorSettings?.clickColorRight || '#f59e0b');
       setLocalOverrides(permissions?.cursorOverrides || {});
       setSelectedPlayerId(null);
+      setActiveTab('general');
+      setActiveOverrideTab('general');
+      initialSettingsRef.current = { ...cursorSettings };
     }
-  }, [isOpen, cursorSettings, user, permissions]);
+  }, [isOpen]);
+
+  const initialSettingsRef = useRef<any>(null);
+
+  const handleLiveUpdate = (updates: any) => {
+    setCursorSettings({ ...cursorSettings, ...updates });
+  };
+
+  const handleCancel = () => {
+    if (initialSettingsRef.current) {
+      setCursorSettings(initialSettingsRef.current);
+    }
+    onClose();
+  };
 
   const handleSaveAll = () => {
-    setCursorSettings({ name, color, shape: shapeId });
+    setCursorSettings({
+      name, color, shape: shapeId,
+      clickAnimation,
+      clickColorLeft,
+      clickColorRight
+    });
     if (isGM) {
       updatePermissions({ cursorOverrides: localOverrides });
     }
@@ -64,26 +255,34 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
   const currentOverride = selectedPlayerId ? (localOverrides[selectedPlayerId] || {}) : {};
   const selectedShape = getCursorShape(shapeId);
 
-  const updateOverride = (field: 'color' | 'shape' | 'name', value: string | undefined) => {
+  const updateOverride = (field: 'color' | 'shape' | 'name' | 'clickAnimation' | 'clickColorLeft' | 'clickColorRight', value: string | undefined) => {
     if (!selectedPlayerId) return;
-    setLocalOverrides(prev => {
-      const current = prev[selectedPlayerId] || {};
-      const updated = { ...current, [field]: value };
-      if (value === undefined) delete updated[field];
-      if (Object.keys(updated).length === 0) {
-        const { [selectedPlayerId]: _, ...rest } = prev;
-        return rest;
-      }
-      return { ...prev, [selectedPlayerId]: updated };
-    });
+
+    const newOverrides = { ...localOverrides };
+    const current = newOverrides[selectedPlayerId] || {};
+    const updated = { ...current, [field]: value };
+
+    if (value === undefined) delete updated[field];
+
+    if (Object.keys(updated).length === 0) {
+      delete newOverrides[selectedPlayerId];
+    } else {
+      newOverrides[selectedPlayerId] = updated;
+    }
+
+    setLocalOverrides(newOverrides);
+    // Live update permissions
+    updatePermissions({ cursorOverrides: newOverrides });
   };
 
   const clearOverride = () => {
     if (!selectedPlayerId) return;
-    setLocalOverrides(prev => {
-      const { [selectedPlayerId]: _, ...rest } = prev;
-      return rest;
-    });
+
+    const newOverrides = { ...localOverrides };
+    delete newOverrides[selectedPlayerId];
+
+    setLocalOverrides(newOverrides);
+    updatePermissions({ cursorOverrides: newOverrides });
   };
 
   // Helper to render GM override info for players
@@ -174,13 +373,21 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
               {/* Preview */}
               <div className="flex justify-center py-2 bg-zinc-900/50 rounded-lg border border-dashed border-zinc-800">
                 <div className="relative">
-                  <svg width="60" height="60" viewBox="0 0 60 60" fill="none" style={{ filter: 'drop-shadow(1px 2px 3px rgba(0,0,0,0.3))' }}>
-                    <g transform="translate(30, 30) scale(1.2)">
-                      <g transform={`scale(${selectedShape.scale || 1}) translate(${-selectedShape.hotspot.x}, ${-selectedShape.hotspot.y})`}>
-                        <path d={selectedShape.path} fill={myOverride.color || color} stroke="white" strokeWidth="1" />
+                  {selectedShape.imageUrl ? (
+                    <img
+                      src={selectedShape.imageUrl}
+                      alt={selectedShape.label}
+                      className="w-[50px] h-[50px] object-contain drop-shadow-md"
+                    />
+                  ) : (
+                    <svg width="60" height="60" viewBox="0 0 60 60" fill="none" style={{ filter: 'drop-shadow(1px 2px 3px rgba(0,0,0,0.3))' }}>
+                      <g transform="translate(30, 30) scale(1.2)">
+                        <g transform={`scale(${selectedShape.scale || 1}) translate(${-selectedShape.hotspot.x}, ${-selectedShape.hotspot.y})`}>
+                          <path d={selectedShape.path} fill={effectiveColor} stroke="white" strokeWidth="1" />
+                        </g>
                       </g>
-                    </g>
-                  </svg>
+                    </svg>
+                  )}
                   <div
                     className="absolute left-[42px] top-[42px] px-1 py-0.5 rounded text-[9px] font-semibold whitespace-nowrap shadow-sm z-10"
                     style={{ backgroundColor: myOverride.color || color, color: getContrastColor(myOverride.color || color) }}
@@ -190,89 +397,212 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
                 </div>
               </div>
 
-              {/* Shape Selection */}
-              <div className={!canChangeShape ? 'opacity-40' : ''}>
-                <label className="text-[10px] font-medium text-muted-foreground mb-1 block flex items-center gap-1">
-                  Formato
-                  {!canChangeShape && <><Lock className="w-3 h-3 text-red-400" /><span className="text-red-400">Bloqueado</span></>}
-                </label>
-                <div className="grid grid-cols-9 gap-0.5">
-                  {CURSOR_SHAPES.map(s => (
-                    <button
-                      key={s.id}
-                      onClick={() => canChangeShape && setShapeId(s.id)}
-                      disabled={!canChangeShape}
-                      className={`aspect-square rounded transition-all flex items-center justify-center border ${(myOverride.shape || shapeId) === s.id ? 'bg-primary/20 border-primary' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-600'
-                        } ${!canChangeShape ? 'cursor-not-allowed' : ''}`}
-                      title={s.label}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        <g transform={`scale(${s.scale || 1})`}>
-                          <path d={s.path} fill={(myOverride.shape || shapeId) === s.id ? (myOverride.color || color) : '#71717a'} />
-                        </g>
-                      </svg>
-                    </button>
-                  ))}
-                </div>
+              {/* Tabs */}
+              <div className="flex bg-zinc-900 p-0.5 rounded-md border border-zinc-800">
+                <button
+                  onClick={() => setActiveTab('general')}
+                  className={`flex-1 text-[10px] py-1 rounded transition-all ${activeTab === 'general' ? 'bg-zinc-700 text-white shadow font-bold' : 'text-zinc-500 hover:text-zinc-300'}`}
+                >
+                  Geral
+                </button>
+                <button
+                  onClick={() => setActiveTab('animations')}
+                  className={`flex-1 text-[10px] py-1 rounded transition-all ${activeTab === 'animations' ? 'bg-zinc-700 text-white shadow font-bold' : 'text-zinc-500 hover:text-zinc-300'}`}
+                >
+                  Animações
+                </button>
               </div>
 
-              {/* Name Input */}
-              <div className={!canChangeName ? 'opacity-40' : ''}>
-                <label className="text-[10px] font-medium text-muted-foreground mb-0.5 block flex items-center gap-1">
-                  Nome de Exibição
-                  {!canChangeName && <><Lock className="w-3 h-3 text-red-400" /><span className="text-red-400">Bloqueado</span></>}
-                </label>
-                <Input
-                  value={name}
-                  onChange={(e) => canChangeName && setName(e.target.value)}
-                  placeholder={user?.name}
-                  maxLength={20}
-                  disabled={!canChangeName}
-                  className="h-7 text-xs"
-                />
-              </div>
-
-              {/* Color Selection */}
-              <div className={!canChangeColor ? 'opacity-40' : ''}>
-                <label className="text-[10px] font-medium text-muted-foreground mb-1 block flex items-center gap-1">
-                  Cor
-                  {!canChangeColor && <><Lock className="w-3 h-3 text-red-400" /><span className="text-red-400">Bloqueado</span></>}
-                </label>
-                <div className="flex items-center gap-1.5">
-                  <div className="grid grid-cols-12 gap-0.5 flex-1">
-                    {PRESET_COLORS.map(c => (
-                      <button
-                        key={c}
-                        onClick={() => canChangeColor && setColor(c)}
-                        disabled={!canChangeColor}
-                        className={`w-5 h-5 rounded-full transition-all flex items-center justify-center ${(myOverride.color || color) === c ? 'ring-2 ring-white scale-110' : 'hover:scale-105 opacity-80 hover:opacity-100'
-                          } ${!canChangeColor ? 'cursor-not-allowed' : ''}`}
-                        style={{ backgroundColor: c }}
-                      >
-                        {(myOverride.color || color) === c && <Check className="w-2.5 h-2.5 text-white drop-shadow-md" />}
-                      </button>
-                    ))}
+              {/* Content: General */}
+              {activeTab === 'general' && (
+                <>
+                  {/* Shape Selection */}
+                  <div className={!canEditShape ? 'opacity-60' : ''}>
+                    <label className="text-[10px] font-medium text-muted-foreground mb-1 block flex items-center gap-1">
+                      Formato
+                      {isShapeOverridden && <><Crown className="w-3 h-3 text-amber-500" /><span className="text-amber-500">Definido pelo GM</span></>}
+                      {!canChangeShape && !isShapeOverridden && <><Lock className="w-3 h-3 text-red-400" /><span className="text-red-400">Bloqueado</span></>}
+                    </label>
+                    <div className="grid grid-cols-9 gap-0.5">
+                      {CURSOR_SHAPES.map(s => (
+                        <button
+                          key={s.id}
+                          onClick={() => canEditShape && setShapeId(s.id)}
+                          disabled={!canEditShape}
+                          className={`aspect-square rounded transition-all flex items-center justify-center border overflow-hidden ${effectiveShapeId === s.id ? 'bg-primary/20 border-primary' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-600'
+                            } ${!canEditShape ? 'cursor-not-allowed' : ''}`}
+                          title={s.label}
+                        >
+                          {s.imageUrl ? (
+                            <img src={s.imageUrl} alt={s.label} className="w-5 h-5 object-contain" />
+                          ) : (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                              <path d={s.path} fill={effectiveShapeId === s.id ? effectiveColor : '#71717a'} />
+                            </svg>
+                          )}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <input
-                    type="color"
-                    value={color}
-                    onChange={(e) => canChangeColor && setColor(e.target.value)}
-                    disabled={!canChangeColor}
-                    className="w-7 h-7 rounded cursor-pointer bg-transparent border border-zinc-700"
-                    title="Cor personalizada"
-                  />
+
+                  {/* Name Input */}
+                  <div className={!canEditName ? 'opacity-60' : ''}>
+                    <label className="text-[10px] font-medium text-muted-foreground mb-0.5 block flex items-center gap-1">
+                      Nome de Exibição
+                      {isNameOverridden && <><Crown className="w-3 h-3 text-amber-500" /><span className="text-amber-500">Definido pelo GM</span></>}
+                      {!canChangeName && !isNameOverridden && <><Lock className="w-3 h-3 text-red-400" /><span className="text-red-400">Bloqueado</span></>}
+                    </label>
+                    <Input
+                      value={effectiveName}
+                      onChange={(e) => canEditName && setName(e.target.value)}
+                      placeholder={user?.name}
+                      maxLength={20}
+                      disabled={!canEditName}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+
+                  {/* Color Selection */}
+                  <div className={!canEditColor ? 'opacity-60' : ''}>
+                    <label className="text-[10px] font-medium text-muted-foreground mb-1 block flex items-center gap-1">
+                      Cor Principal
+                      {isColorOverridden && <><Crown className="w-3 h-3 text-amber-500" /><span className="text-amber-500">Definido pelo GM</span></>}
+                      {!canChangeColor && !isColorOverridden && <><Lock className="w-3 h-3 text-red-400" /><span className="text-red-400">Bloqueado</span></>}
+                    </label>
+                    <div className="flex items-center gap-1.5">
+                      <div className="grid grid-cols-12 gap-0.5 flex-1">
+                        {PRESET_COLORS.map(c => (
+                          <button
+                            key={c}
+                            onClick={() => canEditColor && setColor(c)}
+                            disabled={!canEditColor}
+                            className={`w-5 h-5 rounded-full transition-all flex items-center justify-center ${effectiveColor === c ? 'ring-2 ring-white scale-110' : 'hover:scale-105 opacity-80 hover:opacity-100'
+                              } ${!canEditColor ? 'cursor-not-allowed' : ''}`}
+                            style={{ backgroundColor: c }}
+                          >
+                            {effectiveColor === c && <Check className="w-2.5 h-2.5 text-white drop-shadow-md" />}
+                          </button>
+                        ))}
+                      </div>
+                      <input
+                        type="color"
+                        value={effectiveColor}
+                        onChange={(e) => canEditColor && setColor(e.target.value)}
+                        disabled={!canEditColor}
+                        className="w-7 h-7 rounded cursor-pointer bg-transparent border border-zinc-700"
+                        title="Cor personalizada"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Content: Animations */}
+              {activeTab === 'animations' && (
+                <div className="space-y-3 pt-1">
+
+                  {!canChangeAnimation && (
+                    <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] px-2 py-1.5 rounded flex items-center gap-2">
+                      <Lock className="w-3 h-3" />
+                      <span>Configuração bloqueada pelo Mestre</span>
+                    </div>
+                  )}
+
+                  {/* Main Preview */}
+                  <div className="flex justify-center py-4 bg-zinc-950/50 rounded-lg border border-dashed border-zinc-800 relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-zinc-800/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="flex gap-8 items-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <AnimationPreview style={effectiveAnim} color={effectiveLeft} size={80} />
+                        <span className="text-[9px] text-zinc-500">Esquerdo</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-1">
+                        <AnimationPreview style={effectiveAnim} color={effectiveRight} size={80} />
+                        <span className="text-[9px] text-zinc-500">Direito</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Style Selection */}
+                  <div>
+                    <label className={`text-[10px] font-medium text-muted-foreground mb-1 block ${!canEditAnim ? 'opacity-50' : ''} flex items-center gap-1`}>
+                      Estilo do Clique
+                      {isAnimOverridden && <><Crown className="w-3 h-3 text-amber-500" /><span className="text-amber-500">Definido pelo GM</span></>}
+                      {!canChangeAnimation && !isAnimOverridden && <><Lock className="w-3 h-3 text-red-400" /><span className="text-red-400">Bloqueado</span></>}
+                    </label>
+                    <div className={`grid grid-cols-3 gap-2 ${!canEditAnim ? 'pointer-events-none opacity-50' : ''}`}>
+                      {[
+                        { id: 'ripple', label: 'Ondas', icon: CircleDot },
+                        { id: 'burst', label: 'Explosão', icon: Activity },
+                        { id: 'sparkle', label: 'Brilho', icon: Stars },
+                        { id: 'pulse', label: 'Pulso', icon: Target },
+                        { id: 'vortex', label: 'Vórtice', icon: Wind },
+                        { id: 'shard', label: 'Estilhaços', icon: Triangle },
+                        { id: 'ring', label: 'Anel Duplo', icon: Disc },
+                        { id: 'echo', label: 'Eco', icon: Podcast },
+                        { id: 'orb', label: 'Orbe', icon: Sun },
+                      ].map(type => (
+                        <button
+                          key={type.id}
+                          onClick={() => {
+                            if (canEditAnim) {
+                              setClickAnimation(type.id as any);
+                              handleLiveUpdate({ clickAnimation: type.id });
+                            }
+                          }}
+                          className={`flex flex-col items-center gap-1 p-2 rounded border transition-all ${effectiveAnim === type.id
+                            ? 'bg-primary/20 border-primary text-white'
+                            : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-600'
+                            }`}
+                        >
+                          <type.icon className="w-4 h-4" />
+                          <span className="text-[10px]">{type.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Colors Row */}
+                  <div className={`grid grid-cols-2 gap-2 mt-2 ${!(canEditLeft || canEditRight) ? 'opacity-80' : ''}`}>
+                    {/* Left Click Color */}
+                    <div className={`flex items-center justify-between bg-zinc-900/50 p-2 rounded border border-zinc-800 relative ${!canEditLeft ? 'opacity-60 pointer-events-none' : ''}`}>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-bold text-zinc-300">Botão Esquerdo</span>
+                        <span className="text-[9px] text-zinc-500">Primário</span>
+                        {isLeftColorOverridden && <span className="text-[9px] text-amber-500 font-bold flex items-center gap-0.5"><Crown className="w-2 h-2" /> GM</span>}
+                      </div>
+                      <ColorPicker
+                        value={effectiveLeft}
+                        onChange={(v) => { if (canEditLeft) { setClickColorLeft(v); handleLiveUpdate({ clickColorLeft: v }); } }}
+                      />
+                    </div>
+
+                    {/* Right Click Color */}
+                    <div className={`flex items-center justify-between bg-zinc-900/50 p-2 rounded border border-zinc-800 relative ${!canEditRight ? 'opacity-60 pointer-events-none' : ''}`}>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-bold text-zinc-300">Botão Direito</span>
+                        <span className="text-[9px] text-zinc-500">Secundário</span>
+                        {isRightColorOverridden && <span className="text-[9px] text-amber-500 font-bold flex items-center gap-0.5"><Crown className="w-2 h-2" /> GM</span>}
+                      </div>
+                      <ColorPicker
+                        value={effectiveRight}
+                        onChange={(v) => { if (canEditRight) { setClickColorRight(v); handleLiveUpdate({ clickColorRight: v }); } }}
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
+
             </div>
           )}
 
           {/* GM: Player Override Mode */}
           {selectedPlayerId !== null && selectedPlayer && (
-            <div className="flex-1 flex flex-col gap-2">
-              <div className="flex items-center justify-between pb-1.5 border-b border-zinc-800">
+            <div className="flex-1 flex flex-col min-h-0">
+              <div className="flex items-center justify-between pb-1.5 border-b border-zinc-800 shrink-0">
                 <div>
                   <h3 className="text-xs font-bold text-white">{selectedPlayer.name}</h3>
-                  <p className="text-[9px] text-zinc-500">Definir override (substitui configurações do jogador)</p>
+                  <p className="text-[9px] text-zinc-500">Definir override</p>
                 </div>
                 {Object.keys(currentOverride).length > 0 && (
                   <Button variant="ghost" size="sm" onClick={clearOverride} className="text-amber-400 text-[10px] h-6 px-2">
@@ -281,91 +611,171 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
                 )}
               </div>
 
-              {/* Preview */}
-              <div className="flex justify-center py-2 bg-zinc-900/50 rounded-lg border border-dashed border-zinc-800">
-                <div className="relative">
-                  <svg width="60" height="60" viewBox="0 0 60 60" fill="none" style={{ filter: 'drop-shadow(1px 2px 3px rgba(0,0,0,0.3))' }}>
-                    <g transform="translate(30, 30) scale(1.2)">
-                      <g transform={`scale(${getCursorShape(currentOverride.shape || 'default').scale || 1}) translate(${-getCursorShape(currentOverride.shape || 'default').hotspot.x}, ${-getCursorShape(currentOverride.shape || 'default').hotspot.y})`}>
-                        <path d={getCursorShape(currentOverride.shape || 'default').path} fill={currentOverride.color || '#fbbf24'} stroke="white" strokeWidth="1" />
-                      </g>
-                    </g>
-                  </svg>
-                  <div
-                    className="absolute left-[42px] top-[42px] px-1 py-0.5 rounded text-[9px] font-semibold whitespace-nowrap shadow-sm z-10"
-                    style={{ backgroundColor: currentOverride.color || '#fbbf24', color: getContrastColor(currentOverride.color || '#fbbf24') }}
-                  >
-                    {currentOverride.name || selectedPlayer.name}
+              {/* GM Tabs */}
+              <div className="flex bg-zinc-900 p-0.5 rounded-md border border-zinc-800 my-2 shrink-0">
+                <button
+                  onClick={() => setActiveOverrideTab('general')}
+                  className={`flex-1 text-[10px] py-1 rounded transition-all ${activeOverrideTab === 'general' ? 'bg-zinc-700 text-white shadow font-bold' : 'text-zinc-500 hover:text-zinc-300'}`}
+                >
+                  Geral
+                </button>
+                <button
+                  onClick={() => setActiveOverrideTab('animations')}
+                  className={`flex-1 text-[10px] py-1 rounded transition-all flex items-center justify-center gap-1 ${activeOverrideTab === 'animations' ? 'bg-zinc-700 text-white shadow font-bold' : 'text-zinc-500 hover:text-zinc-300'}`}
+                >
+                  Animações
+                  {currentOverride.clickAnimation && <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />}
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto pr-1 space-y-4 custom-scrollbar">
+                {activeOverrideTab === 'general' && (
+                  <>
+                    {/* Preview */}
+                    <div className="flex justify-center py-2 bg-zinc-900/50 rounded-lg border border-dashed border-zinc-800">
+                      <div className="relative">
+                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none" style={{ filter: 'drop-shadow(1px 2px 3px rgba(0,0,0,0.3))' }}>
+                          <g transform="translate(30, 30) scale(1.2)">
+                            <g transform={`scale(${getCursorShape(currentOverride.shape || 'default').scale || 1}) translate(${-getCursorShape(currentOverride.shape || 'default').hotspot.x}, ${-getCursorShape(currentOverride.shape || 'default').hotspot.y})`}>
+                              {getCursorShape(currentOverride.shape || 'default').imageUrl ? (
+                                <image href={getCursorShape(currentOverride.shape || 'default').imageUrl} width="512" height="512" />
+                              ) : (
+                                <path d={getCursorShape(currentOverride.shape || 'default').path} fill={currentOverride.color || '#fbbf24'} stroke="white" strokeWidth="1" />
+                              )}
+                            </g>
+                          </g>
+                        </svg>
+                        <div
+                          className="absolute left-[42px] top-[42px] px-1 py-0.5 rounded text-[9px] font-semibold whitespace-nowrap shadow-sm z-10"
+                          style={{ backgroundColor: currentOverride.color || '#fbbf24', color: getContrastColor(currentOverride.color || '#fbbf24') }}
+                        >
+                          {currentOverride.name || selectedPlayer.name}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Shape Override */}
+                    <div>
+                      <label className="text-[10px] font-medium text-muted-foreground mb-1 block">Formato</label>
+                      <div className="grid grid-cols-9 gap-0.5">
+                        {CURSOR_SHAPES.map(s => (
+                          <button
+                            key={s.id}
+                            onClick={() => updateOverride('shape', currentOverride.shape === s.id ? undefined : s.id)}
+                            className={`aspect-square rounded transition-all flex items-center justify-center border ${currentOverride.shape === s.id ? 'bg-amber-500/20 border-amber-500' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-600'
+                              }`}
+                            title={s.label}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                              <g transform={`scale(${s.scale || 1})`}>
+                                {s.imageUrl ? (
+                                  <image href={s.imageUrl} width="512" height="512" />
+                                ) : (
+                                  <path d={s.path} fill={currentOverride.shape === s.id ? (currentOverride.color || '#fbbf24') : '#71717a'} />
+                                )}
+                              </g>
+                            </svg>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Name Override */}
+                    <div>
+                      <label className="text-[10px] font-medium text-muted-foreground mb-0.5 block">Nome</label>
+                      <Input
+                        value={currentOverride.name || ''}
+                        onChange={(e) => updateOverride('name', e.target.value || undefined)}
+                        placeholder={selectedPlayer.name}
+                        maxLength={20}
+                        className="h-7 text-xs"
+                      />
+                    </div>
+
+                    {/* Color Override */}
+                    <div>
+                      <label className="text-[10px] font-medium text-muted-foreground mb-1 block">Cor</label>
+                      <div className="flex items-center gap-1.5">
+                        <div className="grid grid-cols-12 gap-0.5 flex-1">
+                          {PRESET_COLORS.map(c => (
+                            <button
+                              key={c}
+                              onClick={() => updateOverride('color', currentOverride.color === c ? undefined : c)}
+                              className={`w-5 h-5 rounded-full transition-all flex items-center justify-center ${currentOverride.color === c ? 'ring-2 ring-amber-500 scale-110' : 'hover:scale-105 opacity-80 hover:opacity-100'
+                                }`}
+                              style={{ backgroundColor: c }}
+                            >
+                              {currentOverride.color === c && <Check className="w-2.5 h-2.5 text-white drop-shadow-md" />}
+                            </button>
+                          ))}
+                        </div>
+                        <input
+                          type="color"
+                          value={currentOverride.color || '#fbbf24'}
+                          onChange={(e) => updateOverride('color', e.target.value)}
+                          className="w-7 h-7 rounded cursor-pointer bg-transparent border border-zinc-700"
+                          title="Cor personalizada"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {activeOverrideTab === 'animations' && (
+                  <div>
+                    <label className="text-[10px] font-medium text-muted-foreground mb-1 block">Animação de Clique e Cor</label>
+                    <div className="flex gap-2">
+                      {/* Tiny Preview */}
+                      <div className="shrink-0 pt-1">
+                        <AnimationPreview style={currentOverride.clickAnimation || 'ripple'} color={currentOverride.clickColorLeft || '#3b82f6'} size={40} />
+                      </div>
+                      {/* Grid */}
+                      <div className="flex-1 grid grid-cols-5 gap-1">
+                        {[
+                          { id: 'ripple', label: 'Rl', icon: CircleDot },
+                          { id: 'burst', label: 'Bu', icon: Activity },
+                          { id: 'sparkle', label: 'Sp', icon: Stars },
+                          { id: 'pulse', label: 'Pu', icon: Target },
+                          { id: 'vortex', label: 'Vo', icon: Wind },
+                          { id: 'shard', label: 'Sh', icon: Triangle },
+                          { id: 'ring', label: 'Ri', icon: Disc },
+                          { id: 'echo', label: 'Ec', icon: Podcast },
+                          { id: 'orb', label: 'Or', icon: Sun },
+                        ].map(type => (
+                          <button
+                            key={type.id}
+                            onClick={() => updateOverride('clickAnimation', currentOverride.clickAnimation === type.id ? undefined : type.id)}
+                            className={`aspect-square rounded transition-all flex items-center justify-center border ${currentOverride.clickAnimation === type.id
+                              ? 'bg-amber-500/20 border-amber-500 text-amber-500'
+                              : 'bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-600'
+                              }`}
+                            title={`Animation: ${type.id}`}
+                          >
+                            <type.icon className="w-3 h-3" />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {/* Colors Override */}
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <div className="flex items-center justify-between bg-zinc-900/50 p-1.5 rounded border border-zinc-800">
+                        <span className="text-[9px] text-zinc-400">Esq.</span>
+                        <ColorPicker value={currentOverride.clickColorLeft || '#3b82f6'} onChange={(v) => updateOverride('clickColorLeft', v)} />
+                      </div>
+                      <div className="flex items-center justify-between bg-zinc-900/50 p-1.5 rounded border border-zinc-800">
+                        <span className="text-[9px] text-zinc-400">Dir.</span>
+                        <ColorPicker value={currentOverride.clickColorRight || '#f59e0b'} onChange={(v) => updateOverride('clickColorRight', v)} />
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-
-              {/* Shape Override */}
-              <div>
-                <label className="text-[10px] font-medium text-muted-foreground mb-1 block">Formato</label>
-                <div className="grid grid-cols-9 gap-0.5">
-                  {CURSOR_SHAPES.map(s => (
-                    <button
-                      key={s.id}
-                      onClick={() => updateOverride('shape', currentOverride.shape === s.id ? undefined : s.id)}
-                      className={`aspect-square rounded transition-all flex items-center justify-center border ${currentOverride.shape === s.id ? 'bg-amber-500/20 border-amber-500' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-600'
-                        }`}
-                      title={s.label}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        <g transform={`scale(${s.scale || 1})`}>
-                          <path d={s.path} fill={currentOverride.shape === s.id ? (currentOverride.color || '#fbbf24') : '#71717a'} />
-                        </g>
-                      </svg>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Name Override */}
-              <div>
-                <label className="text-[10px] font-medium text-muted-foreground mb-0.5 block">Nome</label>
-                <Input
-                  value={currentOverride.name || ''}
-                  onChange={(e) => updateOverride('name', e.target.value || undefined)}
-                  placeholder={selectedPlayer.name}
-                  maxLength={20}
-                  className="h-7 text-xs"
-                />
-              </div>
-
-              {/* Color Override */}
-              <div>
-                <label className="text-[10px] font-medium text-muted-foreground mb-1 block">Cor</label>
-                <div className="flex items-center gap-1.5">
-                  <div className="grid grid-cols-12 gap-0.5 flex-1">
-                    {PRESET_COLORS.map(c => (
-                      <button
-                        key={c}
-                        onClick={() => updateOverride('color', currentOverride.color === c ? undefined : c)}
-                        className={`w-5 h-5 rounded-full transition-all flex items-center justify-center ${currentOverride.color === c ? 'ring-2 ring-amber-500 scale-110' : 'hover:scale-105 opacity-80 hover:opacity-100'
-                          }`}
-                        style={{ backgroundColor: c }}
-                      >
-                        {currentOverride.color === c && <Check className="w-2.5 h-2.5 text-white drop-shadow-md" />}
-                      </button>
-                    ))}
-                  </div>
-                  <input
-                    type="color"
-                    value={currentOverride.color || '#fbbf24'}
-                    onChange={(e) => updateOverride('color', e.target.value)}
-                    className="w-7 h-7 rounded cursor-pointer bg-transparent border border-zinc-700"
-                    title="Cor personalizada"
-                  />
-                </div>
+                )}
               </div>
             </div>
           )}
 
           {/* Footer */}
           <div className="flex justify-end gap-2 pt-2 mt-auto border-t border-zinc-800">
-            <Button variant="ghost" onClick={onClose} size="sm">Cancelar</Button>
+            <Button variant="ghost" onClick={handleCancel} size="sm">Cancelar</Button>
             <Button onClick={handleSaveAll} size="sm">Salvar</Button>
           </div>
         </div>

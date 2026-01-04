@@ -30,6 +30,7 @@ interface UseMapRendererProps extends MapCanvasProps {
   visionTokens: Token[];
   imageCache: { [src: string]: HTMLImageElement; };
   currentUser: User | null;
+  clickAnimationsRef?: React.MutableRefObject<{ x: number, y: number, color: string, style?: 'ripple' | 'burst' | 'sparkle' | 'pulse' | 'vortex' | 'shard' | 'ring' | 'echo' | 'orb', startTime: number; }[]>;
 }
 
 export const useMapRenderer = (props: UseMapRendererProps) => {
@@ -43,6 +44,12 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
   } = props;
 
   const { ui, drawingSettings, rulerSettings } = useGameSession();
+
+  // --- CURSOR PHYSICS STATE ---
+  // Stores history for interpolation and angle calculation
+  // Structure: { userId: { x: number, y: number, angle: number, targetAngle: number, lastUpdateTime: number } }
+  const cursorPhysics = React.useRef<Record<string, { x: number, y: number, angle: number, targetAngle: number, velocity: number; }>>({});
+  // We use a ref because we update it inside the animation loop without triggering re-renders
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -58,6 +65,9 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
       lightCanvas.height = canvas.height;
     }
     const lightCtx = lightCanvas.getContext('2d');
+
+
+
 
     let animationFrameId: number;
 
@@ -433,6 +443,131 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
         ctx.save(); ctx.strokeStyle = drawingObstacle.type === 'window' ? 'cyan' : 'rgba(139, 92, 246, 0.9)'; ctx.lineWidth = 5 / viewport.zoom; ctx.beginPath(); ctx.moveTo(drawingObstacle.p1.x, drawingObstacle.p1.y); ctx.lineTo(mouseWorldPos.x, mouseWorldPos.y); ctx.stroke(); ctx.restore();
       }
 
+
+      // --- CLICK ANIMATIONS ---
+      if (props.clickAnimationsRef && props.clickAnimationsRef.current.length > 0) {
+        const now = Date.now();
+        const DURATION = 500;
+
+        // Render
+        props.clickAnimationsRef.current.forEach(anim => {
+          const progress = (now - anim.startTime) / DURATION;
+          if (progress >= 1) return;
+
+          const easeOut = 1 - Math.pow(1 - progress, 3);
+
+          ctx.save();
+          ctx.translate(anim.x, anim.y);
+          ctx.globalAlpha = 1 - easeOut; // Fade out common
+
+          if (anim.style === 'burst') {
+            const maxR = 60 / viewport.zoom;
+            const currentR = maxR * easeOut;
+            const lines = 8;
+            ctx.strokeStyle = anim.color;
+            ctx.lineWidth = 2 / viewport.zoom;
+            for (let i = 0; i < lines; i++) {
+              const angle = (Math.PI * 2 / lines) * i;
+              const x1 = Math.cos(angle) * (currentR * 0.4);
+              const y1 = Math.sin(angle) * (currentR * 0.4);
+              const x2 = Math.cos(angle) * currentR;
+              const y2 = Math.sin(angle) * currentR;
+              ctx.beginPath();
+              ctx.moveTo(x1, y1);
+              ctx.lineTo(x2, y2);
+              ctx.stroke();
+            }
+          } else if (anim.style === 'sparkle') {
+            const maxDist = 50 / viewport.zoom;
+            const particles = 5;
+            ctx.fillStyle = anim.color;
+            for (let i = 0; i < particles; i++) {
+              const angle = (Math.PI * 2 / particles) * i + (now / 200);
+              const dist = maxDist * easeOut;
+              const px = Math.cos(angle) * dist;
+              const py = Math.sin(angle) * dist;
+              ctx.beginPath();
+              ctx.arc(px, py, 4 / viewport.zoom, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          } else if (anim.style === 'pulse') {
+            const maxR = 40 / viewport.zoom;
+            ctx.fillStyle = anim.color;
+            ctx.beginPath();
+            ctx.arc(0, 0, maxR * easeOut, 0, Math.PI * 2);
+            ctx.fill();
+          } else if (anim.style === 'vortex') {
+            const maxR = 50 / viewport.zoom;
+            const spirals = 3;
+            ctx.strokeStyle = anim.color;
+            ctx.lineWidth = 2 / viewport.zoom;
+            for (let j = 0; j < spirals; j++) {
+              const angleOffset = (Math.PI * 2 / spirals) * j + (easeOut * Math.PI * 2);
+              ctx.beginPath();
+              for (let i = 0; i < 15; i++) {
+                const r = (i / 15) * maxR * easeOut;
+                const a = angleOffset + (i / 4);
+                const x = Math.cos(a) * r;
+                const y = Math.sin(a) * r;
+                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+              }
+              ctx.stroke();
+            }
+          } else if (anim.style === 'shard') {
+            const shards = 5;
+            const dist = 50 / viewport.zoom * easeOut;
+            ctx.fillStyle = anim.color;
+            for (let i = 0; i < shards; i++) {
+              const angle = (Math.PI * 2 / shards) * i;
+              const sx = Math.cos(angle) * dist;
+              const sy = Math.sin(angle) * dist;
+              ctx.beginPath();
+              ctx.moveTo(sx, sy);
+              const size = 6 / viewport.zoom;
+              ctx.lineTo(sx + Math.cos(angle + 2.5) * size, sy + Math.sin(angle + 2.5) * size);
+              ctx.lineTo(sx + Math.cos(angle - 2.5) * size, sy + Math.sin(angle - 2.5) * size);
+              ctx.fill();
+            }
+          } else if (anim.style === 'ring') {
+            const r1 = 30 / viewport.zoom * easeOut;
+            const r2 = 20 / viewport.zoom * easeOut;
+            ctx.strokeStyle = anim.color;
+            ctx.lineWidth = 2 / viewport.zoom;
+            ctx.beginPath(); ctx.arc(0, 0, r1, 0, Math.PI * 2); ctx.stroke();
+            ctx.beginPath(); ctx.arc(0, 0, r2, 0, Math.PI * 2); ctx.stroke();
+          } else if (anim.style === 'echo') {
+            const count = 3;
+            ctx.strokeStyle = anim.color;
+            ctx.lineWidth = 1.5 / viewport.zoom;
+            for (let i = 0; i < count; i++) {
+              const r = (50 / viewport.zoom) * easeOut * (1 - i * 0.25);
+              if (r > 0) {
+                ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
+              }
+            }
+          } else if (anim.style === 'orb') {
+            const r = 25 / viewport.zoom * easeOut;
+            ctx.fillStyle = anim.color;
+            ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+            ctx.globalAlpha = (1 - easeOut) * 0.5; // Inner glow
+            ctx.beginPath(); ctx.arc(0, 0, r * 0.6, 0, Math.PI * 2); ctx.fill();
+          } else {
+            // Ripple (Default)
+            const radius = (20 / viewport.zoom) + (40 / viewport.zoom * easeOut);
+            ctx.beginPath();
+            ctx.arc(0, 0, radius, 0, Math.PI * 2);
+            ctx.lineWidth = (3 / viewport.zoom) * (1 - easeOut);
+            ctx.strokeStyle = anim.color;
+            ctx.stroke();
+          }
+
+          ctx.restore();
+        });
+
+        // Cleanup
+        props.clickAnimationsRef.current = props.clickAnimationsRef.current.filter(anim => now - anim.startTime < DURATION);
+      }
+
       pings.forEach(ping => {
         const duration = 3000; const elapsed = Date.now() - ping.createdAt; const progress = Math.min(1, elapsed / duration);
         if (progress >= 1) return;
@@ -445,41 +580,117 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
       Object.values(remoteCursors).forEach((cursor: any) => {
         if (cursor.userId === currentUser?.id) return;
 
+        // --- PHYSICS UPDATE ---
+        const now = Date.now();
+        const physics = cursorPhysics.current[cursor.userId] || { x: cursor.x, y: cursor.y, angle: 0, targetAngle: 0, velocity: 0 };
+
+        // Calculate motion vector (target - current physics pos)
+        // We use the last known physics position to smooth to the new target `cursor` pos from props
+        const dx = cursor.x - physics.x;
+        const dy = cursor.y - physics.y;
+        const dist = Math.hypot(dx, dy);
+
+        // Update Physics Angle if moving significantly
+        const MIN_MOVE = 2; // Min pixels to trigger rotation change
+        if (dist > MIN_MOVE) {
+          // New target angle based on movement direction
+          // 90 degrees offset because swords/pointers usually point UP (0deg is UP in our mental model, but atan2 0 is RIGHT)
+          // Actually, sword tip starts at top right or top left? Let's assume standard pointer tip is Top-Left.
+          // Adjust angle so the "Tip" points to movement.
+          // SVG Sword tip is ~Top-Center (256, 40).
+          // Atan2 returns angle from X axis (Right). 
+          // We want the TOP of the image to point to travel direction.
+          // Standard atan2: Right=0, Down=90, Left=180, Up=-90.
+          // To make Top (-90 in canvas space?? No, Top is -Y).
+          // Rotation adds to angle.
+          let targetAngle = Math.atan2(dy, dx);
+
+          // Adjust based on image orientation. 
+          // If image tip is UP, and we want UP to be Direction.
+          // If Direction is RIGHT (0), we need to rotate image 90deg clockwise.
+          targetAngle += Math.PI / 2; // Offset to align "Top" of image with Velocity Vector
+
+          // Shortest path interpolation for angle (prevent spinning 360)
+          let deltaAngle = targetAngle - physics.angle;
+          while (deltaAngle > Math.PI) deltaAngle -= Math.PI * 2;
+          while (deltaAngle < -Math.PI) deltaAngle += Math.PI * 2;
+          physics.targetAngle = physics.angle + deltaAngle;
+        }
+
+        // Interpolate Position (Simple Lerp for smoothness) - High alpha for responsiveness
+        physics.x += (cursor.x - physics.x) * 0.2;
+        physics.y += (cursor.y - physics.y) * 0.2;
+
+        // Interpolate Angle (Slower for weight)
+        physics.angle += (physics.targetAngle - physics.angle) * 0.15;
+
+        // Reset if stopped to prevent infinite tiny decimals? No, simple lerp settles.
+
+        // Save state
+        cursorPhysics.current[cursor.userId] = physics;
+
+        const effectiveX = physics.x;
+        const effectiveY = physics.y;
+        const effectiveAngle = physics.angle;
+
         const z = viewport.zoom;
-        const color = cursor.userColor || '#fbbf24'; // Fallback amber
-
-        ctx.save();
-        ctx.translate(cursor.x, cursor.y);
-
-        // Add subtle shadow for depth
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-        ctx.shadowBlur = 4;
-        ctx.shadowOffsetX = 1;
-        ctx.shadowOffsetY = 2;
+        const color = cursor.userColor || '#fbbf24';
 
         // 1. Draw Cursor Shape
         const shape = getCursorShape(cursor.userShape || 'default');
-        const p = new Path2D(shape.path);
 
         ctx.save();
+        ctx.translate(effectiveX, effectiveY);
         ctx.scale(1 / z, 1 / z); // Normalize to screen pixels
-        ctx.scale(shape.scale || 1, shape.scale || 1);
-        ctx.translate(-shape.hotspot.x, -shape.hotspot.y);
 
-        ctx.fillStyle = color;
-        ctx.fill(p);
+        // Apply Rotation (Visual Physics)
+        // Only rotate if it's the sword or arrow - things that "point"
+        // Apply Rotation (Visual Physics)
+        ctx.rotate(effectiveAngle);
 
-        // Stroke for contrast
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 1.5;
-        ctx.lineJoin = 'round';
-        ctx.stroke(p);
+        if (shape.imageUrl) {
+          // Draw Image (SVG)
+          const img = new Image();
+          img.src = shape.imageUrl;
+          if (img.complete && img.naturalWidth > 0) {
+            ctx.save();
+            ctx.scale(shape.scale || 1, shape.scale || 1);
+            // Center based on hotspot
+            ctx.translate(-shape.hotspot.x, -shape.hotspot.y);
+
+            // Apply simple shadow
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            ctx.shadowBlur = 4;
+
+            ctx.drawImage(img, 0, 0);
+            ctx.restore();
+          } else {
+            img.onload = () => { /* triggers next frame */ };
+          }
+        } else {
+          // Draw Path
+          const p = new Path2D(shape.path);
+          ctx.scale(shape.scale || 1, shape.scale || 1);
+          ctx.translate(-shape.hotspot.x, -shape.hotspot.y);
+
+          ctx.fillStyle = color;
+          ctx.fill(p);
+
+          // Stroke for contrast
+          ctx.strokeStyle = '#FFFFFF';
+          ctx.lineWidth = 1.5;
+          ctx.lineJoin = 'round';
+          ctx.stroke(p);
+        }
+
         ctx.restore();
 
         // 2. Draw Name Badge
         // Configure Font
+        ctx.save();
+        ctx.translate(cursor.x, cursor.y);
         const fontSize = 11;
-        ctx.font = `600 ${fontSize / z}px "Inter", sans-serif`; // Use Inter/Sans
+        ctx.font = `600 ${fontSize / z}px "Inter", sans-serif`;
         ctx.textBaseline = 'middle';
         const textMetrics = ctx.measureText(cursor.userName);
 
@@ -493,9 +704,9 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
         const badgeX = 14 / z;
         const badgeY = 14 / z;
 
-        // Draw Badge Background (Rounded Rect manually for compatibility)
+        // Draw Badge Background
         ctx.fillStyle = color;
-        const r = 4 / z; // Corner radius
+        const r = 4 / z;
         const bx = badgeX, by = badgeY, bw = badgeWidth, bh = badgeHeight;
 
         ctx.beginPath();
@@ -509,10 +720,12 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
         ctx.lineTo(bx, by + r);
         ctx.quadraticCurveTo(bx, by, bx + r, by);
         ctx.closePath();
+        ctx.shadowColor = 'rgba(0,0,0,0.3)';
+        ctx.shadowBlur = 4;
         ctx.fill();
 
         // Draw Name Text
-        ctx.fillStyle = getContrastColor(color); // Dynamic contrast color
+        ctx.fillStyle = getContrastColor(color);
         ctx.fillText(cursor.userName, badgeX + paddingX, badgeY + (badgeHeight / 2));
 
         ctx.restore();

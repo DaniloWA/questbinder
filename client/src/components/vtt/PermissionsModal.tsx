@@ -5,7 +5,7 @@ import { Button } from '../ui/Button';
 import {
     Shield, MousePointer2, DoorOpen, PenTool, Dices, Save,
     CloudFog, RadioTower, User as UserIcon, Globe, ChevronRight, Check,
-    Plus, Trash2, Edit, Ruler, Lock, Eye, EyeOff, ScrollText, Share2, ScanEye, Book, BookOpen, FileText, Sword, Zap, Eraser, ScanFace, MessageSquare
+    Plus, Trash2, Edit, Ruler, Lock, Eye, EyeOff, ScrollText, Share2, ScanEye, Book, BookOpen, FileText, Sword, Zap, Eraser, ScanFace, MessageSquare, Stars
 } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { TokenHoverPermissionsCompact } from './TokenHoverPermissionsCompact';
@@ -53,6 +53,8 @@ const PERM_DEFINITIONS: { key: Exclude<keyof PermissionSet, 'userOverrides' | 'l
     { key: 'cursorAllowColorChange', label: 'Alterar Cor do Cursor', desc: 'Jogadores podem mudar a cor do cursor.', icon: <MousePointer2 className="w-4 h-4" /> },
     { key: 'cursorAllowShapeChange', label: 'Alterar Formato do Cursor', desc: 'Jogadores podem mudar o formato do cursor.', icon: <MousePointer2 className="w-4 h-4" /> },
     { key: 'cursorAllowNameChange', label: 'Alterar Nome do Cursor', desc: 'Jogadores podem mudar o nome exibido no cursor.', icon: <Edit className="w-4 h-4" /> },
+    { key: 'cursorAllowAnimationChange', label: 'Alterar Animação', desc: 'Jogadores podem mudar a animação de clique.', icon: <Stars className="w-4 h-4" /> },
+    { key: 'cursorAllowAnimationColorChange', label: 'Cor da Animação', desc: 'Jogadores podem mudar a cor da animação de clique.', icon: <Stars className="w-4 h-4" /> },
 
     // Chat Permissions
     { key: 'chatGlobalAllowed', label: 'Chat Global', desc: 'Jogador pode enviar mensagens públicas no chat.', icon: <MessageSquare className="w-4 h-4" /> },

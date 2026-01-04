@@ -1,4 +1,6 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
+import { socketService } from '../../../services/socketService';
+import { CursorClickPayload } from '../../../types/socket';
 import { MapCanvasProps } from './types';
 import { useMapState } from './hooks/useMapState';
 import { useTokenLayer } from './hooks/useTokenLayer';
@@ -24,14 +26,37 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
   // 4. Image Loader
   const imageCache = useImageLoader(props.scene, props.tokens);
 
+  // Shared Ref for Click Animations (Visual Feedback)
+  const clickAnimationsRef = useRef<{ x: number, y: number, color: string, style?: 'ripple' | 'burst' | 'sparkle' | 'pulse' | 'vortex' | 'shard' | 'ring' | 'echo' | 'orb', startTime: number; }[]>([]);
+
+  // Listen for Remote Clicks
+  useEffect(() => {
+    const handleRemoteClick = (payload: CursorClickPayload) => {
+      if (payload.userId === props.currentUser?.id) return; // Already handled locally
+      clickAnimationsRef.current.push({
+        x: payload.x,
+        y: payload.y,
+        color: payload.color,
+        style: payload.style,
+        startTime: Date.now()
+      });
+    };
+
+    socketService.on('cursor:click', handleRemoteClick);
+    return () => {
+      socketService.off('cursor:click', handleRemoteClick);
+    };
+  }, [props.currentUser?.id]);
+
   // 5. Map Interaction (Event Handlers)
   const interaction = useMapInteraction({
     ...props,
     canvasRef,
     ...mapState,
-    ...tokenLayer, // calculatedPath is in mapState, animatingTokens in tokenLayer
+    ...tokenLayer,
     imageCache,
-    visionTokens // passed if needed, though interaction mostly uses raw tokens
+    visionTokens,
+    clickAnimationsRef // Pass Ref
   });
 
   // 6. Map Renderer (Canvas Loop)
@@ -42,7 +67,8 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
     ...mapState,
     ...tokenLayer,
     visionTokens,
-    imageCache
+    imageCache,
+    clickAnimationsRef // Pass Ref
   });
 
   const { hoveredTokenId } = mapState;

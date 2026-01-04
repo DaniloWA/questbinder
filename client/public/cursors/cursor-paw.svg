@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Claws: Redesigned to be curved, sharper, and placed behind the pads for a cohesive look -->
+  <path d="M110 220 Q75 190 65 125 Q100 155 125 200 Z" fill="#f1c40f"/>
+  <path d="M206 170 Q190 110 180 60 Q225 110 225 160 Z" fill="#f1c40f"/>
+  <path d="M306 170 Q322 110 332 60 Q287 110 287 160 Z" fill="#f1c40f"/>
+  <path d="M402 220 Q437 190 447 125 Q412 155 387 200 Z" fill="#f1c40f"/>
+
+  <!-- Toe Pads: Mystical Purple -->
+  <circle cx="110" cy="220" r="40" fill="#9b59b6"/>
+  <circle cx="206" cy="170" r="46" fill="#9b59b6"/>
+  <circle cx="306" cy="170" r="46" fill="#9b59b6"/>
+  <circle cx="402" cy="220" r="40" fill="#9b59b6"/>
+
+  <!-- Main Pad: Smoothed shield-like shape -->
+  <path d="M170 300 C170 260 210 260 256 260 C302 260 342 260 342 300 C360 350 350 390 256 430 C162 390 152 350 170 300 Z" fill="#9b59b6"/>
+
+  <!-- RPG Element: Magical Rune (Diamond Star) -->
+  <path d="M256 280 L275 330 L325 345 L275 360 L256 410 L237 360 L187 345 L237 330 Z" fill="#ecf0f1"/>
+</svg>

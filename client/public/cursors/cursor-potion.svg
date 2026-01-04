@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Cork Stopper -->
+  <path d="M226 60 H286 V130 H226 Z" fill="#8D6E63"/>
+  <path d="M226 60 H286 V80 H226 Z" fill="#A1887F"/>
+  
+  <!-- Bottle Body (Glass) -->
+  <path d="M206 130 V205.6 C147.8 228.7 106 285.3 106 352 C106 434.8 173.2 502 256 502 C338.8 502 406 434.8 406 352 C406 285.3 364.2 228.7 306 205.6 V130 H206Z" fill="#CFD8DC"/>
+  
+  <!-- Liquid Main Body -->
+  <path d="M221 240 V245 C221 245 221 245 221 245 C169.5 265 131 310 131 352 C131 421 187 477 256 477 C325 477 381 421 381 352 C381 310 342.5 265 291 245 V240 H221Z" fill="#FF5252"/>
+  
+  <!-- Liquid Shadow (Right Side) -->
+  <path d="M256 477 C325 477 381 421 381 352 C381 310 342.5 265 291 245 V240 H256 V477Z" fill="#D32F2F"/>
+  
+  <!-- Liquid Surface -->
+  <ellipse cx="256" cy="240" rx="35" ry="10" fill="#FF8A80"/>
+  
+  <!-- Bubbles -->
+  <circle cx="230" cy="380" r="12" fill="#FF8A80" opacity="0.8"/>
+  <circle cx="270" cy="320" r="8" fill="#FF8A80" opacity="0.8"/>
+  <circle cx="250" cy="420" r="6" fill="#FF8A80" opacity="0.8"/>
+  
+  <!-- Bottle Rim -->
+  <rect x="196" y="110" width="120" height="30" rx="8" fill="#B0BEC5"/>
+  
+  <!-- Glass Reflection (Highlight) -->
+  <path d="M150 300 Q140 340 155 380 L180 375 Q170 340 180 300 Z" fill="#FFFFFF" opacity="0.4"/>
+  <circle cx="170" cy="280" r="10" fill="#FFFFFF" opacity="0.4"/>
+  
+</svg>

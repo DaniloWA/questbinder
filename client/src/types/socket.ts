@@ -211,6 +211,14 @@ export interface AudioSfxPayload {
   action: 'start' | 'stop';
 }
 
+export interface CursorClickPayload {
+  userId: string;
+  x: number;
+  y: number;
+  color: string;
+  style?: 'ripple' | 'burst' | 'sparkle' | 'pulse' | 'vortex' | 'shard' | 'ring' | 'echo' | 'orb';
+}
+
 // --- EVENT MAP (Strict Typing) ---
 
 export interface SocketEventMap {
@@ -241,6 +249,7 @@ export interface SocketEventMap {
   'campaign:updatePermissions': CampaignUpdatePermissionsPayload;
   'campaign:permissionsUpdated': CampaignPermissionsUpdatedPayload;
   'cursor:move': CursorMovePayload;
+  'cursor:click': CursorClickPayload;
   'handout:update': HandoutUpdatePayload;
   'drawing:add': DrawingAddPayload;
   'drawing:remove': DrawingRemovePayload;

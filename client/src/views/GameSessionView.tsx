@@ -427,6 +427,7 @@ const GameSessionUI: React.FC = () => {
                     remoteDrags={session.remoteDrags}
                     permissions={session.permissions}
                     campaign={session.campaign}
+                    cursorSettings={session.cursorSettings}
                     drawingLightZone={session.drawingLightZone}
                     drawingAudioZone={session.drawingAudioZone}
 

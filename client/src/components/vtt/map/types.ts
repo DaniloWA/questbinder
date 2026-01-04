@@ -22,6 +22,14 @@ export interface MapCanvasProps {
   remoteCursors: Record<string, CursorMovePayload>;
   permissions: SessionPermissions;
   campaign?: any;
+  cursorSettings?: {
+    color: string;
+    name: string;
+    shape?: string;
+    clickAnimation?: 'ripple' | 'burst' | 'sparkle';
+    clickColorLeft?: string;
+    clickColorRight?: string;
+  };
 
   setViewport: (newViewport: Partial<Viewport>) => void;
   moveToken: (tokenId: string, newX: number, newY: number) => void;

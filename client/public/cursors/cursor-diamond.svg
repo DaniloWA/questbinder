@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <g transform="translate(0, -9)">
+    <!-- Pavilion (Bottom) -->
+    <path d="M76,210 L206,210 L256,400 Z" fill="#613573"/>
+    <path d="M436,210 L306,210 L256,400 Z" fill="#4A148C"/>
+    <path d="M206,210 L306,210 L256,400 Z" fill="#8E24AA"/>
+    
+    <!-- Crown (Top) -->
+    <path d="M76,210 L206,210 L166,130 Z" fill="#BA68C8"/>
+    <path d="M436,210 L306,210 L346,130 Z" fill="#9C27B0"/>
+    <path d="M166,130 L346,130 L306,210 L206,210 Z" fill="#E1BEE7"/>
+  </g>
+</svg>

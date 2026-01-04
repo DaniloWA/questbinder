@@ -92,7 +92,7 @@ export const setupSocket = (server) => {
 
 
 
-    const ephemeralEvents = ['token:drag', 'cursor:move', 'chat:reaction'];
+    const ephemeralEvents = ['token:drag', 'cursor:move', 'chat:reaction', 'cursor:click'];
 
     ephemeralEvents.forEach(event => {
       socket.on(event, (payload) => {

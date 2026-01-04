@@ -2,6 +2,7 @@ export interface CursorShape {
   id: string;
   label: string;
   path: string; // SVG Path 'd' attribute
+  imageUrl?: string; // Full SVG/Image URL (Overrides path)
   viewBox?: string; // Default 0 0 24 24
   scale?: number; // Adjust if shape is too big/small
   hotspot: { x: number, y: number; }; // The 'tip' of the cursor relative to 0,0
@@ -17,14 +18,18 @@ export const CURSOR_SHAPES: CursorShape[] = [
   {
     id: 'hand',
     label: 'Mão',
-    path: 'M12 2a1 1 0 0 1 1 1v7h1a1 1 0 0 1 1 1v1h1a1 1 0 0 1 1 1v1h1a1 1 0 0 1 1 1v5a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4v-3a1 1 0 0 1 1-1h1v-4a1 1 0 0 1 1-1h1V3a1 1 0 0 1 1-1h2z',
-    hotspot: { x: 9, y: 2 }
+    path: '',
+    imageUrl: '/cursors/cursor-hand.svg',
+    scale: 0.005,
+    hotspot: { x: 4312, y: 300 } // Tip of index finger (scaled for pt units)
   },
   {
     id: 'sword',
     label: 'Espada',
-    path: 'M19 3l-6 6-2-2-6 6 2 2 6-6 2 2 6-6-2-2zM3 19l2 2 4-4-2-2-4 4z',
-    hotspot: { x: 3, y: 21 }
+    path: '', // Not used when imageUrl is present
+    imageUrl: '/cursors/cursor-sword.svg',
+    scale: 0.1,
+    hotspot: { x: 256, y: 40 }
   },
   {
     id: 'target',
@@ -35,14 +40,18 @@ export const CURSOR_SHAPES: CursorShape[] = [
   {
     id: 'wand',
     label: 'Varinha',
-    path: 'M7.5 5.6L10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-9.5 9.5L14 13l1.5 1.5L22 8V2zM2 22l6-6 2.5 2.5-6 6z',
-    hotspot: { x: 2, y: 22 }
+    path: '',
+    imageUrl: '/cursors/cursor-wand.svg',
+    scale: 0.08,
+    hotspot: { x: 366, y: 146 } // Star tip position
   },
   {
     id: 'paw',
     label: 'Pata',
-    path: 'M12 2C10.5 2 9.5 3.5 9.5 5S10.5 7.5 12 7.5 14.5 6.5 14.5 5 13.5 2 12 2zM5.5 6C4 6 3 7.5 3 9s1.5 2.5 3 2.5 2.5-1 2.5-2.5S7 6 5.5 6zM18.5 6c-1.5 0-2.5 1.5-2.5 3s1.5 2.5 3 2.5 2.5-1 2.5-2.5S20 6 18.5 6zM12 9c-2.5 0-4.5 2-4.5 4.5 0 2.2 1.5 4 3.5 4.4v2.1h2v-2.1c2-.4 3.5-2.2 3.5-4.4 0-2.5-2-4.5-4.5-4.5z',
-    hotspot: { x: 12, y: 12 }
+    path: '',
+    imageUrl: '/cursors/cursor-paw.svg',
+    scale: 0.06,
+    hotspot: { x: 256, y: 170 } // Top center of paw
   },
   {
     id: 'skull',
@@ -53,8 +62,10 @@ export const CURSOR_SHAPES: CursorShape[] = [
   {
     id: 'gem',
     label: 'Gema',
-    path: 'M12 2L4 8l2 12h12l2-12-8-6zm0 3l4 3H8l4-3zM7 18l-1-6h12l-1 6H7z',
-    hotspot: { x: 12, y: 12 }
+    path: '',
+    imageUrl: '/cursors/cursor-diamond.svg',
+    scale: 0.06,
+    hotspot: { x: 256, y: 130 } // Top of the gem crown
   },
   {
     id: 'quill',
@@ -89,10 +100,10 @@ export const CURSOR_SHAPES: CursorShape[] = [
   {
     id: 'potion',
     label: 'Poção',
-    // Better path for flask:
-    // M14 3h-4v2h4V3zm-2 4h-2.5L7 10v9a3 3 0 0 0 3 3h4a3 3 0 0 0 3-3v-9l-2.5-3H12z
-    path: 'M13 3h-2v2h2V3zm-1 4h-2l-2 3v9a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-9l-2-3H12z',
-    hotspot: { x: 12, y: 12 }
+    path: '',
+    imageUrl: '/cursors/cursor-potion.svg',
+    scale: 0.06,
+    hotspot: { x: 256, y: 60 } // Cork top
   },
   {
     id: 'lightning',
@@ -109,8 +120,10 @@ export const CURSOR_SHAPES: CursorShape[] = [
   {
     id: 'axe',
     label: 'Machado',
-    path: 'M12 2v8H8c-2.21 0-4 1.79-4 4s1.79 4 4 4h1v4h6v-4h1c2.21 0 4-1.79 4-4s-1.79-4-4-4h-4V2h-2z',
-    hotspot: { x: 12, y: 2 }
+    path: '',
+    imageUrl: '/cursors/cursor-axe.svg',
+    scale: 0.08,
+    hotspot: { x: 100, y: 100 } // Top-left corner after rotation (blade tip area)
   },
   {
     id: 'crown',
