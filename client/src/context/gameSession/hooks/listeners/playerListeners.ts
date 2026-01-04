@@ -39,6 +39,13 @@ export const registerPlayerListeners = ({
       message: `${payload.user.name} entrou na sessão`,
       duration: 3000
     });
+
+    // If I am the GM and Follow Mode is active, re-broadcast the permission so the new player (and others) get the correct state
+    // This fixes the issue where refreshing players lose the Follow Mode state
+    if (stateRef.current.isGM && stateRef.current.followMode.active) {
+      console.log('[WS] Re-broadcasting Follow Mode for new player');
+      socketService.emit('gm:toggle_follow', stateRef.current.followMode);
+    }
   };
 
   // Handler: player:leave
@@ -52,6 +59,7 @@ export const registerPlayerListeners = ({
   };
 
   // Handler: cursor:move
+
   const handleCursorMove = (payload: CursorMovePayload) => {
     if (payload.userId === user?.id) return;
 
@@ -111,17 +119,24 @@ export const registerPlayerListeners = ({
 
   const handleGMFollowModeChange = (payload: { active: boolean; targets: string[] | 'all'; }) => {
     console.log('[WS] Received gm:follow_mode_change', payload);
+
+    // Check for changes to avoid spamming toast (e.g. when re-broadcasting on join)
+    const wasActive = stateRef.current.followMode.active;
+    const isChange = wasActive !== payload.active;
+
     setState(prev => ({ ...prev, followMode: payload }));
 
     // Check if I am affected
-    const amIAffected = payload.active && (payload.targets === 'all' || (user?.id && payload.targets.includes(user.id)));
+    const amIAffected = payload.active && (payload.targets === 'all' || (Array.isArray(payload.targets) && user?.id && payload.targets.includes(user.id)));
 
-    if (amIAffected) {
-      show({ type: 'info', message: 'Modo Seguir Ativado: Você agora segue a visão do Mestre', duration: 4000 });
-    } else if (payload.active) {
-      // Mode active but not for me (silent) or maybe info?
-    } else {
-      show({ type: 'info', message: 'Modo Seguir Desativado', duration: 3000 });
+    if (isChange) {
+      if (amIAffected) {
+        show({ type: 'info', message: 'Modo Seguir Ativado: Você agora segue a visão do Mestre', duration: 4000 });
+      } else if (payload.active) {
+        // Mode active but not for me
+      } else {
+        show({ type: 'info', message: 'Modo Seguir Desativado', duration: 3000 });
+      }
     }
   };
 
@@ -133,7 +148,7 @@ export const registerPlayerListeners = ({
     // If no targets specified in payload, ignore (or check local state if we want hybrid, but payload is better)
     if (!targets) return;
 
-    const amITarget = targets === 'all' || (user?.id && targets.includes(user.id));
+    const amITarget = (targets as any) === 'all' || (Array.isArray(targets) && user?.id && targets.includes(user.id));
     if (!amITarget) return;
 
     // Silent update

@@ -23,13 +23,14 @@ export const useSocketListeners = (
   campaignId: string,
   user: any,
   show: (notification: any) => void,
-  setViewport?: (v: any) => void
+  setViewport: ((v: any) => void) | undefined,
+  stateRef: React.MutableRefObject<GameSessionState>
 ) => {
   useEffect(() => {
     if (!state.isConnected) return;
 
     // Create dependencies object for all listeners
-    const deps = { state, setState, campaignId, user, show, setViewport };
+    const deps = { state, setState, campaignId, user, show, setViewport, stateRef };
 
     // Register all listener modules and collect cleanup functions
     const cleanups = [

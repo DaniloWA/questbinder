@@ -9,7 +9,7 @@ export const FollowModeIndicator: React.FC = () => {
 
   // Check if player is currently following
   const isFollowing = !isGM && followMode.active && (
-    followMode.targets === 'all' || (user?.id && followMode.targets.includes(user.id))
+    followMode.targets === 'all' || (!!user?.id && Array.isArray(followMode.targets) && followMode.targets.includes(user.id))
   );
 
   // Check if GM is broadcasting

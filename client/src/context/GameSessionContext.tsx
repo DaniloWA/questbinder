@@ -43,7 +43,13 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
         sendChatMessage, toggleChatReaction, handleChatLinkClick, rollDice, broadcastRoll
     } = useChatActions(state, setState, campaignId, user, show, setIsCompendiumOpen, setViewport, addPing, selectToken, permissionHelper);
 
-    useSocketListeners(state, setState, campaignId, user, show, setViewport);
+    // Create a ref for state to be used in listeners without closure staleness
+    const stateRef = React.useRef(state);
+    React.useEffect(() => {
+        stateRef.current = state;
+    }, [state]);
+
+    useSocketListeners(state, setState, campaignId, user, show, setViewport, stateRef);
     useAuraSystem(state, updateToken, campaignId, state.isGM);
 
     // Audio Zone Playback Effect
