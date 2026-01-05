@@ -23,7 +23,7 @@ interface UseMapRendererProps extends MapCanvasProps {
   dragState: React.MutableRefObject<DragState>;
   hoveredObstacleId: string | null;
   calculatedPath: { x: number, y: number; }[];
-  draggedAttackZone: { id: string, startX: number, startY: number, originX: number, originY: number; } | null;
+  draggedAttackZone: { id: string, startX: number, startY: number, originX: number, originY: number, rotating?: boolean; } | null;
   liveDrawingPointsRef: React.MutableRefObject<{ x: number, y: number; }[]>;
   isDrawingRef: React.MutableRefObject<boolean>;
   currentFogRect: { x: number, y: number, w: number, h: number; } | null;

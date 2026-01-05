@@ -68,6 +68,11 @@ export interface MapCanvasProps {
   previewZoneResult?: any | null;
   onAttackZoneContextMenu?: (e: React.MouseEvent, zoneId: string) => void;
   onUpdateAttackZone?: (zoneId: string, updates: any) => void;
+  // Attack Zone Placement Mode
+  isPlacingAttackZone?: boolean;
+  onUpdatePreviewOrigin?: (origin: { x: number; y: number; }) => void;
+  onConfirmAttackZonePlacement?: () => void;
+  onCancelAttackZonePlacement?: () => void;
 }
 
 export interface DragState {

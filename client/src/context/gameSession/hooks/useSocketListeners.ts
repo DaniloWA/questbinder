@@ -9,7 +9,8 @@ import {
   registerDrawingListeners,
   registerAudioListeners,
   registerCharacterListeners,
-  registerPlayerListeners
+  registerPlayerListeners,
+  registerAttackZoneListeners
 } from './listeners';
 import React from 'react';
 
@@ -42,7 +43,8 @@ export const useSocketListeners = (
       registerDrawingListeners(deps),
       registerAudioListeners(deps),
       registerCharacterListeners(deps),
-      registerPlayerListeners(deps)
+      registerPlayerListeners(deps),
+      registerAttackZoneListeners(deps)
     ];
 
     // Cleanup function called on unmount or when dependencies change

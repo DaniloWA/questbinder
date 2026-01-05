@@ -18,6 +18,7 @@ import { useTemplateActions } from './gameSession/hooks/useTemplateActions';
 import { useMapInteraction } from './gameSession/hooks/useMapInteraction';
 import { useUiActions } from './gameSession/hooks/useUiActions';
 import { useAuraSystem } from './gameSession/hooks/useAuraSystem';
+import { useAttackZoneActions } from './gameSession/hooks/useAttackZoneActions';
 import { audioService } from '../services/audioService';
 
 const GameSessionContext = createContext<GameSessionContextType | undefined>(undefined);
@@ -104,6 +105,10 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
 
     const { updateCharacter, toggleFieldPrivacy } = useCharacterActions(state, setState, user, permissionHelper, (message, type) => show({ message, type }));
     const { saveTemplate, deleteTemplate } = useTemplateActions(state, setState, show);
+
+    const {
+        addAttackZone, updateAttackZone, removeAttackZone, clearAttackZones
+    } = useAttackZoneActions(state, setState);
 
     const uiActions = useUiActions(state, setState, campaignId, isCompendiumOpen, setIsCompendiumOpen);
 
@@ -192,6 +197,10 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
         emitCursorMove,
         setPullNotification,
         toggleFollowMode,
+        addAttackZone,
+        updateAttackZone,
+        removeAttackZone,
+        clearAttackZones,
         ...uiActions
     };
 

@@ -10,17 +10,38 @@ import {
 } from '../../../types/attackZone';
 import { calculateAttackZone } from '../../../utils/attackZoneCalculator';
 
+interface UseAttackZonesOptions {
+  tokens: Token[];
+  obstacles: Obstacle[];
+  grid: GridOptions;
+  // Synced zones from context
+  activeZones: AttackZoneConfig[];
+  // Callbacks for synced operations (via WebSocket)
+  onAddZone: (zone: AttackZoneConfig) => void;
+  onRemoveZone: (zoneId: string) => void;
+  onUpdateZone: (zoneId: string, updates: Partial<AttackZoneConfig>) => void;
+  onClearZones: () => void;
+}
+
 /**
- * Hook para gerenciar zonas de ataque
+ * Hook para gerenciar zonas de ataque com sincronização via WebSocket
+ * Recebe as zonas ativas do contexto global e callbacks para modificá-las
  */
-export const useAttackZones = (
-  tokens: Token[],
-  obstacles: Obstacle[],
-  grid: GridOptions
-) => {
-  const [activeZones, setActiveZones] = useState<AttackZoneConfig[]>([]);
+export const useAttackZones = ({
+  tokens,
+  obstacles,
+  grid,
+  activeZones,
+  onAddZone,
+  onRemoveZone,
+  onUpdateZone,
+  onClearZones
+}: UseAttackZonesOptions) => {
+  // Preview state is local only (not synced)
   const [previewZone, setPreviewZone] = useState<AttackZoneConfig | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<AttackZoneTemplate | null>(null);
+  // Placement mode - preview follows mouse until click to place
+  const [isPlacingZone, setIsPlacingZone] = useState(false);
 
   /**
    * Calcula resultado de uma zona específica
@@ -44,34 +65,32 @@ export const useAttackZones = (
   }, [previewZone, calculateZone]);
 
   /**
-   * Adiciona uma nova zona ativa
+   * Adiciona uma nova zona ativa (via WebSocket)
    */
   const addZone = useCallback((config: AttackZoneConfig) => {
-    setActiveZones(prev => [...prev, config]);
-  }, []);
+    onAddZone(config);
+  }, [onAddZone]);
 
   /**
-   * Remove uma zona ativa
+   * Remove uma zona ativa (via WebSocket)
    */
   const removeZone = useCallback((zoneId: string) => {
-    setActiveZones(prev => prev.filter(z => z.id !== zoneId));
-  }, []);
+    onRemoveZone(zoneId);
+  }, [onRemoveZone]);
 
   /**
-   * Atualiza uma zona existente
+   * Atualiza uma zona existente (via WebSocket)
    */
   const updateZone = useCallback((zoneId: string, updates: Partial<AttackZoneConfig>) => {
-    setActiveZones(prev => prev.map(z =>
-      z.id === zoneId ? { ...z, ...updates } : z
-    ));
-  }, []);
+    onUpdateZone(zoneId, updates);
+  }, [onUpdateZone]);
 
   /**
-   * Limpa todas as zonas ativas
+   * Limpa todas as zonas ativas (via WebSocket)
    */
   const clearZones = useCallback(() => {
-    setActiveZones([]);
-  }, []);
+    onClearZones();
+  }, [onClearZones]);
 
   /**
    * Cria zona a partir de um template
@@ -101,7 +120,7 @@ export const useAttackZones = (
   }, []);
 
   /**
-   * Inicia preview de zona a partir de template
+   * Inicia preview de zona a partir de template (modo placement)
    */
   const startPreviewFromTemplate = useCallback((
     templateId: string,
@@ -113,6 +132,7 @@ export const useAttackZones = (
     setSelectedTemplate(template);
     const zone = createFromTemplate(template, origin);
     setPreviewZone(zone);
+    setIsPlacingZone(true); // Enter placement mode - preview follows mouse
   }, [createFromTemplate]);
 
   /**
@@ -123,13 +143,14 @@ export const useAttackZones = (
   }, []);
 
   /**
-   * Confirma zona de preview (adiciona às zonas ativas)
+   * Confirma zona de preview (adiciona às zonas ativas via WebSocket)
    */
   const confirmPreview = useCallback(() => {
     if (previewZone) {
       addZone(previewZone);
       setPreviewZone(null);
       setSelectedTemplate(null);
+      setIsPlacingZone(false); // Exit placement mode
     }
   }, [previewZone, addZone]);
 
@@ -139,6 +160,7 @@ export const useAttackZones = (
   const cancelPreview = useCallback(() => {
     setPreviewZone(null);
     setSelectedTemplate(null);
+    setIsPlacingZone(false); // Exit placement mode
   }, []);
 
   /**
@@ -217,7 +239,7 @@ export const useAttackZones = (
   }, []);
 
   /**
-   * Duplica uma zona existente
+   * Duplica uma zona existente (via WebSocket)
    */
   const duplicateZone = useCallback((zoneId: string, newOrigin?: { x: number; y: number; }) => {
     const zone = activeZones.find(z => z.id === zoneId);
@@ -233,14 +255,14 @@ export const useAttackZones = (
   }, [activeZones, addZone]);
 
   /**
-   * Rotaciona uma zona (para cones e linhas)
+   * Rotaciona uma zona (para cones e linhas) via WebSocket
    */
   const rotateZone = useCallback((zoneId: string, angle: number) => {
     updateZone(zoneId, { direction: angle });
   }, [updateZone]);
 
   /**
-   * Move uma zona para nova origem
+   * Move uma zona para nova origem (via WebSocket)
    */
   const moveZone = useCallback((zoneId: string, newOrigin: { x: number; y: number; }) => {
     updateZone(zoneId, { origin: newOrigin });
@@ -267,14 +289,15 @@ export const useAttackZones = (
     selectedTemplate,
     activeZoneResults,
     previewZoneResult,
+    isPlacingZone, // True when mouse-follow placement mode is active
 
-    // Ações básicas
+    // Ações básicas (sync via WebSocket)
     addZone,
     removeZone,
     updateZone,
     clearZones,
 
-    // Preview
+    // Preview / Placement (local only)
     startPreviewFromTemplate,
     updatePreview,
     confirmPreview,
@@ -286,7 +309,7 @@ export const useAttackZones = (
     getAvailableTemplates,
     getTemplatesByCategory,
 
-    // Manipulação
+    // Manipulação (sync via WebSocket)
     duplicateZone,
     rotateZone,
     moveZone,

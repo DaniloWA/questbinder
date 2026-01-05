@@ -25,8 +25,8 @@ interface UseMapInteractionProps extends MapCanvasProps {
   setHoveredObstacleId: (id: string | null) => void;
   calculatedPath: { x: number, y: number; }[];
   setCalculatedPath: (path: { x: number, y: number; }[]) => void;
-  draggedAttackZone: { id: string, startX: number, startY: number, originX: number, originY: number; } | null;
-  setDraggedAttackZone: (z: { id: string, startX: number, startY: number, originX: number, originY: number; } | null) => void;
+  draggedAttackZone: { id: string, startX: number, startY: number, originX: number, originY: number, rotating?: boolean; } | null;
+  setDraggedAttackZone: (z: { id: string, startX: number, startY: number, originX: number, originY: number, rotating?: boolean; } | null) => void;
   liveDrawingPointsRef: React.MutableRefObject<{ x: number, y: number; }[]>;
   isDrawingRef: React.MutableRefObject<boolean>;
   lastCursorEmit: React.MutableRefObject<number>;
@@ -47,7 +47,9 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
     onUpdateAttackZone, mouseWorldPos, setMouseWorldPos, dragState, isPanning, setIsPanning, fogRectStart, setFogRectStart,
     currentFogRect, setCurrentFogRect, hoveredTokenId, setHoveredTokenId, setHoveredObstacleId, setCalculatedPath,
     draggedAttackZone, setDraggedAttackZone, liveDrawingPointsRef, isDrawingRef, lastCursorEmit, lastMousePos,
-    hoverOpenTimerRef, hoverCloseTimerRef, imageCache, currentUser
+    hoverOpenTimerRef, hoverCloseTimerRef, imageCache, currentUser,
+    // Attack Zone Placement Mode
+    isPlacingAttackZone, onUpdatePreviewOrigin, onConfirmAttackZonePlacement, onCancelAttackZonePlacement
   } = props;
 
   const { removeObstacle, ui, audioSettings, removeAudioZone, handouts, addDrawing, removeDrawing, drawingSettings, rulerSettings, permissionHelper } = useGameSession();
@@ -70,10 +72,24 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
   const findTokenAt = (worldX: number, worldY: number) => {
     if (!scene) return null;
     const gridSize = scene.grid.size;
-    return [...tokens].reverse().find(t =>
+
+    // Filter tokens at position
+    const tokensAtPos = tokens.filter(t =>
       worldX >= t.x * gridSize && worldX < (t.x + t.size) * gridSize &&
       worldY >= t.y * gridSize && worldY < (t.y + t.size) * gridSize
     );
+
+    if (tokensAtPos.length === 0) return null;
+    if (tokensAtPos.length === 1) return tokensAtPos[0];
+
+    // Prioritize controllable tokens (GM sees all, players see their own first)
+    const controllable = tokensAtPos.filter(t =>
+      isGM || t.ownerId === currentUser?.id || t.controlledBy?.includes(currentUser?.id || '')
+    );
+
+    // Return last controllable (top layer) or last non-controllable
+    if (controllable.length > 0) return controllable[controllable.length - 1];
+    return tokensAtPos[tokensAtPos.length - 1];
   };
 
   const findObstacleAt = (worldX: number, worldY: number) => {
@@ -178,11 +194,30 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
     const worldPos = screenToWorld(pos.x, pos.y);
     setMouseWorldPos(worldPos);
 
+    // Attack Zone Placement Mode - preview follows mouse
+    if (isPlacingAttackZone && onUpdatePreviewOrigin) {
+      onUpdatePreviewOrigin(worldPos);
+      lastMousePos.current = pos;
+      // Don't return - still emit cursor and allow other hover behaviors
+    }
+
     if (draggedAttackZone) {
-      const dx = worldPos.x - draggedAttackZone.startX;
-      const dy = worldPos.y - draggedAttackZone.startY;
-      const newOrigin = { x: draggedAttackZone.originX + dx, y: draggedAttackZone.originY + dy };
-      if (onUpdateAttackZone) { onUpdateAttackZone(draggedAttackZone.id, { origin: newOrigin }); }
+      if (draggedAttackZone.rotating) {
+        // Rotation mode: calculate angle from origin to current mouse position
+        const angle = Math.atan2(
+          worldPos.y - draggedAttackZone.originY,
+          worldPos.x - draggedAttackZone.originX
+        );
+        if (onUpdateAttackZone) {
+          onUpdateAttackZone(draggedAttackZone.id, { direction: angle });
+        }
+      } else {
+        // Movement mode: update origin position
+        const dx = worldPos.x - draggedAttackZone.startX;
+        const dy = worldPos.y - draggedAttackZone.startY;
+        const newOrigin = { x: draggedAttackZone.originX + dx, y: draggedAttackZone.originY + dy };
+        if (onUpdateAttackZone) { onUpdateAttackZone(draggedAttackZone.id, { origin: newOrigin }); }
+      }
       lastMousePos.current = pos;
       return;
     }
@@ -282,6 +317,18 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
       // Broadcast to other users
       if (currentUser) {
         socketService.emit('cursor:click', { userId: currentUser.id, x: worldPos.x, y: worldPos.y, color, style });
+      }
+    }
+
+    // Attack Zone Placement Mode - left click confirms, right click cancels
+    if (isPlacingAttackZone) {
+      if (e.button === 0 && onConfirmAttackZonePlacement) {
+        onConfirmAttackZonePlacement();
+        return;
+      }
+      if (e.button === 2 && onCancelAttackZonePlacement) {
+        onCancelAttackZonePlacement();
+        return;
       }
     }
 
@@ -421,7 +468,16 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
       if (['draw-door', 'draw-window'].includes(activeTool)) { setDrawingObstacle({ type: activeTool === 'draw-door' ? 'door' : 'window', p1: worldPos }); return; }
 
       if (isGM && clickedAttackZone && activeTool === 'select') {
-        setDraggedAttackZone({ id: clickedAttackZone.id, startX: worldPos.x, startY: worldPos.y, originX: clickedAttackZone.origin.x, originY: clickedAttackZone.origin.y });
+        // Shift+drag = rotation mode for cones/lines
+        const isRotating = e.shiftKey && (clickedAttackZone.shape === 'cone' || clickedAttackZone.shape === 'line');
+        setDraggedAttackZone({
+          id: clickedAttackZone.id,
+          startX: worldPos.x,
+          startY: worldPos.y,
+          originX: clickedAttackZone.origin.x,
+          originY: clickedAttackZone.origin.y,
+          rotating: isRotating
+        });
         return;
       }
 

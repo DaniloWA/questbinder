@@ -4,6 +4,7 @@ import {
   ChatLinkMetadata, RollResult, Ping, Obstacle, LightZone, AudioZone,
   Playlist, SoundEffect, CompendiumCategory, TriggerZone, VTTTool, MapDrawing, RulerSettings
 } from '../../types';
+import { AttackZoneConfig } from '../../types/attackZone';
 import {
   TokenDragPayload, CursorMovePayload
 } from '../../types/socket';
@@ -97,6 +98,9 @@ export interface GameSessionState {
     showGridCoordinates: boolean; // Debug mode for grid coordinates
     defaultObstacleHidden: boolean;
   };
+
+  // Attack Zones (ephemeral, synced via WebSocket)
+  attackZones: AttackZoneConfig[];
 
   compendiumTarget?: { slug: string, category: CompendiumCategory; };
 }
@@ -242,6 +246,12 @@ export interface GameSessionContextType extends GameSessionState {
   emitCursorMove: (x: number, y: number) => void;
   pullView: (targetId: string | 'all', x: number, y: number, zoom: number) => void;
   toggleFollowMode: (active: boolean, targets?: string[] | 'all') => void;
+
+  // Attack Zones (synced via WebSocket)
+  addAttackZone: (zone: AttackZoneConfig) => void;
+  updateAttackZone: (zoneId: string, updates: Partial<AttackZoneConfig>) => void;
+  removeAttackZone: (zoneId: string) => void;
+  clearAttackZones: () => void;
 
   activeScene: MapScene | null;
   pullNotification: boolean;

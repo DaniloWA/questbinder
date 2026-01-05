@@ -8,6 +8,8 @@ export { registerDrawingListeners } from './drawingListeners';
 export { registerAudioListeners } from './audioListeners';
 export { registerCharacterListeners } from './characterListeners';
 export { registerPlayerListeners } from './playerListeners';
+export { registerAttackZoneListeners } from './attackZoneListeners';
 
 // Export types
 export type { ListenerDeps, ListenerCleanup } from './types';
+

@@ -88,5 +88,8 @@ export const INITIAL_STATE: GameSessionState = {
     showVisionRanges: false,
     showGridCoordinates: false,
     defaultObstacleHidden: false
-  }
+  },
+
+  // Attack Zones (ephemeral)
+  attackZones: []
 };

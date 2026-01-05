@@ -342,6 +342,13 @@ export interface SocketEventMap {
   'disconnect': void;
   'error': { message: string; };
   'chat_message:update': ChatMessage;
+  // Attack Zone events - userId is added by server, optional on emit
+  'attackZone:add': { zone: any; userId?: string; };
+  'attackZone:update': { zoneId: string; updates: any; userId?: string; };
+  'attackZone:remove': { zoneId: string; userId?: string; };
+  'attackZone:clear': { userId?: string; };
+  'attackZone:sync': {};
+  'attackZone:syncResponse': { zones: any[]; };
 }
 
 export interface SocketEvent<K extends keyof SocketEventMap> {

@@ -12,6 +12,7 @@ import { registerMapHandlers } from './socket/handlers/mapHandlers.js';
 import { registerCharacterHandlers } from './socket/handlers/characterHandlers.js';
 import { registerCombatHandlers } from './socket/handlers/combatHandlers.js';
 import { registerPermissionsHandlers } from './socket/handlers/permissionsHandlers.js';
+import { registerAttackZoneHandlers } from './socket/handlers/attackZoneHandlers.js';
 
 // In-memory store for player viewports: Map<campaignId, Map<userId, viewport>>
 const playerViewports = new Map();
@@ -212,6 +213,7 @@ export const setupSocket = (server) => {
     registerCharacterHandlers(socket, client, utils);
     registerCombatHandlers(socket, client, utils);
     registerPermissionsHandlers(socket, client, utils);
+    registerAttackZoneHandlers(socket, client, utils);
 
     socket.on('disconnect', () => {
       console.log(`[WS] Client disconnected: ${socket.id}`);

@@ -21,11 +21,23 @@ export const calculateAttackZone = (
   tokens: Token[],
   grid: GridOptions
 ): AttackZoneResult => {
+  console.log('[AttackZone Calc] Input:', {
+    configId: config.id,
+    shape: config.shape,
+    origin: config.origin,
+    radius: config.radius,
+    tokensCount: tokens.length,
+    obstaclesCount: obstacles.length,
+    gridSize: grid.size
+  });
+
   // 1. Calcular área teórica (sem obstáculos)
   const theoreticalArea = calculateTheoreticalArea(config, grid);
+  console.log('[AttackZone Calc] Theoretical area points:', theoreticalArea.length);
 
   // 2. Aplicar obstáculos baseado no tipo de propagação
   const affectedArea = applyObstacles(theoreticalArea, config, obstacles, grid);
+  console.log('[AttackZone Calc] Affected area points:', affectedArea.length);
 
   // 3. Determinar tokens afetados
   const { affectedTokens, blockedTokens } = determineAffectedTokens(
@@ -35,12 +47,14 @@ export const calculateAttackZone = (
     obstacles,
     grid
   );
+  console.log('[AttackZone Calc] Affected tokens:', affectedTokens.length, 'Blocked:', blockedTokens.length);
 
   // 4. Filtrar por targeting
   const validTargets = filterByTargeting(affectedTokens, config, tokens);
 
   // 5. Calcular estatísticas
   const stats = calculateStats(theoreticalArea, affectedArea, affectedTokens, blockedTokens);
+  console.log('[AttackZone Calc] Stats:', stats);
 
   return {
     config,
@@ -402,10 +416,10 @@ const determineAffectedTokens = (
   const blockedTokens: Token[] = [];
 
   for (const token of tokens) {
-    const tokenCenter = {
-      x: token.x + (token.size * grid.size) / 2,
-      y: token.y + (token.size * grid.size) / 2,
-    };
+    // Token x/y are in GRID coordinates, convert to PIXEL coordinates
+    const tokenCenterX = token.x * grid.size + (token.size * grid.size) / 2;
+    const tokenCenterY = token.y * grid.size + (token.size * grid.size) / 2;
+    const tokenCenter = { x: tokenCenterX, y: tokenCenterY };
 
     // Verifica se o centro do token está na área afetada
     const inArea = isPointInPolygon(tokenCenter, affectedArea);

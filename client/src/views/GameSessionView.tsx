@@ -173,11 +173,17 @@ const GameSessionUI: React.FC = () => {
     const [isInitiativeRollerOpen, setIsInitiativeRollerOpen] = useState(false);
 
     // --- ATTACK ZONES ---
-    const attackZones = useAttackZones(
-        session.activeScene?.tokens || [],
-        session.activeScene?.obstacles || [],
-        session.activeScene?.grid || { size: 60, color: '#ffffff', alpha: 0.3, cols: 50, rows: 50, unitsPerSquare: 5 }
-    );
+    const attackZones = useAttackZones({
+        tokens: session.activeScene?.tokens || [],
+        obstacles: session.activeScene?.obstacles || [],
+        grid: session.activeScene?.grid || { size: 60, color: '#ffffff', alpha: 0.3, cols: 50, rows: 50, unitsPerSquare: 5 },
+        // Synced from context
+        activeZones: session.attackZones,
+        onAddZone: session.addAttackZone,
+        onRemoveZone: session.removeAttackZone,
+        onUpdateZone: session.updateAttackZone,
+        onClearZones: session.clearAttackZones
+    });
 
     // ... (Logic for tools/permissions remains unchanged) ...
     useEffect(() => {
@@ -482,6 +488,11 @@ const GameSessionUI: React.FC = () => {
                     previewZoneResult={attackZones.previewZoneResult}
                     onAttackZoneContextMenu={handleAttackZoneContextMenu}
                     onUpdateAttackZone={attackZones.updateZone}
+                    // Attack Zone Placement Mode
+                    isPlacingAttackZone={attackZones.isPlacingZone}
+                    onUpdatePreviewOrigin={(origin) => attackZones.updatePreview({ origin })}
+                    onConfirmAttackZonePlacement={attackZones.confirmPreview}
+                    onCancelAttackZonePlacement={attackZones.cancelPreview}
                 />
             </div>
 

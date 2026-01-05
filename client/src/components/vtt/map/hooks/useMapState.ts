@@ -8,7 +8,7 @@ export const useMapState = () => {
   const [mouseWorldPos, setMouseWorldPos] = useState({ x: 0, y: 0 });
   const [hoveredObstacleId, setHoveredObstacleId] = useState<string | null>(null);
   const [calculatedPath, setCalculatedPath] = useState<{ x: number, y: number; }[]>([]);
-  const [draggedAttackZone, setDraggedAttackZone] = useState<{ id: string, startX: number, startY: number, originX: number, originY: number; } | null>(null);
+  const [draggedAttackZone, setDraggedAttackZone] = useState<{ id: string, startX: number, startY: number, originX: number, originY: number, rotating?: boolean; } | null>(null);
   const [hoveredTokenId, setHoveredTokenId] = useState<string | null>(null);
 
   // Refs for performance-critical or non-rendering state

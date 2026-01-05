@@ -71,10 +71,12 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
     clickAnimationsRef // Pass Ref
   });
 
-  const { hoveredTokenId } = mapState;
+  const { hoveredTokenId, dragState } = mapState;
 
   // Render TokenHoverCard with reactive key pattern (from old implementation)
   const renderHoverCard = () => {
+    // Hide hover card when dragging to prevent mouse interference
+    if (dragState.current.isDragging) return null;
     if (!hoveredTokenId || !props.scene) return null;
 
     // Find the LIVE token object to ensure we have the latest HP/Conditions from WebSocket
