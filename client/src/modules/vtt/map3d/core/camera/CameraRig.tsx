@@ -25,8 +25,8 @@ export const CameraRig: React.FC = () => {
       />
       <MapControls
         ref={controlsRef}
-        makeDefault // Ensure these grab the event loop
-        screenSpacePanning={false} // False is often better for top-down XZ map panning
+        makeDefault
+        screenSpacePanning={true}
         enableRotate={false}
         enableDamping={true}
         dampingFactor={0.1}

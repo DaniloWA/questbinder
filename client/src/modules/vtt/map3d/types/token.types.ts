@@ -1,5 +1,12 @@
 export type TokenDisplayMode = 'image' | 'color' | 'text';
 
+// Condition types matching 2D VTT
+export type Condition =
+  | 'dead' | 'bloodied' | 'stunned' | 'shielded' | 'alert'
+  | 'prone' | 'paralyzed' | 'unconscious' | 'poisoned'
+  | 'blinded' | 'deafened' | 'frightened' | 'charmed'
+  | 'invisible' | 'restrained' | 'grappled' | 'concentrating';
+
 export interface TokenBar {
   value: number;
   max: number;
@@ -11,12 +18,11 @@ export interface TokenLight {
   enabled: boolean;
   color: string;
   intensity: number;
-  distance?: number; // Falloff distance in world units (Legacy optional)
-  decay?: number;    // (Legacy optional)
-  castShadow?: boolean; // (Legacy optional)
-  // VTT specific
-  brightRadius?: number; // In grid units
-  dimRadius?: number;    // In grid units
+  distance?: number;
+  decay?: number;
+  castShadow?: boolean;
+  brightRadius?: number;
+  dimRadius?: number;
 }
 
 export interface Token {
@@ -25,23 +31,32 @@ export interface Token {
   imgUrl?: string;
 
   // Position
-  x: number; // Grid X
-  y: number; // Grid Y
-  z?: number; // Elevation
-  rotation?: number; // Degrees
+  x: number;
+  y: number;
+  z?: number;
+  rotation?: number;
 
-  size: number; // Grid units
+  size: number;
 
   displayMode?: TokenDisplayMode;
-  color?: string; // Fallback or Tint
+  color?: string;
 
+  // Health & Status
   bars?: {
     bar1?: TokenBar;
     bar2?: TokenBar;
   };
+  conditions?: Condition[];
 
+  // Light
   light?: TokenLight;
 
-  // Selection/UI state (runtime only, might be separated later)
+  // Visibility & Ownership
+  isVisibleToPlayers?: boolean;
+  ownerId?: string;
+  controlledBy?: string[];
+
+  // Runtime state
   isSelected?: boolean;
 }
+
