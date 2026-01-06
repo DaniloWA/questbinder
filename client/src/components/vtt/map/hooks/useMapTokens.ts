@@ -1,7 +1,10 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { Token, MapScene as Scene } from '../../../../types';
 import { DragState } from '../types';
 import { findPath } from '../../../../utils/pathfinding';
+
+// Pathfinding debounce - don't recalculate more than 20 times per second
+const PATHFIND_DEBOUNCE_MS = 50;
 
 interface UseMapTokensProps {
   scene: Scene | null;
@@ -38,6 +41,10 @@ export const useMapTokens = ({
   setCalculatedPath,
   emitTokenDrag
 }: UseMapTokensProps) => {
+  // Pathfinding debounce refs
+  const lastPathfindTimeRef = useRef<number>(0);
+  const pendingPathfindRef = useRef<{ endX: number, endY: number; } | null>(null);
+  const pathfindTimeoutRef = useRef<number | null>(null);
 
   const findTokenAt = useCallback((worldX: number, worldY: number) => {
     if (!scene) return null;
@@ -107,12 +114,49 @@ export const useMapTokens = ({
 
       const startPoint = { x: dragState.current.token.x, y: dragState.current.token.y };
       const endPoint = { x: newGridX, y: newGridY };
+      const now = Date.now();
 
-      const path = findPath(startPoint, endPoint, scene!.grid, scene!.obstacles);
-      setCalculatedPath(path);
+      // Debounced pathfinding - calculate immediately if enough time passed
+      const doPathfind = () => {
+        if (!dragState.current.token || !scene) return;
+        const path = findPath(startPoint, endPoint, scene.grid, scene.obstacles);
+        setCalculatedPath(path);
+        lastPathfindTimeRef.current = Date.now();
+        pendingPathfindRef.current = null;
 
-      if (emitTokenDrag) {
-        emitTokenDrag(dragState.current.token.id, newGridX, newGridY, path);
+        if (emitTokenDrag && dragState.current.token) {
+          emitTokenDrag(dragState.current.token.id, newGridX, newGridY, path);
+        }
+      };
+
+      if (now - lastPathfindTimeRef.current >= PATHFIND_DEBOUNCE_MS) {
+        // Enough time passed, calculate immediately
+        doPathfind();
+      } else {
+        // Schedule a delayed pathfind if not already scheduled
+        pendingPathfindRef.current = { endX: newGridX, endY: newGridY };
+        if (pathfindTimeoutRef.current === null) {
+          const delay = PATHFIND_DEBOUNCE_MS - (now - lastPathfindTimeRef.current);
+          pathfindTimeoutRef.current = window.setTimeout(() => {
+            pathfindTimeoutRef.current = null;
+            if (pendingPathfindRef.current && dragState.current.token && scene) {
+              const pending = pendingPathfindRef.current;
+              const path = findPath(
+                { x: dragState.current.token.x, y: dragState.current.token.y },
+                { x: pending.endX, y: pending.endY },
+                scene.grid,
+                scene.obstacles
+              );
+              setCalculatedPath(path);
+              lastPathfindTimeRef.current = Date.now();
+              pendingPathfindRef.current = null;
+
+              if (emitTokenDrag && dragState.current.token) {
+                emitTokenDrag(dragState.current.token.id, pending.endX, pending.endY, path);
+              }
+            }
+          }, delay);
+        }
       }
     }
   }, [dragState, scene, setCalculatedPath, emitTokenDrag]);

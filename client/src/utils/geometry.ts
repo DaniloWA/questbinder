@@ -20,12 +20,12 @@ export const getIntersection = (p1: Point, p2: Point, p3: Point, p4: Point): Poi
  * Calculates the shortest distance from point p to line segment vw.
  */
 export const distanceToSegment = (p: Point, v: Point, w: Point): number => {
-  if (!p || !v || !w) return Infinity;
-  const l2 = (v.x - w.x) * (v.x - w.x) + (v.y - w.y) * (v.y - w.y);
-  if (l2 === 0) return Math.hypot(p.x - v.x, p.y - v.y);
-  let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
-  t = Math.max(0, Math.min(1, t));
-  return Math.hypot(p.x - (v.x + t * (w.x - v.x)), p.y - (v.y + t * (w.y - v.y)));
+    if (!p || !v || !w) return Infinity;
+    const l2 = (v.x - w.x) * (v.x - w.x) + (v.y - w.y) * (v.y - w.y);
+    if (l2 === 0) return Math.hypot(p.x - v.x, p.y - v.y);
+    let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(p.x - (v.x + t * (w.x - v.x)), p.y - (v.y + t * (w.y - v.y)));
 };
 
 /**
@@ -64,79 +64,18 @@ export const isPointInPolygon = (point: Point, vs: Point[]): boolean => {
     return inside;
 };
 
-/**
- * Calculates the polygon of visible area from an origin point, considering obstacles.
- * Uses Ray Casting algorithm with angular sweep.
- */
-export const calculateVisibilityPolygon = (origin: Point, obstacles: Obstacle[], visionRadius: number): Point[] => {
-    if (!origin || !obstacles) return [];
-    
-    const lineSegments: { p1: Point, p2: Point }[] = [];
-    const minX = origin.x - visionRadius;
-    const maxX = origin.x + visionRadius;
-    const minY = origin.y - visionRadius;
-    const maxY = origin.y + visionRadius;
+// ============================================================================
+// VISIBILITY POLYGON - Delegated to Worker-based Service
+// ============================================================================
 
-    obstacles.forEach(obs => {
-        if (!obs.blocksVision) return;
-        if (obs.type === 'wall') {
-            const points = obs.points;
-            if (!points) return;
-            const len = points.length;
-            if (len < 2) return;
-            const loopCount = obs.open ? len - 1 : len;
+// Re-export from visibilityService which uses Web Worker as primary
+// with multiple fallback layers (worker → cache → sync → empty)
+// NEVER throws - always returns Point[]
+export {
+    calculateVisibilityPolygon,
+    clearVisibilityCache,
+    getVisibilityServiceStatus
+} from './visibilityService';
 
-            for (let i = 0; i < loopCount; i++) {
-                const p1 = points[i];
-                const p2 = points[(i + 1) % len];
-                
-                if (!p1 || !p2) continue;
-
-                // Simple bounding box check to optimize
-                if (Math.max(p1.x, p2.x) < minX || Math.min(p1.x, p2.x) > maxX || 
-                    Math.max(p1.y, p2.y) < minY || Math.min(p1.y, p2.y) > maxY) continue;
-                lineSegments.push({ p1, p2 });
-            }
-        } else {
-             if (!obs.p1 || !obs.p2) return;
-             if (Math.max(obs.p1.x, obs.p2.x) < minX || Math.min(obs.p1.x, obs.p2.x) > maxX || 
-                 Math.max(obs.p1.y, obs.p2.y) < minY || Math.min(obs.p1.y, obs.p2.y) > maxY) return;
-            lineSegments.push({ p1: obs.p1, p2: obs.p2 });
-        }
-    });
-
-    const allPoints = lineSegments.flatMap(s => [s.p1, s.p2]);
-    let uniqueAngles: number[] = [];
-
-    // Cast rays towards every obstacle point, plus slightly offset angles
-    allPoints.forEach(p => {
-        const angle = Math.atan2(p.y - origin.y, p.x - origin.x);
-        uniqueAngles.push(angle - 0.0001, angle, angle + 0.0001);
-    });
-    
-    // Add standard angles to ensure circle shape in open areas
-    for (let i = 0; i < 360; i += 15) uniqueAngles.push(i * Math.PI / 180);
-
-    const intersections = uniqueAngles.map(angle => {
-        const dx = Math.cos(angle);
-        const dy = Math.sin(angle);
-        const ray = { p1: origin, p2: { x: origin.x + dx * visionRadius, y: origin.y + dy * visionRadius } };
-
-        let closestIntersection = null;
-        let minDistance = visionRadius;
-
-        lineSegments.forEach(seg => {
-            const intersect = getIntersection(ray.p1, ray.p2, seg.p1, seg.p2);
-            if (intersect) {
-                const dist = Math.hypot(intersect.x - origin.x, intersect.y - origin.y);
-                if (dist < minDistance) {
-                    minDistance = dist;
-                    closestIntersection = intersect;
-                }
-            }
-        });
-        return closestIntersection || { x: origin.x + dx * visionRadius, y: origin.y + dy * visionRadius };
-    }).sort((a, b) => Math.atan2(a.y - origin.y, a.x - origin.x) - Math.atan2(b.y - origin.y, b.x - origin.x));
-
-    return intersections;
-};
+// NOTE: VisibilityCacheEntry type kept for potential future use but cache
+// is now managed by visibilityService.ts

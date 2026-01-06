@@ -14,8 +14,28 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const lightCanvasRef = useRef<HTMLCanvasElement>(null);
 
+  // PERFORMANCE: Ref for immediate viewport updates during pan/zoom
+  // This avoids React re-renders during continuous mouse movement
+  const viewportRef = useRef({ x: props.viewport.x, y: props.viewport.y, zoom: props.viewport.zoom });
+
+  // Keep viewportRef in sync with props when not panning
+  useEffect(() => {
+    viewportRef.current = { x: props.viewport.x, y: props.viewport.y, zoom: props.viewport.zoom };
+  }, [props.viewport.x, props.viewport.y, props.viewport.zoom]);
+
   // 1. State Management
   const mapState = useMapState();
+
+  // Sync viewport ref to state when panning stops
+  useEffect(() => {
+    if (!mapState.isPanning) {
+      // Sync ref back to React state on pan end (single re-render)
+      const ref = viewportRef.current;
+      if (ref.x !== props.viewport.x || ref.y !== props.viewport.y) {
+        props.setViewport({ x: ref.x, y: ref.y });
+      }
+    }
+  }, [mapState.isPanning]);
 
   // 2. Token Layer (Animations)
   const tokenLayer = useTokenLayer(props.tokens, mapState.dragState);
@@ -56,7 +76,9 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
     ...tokenLayer,
     imageCache,
     visionTokens,
-    clickAnimationsRef // Pass Ref
+    clickAnimationsRef, // Pass Ref
+    viewportRef, // PERFORMANCE: Pass ref for immediate panning
+    mouseWorldPosRef: mapState.mouseWorldPosRef // PERFORMANCE: Pass ref for immediate mouse position
   });
 
   // 6. Map Renderer (Canvas Loop)
@@ -68,7 +90,9 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
     ...tokenLayer,
     visionTokens,
     imageCache,
-    clickAnimationsRef // Pass Ref
+    clickAnimationsRef, // Pass Ref
+    viewportRef, // PERFORMANCE: Use ref for rendering during pan
+    mouseWorldPosRef: mapState.mouseWorldPosRef // PERFORMANCE: Use ref for immediate mouse position during drag
   });
 
   const { hoveredTokenId, dragState } = mapState;

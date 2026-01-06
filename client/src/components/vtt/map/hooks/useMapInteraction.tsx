@@ -35,6 +35,10 @@ interface UseMapInteractionProps extends MapCanvasProps {
   hoverCloseTimerRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>;
   imageCache: { [src: string]: HTMLImageElement; };
   clickAnimationsRef?: React.MutableRefObject<{ x: number, y: number, color: string, style?: 'ripple' | 'burst' | 'sparkle' | 'pulse' | 'vortex' | 'shard' | 'ring' | 'echo' | 'orb', startTime: number; }[]>;
+  // PERFORMANCE: Ref for immediate viewport updates without React re-render
+  viewportRef?: React.MutableRefObject<{ x: number, y: number, zoom: number; }>;
+  // PERFORMANCE: Ref for immediate mouse position (avoids React state batching lag)
+  mouseWorldPosRef?: React.MutableRefObject<{ x: number, y: number; }>;
 }
 
 export const useMapInteraction = (props: UseMapInteractionProps) => {
@@ -192,6 +196,11 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
   const handleMouseMove = (e: React.MouseEvent) => {
     const pos = getMousePos(e);
     const worldPos = screenToWorld(pos.x, pos.y);
+
+    // PERFORMANCE: Update ref immediately for render loop
+    if (props.mouseWorldPosRef) {
+      props.mouseWorldPosRef.current = worldPos;
+    }
     setMouseWorldPos(worldPos);
 
     // Attack Zone Placement Mode - preview follows mouse
@@ -231,7 +240,14 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
     if (isPanning) {
       const dx = pos.x - lastMousePos.current.x;
       const dy = pos.y - lastMousePos.current.y;
-      setViewport({ x: viewport.x + dx, y: viewport.y + dy });
+      // PERFORMANCE: Use ref for immediate update without React re-render
+      if (props.viewportRef) {
+        props.viewportRef.current.x += dx;
+        props.viewportRef.current.y += dy;
+      } else {
+        // Fallback to setState if ref not available
+        setViewport({ x: viewport.x + dx, y: viewport.y + dy });
+      }
       lastMousePos.current = pos;
       return;
     }

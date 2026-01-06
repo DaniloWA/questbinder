@@ -73,6 +73,8 @@ export interface MapCanvasProps {
   onUpdatePreviewOrigin?: (origin: { x: number; y: number; }) => void;
   onConfirmAttackZonePlacement?: () => void;
   onCancelAttackZonePlacement?: () => void;
+  // PERFORMANCE: Used to throttle render loop when modal is open
+  isModalOpen?: boolean;
 }
 
 export interface DragState {

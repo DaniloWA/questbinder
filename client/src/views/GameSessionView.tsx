@@ -185,6 +185,14 @@ const GameSessionUI: React.FC = () => {
         onClearZones: session.clearAttackZones
     });
 
+    // PERFORMANCE: Compute if ANY modal/overlay is open to throttle render loop
+    const { isOpen: isGlobalModalOpen } = useModal();
+    const isAnyModalOpen = isGlobalModalOpen || isSettingsOpen || isCursorSettingsOpen || isPermissionsOpen
+        || isHandoutTrayOpen || isCompendiumOpen || isAttackZonePanelOpen || isAttackZoneConfigOpen
+        || isViewSettingsOpen || !!tokenContextMenu || !!mapContextMenu || !!attackZoneContextMenu
+        || !!viewingCharacterId || !!editingHandout || !!previewingHandout || !!sharingHandout
+        || !!editingTriggerZoneId || !!editingAudioZoneId || !!editingAttackZoneId || isInitiativeRollerOpen;
+
     // ... (Logic for tools/permissions remains unchanged) ...
     useEffect(() => {
         if (session.isGM) return;
@@ -493,6 +501,8 @@ const GameSessionUI: React.FC = () => {
                     onUpdatePreviewOrigin={(origin) => attackZones.updatePreview({ origin })}
                     onConfirmAttackZonePlacement={attackZones.confirmPreview}
                     onCancelAttackZonePlacement={attackZones.cancelPreview}
+                    // PERFORMANCE: Throttle render when modal is open
+                    isModalOpen={isAnyModalOpen}
                 />
             </div>
 

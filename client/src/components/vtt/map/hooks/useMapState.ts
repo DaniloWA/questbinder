@@ -17,6 +17,9 @@ export const useMapState = () => {
   const lastCursorEmit = useRef(0);
   const lastMousePos = useRef({ x: 0, y: 0 });
 
+  // PERFORMANCE: Ref for immediate mouse position (avoids React state batching lag)
+  const mouseWorldPosRef = useRef({ x: 0, y: 0 });
+
   const hoverOpenTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hoverCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -38,6 +41,7 @@ export const useMapState = () => {
     fogRectStart, setFogRectStart,
     currentFogRect, setCurrentFogRect,
     mouseWorldPos, setMouseWorldPos,
+    mouseWorldPosRef, // PERFORMANCE: Use this in render loop for immediate position
     hoveredObstacleId, setHoveredObstacleId,
     calculatedPath, setCalculatedPath,
     draggedAttackZone, setDraggedAttackZone,

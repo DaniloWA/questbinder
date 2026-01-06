@@ -12,6 +12,7 @@ import { Token, Point, User } from '../../../../types';
 import { getContrastColor } from '../../../../utils/colors';
 import { getCursorShape } from '../../constants/cursorShapes';
 import { renderCursorToImage } from '../../../../utils/cursorRenderer';
+import { useLayerCache, drawCachedGrid } from './useLayerCache';
 
 interface UseMapRendererProps extends MapCanvasProps {
   canvasRef: React.RefObject<HTMLCanvasElement>;
@@ -33,6 +34,10 @@ interface UseMapRendererProps extends MapCanvasProps {
   currentUser: User | null;
   remoteViewports?: Record<string, { x: number, y: number, zoom: number, w: number, h: number; }>;
   clickAnimationsRef?: React.MutableRefObject<{ x: number, y: number, color: string, style?: 'ripple' | 'burst' | 'sparkle' | 'pulse' | 'vortex' | 'shard' | 'ring' | 'echo' | 'orb', startTime: number; }[]>;
+  // PERFORMANCE: Ref for immediate viewport during pan/zoom (avoids state re-render)
+  viewportRef?: React.MutableRefObject<{ x: number, y: number, zoom: number; }>;
+  // PERFORMANCE: Ref for immediate mouse position during token drag
+  mouseWorldPosRef?: React.MutableRefObject<{ x: number, y: number; }>;
 }
 
 export const useMapRenderer = (props: UseMapRendererProps) => {
@@ -48,10 +53,39 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
   const { ui, drawingSettings, rulerSettings } = useGameSession();
 
   // --- CURSOR PHYSICS STATE ---
-  // Stores history for interpolation and angle calculation
-  // Structure: { userId: { x: number, y: number, angle: number, targetAngle: number, lastUpdateTime: number } }
-  const cursorPhysics = React.useRef<Record<string, { x: number, y: number, angle: number, targetAngle: number, velocity: number; }>>({});
+  // Enhanced structure for smooth interpolation with throttled updates
+  // Structure: { userId: { x, y, targetX, targetY, angle, targetAngle, lastUpdateTime, velocity } }
+  const cursorPhysics = React.useRef<Record<string, {
+    x: number,
+    y: number,
+    targetX: number,
+    targetY: number,
+    angle: number,
+    targetAngle: number,
+    velocity: number,
+    lastUpdateTime: number;
+  }>>({});
   // We use a ref because we update it inside the animation loop without triggering re-renders
+
+  // --- DIRTY FLAGS FOR RENDER OPTIMIZATION ---
+  // Track which layers need full redraw vs can use cached state
+  const dirtyFlags = React.useRef({
+    grid: true,       // Redraw grid (changes rarely)
+    obstacles: true,  // Redraw walls/doors (changes on scene edit)
+    tokens: true,     // Redraw tokens (changes on move/animation)
+    lighting: true,   // Redraw lighting layer (changes on token move or light change)
+    auras: true,      // Redraw auras (changes on token move)
+  });
+
+  // Track previous state for change detection
+  const prevStateRef = React.useRef({
+    gridSize: 0,
+    gridColor: '',
+    gridAlpha: 1,
+    obstacleCount: 0,
+    tokenPositions: '' as string,
+    viewportZoom: 0,
+  });
 
 
   useEffect(() => {
@@ -73,9 +107,22 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
 
 
     let animationFrameId: number;
+    let lastRenderTime = 0;
 
     const render = () => {
       const now = Date.now();
+
+      // PERFORMANCE: Throttle rendering when modal is open or tab is hidden
+      // This frees up CPU for overlay interactions (modals, dropdowns, etc.)
+      const shouldThrottle = props.isModalOpen || document.hidden;
+      const throttleInterval = shouldThrottle ? 200 : 0; // 5fps when throttled, 60fps otherwise
+
+      if (shouldThrottle && (now - lastRenderTime < throttleInterval)) {
+        animationFrameId = requestAnimationFrame(render);
+        return; // Skip this frame
+      }
+      lastRenderTime = now;
+
       let animationsChanged = false;
       const newAnimations = new Map<string, TokenAnimation>(animationsRef.current);
       animationsRef.current.forEach((anim, id) => {
@@ -93,11 +140,61 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
       const { size: gridSize, color: gridColor, alpha: gridAlpha, unitsPerSquare } = scene.grid;
       const renderTime = Date.now();
 
+      // PERFORMANCE: Use viewportRef for immediate rendering during pan/zoom
+      // This reads the latest position without waiting for React state update
+      const effectiveViewport = props.viewportRef
+        ? props.viewportRef.current
+        : viewport;
+
+      // PERFORMANCE: Use mouseWorldPosRef for immediate mouse position during drag
+      // This avoids React state batching lag (1+ second delay during fast movements)
+      const effectiveMousePos = props.mouseWorldPosRef
+        ? props.mouseWorldPosRef.current
+        : mouseWorldPos;
+
+      // Alias for cleaner code - use this everywhere instead of viewport.zoom
+      const z = effectiveViewport.zoom;
+
+      // --- DIRTY FLAG DETECTION ---
+      // Check what changed since last frame to optimize rendering
+      const prev = prevStateRef.current;
+
+      // Grid dirty if settings changed
+      if (prev.gridSize !== gridSize || prev.gridColor !== gridColor || prev.gridAlpha !== gridAlpha) {
+        dirtyFlags.current.grid = true;
+        prev.gridSize = gridSize;
+        prev.gridColor = gridColor;
+        prev.gridAlpha = gridAlpha;
+      }
+
+      // Obstacles dirty if count changed
+      if (prev.obstacleCount !== scene.obstacles.length) {
+        dirtyFlags.current.obstacles = true;
+        dirtyFlags.current.lighting = true; // Lighting depends on obstacles
+        prev.obstacleCount = scene.obstacles.length;
+      }
+
+      // Token positions dirty check (simplified hash)
+      const tokenHash = tokens.map(t => `${t.id}:${t.x}:${t.y}`).join(',');
+      if (prev.tokenPositions !== tokenHash) {
+        dirtyFlags.current.tokens = true;
+        dirtyFlags.current.lighting = true; // Vision depends on token positions
+        dirtyFlags.current.auras = true;
+        prev.tokenPositions = tokenHash;
+      }
+
+      // Zoom changed - need to redraw grid for coordinate labels
+      if (prev.viewportZoom !== z) {
+        dirtyFlags.current.grid = true;
+        prev.viewportZoom = z;
+      }
+
       ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.save();
-      ctx.translate(viewport.x, viewport.y);
-      ctx.scale(viewport.zoom, viewport.zoom);
+      // PERFORMANCE: Use effectiveViewport for smooth panning
+      ctx.translate(effectiveViewport.x, effectiveViewport.y);
+      ctx.scale(effectiveViewport.zoom, effectiveViewport.zoom);
 
       const allVisionPolygons: Point[][] = [];
       const visionObstacles = scene.obstacles;
@@ -105,14 +202,14 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
       if (effectiveIsGM) {
         if (mapImage?.complete) ctx.drawImage(mapImage, 0, 0, mapWidth, mapHeight);
         else { ctx.fillStyle = '#202020'; ctx.fillRect(0, 0, mapWidth, mapHeight); }
-        drawGrid(ctx, mapWidth, mapHeight, gridSize, gridColor, gridAlpha, viewport.zoom, ui.showGridCoordinates);
+        drawGrid(ctx, mapWidth, mapHeight, gridSize, gridColor, gridAlpha, effectiveViewport.zoom, ui.showGridCoordinates);
         if (scene.fogPath) {
           ctx.save();
           ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
           ctx.fill(new Path2D(scene.fogPath));
           ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-          ctx.lineWidth = 2 / viewport.zoom;
-          ctx.setLineDash([5 / viewport.zoom, 5 / viewport.zoom]);
+          ctx.lineWidth = 2 / effectiveViewport.zoom;
+          ctx.setLineDash([5 / z, 5 / z]);
           ctx.stroke(new Path2D(scene.fogPath));
           ctx.restore();
         }
@@ -156,7 +253,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
         ctx.clip(visibilityPath);
         if (mapImage?.complete) ctx.drawImage(mapImage, 0, 0, mapWidth, mapHeight);
         else { ctx.fillStyle = '#202020'; ctx.fillRect(0, 0, mapWidth, mapHeight); }
-        drawGrid(ctx, mapWidth, mapHeight, gridSize, gridColor, gridAlpha, viewport.zoom, ui.showGridCoordinates);
+        drawGrid(ctx, mapWidth, mapHeight, gridSize, gridColor, gridAlpha, z, ui.showGridCoordinates);
         ctx.restore();
       }
 
@@ -173,7 +270,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
             ctx.lineTo(drawing.points[i].x, drawing.points[i].y);
           }
           ctx.strokeStyle = drawing.color;
-          ctx.lineWidth = drawing.width / viewport.zoom;
+          ctx.lineWidth = drawing.width / z;
           ctx.globalAlpha = drawing.opacity !== undefined ? drawing.opacity : 1.0;
           ctx.stroke();
           ctx.restore();
@@ -193,7 +290,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
             ctx.globalAlpha = 1.0;
           } else {
             ctx.strokeStyle = drawingSettings.color;
-            ctx.lineWidth = drawingSettings.width / viewport.zoom;
+            ctx.lineWidth = drawingSettings.width / z;
             ctx.globalAlpha = drawingSettings.opacity;
           }
           ctx.stroke();
@@ -221,13 +318,13 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
       }
 
       if (scene.obstacles && scene.obstacles.length > 0) {
-        drawObstacles(ctx, scene.obstacles, effectiveIsGM, viewport.zoom, hoveredObstacleId || undefined, ui.gmHideObstacles);
+        drawObstacles(ctx, scene.obstacles, effectiveIsGM, z, hoveredObstacleId || undefined, ui.gmHideObstacles);
       }
 
       // --- TRIGGER ZONES ---
       if (effectiveIsGM && scene.triggerZones && scene.triggerZones.length > 0) {
         ctx.save();
-        ctx.font = `bold ${16 / viewport.zoom}px sans-serif`;
+        ctx.font = `bold ${16 / z}px sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         scene.triggerZones.forEach(zone => {
@@ -239,8 +336,8 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
             ctx.closePath();
           }
           ctx.strokeStyle = 'rgba(168, 85, 247, 0.8)';
-          ctx.lineWidth = 2 / viewport.zoom;
-          ctx.setLineDash([8 / viewport.zoom, 4 / viewport.zoom]);
+          ctx.lineWidth = 2 / z;
+          ctx.setLineDash([8 / z, 4 / z]);
           ctx.stroke();
           ctx.fillStyle = 'rgba(168, 85, 247, 0.15)';
           ctx.fill();
@@ -254,7 +351,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
       }
 
       if (scene.audioZones && scene.audioZones.length > 0) {
-        drawAudioZones(ctx, scene.audioZones, effectiveIsGM, viewport.zoom);
+        drawAudioZones(ctx, scene.audioZones, effectiveIsGM, z);
       }
 
       // --- REMOTE DRAGS ---
@@ -265,13 +362,13 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
           const dragPosWorld = { x: drag.x * gridSize + (ghostToken.size * gridSize) / 2, y: drag.y * gridSize + (ghostToken.size * gridSize) / 2 };
           const pathWorld = drag.path.map((p: any) => ({ x: p.x * gridSize + (ghostToken.size * gridSize) / 2, y: p.y * gridSize + (ghostToken.size * gridSize) / 2 }));
           if (pathWorld.length > 0) {
-            drawRuler(ctx, pathWorld, dragPosWorld, gridSize, unitsPerSquare, viewport.zoom, drag.color || '#fbbf24', ghostToken.speed || 9);
+            drawRuler(ctx, pathWorld, dragPosWorld, gridSize, unitsPerSquare, z, drag.color || '#fbbf24', ghostToken.speed || 9);
           }
           const visualToken = { ...ghostToken, x: drag.x, y: drag.y };
           ctx.globalAlpha = 0.6;
-          drawToken(ctx, visualToken, gridSize, false, viewport.zoom, imageCache, true);
+          drawToken(ctx, visualToken, gridSize, false, z, imageCache, true);
           ctx.globalAlpha = 1.0;
-          drawLabel(ctx, `Arrastando...`, drag.x * gridSize + (ghostToken.size * gridSize) / 2, drag.y * gridSize - 20 / viewport.zoom, viewport.zoom, drag.color || '#fbbf24');
+          drawLabel(ctx, `Arrastando...`, drag.x * gridSize + (ghostToken.size * gridSize) / 2, drag.y * gridSize - 20 / z, z, drag.color || '#fbbf24');
         }
       });
 
@@ -340,9 +437,9 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
             const poly = calculateVisibilityPolygon({ x: cx, y: cy }, scene.obstacles, r);
             if (poly.length > 0) {
               ctx.save(); ctx.beginPath(); ctx.moveTo(poly[0].x, poly[0].y); for (let i = 1; i < poly.length; i++) ctx.lineTo(poly[i].x, poly[i].y); ctx.closePath();
-              ctx.lineWidth = 2 / viewport.zoom; ctx.strokeStyle = visColor; ctx.setLineDash([8 / viewport.zoom, 4 / viewport.zoom]); ctx.stroke();
+              ctx.lineWidth = 2 / z; ctx.strokeStyle = visColor; ctx.setLineDash([8 / z, 4 / z]); ctx.stroke();
               ctx.fillStyle = adjustAlpha(visColor, 0.05); ctx.fill();
-              drawLabel(ctx, `DV: ${token.darkvisionRange}m`, cx, cy + r + (20 / viewport.zoom), viewport.zoom, visColor.replace(')', ', 0.8)')); ctx.restore();
+              drawLabel(ctx, `DV: ${token.darkvisionRange}m`, cx, cy + r + (20 / z), z, visColor.replace(')', ', 0.8)')); ctx.restore();
             }
           }
 
@@ -353,43 +450,44 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
             if (poly.length > 0) {
               ctx.save(); ctx.beginPath(); ctx.moveTo(poly[0].x, poly[0].y); for (let i = 1; i < poly.length; i++) ctx.lineTo(poly[i].x, poly[i].y); ctx.closePath();
               const visColor = token.visionColor || 'rgba(34, 211, 238, 0.5)';
-              ctx.lineWidth = 2 / viewport.zoom; ctx.strokeStyle = visColor; ctx.setLineDash([]); ctx.stroke();
+              ctx.lineWidth = 2 / z; ctx.strokeStyle = visColor; ctx.setLineDash([]); ctx.stroke();
               ctx.fillStyle = adjustAlpha(visColor, 0.1); ctx.fill();
-              drawLabel(ctx, `Vis: ${token.visionRange}m`, cx, cy - r - (10 / viewport.zoom), viewport.zoom, visColor.replace(')', ', 0.8)')); ctx.restore();
+              drawLabel(ctx, `Vis: ${token.visionRange}m`, cx, cy - r - (10 / z), z, visColor.replace(')', ', 0.8)')); ctx.restore();
             }
           }
         }
 
         const linkedCharacter = token.linkedId ? campaignCharacters.find(c => c.id === token.linkedId) : undefined;
-        drawAuras(ctx, animToken, gridSize, viewport.zoom, effectiveIsGM);
-        drawToken(ctx, animToken, gridSize, selectedTokenIds.includes(token.id), viewport.zoom, imageCache, renderAsGhost, linkedCharacter);
+        drawAuras(ctx, animToken, gridSize, z, effectiveIsGM);
+        drawToken(ctx, animToken, gridSize, selectedTokenIds.includes(token.id), z, imageCache, renderAsGhost, linkedCharacter);
       });
 
       if (lightCtx) {
-        drawLightingLayer(lightCtx, canvas.width, canvas.height, scene, tokens, animationsRef.current, viewport, visionTokens, !effectiveIsGM, (!effectiveIsGM && allVisionPolygons.length > 0) ? allVisionPolygons : undefined, visionObstacles);
+        drawLightingLayer(lightCtx, canvas.width, canvas.height, scene, tokens, animationsRef.current, effectiveViewport, visionTokens, !effectiveIsGM, (!effectiveIsGM && allVisionPolygons.length > 0) ? allVisionPolygons : undefined, visionObstacles);
         ctx.save(); ctx.resetTransform(); ctx.globalCompositeOperation = 'source-over'; ctx.drawImage(lightCanvas, 0, 0); ctx.restore();
       }
 
       // --- TOOLS & OVERLAYS ---
       if (activeTool === 'measure-path') {
         if (movementPath.length > 0) {
-          drawRuler(ctx, movementPath, mouseWorldPos, gridSize, unitsPerSquare, viewport.zoom, undefined, undefined, rulerSettings.metric, true);
+          drawRuler(ctx, movementPath, mouseWorldPos, gridSize, unitsPerSquare, z, undefined, undefined, rulerSettings.metric, true);
         } else {
-          ctx.beginPath(); ctx.arc(mouseWorldPos.x, mouseWorldPos.y, 4 / viewport.zoom, 0, Math.PI * 2); ctx.fillStyle = '#fbbf24'; ctx.fill();
+          ctx.beginPath(); ctx.arc(mouseWorldPos.x, mouseWorldPos.y, 4 / z, 0, Math.PI * 2); ctx.fillStyle = '#fbbf24'; ctx.fill();
         }
       }
 
       if (activeTool === 'eraser' || activeTool === 'eraser-audio' || activeTool === 'eraser-drawing') {
-        ctx.save(); ctx.beginPath(); ctx.arc(mouseWorldPos.x, mouseWorldPos.y, 8 / viewport.zoom, 0, Math.PI * 2); ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2 / viewport.zoom; ctx.stroke(); ctx.fillStyle = 'rgba(239, 68, 68, 0.2)'; ctx.fill(); ctx.restore();
+        ctx.save(); ctx.beginPath(); ctx.arc(mouseWorldPos.x, mouseWorldPos.y, 8 / z, 0, Math.PI * 2); ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2 / z; ctx.stroke(); ctx.fillStyle = 'rgba(239, 68, 68, 0.2)'; ctx.fill(); ctx.restore();
       }
 
       if (activeTool === 'eraser-trigger') {
-        ctx.save(); ctx.beginPath(); ctx.arc(mouseWorldPos.x, mouseWorldPos.y, 8 / viewport.zoom, 0, Math.PI * 2); ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 2 / viewport.zoom; ctx.stroke(); ctx.fillStyle = 'rgba(168, 85, 247, 0.2)'; ctx.fill(); ctx.restore();
+        ctx.save(); ctx.beginPath(); ctx.arc(mouseWorldPos.x, mouseWorldPos.y, 8 / z, 0, Math.PI * 2); ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 2 / z; ctx.stroke(); ctx.fillStyle = 'rgba(168, 85, 247, 0.2)'; ctx.fill(); ctx.restore();
       }
 
       if (dragState.current.isDragging && dragState.current.token) {
         const leader = dragState.current.token;
-        const mouseX = mouseWorldPos.x; const mouseY = mouseWorldPos.y;
+        // PERFORMANCE: Use effectiveMousePos from ref for immediate position
+        const mouseX = effectiveMousePos.x; const mouseY = effectiveMousePos.y;
         const leaderGridX = Math.round((mouseX - dragState.current.offset.x) / gridSize);
         const leaderGridY = Math.round((mouseY - dragState.current.offset.y) / gridSize);
         const deltaGridX = leaderGridX - leader.x;
@@ -399,13 +497,13 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
           const token = tokens.find(t => t.id === groupItem.id);
           if (!token) return;
           const smoothX = mouseX - groupItem.offsetX; const smoothY = mouseY - groupItem.offsetY;
-          ctx.save(); ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)'; ctx.lineWidth = 1 / viewport.zoom; ctx.strokeRect((groupItem.startGridX + deltaGridX) * gridSize, (groupItem.startGridY + deltaGridY) * gridSize, token.size * gridSize, token.size * gridSize); ctx.restore();
+          ctx.save(); ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)'; ctx.lineWidth = 1 / z; ctx.strokeRect((groupItem.startGridX + deltaGridX) * gridSize, (groupItem.startGridY + deltaGridY) * gridSize, token.size * gridSize, token.size * gridSize); ctx.restore();
           const movingToken = { ...token, x: smoothX / gridSize, y: smoothY / gridSize };
-          drawToken(ctx, movingToken, gridSize, true, viewport.zoom, imageCache, false);
+          drawToken(ctx, movingToken, gridSize, true, z, imageCache, false);
           if (token.id === leader.id) {
             const pathWorldPoints = calculatedPath.map(p => ({ x: p.x * gridSize + (token.size * gridSize) / 2, y: p.y * gridSize + (token.size * gridSize) / 2 }));
             const currentSnap = { x: (groupItem.startGridX + deltaGridX) * gridSize + (token.size * gridSize) / 2, y: (groupItem.startGridY + deltaGridY) * gridSize + (token.size * gridSize) / 2 };
-            if (pathWorldPoints.length > 0) drawRuler(ctx, pathWorldPoints, currentSnap, gridSize, unitsPerSquare, viewport.zoom, '#fbbf24', token.speed || 9);
+            if (pathWorldPoints.length > 0) drawRuler(ctx, pathWorldPoints, currentSnap, gridSize, unitsPerSquare, z, '#fbbf24', token.speed || 9);
           }
         });
       }
@@ -422,8 +520,8 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
           else if (activeTool.includes('audio')) color = 'rgba(0, 255, 255, 0.9)';
           else if (activeTool.includes('trigger')) color = 'rgba(168, 85, 247, 0.9)';
           ctx.strokeStyle = color;
-          ctx.lineWidth = 2 / viewport.zoom;
-          ctx.setLineDash([5 / viewport.zoom, 5 / viewport.zoom]);
+          ctx.lineWidth = 2 / z;
+          ctx.setLineDash([5 / z, 5 / z]);
           ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
           ctx.restore();
         }
@@ -438,21 +536,21 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
         else if (activeTool.includes('trigger')) color = 'rgba(168, 85, 247, 0.8)';
 
         ctx.strokeStyle = color;
-        ctx.lineWidth = 3 / viewport.zoom;
-        draftPolyPoints.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, 4 / viewport.zoom, 0, Math.PI * 2); ctx.fill(); });
+        ctx.lineWidth = 3 / z;
+        draftPolyPoints.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, 4 / z, 0, Math.PI * 2); ctx.fill(); });
         ctx.beginPath(); ctx.moveTo(draftPolyPoints[0].x, draftPolyPoints[0].y); for (let i = 1; i < draftPolyPoints.length; i++) ctx.lineTo(draftPolyPoints[i].x, draftPolyPoints[i].y); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(draftPolyPoints[draftPolyPoints.length - 1].x, draftPolyPoints[draftPolyPoints.length - 1].y); ctx.lineTo(mouseWorldPos.x, mouseWorldPos.y); ctx.stroke();
         if (draftPolyPoints.length >= (activeTool === 'draw-wall' ? 2 : 3)) {
           const distToStart = Math.hypot(mouseWorldPos.x - draftPolyPoints[0].x, mouseWorldPos.y - draftPolyPoints[0].y);
-          if (distToStart < 15 / viewport.zoom) {
-            ctx.beginPath(); ctx.arc(draftPolyPoints[0].x, draftPolyPoints[0].y, 8 / viewport.zoom, 0, Math.PI * 2); ctx.strokeStyle = 'yellow'; ctx.lineWidth = 2 / viewport.zoom; ctx.stroke(); drawLabel(ctx, "Fechar", draftPolyPoints[0].x, draftPolyPoints[0].y - 20 / viewport.zoom, viewport.zoom);
+          if (distToStart < 15 / z) {
+            ctx.beginPath(); ctx.arc(draftPolyPoints[0].x, draftPolyPoints[0].y, 8 / z, 0, Math.PI * 2); ctx.strokeStyle = 'yellow'; ctx.lineWidth = 2 / z; ctx.stroke(); drawLabel(ctx, "Fechar", draftPolyPoints[0].x, draftPolyPoints[0].y - 20 / z, z);
           }
         }
         ctx.restore();
       }
 
       if (drawingObstacle) {
-        ctx.save(); ctx.strokeStyle = drawingObstacle.type === 'window' ? 'cyan' : 'rgba(139, 92, 246, 0.9)'; ctx.lineWidth = 5 / viewport.zoom; ctx.beginPath(); ctx.moveTo(drawingObstacle.p1.x, drawingObstacle.p1.y); ctx.lineTo(mouseWorldPos.x, mouseWorldPos.y); ctx.stroke(); ctx.restore();
+        ctx.save(); ctx.strokeStyle = drawingObstacle.type === 'window' ? 'cyan' : 'rgba(139, 92, 246, 0.9)'; ctx.lineWidth = 5 / z; ctx.beginPath(); ctx.moveTo(drawingObstacle.p1.x, drawingObstacle.p1.y); ctx.lineTo(mouseWorldPos.x, mouseWorldPos.y); ctx.stroke(); ctx.restore();
       }
 
 
@@ -473,11 +571,11 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
           ctx.globalAlpha = 1 - easeOut; // Fade out common
 
           if (anim.style === 'burst') {
-            const maxR = 60 / viewport.zoom;
+            const maxR = 60 / z;
             const currentR = maxR * easeOut;
             const lines = 8;
             ctx.strokeStyle = anim.color;
-            ctx.lineWidth = 2 / viewport.zoom;
+            ctx.lineWidth = 2 / z;
             for (let i = 0; i < lines; i++) {
               const angle = (Math.PI * 2 / lines) * i;
               const x1 = Math.cos(angle) * (currentR * 0.4);
@@ -490,7 +588,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
               ctx.stroke();
             }
           } else if (anim.style === 'sparkle') {
-            const maxDist = 50 / viewport.zoom;
+            const maxDist = 50 / z;
             const particles = 5;
             ctx.fillStyle = anim.color;
             for (let i = 0; i < particles; i++) {
@@ -499,20 +597,20 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
               const px = Math.cos(angle) * dist;
               const py = Math.sin(angle) * dist;
               ctx.beginPath();
-              ctx.arc(px, py, 4 / viewport.zoom, 0, Math.PI * 2);
+              ctx.arc(px, py, 4 / z, 0, Math.PI * 2);
               ctx.fill();
             }
           } else if (anim.style === 'pulse') {
-            const maxR = 40 / viewport.zoom;
+            const maxR = 40 / z;
             ctx.fillStyle = anim.color;
             ctx.beginPath();
             ctx.arc(0, 0, maxR * easeOut, 0, Math.PI * 2);
             ctx.fill();
           } else if (anim.style === 'vortex') {
-            const maxR = 50 / viewport.zoom;
+            const maxR = 50 / z;
             const spirals = 3;
             ctx.strokeStyle = anim.color;
-            ctx.lineWidth = 2 / viewport.zoom;
+            ctx.lineWidth = 2 / z;
             for (let j = 0; j < spirals; j++) {
               const angleOffset = (Math.PI * 2 / spirals) * j + (easeOut * Math.PI * 2);
               ctx.beginPath();
@@ -527,7 +625,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
             }
           } else if (anim.style === 'shard') {
             const shards = 5;
-            const dist = 50 / viewport.zoom * easeOut;
+            const dist = 50 / z * easeOut;
             ctx.fillStyle = anim.color;
             for (let i = 0; i < shards; i++) {
               const angle = (Math.PI * 2 / shards) * i;
@@ -535,40 +633,40 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
               const sy = Math.sin(angle) * dist;
               ctx.beginPath();
               ctx.moveTo(sx, sy);
-              const size = 6 / viewport.zoom;
+              const size = 6 / z;
               ctx.lineTo(sx + Math.cos(angle + 2.5) * size, sy + Math.sin(angle + 2.5) * size);
               ctx.lineTo(sx + Math.cos(angle - 2.5) * size, sy + Math.sin(angle - 2.5) * size);
               ctx.fill();
             }
           } else if (anim.style === 'ring') {
-            const r1 = 30 / viewport.zoom * easeOut;
-            const r2 = 20 / viewport.zoom * easeOut;
+            const r1 = 30 / z * easeOut;
+            const r2 = 20 / z * easeOut;
             ctx.strokeStyle = anim.color;
-            ctx.lineWidth = 2 / viewport.zoom;
+            ctx.lineWidth = 2 / z;
             ctx.beginPath(); ctx.arc(0, 0, r1, 0, Math.PI * 2); ctx.stroke();
             ctx.beginPath(); ctx.arc(0, 0, r2, 0, Math.PI * 2); ctx.stroke();
           } else if (anim.style === 'echo') {
             const count = 3;
             ctx.strokeStyle = anim.color;
-            ctx.lineWidth = 1.5 / viewport.zoom;
+            ctx.lineWidth = 1.5 / z;
             for (let i = 0; i < count; i++) {
-              const r = (50 / viewport.zoom) * easeOut * (1 - i * 0.25);
+              const r = (50 / z) * easeOut * (1 - i * 0.25);
               if (r > 0) {
                 ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
               }
             }
           } else if (anim.style === 'orb') {
-            const r = 25 / viewport.zoom * easeOut;
+            const r = 25 / z * easeOut;
             ctx.fillStyle = anim.color;
             ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
             ctx.globalAlpha = (1 - easeOut) * 0.5; // Inner glow
             ctx.beginPath(); ctx.arc(0, 0, r * 0.6, 0, Math.PI * 2); ctx.fill();
           } else {
             // Ripple (Default)
-            const radius = (20 / viewport.zoom) + (40 / viewport.zoom * easeOut);
+            const radius = (20 / z) + (40 / z * easeOut);
             ctx.beginPath();
             ctx.arc(0, 0, radius, 0, Math.PI * 2);
-            ctx.lineWidth = (3 / viewport.zoom) * (1 - easeOut);
+            ctx.lineWidth = (3 / z) * (1 - easeOut);
             ctx.strokeStyle = anim.color;
             ctx.stroke();
           }
@@ -610,7 +708,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
           // Rings
           ctx.rotate(-progress * Math.PI * 4); // Reset rotation for rings
           ctx.strokeStyle = color;
-          ctx.lineWidth = 2 / viewport.zoom;
+          ctx.lineWidth = 2 / z;
           ctx.globalAlpha = 1 - progress;
           ctx.beginPath(); ctx.arc(0, 0, baseSize * progress * 2, 0, Math.PI * 2); ctx.stroke();
           ctx.beginPath(); ctx.arc(0, 0, baseSize * progress * 1, 0, Math.PI * 2); ctx.stroke();
@@ -625,7 +723,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
             ctx.rotate(Math.PI / 2 * i + (progress * 2));
             ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(baseSize * 2, 0);
             ctx.strokeStyle = adjustAlpha(color, 0.5 * (1 - progress));
-            ctx.lineWidth = 4 / viewport.zoom;
+            ctx.lineWidth = 4 / z;
             ctx.stroke();
           }
         } else if (style === 'sonar') {
@@ -635,7 +733,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
             const r = baseSize * 2 * waveProgress;
             ctx.globalAlpha = 1 - waveProgress;
             ctx.strokeStyle = color;
-            ctx.lineWidth = 2 / viewport.zoom;
+            ctx.lineWidth = 2 / z;
             ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
           }
         } else if (style === 'target') {
@@ -643,8 +741,8 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
           const r = baseSize * 1.5 * (1 - easeOut); // Shrinking
           ctx.globalAlpha = Math.min(1, easeOut * 2);
           ctx.strokeStyle = color;
-          ctx.lineWidth = 3 / viewport.zoom;
-          ctx.setLineDash([10 / viewport.zoom, 5 / viewport.zoom]);
+          ctx.lineWidth = 3 / z;
+          ctx.setLineDash([10 / z, 5 / z]);
           ctx.beginPath(); ctx.arc(0, 0, Math.max(0, r), 0, Math.PI * 2); ctx.stroke();
           // Crosshair
           ctx.setLineDash([]);
@@ -670,7 +768,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
           ctx.rotate(progress * Math.PI);
           const r = baseSize * (1 + easeOut);
           ctx.strokeStyle = color;
-          ctx.lineWidth = 2 / viewport.zoom;
+          ctx.lineWidth = 2 / z;
           ctx.globalAlpha = 1 - progress;
           ctx.strokeRect(-r / 2, -r / 2, r, r);
           ctx.rotate(Math.PI / 4);
@@ -679,7 +777,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
           // X Marks the spot
           const scale = 1 + easeOut;
           ctx.scale(scale, scale);
-          ctx.lineWidth = 4 / viewport.zoom;
+          ctx.lineWidth = 4 / z;
           ctx.strokeStyle = color;
           ctx.globalAlpha = 1 - progress;
           ctx.beginPath();
@@ -695,7 +793,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
           ctx.fillStyle = color;
           ctx.fill();
           ctx.globalAlpha = (1 - progress);
-          ctx.lineWidth = Math.max(0.5, (5 - progress * 4) / viewport.zoom);
+          ctx.lineWidth = Math.max(0.5, (5 - progress * 4) / z);
           ctx.strokeStyle = color;
           ctx.beginPath();
           ctx.arc(0, 0, maxRadius * easeOut, 0, Math.PI * 2);
@@ -715,14 +813,14 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
             ctx.translate(0, -baseSize * 1.5); // Above the ping
 
             const fontSize = 12;
-            ctx.font = `bold ${fontSize / viewport.zoom}px "Inter", sans-serif`;
+            ctx.font = `bold ${fontSize / z}px "Inter", sans-serif`;
             ctx.textBaseline = 'middle';
             ctx.textAlign = 'center'; // Center text
             const textMetrics = ctx.measureText(ping.userName);
 
-            const paddingX = 8 / viewport.zoom;
-            const paddingY = 4 / viewport.zoom;
-            const badgeH = (fontSize + 6) / viewport.zoom;
+            const paddingX = 8 / z;
+            const paddingY = 4 / z;
+            const badgeH = (fontSize + 6) / z;
             const badgeW = textMetrics.width + (paddingX * 2);
 
             ctx.globalAlpha = nameOpacity;
@@ -735,7 +833,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
             // Rounded Rect center
             const x = -badgeW / 2;
             const y = -badgeH / 2;
-            const r = 4 / viewport.zoom;
+            const r = 4 / z;
 
             ctx.beginPath();
             ctx.moveTo(x + r, y);
@@ -764,7 +862,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
       if (remoteViewports) {
         // Group viewports by proximity to handle overlaps
         const groups: { [key: string]: string[]; } = {};
-        const threshold = 50 / viewport.zoom; // Distance to consider overlapping
+        const threshold = 50 / z; // Distance to consider overlapping
 
         const visibleViewports = Object.entries(remoteViewports).filter(([uid, vp]) => {
           if (uid === currentUser?.id) return false; // Never show own viewport
@@ -814,14 +912,14 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
           const color = cursor?.userColor || '#808080';
 
           ctx.strokeStyle = color;
-          ctx.lineWidth = 2 / viewport.zoom;
-          ctx.setLineDash([10 / viewport.zoom, 5 / viewport.zoom]);
+          ctx.lineWidth = 2 / z;
+          ctx.setLineDash([10 / z, 5 / z]);
           ctx.strokeRect(wx, wy, ww, wh);
 
           // Draw Labels Stacked
-          const fontSize = 12 / viewport.zoom;
+          const fontSize = 12 / z;
           ctx.font = `bold ${fontSize}px sans-serif`;
-          const padding = 4 / viewport.zoom;
+          const padding = 4 / z;
           let currentY = wy;
 
           uids.forEach((uid, index) => {
@@ -834,7 +932,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
             const tagH = fontSize + padding * 2;
 
             // Alternate sides if many? For now just stack on top left
-            const tagX = wx + (index * (tagW + 5 / viewport.zoom)); // Stack horizontally? 
+            const tagX = wx + (index * (tagW + 5 / z)); // Stack horizontally? 
             // User asked for "side by side up there" -> "lado a lado la encima"
 
             ctx.fillStyle = uColor;
@@ -853,51 +951,94 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
       Object.values(remoteCursors).forEach((cursor: any) => {
         if (cursor.userId === currentUser?.id) return;
 
-        // --- PHYSICS UPDATE ---
+        // --- VELOCITY-BASED SMOOTH MOVEMENT (No teleporting) ---
         const now = Date.now();
-        const physics = cursorPhysics.current[cursor.userId] || { x: cursor.x, y: cursor.y, angle: 0, targetAngle: 0, velocity: 0 };
+        let physics = cursorPhysics.current[cursor.userId];
 
-        // Calculate motion vector (target - current physics pos)
-        // We use the last known physics position to smooth to the new target `cursor` pos from props
-        const dx = cursor.x - physics.x;
-        const dy = cursor.y - physics.y;
+        // Initialize physics state if not exists
+        if (!physics) {
+          physics = {
+            x: cursor.x,
+            y: cursor.y,
+            targetX: cursor.x,
+            targetY: cursor.y,
+            angle: 0,
+            targetAngle: 0,
+            velocity: 0,
+            lastUpdateTime: now,
+            prevTargetX: cursor.x,
+            prevTargetY: cursor.y,
+            velocityX: 0,
+            velocityY: 0
+          } as any;
+        }
+
+        // Detect if we received a new target position
+        const targetChanged = physics.targetX !== cursor.x || physics.targetY !== cursor.y;
+        if (targetChanged) {
+          // Store previous target for velocity calculation
+          (physics as any).prevTargetX = physics.targetX;
+          (physics as any).prevTargetY = physics.targetY;
+
+          // Calculate velocity from previous to new target
+          const timeSinceLastUpdate = now - physics.lastUpdateTime;
+          if (timeSinceLastUpdate > 0 && timeSinceLastUpdate < 200) {
+            // Estimate velocity: how fast is the user moving?
+            (physics as any).velocityX = (cursor.x - physics.targetX) / timeSinceLastUpdate;
+            (physics as any).velocityY = (cursor.y - physics.targetY) / timeSinceLastUpdate;
+          }
+
+          physics.targetX = cursor.x;
+          physics.targetY = cursor.y;
+          physics.lastUpdateTime = now;
+        }
+
+        // Calculate direction to target
+        const dx = physics.targetX - physics.x;
+        const dy = physics.targetY - physics.y;
         const dist = Math.hypot(dx, dy);
 
+        // ADAPTIVE SPEED INTERPOLATION
+        // Move faster when far, slower when close - always smooth
+        const BASE_SPEED = 1.2; // Base pixels per millisecond
+        const deltaTime = 16; // Assume ~60fps (16ms per frame)
+
+        if (dist > 0.5) {
+          // Adaptive speed: faster when further away, subtle acceleration
+          // sqrt scaling gives smooth acceleration curve
+          const distanceFactor = 1 + Math.sqrt(dist) * 0.08; // More speed at distance
+          const adaptiveSpeed = Math.min(BASE_SPEED * deltaTime * distanceFactor, dist * 0.25);
+          const moveX = (dx / dist) * adaptiveSpeed;
+          const moveY = (dy / dist) * adaptiveSpeed;
+
+          physics.x += moveX;
+          physics.y += moveY;
+
+          // If close enough, snap to prevent jitter
+          if (Math.hypot(physics.targetX - physics.x, physics.targetY - physics.y) < 1) {
+            physics.x = physics.targetX;
+            physics.y = physics.targetY;
+          }
+        } else {
+          // Already at target
+          physics.x = physics.targetX;
+          physics.y = physics.targetY;
+        }
+
         // Update Physics Angle if moving significantly
-        const MIN_MOVE = 2; // Min pixels to trigger rotation change
+        const MIN_MOVE = 2;
         if (dist > MIN_MOVE) {
-          // New target angle based on movement direction
-          // 90 degrees offset because swords/pointers usually point UP (0deg is UP in our mental model, but atan2 0 is RIGHT)
-          // Actually, sword tip starts at top right or top left? Let's assume standard pointer tip is Top-Left.
-          // Adjust angle so the "Tip" points to movement.
-          // SVG Sword tip is ~Top-Center (256, 40).
-          // Atan2 returns angle from X axis (Right). 
-          // We want the TOP of the image to point to travel direction.
-          // Standard atan2: Right=0, Down=90, Left=180, Up=-90.
-          // To make Top (-90 in canvas space?? No, Top is -Y).
-          // Rotation adds to angle.
           let targetAngle = Math.atan2(dy, dx);
+          targetAngle += Math.PI / 2;
 
-          // Adjust based on image orientation. 
-          // If image tip is UP, and we want UP to be Direction.
-          // If Direction is RIGHT (0), we need to rotate image 90deg clockwise.
-          targetAngle += Math.PI / 2; // Offset to align "Top" of image with Velocity Vector
-
-          // Shortest path interpolation for angle (prevent spinning 360)
           let deltaAngle = targetAngle - physics.angle;
           while (deltaAngle > Math.PI) deltaAngle -= Math.PI * 2;
           while (deltaAngle < -Math.PI) deltaAngle += Math.PI * 2;
           physics.targetAngle = physics.angle + deltaAngle;
         }
 
-        // Interpolate Position (Simple Lerp for smoothness) - High alpha for responsiveness
-        physics.x += (cursor.x - physics.x) * 0.2;
-        physics.y += (cursor.y - physics.y) * 0.2;
-
-        // Interpolate Angle (Slower for weight)
+        // Interpolate Angle smoothly
         physics.angle += (physics.targetAngle - physics.angle) * 0.15;
-
-        // Reset if stopped to prevent infinite tiny decimals? No, simple lerp settles.
 
         // Save state
         cursorPhysics.current[cursor.userId] = physics;
@@ -906,7 +1047,8 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
         const effectiveY = physics.y;
         const effectiveAngle = physics.angle;
 
-        const z = viewport.zoom;
+
+        // z is already defined at top of render loop as effectiveViewport.zoom
         const color = cursor.userColor || '#fbbf24';
 
         // 1. Draw Cursor Shape
@@ -971,7 +1113,8 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
         // 2. Draw Name Badge
         // Configure Font
         ctx.save();
-        ctx.translate(cursor.x, cursor.y);
+        // Use interpolated position for smooth label movement
+        ctx.translate(effectiveX, effectiveY);
         const fontSize = 11;
         ctx.font = `600 ${fontSize / z}px "Inter", sans-serif`;
         ctx.textBaseline = 'middle';

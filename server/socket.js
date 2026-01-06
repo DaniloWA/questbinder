@@ -103,7 +103,20 @@ export const setupSocket = (server) => {
       }
     });
 
+    // ============================================================================
+    // SERVER-SIDE THROTTLE FOR HIGH-FREQUENCY EVENTS
+    // ============================================================================
 
+    const THROTTLE_MS = {
+      'cursor:move': 50,      // Max 20/sec per client
+      'viewport:update': 100, // Max 10/sec
+      'token:drag': 33,       // Max 30/sec
+      'cursor:click': 100,    // Max 10/sec
+      'chat:reaction': 200,   // Max 5/sec
+    };
+
+    // Track last emit time per event type for this client
+    const lastEmitTimes = {};
 
     const ephemeralEvents = ['token:drag', 'cursor:move', 'chat:reaction', 'cursor:click', 'viewport:update'];
 
@@ -111,6 +124,17 @@ export const setupSocket = (server) => {
       socket.on(event, (payload) => {
         try {
           if (!client.campaignId) return;
+
+          // Server-side throttle
+          const now = Date.now();
+          const throttleMs = THROTTLE_MS[event] || 50;
+          const lastEmit = lastEmitTimes[event] || 0;
+
+          if (now - lastEmit < throttleMs) {
+            // Drop this event (throttled)
+            return;
+          }
+          lastEmitTimes[event] = now;
 
           // Track viewport updates for persistence
           if (event === 'viewport:update' && payload) {

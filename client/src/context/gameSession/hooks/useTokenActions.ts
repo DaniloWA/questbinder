@@ -1,9 +1,12 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { GameSessionState, BooleanPermissionKey } from '../types';
 import { campaignService } from '../../../services/campaignService';
 import { socketService } from '../../../services/socketService';
 import { Token } from '../../../types';
 import { ActionHandlers, StateHelpers, GeometryHelpers } from '../helpers';
+
+// Cursor throttle constants
+const CURSOR_THROTTLE_MS = 50; // Max 20 cursor updates per second
 
 export const useTokenActions = (
   state: GameSessionState,
@@ -14,6 +17,11 @@ export const useTokenActions = (
   permissionHelper?: any // REGRA MILENAR
 ) => {
   const activeScene = state.scenes.find(s => s.id === state.activeSceneId) || null;
+
+  // Cursor throttle refs
+  const lastCursorEmitRef = useRef<number>(0);
+  const pendingCursorRef = useRef<{ x: number; y: number; } | null>(null);
+  const cursorRAFRef = useRef<number | null>(null);
 
   const moveToken = useCallback((tokenId: string, newX: number, newY: number) => {
     const scene = activeScene;
@@ -262,17 +270,54 @@ export const useTokenActions = (
   };
 
   const emitCursorMove = (x: number, y: number) => {
-    const userId = user?.id || '';
-    const override = (state.permissions?.cursorOverrides?.[userId] || {}) as { color?: string, shape?: string, name?: string; };
-    const settings = state.cursorSettings || {};
+    const now = Date.now();
 
-    socketService.emit('cursor:move', {
-      userId,
-      userName: override.name || settings.name || user?.name || '?',
-      userColor: override.color || settings.color || '#fbbf24',
-      userShape: override.shape || settings.shape || 'default',
-      x, y
-    });
+    // Store pending position
+    pendingCursorRef.current = { x, y };
+
+    // If enough time has passed since last emit, send immediately
+    if (now - lastCursorEmitRef.current >= CURSOR_THROTTLE_MS) {
+      const userId = user?.id || '';
+      const override = (state.permissions?.cursorOverrides?.[userId] || {}) as { color?: string, shape?: string, name?: string; };
+      const settings = state.cursorSettings || {} as { color?: string, shape?: string, name?: string; };
+
+      socketService.emit('cursor:move', {
+        userId,
+        userName: override.name || (settings as any).name || user?.name || '?',
+        userColor: override.color || (settings as any).color || '#fbbf24',
+        userShape: override.shape || (settings as any).shape || 'default',
+        x, y
+      });
+
+      lastCursorEmitRef.current = now;
+      pendingCursorRef.current = null;
+      return;
+    }
+
+    // Otherwise, schedule a batched emit via RAF if not already scheduled
+    if (cursorRAFRef.current === null) {
+      cursorRAFRef.current = requestAnimationFrame(() => {
+        const pending = pendingCursorRef.current;
+        if (pending && Date.now() - lastCursorEmitRef.current >= CURSOR_THROTTLE_MS) {
+          const userId = user?.id || '';
+          const override = (state.permissions?.cursorOverrides?.[userId] || {}) as { color?: string, shape?: string, name?: string; };
+          const settings = state.cursorSettings || {} as { color?: string, shape?: string, name?: string; };
+
+          socketService.emit('cursor:move', {
+            userId,
+            userName: override.name || (settings as any).name || user?.name || '?',
+            userColor: override.color || (settings as any).color || '#fbbf24',
+            userShape: override.shape || (settings as any).shape || 'default',
+            x: pending.x,
+            y: pending.y
+          });
+
+          lastCursorEmitRef.current = Date.now();
+        }
+        pendingCursorRef.current = null;
+        cursorRAFRef.current = null;
+      });
+    }
   };
 
   return {
