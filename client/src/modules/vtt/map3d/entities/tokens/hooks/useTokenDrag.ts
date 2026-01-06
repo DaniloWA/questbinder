@@ -6,7 +6,7 @@ import { snapToGrid, worldToGrid, gridToWorld } from '../../../shared/utils/math
 import { useThree } from '@react-three/fiber';
 import { Vector3 } from 'three';
 
-export const useTokenDrag = (tokenId: string, initialPosition: [number, number, number]) => {
+export const useTokenDrag = (tokenId: string, initialPosition: [number, number] | [number, number, number]) => {
   const updateToken = useTokenStore(state => state.updateToken);
   const { grid, width, height } = useMapStore(state => state.mapData);
   const { emitTokenDrag, moveToken } = useGameSession();

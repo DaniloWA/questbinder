@@ -10,46 +10,31 @@ export const CameraRig: React.FC = () => {
 
   const { onChange } = useCameraSync(controlsRef);
 
-  // Force-fix rotation on mount or update
-  React.useEffect(() => {
-    if (controlsRef.current) {
-      const controls = controlsRef.current;
-      // Ensure strictly looking down -Z
-      controls.object.lookAt(controls.target.x, controls.target.y, 0);
-      controls.object.up.set(0, 1, 0); // Standard Camera Up is Y on screen
-      controls.update();
-    }
-  }, []);
+  // No manual rotation hacks needed for standard Y-up XZ-plane setup.
+  // MapControls defaults to this.
 
   return (
     <>
       <OrthographicCamera
         makeDefault
-        position={[viewport.x, viewport.y, 100]}
+        position={[viewport.x, 100, viewport.y]}
         zoom={viewport.zoom}
         near={0.1}
         far={1000}
-      // Force Z-up orientation if needed, but usually default Y-up for camera is fine if looking down -Z.
-      // Actually, for MapControls to pan in X-Y, we need to tell it Z is up? No, controls.up defines the "ground plane" normal.
-      // If controls.up is (0,1,0), ground is X-Z.
-      // If controls.up is (0,0,1), ground is X-Y.
-      // We want X-Y ground.
+      // Removed hard onUpdate lock to allow controls to take over
       />
       <MapControls
         ref={controlsRef}
-        screenSpacePanning={true} // Pan orthogonal to direction
+        makeDefault // Ensure these grab the event loop
+        screenSpacePanning={false} // False is often better for top-down XZ map panning
         enableRotate={false}
+        enableDamping={true}
+        dampingFactor={0.1}
         minZoom={0.1}
         maxZoom={5.0}
         onChange={onChange}
-      // Fix for "Crooked" / "Torto" view:
-      // By default MapControls uses Y-up (X-Z plane). We use X-Y plane.
-      // BUT 'screenSpacePanning=true' usually ignores this for Ortho.
-      // However, let's enforce Z as up to be safe if that's the issue.
-      // Actually, for X-Y map, we want standard panning.
-      // If "torto", maybe previous MapControls saved a bad rotation state?
-      // Let's force reset rotation.
       />
+
     </>
   );
 };

@@ -14,7 +14,8 @@ export const MapLayer: React.FC = () => {
   return (
     <mesh
       name="MapLayer"
-      position={[0, 0, Z_INDEX.MAP]}
+      position={[0, 0, 0]} // Center
+      rotation={[-Math.PI / 2, 0, 0]} // Lay flat on XZ plane
       receiveShadow
     >
       <planeGeometry args={[width, height]} />

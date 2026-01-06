@@ -21,9 +21,8 @@ export const GridLayer: React.FC = () => {
   return (
     <mesh
       name="GridLayer"
-      position={[0, 0, Z_INDEX.GRID]}
-      // We render a slightly larger plane or the exact map size
-      rotation={[0, 0, 0]}
+      position={[0, 0.01, 0]} // Slightly above Map on Y-axis (Y-up system)
+      rotation={[-Math.PI / 2, 0, 0]} // Lay flat on XZ plane
     >
       <planeGeometry args={[width, height]} />
       <shaderMaterial

@@ -17,10 +17,13 @@ interface Token3DProps {
 export const Token3D: React.FC<Token3DProps> = ({ token }) => {
   const groupRef = useRef<Group>(null);
 
-  // 1. Calculate derived state (position)
+  // 1. Calculate derived state (position is now [x, y] in world units)
   const { position } = useTokenState(token);
 
   // 2. Setup interaction hooks
+  // bindDrag now expects a spring object or initial pos. 
+  // We need to pass the spring value `animatedPos` if we want drag to update it,
+  // or pass the raw `position` for initialization.
   const bindDrag = useTokenDrag(token.id, position);
   const { isSelected, onClick } = useTokenSelection(token.id);
 
@@ -33,8 +36,14 @@ export const Token3D: React.FC<Token3DProps> = ({ token }) => {
   return (
     <animated.group
       ref={groupRef}
-      position={animatedPos as any}
-      rotation={[0, 0, token.rotation || 0]}
+      // Position: [x, y, z] -> [x * gridSize, elevation, y * gridSize]
+      // Lift slightly (0.05) to sit on top of grid
+      position={animatedPos.to((x, y) => [x, 0.05, y]) as any}
+      // Rotate -90 deg on X to lie flat on the map, then apply Z rotation for token facing
+      rotation={token.rotation
+        ? [-Math.PI / 2, 0, (token.rotation * Math.PI) / 180]
+        : [-Math.PI / 2, 0, 0]
+      }
       onClick={onClick}
       {...bindDrag()}
     >

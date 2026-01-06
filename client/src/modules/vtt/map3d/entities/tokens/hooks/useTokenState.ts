@@ -1,25 +1,31 @@
 import { useMemo } from 'react';
 import { Token } from '../../../types/token.types';
 import { useMapStore } from '../../../store/mapStore';
-import { gridToWorld } from '../../../shared/utils/math/coordinates';
 
 export const useTokenState = (token: Token) => {
-  const { grid, width, height } = useMapStore(state => state.mapData);
+  const { grid } = useMapStore(state => state.mapData);
 
-  // Memoize world position calculation
+  // 1. Calculate World Position (XZ Plane)
+  // We map 2D grid coordinates (x, y) to World coordinates.
+  // In our new XZ-plane setup: WorldX = GridX * Size, WorldZ = GridY * Size.
+  // However, for the React Spring interpolation in Token3D, we pass just [x, y] values,
+  // and let the component map them to [x, 0.05, y].
   const position = useMemo(() => {
-    const worldPos = gridToWorld(token.x, token.y, grid.size, width, height, token.z || 0.1);
-    return [worldPos.x, worldPos.y, worldPos.z] as [number, number, number];
-  }, [token.x, token.y, token.z, grid.size, width, height]);
+    const worldX = token.x * grid.size;
+    const worldY = token.y * grid.size;
+    return [worldX, worldY] as [number, number];
+  }, [token.x, token.y, grid.size]);
 
-  // Derived light radius if needed
+  // 2. Calculate Light Radius
   const lightRadius = useMemo(() => {
     if (!token.light?.enabled) return 0;
-    // Map grid units to world units
-    // e.g. 5ft bright = 1 grid square (if 5ft per square)
-    // token.light.brightRadius (grid units) * grid.size
     return (token.light.dimRadius || 0) * grid.size;
   }, [token.light, grid.size]);
 
-  return { position, lightRadius };
+  return {
+    position,
+    lightRadius,
+    rotation: [0, 0, 0], // Placeholder if we want derived rotation logic later
+    scale: 1,
+  };
 };

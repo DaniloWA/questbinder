@@ -18,7 +18,7 @@ export const fragmentShader = `
   
   // Anti-aliased grid function
   float grid(vec3 pos, float size, float thickness) {
-    vec2 coord = pos.xy / size;
+    vec2 coord = pos.xz / size; // Use XZ for top-down grid on ground plane
     vec2 grid = abs(fract(coord - 0.5) - 0.5) / fwidth(coord);
     float line = min(grid.x, grid.y);
     return 1.0 - min(line, 1.0);

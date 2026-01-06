@@ -31,7 +31,7 @@ export const MapCanvas3D: React.FC<MapCanvas3DProps> = (props) => {
           dpr={[1, 1.5]} // Reduce max DPR to 1.5 for performance
           // shadows // Temporarily disable global shadows to check FPS
           style={{ touchAction: 'none' }}
-          frameloop="demand"
+        // frameloop="demand" // Temporarily disable demand loop to fix frozen controls
         >
           <color attach="background" args={['#18181b']} />
 
