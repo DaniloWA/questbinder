@@ -68,7 +68,7 @@ const SubMenuPortal: React.FC<{
     onMouseEnter: () => void;
     onMouseLeave: () => void;
 }> = ({ children, parentRect, onMouseEnter, onMouseLeave }) => {
-    const [coords, setCoords] = useState({ top: 0, left: 0 });
+    const [coords, setCoords] = useState<{ top: number, left: number; } | null>(null);
 
     useEffect(() => {
         let top = parentRect.top;
@@ -92,6 +92,8 @@ const SubMenuPortal: React.FC<{
 
         setCoords({ top, left });
     }, [parentRect]);
+
+    if (!coords) return null; // Don't render until coords are calculated
 
     return createPortal(
         <div
