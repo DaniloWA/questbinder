@@ -112,14 +112,18 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
     const render = () => {
       const now = Date.now();
 
-      // PERFORMANCE: Throttle rendering when modal is open or tab is hidden
-      // This frees up CPU for overlay interactions (modals, dropdowns, etc.)
-      const shouldThrottle = props.isModalOpen || document.hidden;
-      const throttleInterval = shouldThrottle ? 200 : 0; // 5fps when throttled, 60fps otherwise
+      // PERFORMANCE: COMPLETELY PAUSE rendering when modal is open
+      // This frees 100% CPU for overlay interactions (modals, inputs, etc.)
+      // The useEffect will restart the loop when modal closes (isModalOpen changes)
+      if (props.isModalOpen) {
+        // Don't schedule next frame - completely pause
+        return;
+      }
 
-      if (shouldThrottle && (now - lastRenderTime < throttleInterval)) {
+      // Throttle when tab is hidden (5fps)
+      if (document.hidden && (now - lastRenderTime < 200)) {
         animationFrameId = requestAnimationFrame(render);
-        return; // Skip this frame
+        return;
       }
       lastRenderTime = now;
 
@@ -1166,6 +1170,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
     scene, tokens, viewport, isGM, gmViewMode, currentUser, activeTool, movementPath, pings, drawingObstacle, draftPolyPoints,
     currentFogRect, selectedTokenIds, mouseWorldPos, animatingTokens, calculatedPath, hoveredObstacleId, ui.gmHideObstacles,
     ui.showVisionRanges, drawingLightZone, drawingAudioZone, drawingTriggerZone, previewPlayerId, visionTokens, remoteDrags,
-    remoteCursors, drawingSettings, rulerSettings, imageCache, attackZoneResults, previewZoneResult, campaignCharacters, remoteViewports
+    remoteCursors, drawingSettings, rulerSettings, imageCache, attackZoneResults, previewZoneResult, campaignCharacters, remoteViewports,
+    props.isModalOpen // CRITICAL: Must be in deps for throttle to work when modal opens
   ]);
 };

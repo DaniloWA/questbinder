@@ -21,16 +21,22 @@ export const Modal: React.FC<ModalProps> = ({
   hideCloseButton = false,
 }) => {
   const overlayRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
 
-  // Dragging State
-  const [position, setPosition] = useState({ x: 0, y: 0 });
+  // PERFORMANCE: Use refs for drag position to avoid React re-renders during drag
+  const positionRef = useRef({ x: 0, y: 0 });
+  const [finalPosition, setFinalPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
 
   // Reset position when modal opens
   useEffect(() => {
     if (isOpen) {
-      setPosition({ x: 0, y: 0 });
+      positionRef.current = { x: 0, y: 0 };
+      setFinalPosition({ x: 0, y: 0 });
+      if (modalRef.current) {
+        modalRef.current.style.transform = 'translate(0px, 0px)';
+      }
     }
   }, [isOpen]);
 
@@ -63,7 +69,7 @@ export const Modal: React.FC<ModalProps> = ({
     };
   }, [isOpen]);
 
-  // Global Mouse Events for Dragging
+  // PERFORMANCE: Global Mouse Events for Dragging - use refs to avoid re-renders
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDragging) return;
@@ -72,10 +78,18 @@ export const Modal: React.FC<ModalProps> = ({
       const dx = e.clientX - dragStartRef.current.x;
       const dy = e.clientY - dragStartRef.current.y;
 
-      setPosition({ x: dx, y: dy });
+      // PERFORMANCE: Update ref and DOM directly, no React re-render
+      positionRef.current = { x: dx, y: dy };
+      if (modalRef.current) {
+        modalRef.current.style.transform = `translate(${dx}px, ${dy}px)`;
+      }
     };
 
     const handleMouseUp = () => {
+      if (isDragging) {
+        // Sync final position to React state only once when drag ends
+        setFinalPosition(positionRef.current);
+      }
       setIsDragging(false);
     };
 
@@ -106,9 +120,10 @@ export const Modal: React.FC<ModalProps> = ({
     if ((e.target as HTMLElement).closest('button')) return;
 
     setIsDragging(true);
+    // PERFORMANCE: Use ref for current position
     dragStartRef.current = {
-      x: e.clientX - position.x,
-      y: e.clientY - position.y
+      x: e.clientX - positionRef.current.x,
+      y: e.clientY - positionRef.current.y
     };
   };
 
@@ -150,6 +165,7 @@ export const Modal: React.FC<ModalProps> = ({
 
       {/* Modal Content */}
       <div
+        ref={modalRef}
         className={`
           relative w-full ${sizeClasses[size]} 
           bg-card text-card-foreground 
@@ -159,7 +175,8 @@ export const Modal: React.FC<ModalProps> = ({
           ${animationClasses}
         `}
         style={{
-          transform: `translate(${position.x}px, ${position.y}px)`,
+          // Initial transform from React state, will be overwritten by ref during drag
+          transform: `translate(${finalPosition.x}px, ${finalPosition.y}px)`,
           cursor: isDragging ? 'grabbing' : 'auto'
         }}
       >

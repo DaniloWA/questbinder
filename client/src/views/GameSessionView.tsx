@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { GameSessionProvider, useGameSession } from '../context/GameSessionContext';
 import { useNavigation } from '../context/NavigationContext';
 import { useModal } from '../context/ModalContext';
@@ -37,7 +37,8 @@ import { AttackZonePanel } from '../components/vtt/AttackZonePanel';
 import { AttackZoneConfigModal } from '../components/vtt/AttackZoneConfigModal';
 import { AttackZoneContextMenu } from '../components/vtt/AttackZoneContextMenu';
 import { useAttackZones } from '../context/gameSession/hooks/useAttackZones';
-import { CursorSettingsModal } from '../components/vtt/CursorSettingsModal';
+// PERFORMANCE: Lazy load heavy modals for better INP
+const CursorSettingsModal = lazy(() => import('../components/vtt/CursorSettingsModal').then(m => ({ default: m.CursorSettingsModal })));
 import { PullViewNotification } from '../components/vtt/notifications/PullViewNotification';
 import { FollowModeIndicator } from '../components/vtt/notifications/FollowModeIndicator';
 import { ViewSettingsModal } from '../components/vtt/settings/ViewSettingsModal';
@@ -815,7 +816,12 @@ const GameSessionUI: React.FC = () => {
                 onClose={() => setIsInitiativeRollerOpen(false)}
             />
 
-            <CursorSettingsModal isOpen={isCursorSettingsOpen} onClose={() => setIsCursorSettingsOpen(false)} />
+            {/* PERFORMANCE: Only mount modal when open (true lazy load) */}
+            {isCursorSettingsOpen && (
+                <Suspense fallback={null}>
+                    <CursorSettingsModal isOpen={isCursorSettingsOpen} onClose={() => setIsCursorSettingsOpen(false)} />
+                </Suspense>
+            )}
 
             {/* View Settings Modal */}
             {isViewSettingsOpen && (
