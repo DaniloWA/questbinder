@@ -308,7 +308,8 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
           showAffectedTokens: true,
           showBlockedTokens: true,
           showStats: effectiveIsGM,
-          gridSize: gridSize
+          gridSize: gridSize,
+          zoom: z
         });
       }
 
@@ -317,7 +318,8 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
           showAffectedTokens: true,
           showBlockedTokens: true,
           showStats: true,
-          gridSize: gridSize
+          gridSize: gridSize,
+          zoom: z
         });
       }
 

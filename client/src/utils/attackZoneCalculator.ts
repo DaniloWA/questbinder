@@ -1,16 +1,19 @@
 // utils/attackZoneCalculator.ts
+// Refactored: Proper obstacle blocking using ray-casting
 
 import { Point, Obstacle, Token, GridOptions } from '../types/models';
 import {
   AttackZoneConfig,
   AttackZoneResult,
-  AttackZonePropagation
 } from '../types/attackZone';
 import {
-  calculateVisibilityPolygon,
-  isPointInPolygon,
-  getIntersection
+  getIntersection,
+  isPointInPolygon
 } from './geometry';
+
+// ============================================================================
+// MAIN ENTRY POINT
+// ============================================================================
 
 /**
  * Calcula a área afetada por uma zona de ataque, considerando obstáculos
@@ -21,23 +24,11 @@ export const calculateAttackZone = (
   tokens: Token[],
   grid: GridOptions
 ): AttackZoneResult => {
-  console.log('[AttackZone Calc] Input:', {
-    configId: config.id,
-    shape: config.shape,
-    origin: config.origin,
-    radius: config.radius,
-    tokensCount: tokens.length,
-    obstaclesCount: obstacles.length,
-    gridSize: grid.size
-  });
-
-  // 1. Calcular área teórica (sem obstáculos)
+  // 1. Calcular área teórica (sem obstáculos) - tudo em PIXELS
   const theoreticalArea = calculateTheoreticalArea(config, grid);
-  console.log('[AttackZone Calc] Theoretical area points:', theoreticalArea.length);
 
-  // 2. Aplicar obstáculos baseado no tipo de propagação
-  const affectedArea = applyObstacles(theoreticalArea, config, obstacles, grid);
-  console.log('[AttackZone Calc] Affected area points:', affectedArea.length);
+  // 2. Aplicar obstáculos usando ray-casting apropriado
+  const affectedArea = applyObstaclesRayCast(theoreticalArea, config, obstacles, grid);
 
   // 3. Determinar tokens afetados
   const { affectedTokens, blockedTokens } = determineAffectedTokens(
@@ -47,14 +38,12 @@ export const calculateAttackZone = (
     obstacles,
     grid
   );
-  console.log('[AttackZone Calc] Affected tokens:', affectedTokens.length, 'Blocked:', blockedTokens.length);
 
   // 4. Filtrar por targeting
   const validTargets = filterByTargeting(affectedTokens, config, tokens);
 
   // 5. Calcular estatísticas
   const stats = calculateStats(theoreticalArea, affectedArea, affectedTokens, blockedTokens);
-  console.log('[AttackZone Calc] Stats:', stats);
 
   return {
     config,
@@ -66,8 +55,15 @@ export const calculateAttackZone = (
   };
 };
 
+// ============================================================================
+// THEORETICAL AREA CALCULATION
+// All functions expect origin in WORLD PIXELS, dimensions in GRID UNITS
+// ============================================================================
+
 /**
  * Calcula a área teórica da zona (sem considerar obstáculos)
+ * config.origin está em PIXELS DE MUNDO
+ * config.radius/length/width estão em UNIDADES DE GRID
  */
 const calculateTheoreticalArea = (
   config: AttackZoneConfig,
@@ -77,37 +73,34 @@ const calculateTheoreticalArea = (
 
   switch (shape) {
     case 'circle':
-      return calculateCircleArea(origin, config.radius || 0, grid);
+      return calculateCircleArea(origin, (config.radius || 0) * grid.size, 48);
 
     case 'cone':
       return calculateConeArea(
         origin,
-        config.length || 0,
-        config.width || 0,
+        (config.length || 0) * grid.size,
         config.direction || 0,
         config.angle || 53,
-        grid
+        24
       );
 
     case 'line':
       return calculateLineArea(
         origin,
-        config.length || 0,
-        config.width || 1,
-        config.direction || 0,
-        grid
+        (config.length || 0) * grid.size,
+        (config.width || 1) * grid.size,
+        config.direction || 0
       );
 
     case 'square':
-      return calculateSquareArea(origin, config.radius || 0, grid);
+      return calculateSquareArea(origin, (config.radius || 0) * grid.size);
 
     case 'rectangle':
-      return calculateRectangleArea(
+      return calculateLineArea(
         origin,
-        config.length || 0,
-        config.width || 0,
-        config.direction || 0,
-        grid
+        (config.length || 0) * grid.size,
+        (config.width || 0) * grid.size,
+        config.direction || 0
       );
 
     case 'polygon':
@@ -120,20 +113,23 @@ const calculateTheoreticalArea = (
 
 /**
  * Calcula área circular
+ * @param center Centro em pixels de mundo
+ * @param radiusPx Raio em pixels
+ * @param segments Número de segmentos para aproximar o círculo
  */
 const calculateCircleArea = (
   center: Point,
-  radius: number,
-  grid: GridOptions
+  radiusPx: number,
+  segments: number = 48
 ): Point[] => {
   const points: Point[] = [];
-  const segments = Math.max(32, Math.floor(radius * 8)); // Mais segmentos para círculos maiores
 
   for (let i = 0; i < segments; i++) {
     const angle = (i / segments) * Math.PI * 2;
-    const x = center.x + Math.cos(angle) * radius * grid.size;
-    const y = center.y + Math.sin(angle) * radius * grid.size;
-    points.push({ x, y });
+    points.push({
+      x: center.x + Math.cos(angle) * radiusPx,
+      y: center.y + Math.sin(angle) * radiusPx
+    });
   }
 
   return points;
@@ -141,53 +137,50 @@ const calculateCircleArea = (
 
 /**
  * Calcula área de cone
+ * @param origin Vértice do cone em pixels de mundo
+ * @param lengthPx Comprimento em pixels
+ * @param direction Direção em radianos
+ * @param angleDeg Ângulo de abertura em graus
+ * @param segments Número de segmentos no arco
  */
 const calculateConeArea = (
   origin: Point,
-  length: number,
-  width: number,
+  lengthPx: number,
   direction: number,
-  angle: number,
-  grid: GridOptions
+  angleDeg: number,
+  segments: number = 24
 ): Point[] => {
-  const points: Point[] = [origin];
-  const lengthPx = length * grid.size;
-  const halfAngle = (angle * Math.PI) / 180 / 2;
+  const points: Point[] = [origin]; // Começa no vértice
+  const halfAngle = (angleDeg * Math.PI) / 180 / 2;
 
-  // Número de pontos no arco
-  const arcSegments = Math.max(16, Math.floor(length * 4));
-
-  for (let i = 0; i <= arcSegments; i++) {
-    const t = i / arcSegments;
+  for (let i = 0; i <= segments; i++) {
+    const t = i / segments;
     const currentAngle = direction - halfAngle + (halfAngle * 2 * t);
-    const distance = lengthPx;
-
-    const x = origin.x + Math.cos(currentAngle) * distance;
-    const y = origin.y + Math.sin(currentAngle) * distance;
-    points.push({ x, y });
+    points.push({
+      x: origin.x + Math.cos(currentAngle) * lengthPx,
+      y: origin.y + Math.sin(currentAngle) * lengthPx
+    });
   }
 
   return points;
 };
 
 /**
- * Calcula área de linha
+ * Calcula área de linha/retângulo
+ * @param origin Ponto inicial em pixels de mundo
+ * @param lengthPx Comprimento em pixels
+ * @param widthPx Largura em pixels
+ * @param direction Direção em radianos
  */
 const calculateLineArea = (
   origin: Point,
-  length: number,
-  width: number,
-  direction: number,
-  grid: GridOptions
+  lengthPx: number,
+  widthPx: number,
+  direction: number
 ): Point[] => {
-  const lengthPx = length * grid.size;
-  const widthPx = width * grid.size;
   const halfWidth = widthPx / 2;
-
-  // Direção perpendicular
   const perpDir = direction + Math.PI / 2;
 
-  // 4 cantos do retângulo
   const endX = origin.x + Math.cos(direction) * lengthPx;
   const endY = origin.y + Math.sin(direction) * lengthPx;
 
@@ -212,195 +205,340 @@ const calculateLineArea = (
 };
 
 /**
- * Calcula área quadrada
+ * Calcula área quadrada centrada
+ * @param center Centro em pixels de mundo
+ * @param halfSizePx Metade do lado em pixels (radius * gridSize)
  */
 const calculateSquareArea = (
   center: Point,
-  radius: number,
-  grid: GridOptions
+  halfSizePx: number
 ): Point[] => {
-  const size = radius * grid.size;
-  const half = size / 2;
-
   return [
-    { x: center.x - half, y: center.y - half },
-    { x: center.x + half, y: center.y - half },
-    { x: center.x + half, y: center.y + half },
-    { x: center.x - half, y: center.y + half },
+    { x: center.x - halfSizePx, y: center.y - halfSizePx },
+    { x: center.x + halfSizePx, y: center.y - halfSizePx },
+    { x: center.x + halfSizePx, y: center.y + halfSizePx },
+    { x: center.x - halfSizePx, y: center.y + halfSizePx },
   ];
 };
 
+// ============================================================================
+// OBSTACLE APPLICATION - RAY-CASTING APPROACH
+// ============================================================================
+
 /**
- * Calcula área retangular
+ * Extrai todos os segmentos de linha dos obstáculos que bloqueiam
  */
-const calculateRectangleArea = (
-  origin: Point,
-  length: number,
-  width: number,
-  direction: number,
-  grid: GridOptions
-): Point[] => {
-  return calculateLineArea(origin, length, width, direction, grid);
+const extractBlockingSegments = (obstacles: Obstacle[]): { p1: Point; p2: Point; }[] => {
+  const segments: { p1: Point; p2: Point; }[] = [];
+
+  for (const obs of obstacles) {
+    // Só considera obstáculos que bloqueiam visão ou movimento
+    if (!obs.blocksVision && !obs.blocksMovement) continue;
+
+    if (obs.type === 'wall') {
+      // Wall = polygon/polyline obstacle with multiple points
+      // 'open' significa polilinha (não fecha loop), mas ainda bloqueia!
+      const points = obs.points;
+      if (points.length >= 2) {
+        // Adicionar todos os segmentos entre pontos consecutivos
+        for (let i = 0; i < points.length - 1; i++) {
+          segments.push({ p1: points[i], p2: points[i + 1] });
+        }
+        // Se não é "open", adiciona o segmento que fecha o polígono
+        if (!obs.open && points.length > 2) {
+          segments.push({ p1: points[points.length - 1], p2: points[0] });
+        }
+      }
+    } else if (obs.type === 'door' || obs.type === 'window') {
+      // Door/Window = line obstacle with p1, p2
+      // Portas/janelas abertas não bloqueiam (passáveis)
+      const isOpen = !obs.blocksMovement; // blocksMovement=false significa porta aberta
+      if (!isOpen) {
+        segments.push({ p1: obs.p1, p2: obs.p2 });
+      }
+    }
+  }
+
+  return segments;
 };
 
 /**
- * Aplica obstáculos à área baseado no tipo de propagação
+ * Encontra a distância até o primeiro obstáculo ao longo de um raio
+ * @returns Distância em pixels, ou Infinity se não há bloqueio
  */
-const applyObstacles = (
+const raycastToObstacles = (
+  origin: Point,
+  direction: number,
+  maxDistance: number,
+  segments: { p1: Point; p2: Point; }[]
+): number => {
+  const farPoint: Point = {
+    x: origin.x + Math.cos(direction) * maxDistance * 1.1,
+    y: origin.y + Math.sin(direction) * maxDistance * 1.1
+  };
+
+  let closestDist = Infinity;
+
+  for (const seg of segments) {
+    const intersection = getIntersection(origin, farPoint, seg.p1, seg.p2);
+    if (intersection) {
+      const dist = Math.hypot(intersection.x - origin.x, intersection.y - origin.y);
+      if (dist < closestDist && dist > 0.5) { // Evita auto-interseção
+        closestDist = dist;
+      }
+    }
+  }
+
+  return closestDist;
+};
+
+/**
+ * Aplica obstáculos à área teórica usando ray-casting
+ * Para cada ponto da área, traça um raio da origem até o ponto
+ * Se o raio cruzar um obstáculo, move o ponto para a interseção
+ */
+const applyObstaclesRayCast = (
   theoreticalArea: Point[],
   config: AttackZoneConfig,
   obstacles: Obstacle[],
   grid: GridOptions
 ): Point[] => {
-  const { propagation, respectsVision, origin } = config;
+  const { propagation, origin } = config;
 
   // Se penetra paredes, retorna área teórica
   if (propagation === 'penetrating') {
     return theoreticalArea;
   }
 
-  // Filtra apenas obstáculos que bloqueiam
-  const blockingObstacles = obstacles.filter(obs =>
-    obs.blocksVision || obs.blocksMovement
-  );
+  const blockingSegments = extractBlockingSegments(obstacles);
 
-  if (blockingObstacles.length === 0) {
+  if (blockingSegments.length === 0) {
     return theoreticalArea;
   }
 
-  // Se respeita visão, usa algoritmo de visibilidade
-  if (respectsVision && propagation === 'blocked') {
-    const maxRadius = calculateMaxRadius(theoreticalArea, origin);
-    const visibilityPolygon = calculateVisibilityPolygon(
-      origin,
-      blockingObstacles,
-      maxRadius
-    );
-
-    // Intersecção entre área teórica e polígono de visibilidade
-    return intersectPolygons(theoreticalArea, visibilityPolygon);
+  // Para formas radiais (circle, cone, square centrado), usar ray-casting por ângulo
+  if (config.shape === 'circle' || config.shape === 'cone' ||
+    (config.shape === 'square' && isOriginAtCenter(origin, theoreticalArea))) {
+    return applyObstaclesRadial(origin, theoreticalArea, blockingSegments, config.shape, grid);
   }
 
-  // Se é "spreading" (bola de fogo), tenta se espalhar ao redor
-  if (propagation === 'spreading') {
-    return calculateSpreadingArea(theoreticalArea, origin, blockingObstacles, grid);
-  }
-
-  // Padrão: bloqueado simples
-  return clipPolygonByObstacles(theoreticalArea, blockingObstacles);
+  // Para line/rectangle, usar clipping por segmento
+  return applyObstaclesLinear(origin, theoreticalArea, blockingSegments);
 };
 
 /**
- * Calcula raio máximo de um polígono a partir da origem
+ * Verifica se a origem está aproximadamente no centro da área
  */
-const calculateMaxRadius = (polygon: Point[], origin: Point): number => {
-  let maxDist = 0;
-  for (const p of polygon) {
-    const dist = Math.hypot(p.x - origin.x, p.y - origin.y);
-    if (dist > maxDist) maxDist = dist;
-  }
-  return maxDist;
+const isOriginAtCenter = (origin: Point, area: Point[]): boolean => {
+  if (area.length === 0) return false;
+
+  const cx = area.reduce((sum, p) => sum + p.x, 0) / area.length;
+  const cy = area.reduce((sum, p) => sum + p.y, 0) / area.length;
+
+  const dist = Math.hypot(origin.x - cx, origin.y - cy);
+  return dist < 10; // Tolerância de 10 pixels
 };
 
 /**
- * Intersecção de dois polígonos (simplificado)
+ * Aplica obstáculos para formas radiais (circle, cone)
+ * Usa ray-casting denso para criar contorno preciso
  */
-const intersectPolygons = (poly1: Point[], poly2: Point[]): Point[] => {
-  // Implementação simplificada: retorna pontos de poly1 que estão dentro de poly2
-  // Para produção, usar biblioteca como martinez-polygon-clipping
-  const result: Point[] = [];
-
-  for (const p of poly1) {
-    if (isPointInPolygon(p, poly2)) {
-      result.push(p);
-    }
-  }
-
-  // Se perdemos muitos pontos, adicionar pontos de poly2 que estão em poly1
-  if (result.length < 3) {
-    for (const p of poly2) {
-      if (isPointInPolygon(p, poly1)) {
-        result.push(p);
-      }
-    }
-  }
-
-  return result.length >= 3 ? result : poly1; // Fallback
-};
-
-/**
- * Recorta polígono por obstáculos
- */
-const clipPolygonByObstacles = (
-  polygon: Point[],
-  obstacles: Obstacle[]
-): Point[] => {
-  // Implementação simplificada
-  // Para produção completa, usar algoritmo de clipping como Sutherland-Hodgman
-
-  // Por enquanto, remove pontos que estão dentro de obstáculos sólidos
-  return polygon.filter(p => {
-    for (const obs of obstacles) {
-      if (obs.type === 'wall' && !obs.open) {
-        if (isPointInPolygon(p, obs.points)) {
-          return false;
-        }
-      }
-    }
-    return true;
-  });
-};
-
-/**
- * Calcula área que se espalha ao redor de obstáculos (como bola de fogo)
- */
-const calculateSpreadingArea = (
-  theoreticalArea: Point[],
+const applyObstaclesRadial = (
   origin: Point,
-  obstacles: Obstacle[],
+  theoreticalArea: Point[],
+  segments: { p1: Point; p2: Point; }[],
+  shape: string,
   grid: GridOptions
 ): Point[] => {
-  // Algoritmo simplificado de flood-fill
-  // Para cada ponto na borda teórica, verifica se há linha de visão
-  // Se bloqueado, tenta "contornar" o obstáculo
+  // Determinar ângulos de início e fim baseado na forma
+  let startAngle = 0;
+  let endAngle = Math.PI * 2;
+  let maxRadius = 0;
 
-  const result: Point[] = [];
-  const radius = calculateMaxRadius(theoreticalArea, origin);
+  // Calcular raio máximo da área teórica
+  for (const p of theoreticalArea) {
+    const dist = Math.hypot(p.x - origin.x, p.y - origin.y);
+    if (dist > maxRadius) maxRadius = dist;
+  }
 
-  // Amostragem de pontos ao redor da origem
-  const samples = 64;
-  for (let i = 0; i < samples; i++) {
-    const angle = (i / samples) * Math.PI * 2;
-    let currentDist = 0;
-    const step = grid.size / 4;
+  // Para cone, determinar ângulos a partir dos pontos
+  if (shape === 'cone' && theoreticalArea.length >= 3) {
+    // O primeiro ponto é a origem, os demais são o arco
+    const angles = theoreticalArea.slice(1).map(p =>
+      Math.atan2(p.y - origin.y, p.x - origin.x)
+    );
+    startAngle = Math.min(...angles);
+    endAngle = Math.max(...angles);
 
-    while (currentDist < radius) {
-      currentDist += step;
-      const x = origin.x + Math.cos(angle) * currentDist;
-      const y = origin.y + Math.sin(angle) * currentDist;
-      const point = { x, y };
-
-      // Verifica se há obstáculo bloqueando
-      let blocked = false;
-      for (const obs of obstacles) {
-        if (obs.type === 'wall' && !obs.open) {
-          if (isPointInPolygon(point, obs.points)) {
-            blocked = true;
-            break;
-          }
-        }
-      }
-
-      if (blocked) break;
-
-      if (currentDist >= radius - step) {
-        result.push(point);
+    // Normalizar para evitar problemas de wrap-around
+    if (endAngle - startAngle > Math.PI) {
+      // Os ângulos cruzam o -π/π boundary
+      const positives = angles.filter(a => a >= 0);
+      const negatives = angles.filter(a => a < 0);
+      if (positives.length > 0 && negatives.length > 0) {
+        startAngle = Math.min(...positives);
+        endAngle = Math.max(...negatives) + Math.PI * 2;
       }
     }
   }
 
+  // Número de raios baseado na circunferência
+  const numRays = Math.max(48, Math.ceil((endAngle - startAngle) * maxRadius / 10));
+  const result: Point[] = [];
+
+  // Para cone, adicionar origem primeiro
+  if (shape === 'cone') {
+    result.push({ ...origin });
+  }
+
+  for (let i = 0; i <= numRays; i++) {
+    const t = i / numRays;
+    const angle = startAngle + (endAngle - startAngle) * t;
+
+    // Distância teórica para este ângulo
+    const theoreticalDist = getRadiusAtAngle(origin, theoreticalArea, angle, maxRadius);
+
+    // Distância até obstáculo mais próximo
+    const obstacleDist = raycastToObstacles(origin, angle, maxRadius * 1.5, segments);
+
+    // Usar a menor das duas distâncias
+    const finalDist = Math.min(theoreticalDist, obstacleDist);
+
+    if (finalDist > 1) { // Evitar pontos muito próximos da origem
+      result.push({
+        x: origin.x + Math.cos(angle) * finalDist,
+        y: origin.y + Math.sin(angle) * finalDist
+      });
+    }
+  }
+
+  // Garantir que temos pontos suficientes para formar um polígono
   return result.length >= 3 ? result : theoreticalArea;
 };
+
+/**
+ * Obtém o raio da área teórica para um dado ângulo
+ */
+const getRadiusAtAngle = (
+  origin: Point,
+  area: Point[],
+  angle: number,
+  maxRadius: number
+): number => {
+  // Criar um ponto muito distante na direção do ângulo
+  const farPoint: Point = {
+    x: origin.x + Math.cos(angle) * maxRadius * 2,
+    y: origin.y + Math.sin(angle) * maxRadius * 2
+  };
+
+  let closestDist = maxRadius;
+
+  // Verificar interseção com cada edge do polígono teórico
+  for (let i = 0; i < area.length; i++) {
+    const j = (i + 1) % area.length;
+    const intersection = getIntersection(origin, farPoint, area[i], area[j]);
+    if (intersection) {
+      const dist = Math.hypot(intersection.x - origin.x, intersection.y - origin.y);
+      if (dist < closestDist && dist > 0.5) {
+        closestDist = dist;
+      }
+    }
+  }
+
+  return closestDist;
+};
+
+/**
+ * Aplica obstáculos para formas lineares (line, rectangle)
+ * Usa clipping por edge - corta as arestas do polígono nos obstáculos
+ */
+const applyObstaclesLinear = (
+  origin: Point,
+  theoreticalArea: Point[],
+  segments: { p1: Point; p2: Point; }[]
+): Point[] => {
+  if (theoreticalArea.length < 3) return theoreticalArea;
+
+  const result: Point[] = [];
+
+  // Para cada aresta do polígono, verificar interseções
+  for (let i = 0; i < theoreticalArea.length; i++) {
+    const p1 = theoreticalArea[i];
+    const p2 = theoreticalArea[(i + 1) % theoreticalArea.length];
+
+    // Encontrar todas as interseções nesta aresta
+    const edgeIntersections: { point: Point; t: number; }[] = [];
+
+    for (const seg of segments) {
+      const intersection = getIntersectionWithT(p1, p2, seg.p1, seg.p2);
+      if (intersection) {
+        edgeIntersections.push(intersection);
+      }
+    }
+
+    // Ordenar interseções pelo parâmetro t (posição na aresta)
+    edgeIntersections.sort((a, b) => a.t - b.t);
+
+    // Verificar se p1 está dentro ou fora da área bloqueada
+    const p1Blocked = isPointBlockedBySegments(origin, p1, segments);
+
+    if (!p1Blocked) {
+      result.push(p1);
+    }
+
+    // Adicionar pontos de interseção (entrada/saída de zonas bloqueadas)
+    for (const inter of edgeIntersections) {
+      result.push(inter.point);
+    }
+  }
+
+  // Garantir que o polígono tem pontos suficientes
+  return result.length >= 3 ? result : theoreticalArea;
+};
+
+/**
+ * Verifica se há linha de visão entre origem e ponto
+ */
+const isPointBlockedBySegments = (
+  origin: Point,
+  target: Point,
+  segments: { p1: Point; p2: Point; }[]
+): boolean => {
+  for (const seg of segments) {
+    if (getIntersection(origin, target, seg.p1, seg.p2)) {
+      return true;
+    }
+  }
+  return false;
+};
+
+/**
+ * Versão de getIntersection que também retorna o parâmetro t
+ */
+const getIntersectionWithT = (
+  p1: Point,
+  p2: Point,
+  p3: Point,
+  p4: Point
+): { point: Point; t: number; } | null => {
+  const d = (p2.x - p1.x) * (p4.y - p3.y) - (p2.y - p1.y) * (p4.x - p3.x);
+  if (d === 0) return null;
+
+  const t = ((p3.x - p1.x) * (p4.y - p3.y) - (p3.y - p1.y) * (p4.x - p3.x)) / d;
+  const u = -((p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x)) / d;
+
+  if (t > 0.001 && t < 0.999 && u > 0.001 && u < 0.999) {
+    return {
+      point: { x: p1.x + t * (p2.x - p1.x), y: p1.y + t * (p2.y - p1.y) },
+      t
+    };
+  }
+  return null;
+};
+
+// ============================================================================
+// TOKEN DETECTION
+// ============================================================================
 
 /**
  * Determina quais tokens são afetados pela zona
@@ -415,8 +553,12 @@ const determineAffectedTokens = (
   const affectedTokens: Token[] = [];
   const blockedTokens: Token[] = [];
 
+  // Only extract blocking segments if we need to check line of sight
+  const shouldCheckLineOfSight = config.propagation !== 'penetrating';
+  const blockingSegments = shouldCheckLineOfSight ? extractBlockingSegments(obstacles) : [];
+
   for (const token of tokens) {
-    // Token x/y are in GRID coordinates, convert to PIXEL coordinates
+    // Converter posição do token de grid para pixels
     const tokenCenterX = token.x * grid.size + (token.size * grid.size) / 2;
     const tokenCenterY = token.y * grid.size + (token.size * grid.size) / 2;
     const tokenCenter = { x: tokenCenterX, y: tokenCenterY };
@@ -426,13 +568,10 @@ const determineAffectedTokens = (
 
     if (!inArea) continue;
 
-    // Se a propagação é bloqueada, verifica linha de visão da origem ao token
-    if (config.propagation === 'blocked' && config.respectsVision) {
-      const hasLineOfSight = checkLineOfSight(
-        config.origin,
-        tokenCenter,
-        obstacles
-      );
+    // Para 'penetrating', não verifica linha de visão - atravessa tudo
+    // Para 'blocked' e 'spreading', verifica se há obstáculo entre origem e token
+    if (shouldCheckLineOfSight && blockingSegments.length > 0) {
+      const hasLineOfSight = !isRayBlocked(config.origin, tokenCenter, blockingSegments);
 
       if (!hasLineOfSight) {
         blockedTokens.push(token);
@@ -447,35 +586,24 @@ const determineAffectedTokens = (
 };
 
 /**
- * Verifica linha de visão entre dois pontos
+ * Verifica se um raio entre dois pontos é bloqueado por algum segmento
  */
-const checkLineOfSight = (
+const isRayBlocked = (
   p1: Point,
   p2: Point,
-  obstacles: Obstacle[]
+  segments: { p1: Point; p2: Point; }[]
 ): boolean => {
-  for (const obs of obstacles) {
-    if (!obs.blocksVision) continue;
-
-    if (obs.type === 'wall') {
-      const points = obs.points;
-      const loopCount = obs.open ? points.length - 1 : points.length;
-
-      for (let i = 0; i < loopCount; i++) {
-        const w1 = points[i];
-        const w2 = points[(i + 1) % points.length];
-        if (getIntersection(p1, p2, w1, w2)) {
-          return false;
-        }
-      }
-    } else {
-      if (getIntersection(p1, p2, obs.p1, obs.p2)) {
-        return false;
-      }
+  for (const seg of segments) {
+    if (getIntersection(p1, p2, seg.p1, seg.p2)) {
+      return true;
     }
   }
-  return true;
+  return false;
 };
+
+// ============================================================================
+// TARGETING FILTER
+// ============================================================================
 
 /**
  * Filtra tokens por tipo de targeting
@@ -521,6 +649,10 @@ const filterByTargeting = (
   return filtered;
 };
 
+// ============================================================================
+// STATISTICS
+// ============================================================================
+
 /**
  * Calcula estatísticas da zona
  */
@@ -558,6 +690,10 @@ const calculatePolygonArea = (polygon: Point[]): number => {
 
   return Math.abs(area / 2);
 };
+
+// ============================================================================
+// UTILITY EXPORTS
+// ============================================================================
 
 /**
  * Converte ponto do mundo para grid

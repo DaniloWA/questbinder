@@ -1,6 +1,6 @@
 // components/vtt/AttackZoneConfigModal.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Circle, Triangle, Minus, Square, Maximize2, Eye, Target } from 'lucide-react';
 import { AttackZoneConfig, AttackZoneShape, AttackZonePropagation, AttackZoneTargeting } from '../../types/attackZone';
 
@@ -12,6 +12,63 @@ interface AttackZoneConfigModalProps {
   title?: string;
 }
 
+const DEFAULT_CONFIG: Partial<AttackZoneConfig> = {
+  name: 'Nova Zona',
+  shape: 'circle',
+  radius: 3,
+  length: 5,
+  width: 2,
+  angle: 53,
+  propagation: 'blocked',
+  respectsVision: true,
+  targeting: 'all',
+  color: 'rgba(255, 0, 0, 0.3)',
+  opacity: 0.3,
+  borderColor: 'rgba(255, 0, 0, 0.8)',
+  borderWidth: 2,
+  showAffectedTokens: true,
+  affectedTokenColor: 'rgba(0, 255, 0, 0.5)',
+};
+
+/**
+ * Converts rgba or rgb color string to hex format
+ */
+const rgbaToHex = (color: string | undefined): string => {
+  if (!color) return '#ff0000';
+
+  // If already hex, return as is
+  if (color.startsWith('#')) return color;
+
+  // Parse rgba/rgb format
+  const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  if (!match) return '#ff0000';
+
+  const r = parseInt(match[1]).toString(16).padStart(2, '0');
+  const g = parseInt(match[2]).toString(16).padStart(2, '0');
+  const b = parseInt(match[3]).toString(16).padStart(2, '0');
+
+  return `#${r}${g}${b}`;
+};
+
+/**
+ * Converts hex color to rgba format with alpha
+ */
+const hexToRgba = (hex: string, alpha: number): string => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
+/**
+ * Extracts alpha from rgba color string
+ */
+const getAlphaFromRgba = (color: string | undefined): number => {
+  if (!color) return 0.3;
+  const match = color.match(/rgba?\([^)]+,\s*([\d.]+)\s*\)/);
+  return match ? parseFloat(match[1]) : 0.3;
+};
+
 export const AttackZoneConfigModal: React.FC<AttackZoneConfigModalProps> = ({
   isOpen,
   onClose,
@@ -20,23 +77,20 @@ export const AttackZoneConfigModal: React.FC<AttackZoneConfigModalProps> = ({
   title = 'Configurar Zona de Ataque',
 }) => {
   const [config, setConfig] = useState<Partial<AttackZoneConfig>>({
-    name: 'Nova Zona',
-    shape: 'circle',
-    radius: 3,
-    length: 5,
-    width: 2,
-    angle: 53,
-    propagation: 'blocked',
-    respectsVision: true,
-    targeting: 'all',
-    color: 'rgba(255, 0, 0, 0.3)',
-    opacity: 0.3,
-    borderColor: 'rgba(255, 0, 0, 0.8)',
-    borderWidth: 2,
-    showAffectedTokens: true,
-    affectedTokenColor: 'rgba(0, 255, 0, 0.5)',
+    ...DEFAULT_CONFIG,
     ...initialConfig,
   });
+
+  // Sync config when initialConfig changes (e.g., editing different zone)
+  useEffect(() => {
+    if (isOpen) {
+      setConfig({
+        ...DEFAULT_CONFIG,
+        ...initialConfig,
+      });
+    }
+  }, [isOpen, initialConfig]);
+
 
   if (!isOpen) return null;
 
@@ -124,8 +178,8 @@ export const AttackZoneConfigModal: React.FC<AttackZoneConfigModalProps> = ({
                   key={value}
                   onClick={() => updateConfig({ shape: value })}
                   className={`p-3 rounded-lg border-2 transition-all ${config.shape === value
-                      ? 'bg-red-500/20 border-red-500 text-white'
-                      : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-600'
+                    ? 'bg-red-500/20 border-red-500 text-white'
+                    : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-600'
                     }`}
                 >
                   <Icon className="w-5 h-5 mx-auto mb-1" />
@@ -213,8 +267,8 @@ export const AttackZoneConfigModal: React.FC<AttackZoneConfigModalProps> = ({
                   key={value}
                   onClick={() => updateConfig({ propagation: value })}
                   className={`w-full p-3 rounded-lg border-2 text-left transition-all ${config.propagation === value
-                      ? 'bg-red-500/20 border-red-500'
-                      : 'bg-zinc-800 border-zinc-700 hover:border-zinc-600'
+                    ? 'bg-red-500/20 border-red-500'
+                    : 'bg-zinc-800 border-zinc-700 hover:border-zinc-600'
                     }`}
                 >
                   <div className="font-medium text-white">{label}</div>
@@ -255,8 +309,8 @@ export const AttackZoneConfigModal: React.FC<AttackZoneConfigModalProps> = ({
                   key={value}
                   onClick={() => updateConfig({ targeting: value })}
                   className={`p-3 rounded-lg border-2 transition-all flex items-center gap-2 ${config.targeting === value
-                      ? 'bg-red-500/20 border-red-500 text-white'
-                      : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-600'
+                    ? 'bg-red-500/20 border-red-500 text-white'
+                    : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-600'
                     }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -275,14 +329,10 @@ export const AttackZoneConfigModal: React.FC<AttackZoneConfigModalProps> = ({
               <div className="flex gap-2">
                 <input
                   type="color"
-                  value={config.color?.match(/#[0-9a-f]{6}/i)?.[0] || '#ff0000'}
+                  value={rgbaToHex(config.color)}
                   onChange={(e) => {
                     const alpha = config.opacity || 0.3;
-                    const hex = e.target.value;
-                    const r = parseInt(hex.slice(1, 3), 16);
-                    const g = parseInt(hex.slice(3, 5), 16);
-                    const b = parseInt(hex.slice(5, 7), 16);
-                    updateConfig({ color: `rgba(${r}, ${g}, ${b}, ${alpha})` });
+                    updateConfig({ color: hexToRgba(e.target.value, alpha) });
                   }}
                   className="w-12 h-10 rounded cursor-pointer"
                 />
@@ -291,16 +341,14 @@ export const AttackZoneConfigModal: React.FC<AttackZoneConfigModalProps> = ({
                   min="0"
                   max="1"
                   step="0.1"
-                  value={config.opacity || 0.3}
+                  value={config.opacity ?? getAlphaFromRgba(config.color)}
                   onChange={(e) => {
                     const alpha = parseFloat(e.target.value);
-                    const match = config.color?.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-                    if (match) {
-                      updateConfig({
-                        color: `rgba(${match[1]}, ${match[2]}, ${match[3]}, ${alpha})`,
-                        opacity: alpha
-                      });
-                    }
+                    const hex = rgbaToHex(config.color);
+                    updateConfig({
+                      color: hexToRgba(hex, alpha),
+                      opacity: alpha
+                    });
                   }}
                   className="flex-1"
                 />
@@ -313,13 +361,43 @@ export const AttackZoneConfigModal: React.FC<AttackZoneConfigModalProps> = ({
               </label>
               <input
                 type="color"
-                value={config.borderColor?.match(/#[0-9a-f]{6}/i)?.[0] || '#ff0000'}
+                value={rgbaToHex(config.borderColor)}
                 onChange={(e) => {
-                  const hex = e.target.value;
-                  const r = parseInt(hex.slice(1, 3), 16);
-                  const g = parseInt(hex.slice(3, 5), 16);
-                  const b = parseInt(hex.slice(5, 7), 16);
-                  updateConfig({ borderColor: `rgba(${r}, ${g}, ${b}, 0.8)` });
+                  updateConfig({ borderColor: hexToRgba(e.target.value, 0.8) });
+                }}
+                className="w-full h-10 rounded cursor-pointer"
+              />
+            </div>
+          </div>
+
+          {/* Highlight de Tokens */}
+          <div className="grid grid-cols-2 gap-4 items-end">
+            <div className="flex items-center justify-between p-3 bg-zinc-800 rounded-lg">
+              <div>
+                <div className="font-medium text-white text-sm">Destacar Tokens</div>
+                <div className="text-xs text-zinc-400">Mostrar contorno nos alvos</div>
+              </div>
+              <button
+                onClick={() => updateConfig({ showAffectedTokens: !config.showAffectedTokens })}
+                className={`relative w-12 h-6 rounded-full transition-colors ${config.showAffectedTokens ? 'bg-green-500' : 'bg-zinc-700'
+                  }`}
+              >
+                <div
+                  className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${config.showAffectedTokens ? 'translate-x-6' : ''
+                    }`}
+                />
+              </button>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">
+                Cor do Highlight
+              </label>
+              <input
+                type="color"
+                value={rgbaToHex(config.affectedTokenColor)}
+                onChange={(e) => {
+                  updateConfig({ affectedTokenColor: hexToRgba(e.target.value, 0.5) });
                 }}
                 className="w-full h-10 rounded cursor-pointer"
               />
