@@ -2,6 +2,7 @@ import React from 'react';
 import { useUiStore } from '../../store/uiStore';
 import * as Toolbar from '@radix-ui/react-toolbar';
 import { ToolPanel } from './ToolPanel';
+import { VTTToolbarWrapper } from './VTTToolbarWrapper';
 
 export const MapOverlay: React.FC = () => {
   const isUiVisible = useUiStore(state => state.isUiVisible);
@@ -9,26 +10,29 @@ export const MapOverlay: React.FC = () => {
   if (!isUiVisible) return null;
 
   return (
-    <div style={{
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      width: '100%',
-      height: '100%',
-      pointerEvents: 'none', // Let clicks pass through to canvas
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'space-between',
-      padding: '16px'
-    }}>
-      {/* Top Bar (e.g. Menu, Settings) */}
-      <div style={{ pointerEvents: 'auto', display: 'flex', gap: '8px' }}>
-        {/* Placeholder for top bar */}
+    <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-4 sm:p-6 select-none">
+
+      {/* Top Bar (Menu, Settings) - Future Proofing */}
+      <div className="pointer-events-auto flex gap-2 z-50">
+        {/* Placeholder: <MenuButton /> */}
       </div>
 
-      {/* Bottom/Side Tools */}
-      <div style={{ pointerEvents: 'auto', display: 'flex', justifyContent: 'center' }}>
-        <ToolPanel />
+      {/* Center - Viewport Interaction Area (Empty for now) */}
+      <div className="flex-1 min-h-0" />
+
+      {/* Bottom/Side Tools - Responsive Container */}
+      {/* 
+          Mobile: Bottom aligned, scrollable horizontally if needed.
+          Desktop: Centered bottom.
+          Large Screens: Scaled up (110% on 2xl, 125% on 4k).
+      */}
+      <div className="pointer-events-auto flex justify-center items-end pb-safe transition-all duration-300
+                      w-full overflow-x-auto md:overflow-visible no-scrollbar py-8
+                      2xl:scale-110 2xl:origin-bottom
+                      3xl:scale-125 3xl:pb-8">
+
+        <VTTToolbarWrapper />
+
       </div>
     </div>
   );
