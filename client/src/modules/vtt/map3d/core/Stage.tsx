@@ -5,10 +5,9 @@ import { MapLayer } from '../layers/map/MapLayer';
 import { GridLayer } from '../layers/grid/GridLayer';
 import { EffectLayer } from '../layers/effects/EffectLayer';
 import { TokenManager } from '../entities/tokens/TokenManager';
-// Entities will be imported here in Phase 4
-
 import { RaycastManager } from '../interaction/raycasting/RaycastManager';
 import { GestureHandler } from '../interaction/gestures/GestureHandler';
+import { WorldUiManager } from '../ui/world/WorldUiManager';
 
 export const Stage: React.FC = () => {
   return (
@@ -29,7 +28,7 @@ export const Stage: React.FC = () => {
       </group>
 
       <group name="UI-World">
-        {/* <InteractionManager /> */}
+        <WorldUiManager />
       </group>
     </>
   );

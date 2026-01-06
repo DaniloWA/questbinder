@@ -5,9 +5,20 @@ import * as THREE from 'three';
 import { vertexShader, fragmentShader } from './GridShader';
 import { useUiStore } from '../../store/uiStore';
 
+import { useSelectionStore } from '../../store/selectionStore';
+
 export const GridLayer: React.FC = () => {
   const { width, height, grid } = useMapStore(state => state.mapData);
   const isGridVisible = useUiStore(state => state.isGridVisible);
+  const clearSelection = useSelectionStore(state => state.clearSelection);
+
+  const handleGridClick = (e: any) => {
+    // Only deselect if the click explicitly hits the grid (ground)
+    // and wasn't stopped by a token.
+    // e.stopPropagation() is useful if we have layers below, but this is base.
+    clearSelection();
+  };
+
 
   const uniforms = useMemo(() => ({
     uSize: { value: grid.size },
@@ -23,6 +34,7 @@ export const GridLayer: React.FC = () => {
       name="GridLayer"
       position={[0, 0.01, 0]} // Slightly above Map on Y-axis (Y-up system)
       rotation={[-Math.PI / 2, 0, 0]} // Lay flat on XZ plane
+      onClick={handleGridClick}
     >
       <planeGeometry args={[width, height]} />
       <shaderMaterial
@@ -36,3 +48,4 @@ export const GridLayer: React.FC = () => {
     </mesh>
   );
 };
+

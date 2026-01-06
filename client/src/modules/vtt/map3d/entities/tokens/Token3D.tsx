@@ -4,6 +4,7 @@ import { Token } from '../../types/token.types';
 import { useTokenState } from './hooks/useTokenState';
 import { useTokenDrag } from './hooks/useTokenDrag';
 import { useTokenSelection } from './hooks/useTokenSelection';
+import { useUiStore } from '../../store/uiStore';
 import { TokenVisuals } from './components/TokenVisuals';
 import { TokenRing } from './components/TokenRing';
 import { TokenLight } from './components/TokenLight';
@@ -26,6 +27,15 @@ export const Token3D: React.FC<Token3DProps> = ({ token }) => {
   // or pass the raw `position` for initialization.
   const bindDrag = useTokenDrag(token.id, position);
   const { isSelected, onClick } = useTokenSelection(token.id);
+  const openContextMenu = useUiStore(state => state.openContextMenu);
+
+  const handleContextMenu = (e: any) => {
+    e.stopPropagation();
+    // R3F events have nativeEvent attached
+    const ne = e.nativeEvent;
+    openContextMenu(token.id, ne.clientX, ne.clientY);
+  };
+
 
   // 3. Animation (Smooth movement)
   const { animatedPos } = useSpring({
@@ -45,6 +55,7 @@ export const Token3D: React.FC<Token3DProps> = ({ token }) => {
         : [-Math.PI / 2, 0, 0]
       }
       onClick={onClick}
+      onContextMenu={handleContextMenu}
       {...bindDrag()}
     >
       <TokenVisuals token={token} />
