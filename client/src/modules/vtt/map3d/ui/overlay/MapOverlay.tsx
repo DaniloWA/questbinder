@@ -26,7 +26,7 @@ export const MapOverlay: React.FC = () => {
           Desktop: Centered bottom.
           Large Screens: Scaled up (110% on 2xl, 125% on 4k).
       */}
-      <div className="pointer-events-auto flex justify-center items-end pb-safe transition-all duration-300
+      <div className="pointer-events-none flex justify-center items-end pb-safe transition-all duration-300
                       w-full overflow-x-auto md:overflow-visible no-scrollbar py-8
                       2xl:scale-110 2xl:origin-bottom
                       3xl:scale-125 3xl:pb-8">

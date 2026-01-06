@@ -135,11 +135,11 @@ export const MobileVTTToolbar: React.FC<MobileVTTToolbarProps> = (props) => {
   const activeCategoryData = visibleCategories.find(c => c.id === activeCategory);
 
   return (
-    <div className="pointer-events-auto w-full flex flex-col items-center z-[1000]">
+    <div className="pointer-events-none w-full flex flex-col items-center z-[1000]">
 
       {/* Expanded Menu (Bottom Sheet Style) with explicit Header */}
       {isMenuOpen && (
-        <div className="w-full bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-800 rounded-t-3xl shadow-2xl pb-safe min-h-[350px] animate-in slide-in-from-bottom-5">
+        <div className="pointer-events-auto w-full bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-800 rounded-t-3xl shadow-2xl pb-safe min-h-[350px] animate-in slide-in-from-bottom-5">
 
           {/* Header Bar */}
           <div className="flex items-center justify-between p-4 border-b border-white/5">
@@ -204,7 +204,7 @@ export const MobileVTTToolbar: React.FC<MobileVTTToolbarProps> = (props) => {
 
       {/* Persistent Bottom Bar */}
       {!isMenuOpen && (
-        <div className="flex items-center gap-4 bg-zinc-950/80 backdrop-blur-xl px-6 py-3 rounded-full border border-zinc-800 shadow-2xl mb-6 ring-1 ring-white/10">
+        <div className="pointer-events-auto flex items-center gap-4 bg-zinc-950/80 backdrop-blur-xl px-6 py-3 rounded-full border border-zinc-800 shadow-2xl mb-6 ring-1 ring-white/10">
           {/* Quick Access: Select */}
           <button
             onClick={() => handleToolSelect('select')}
