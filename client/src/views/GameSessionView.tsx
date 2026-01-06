@@ -139,7 +139,7 @@ const TokenLibrary: React.FC<{
 const GameSessionUI: React.FC = () => {
     const session = useGameSession();
     const { user: currentUser } = useAuth();
-    const { navigateTo } = useNavigation();
+    const { navigateTo, params } = useNavigation();
     const { openModal, closeModal } = useModal();
     const { show } = useNotification();
 
@@ -525,6 +525,18 @@ const GameSessionUI: React.FC = () => {
                                 </span>
                             </div>
                         </div>
+                    </div>
+
+                    {/* TEMP: 3D VIEW TOGGLE */}
+                    <div className="pointer-events-auto ml-2 bg-zinc-950/80 rounded-2xl border border-blue-500/30">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => navigateTo('game-session-3d', params)}
+                            className="text-blue-400 hover:text-blue-300 gap-2 h-10 px-3"
+                        >
+                            <span className="font-bold text-xs">3D ALPHA</span>
+                        </Button>
                     </div>
 
                     {session.combat?.isActive && (

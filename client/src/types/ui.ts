@@ -1,7 +1,7 @@
 import React from 'react';
 
 // --- NAVIGATION ---
-export type ViewState = 'login' | 'register' | 'dashboard' | 'create-character' | 'create-campaign' | 'game-session' | 'campaign-dashboard';
+export type ViewState = 'login' | 'register' | 'dashboard' | 'create-character' | 'create-campaign' | 'game-session' | 'campaign-dashboard' | 'game-session-3d';
 
 // --- THEME ---
 export type Theme = 'light' | 'dark';
