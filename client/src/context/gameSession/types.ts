@@ -18,6 +18,12 @@ export interface DrawingSettings {
   opacity: number;
 }
 
+export interface WandSettings {
+  tolerance: number;   // 0-255
+  resolution: number;  // Max dimension for processing
+  simplification: number; // RDP Epsilon
+}
+
 export interface GameSessionState {
   campaign: Campaign | null;
   scenes: MapScene[];
@@ -50,6 +56,9 @@ export interface GameSessionState {
 
   // Ruler Settings
   rulerSettings: RulerSettings;
+
+  // Wand Settings
+  wandSettings: WandSettings;
 
   // Ephemeral
   pings: Ping[];
@@ -126,6 +135,8 @@ export interface GameSessionContextType extends GameSessionState {
   addObstacles: (obstacles: any[]) => void;
   updateObstacle: (id: string, data: Partial<Obstacle>) => void;
   removeObstacle: (id: string) => void;
+  undoLastObstacle: () => void;
+  clearAllObstacles: () => void;
   bulkUpdateObstacles: (data: Partial<Obstacle>) => void;
 
   updateFog: (path: string) => void;
@@ -202,6 +213,7 @@ export interface GameSessionContextType extends GameSessionState {
   setDrawingSettings: (settings: DrawingSettings) => void;
 
   setRulerSettings: (settings: RulerSettings) => void;
+  setWandSettings: (settings: WandSettings) => void;
 
   checkPermission: (perm: BooleanPermissionKey) => boolean;
   updatePermissions: (perms: Partial<SessionPermissions>) => void;

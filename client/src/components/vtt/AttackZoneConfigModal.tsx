@@ -1,6 +1,6 @@
 // components/vtt/AttackZoneConfigModal.tsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Circle, Triangle, Minus, Square, Maximize2, Eye, Target } from 'lucide-react';
 import { AttackZoneConfig, AttackZoneShape, AttackZonePropagation, AttackZoneTargeting } from '../../types/attackZone';
 
@@ -81,15 +81,20 @@ export const AttackZoneConfigModal: React.FC<AttackZoneConfigModalProps> = ({
     ...initialConfig,
   });
 
-  // Sync config when initialConfig changes (e.g., editing different zone)
+  // Track if modal was previously open to detect open/close transitions
+  const wasOpenRef = useRef(false);
+
+  // Sync config when modal opens (not on every render to avoid infinite loop)
   useEffect(() => {
-    if (isOpen) {
+    // Only reset config when transitioning from closed to open
+    if (isOpen && !wasOpenRef.current) {
       setConfig({
         ...DEFAULT_CONFIG,
         ...initialConfig,
       });
     }
-  }, [isOpen, initialConfig]);
+    wasOpenRef.current = isOpen;
+  }, [isOpen]); // Removed initialConfig from deps to avoid infinite loop
 
 
   if (!isOpen) return null;

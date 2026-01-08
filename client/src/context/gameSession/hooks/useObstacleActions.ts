@@ -135,10 +135,45 @@ export const useObstacleActions = (
     });
   };
 
+  const clearAllObstacles = () => {
+    if (!state.activeSceneId) return;
+    ActionHandlers.handleOptimisticAction({
+      state,
+      setState,
+      campaignId,
+      isGMOnly: true,
+
+      optimisticUpdate: (prev) => {
+        const updatedScenes = StateHelpers.updateSceneInList(prev.scenes, prev.activeSceneId, { obstacles: [] });
+        return { ...prev, scenes: updatedScenes };
+      },
+
+      socketEmit: () => {
+        socketService.emit('scene:update', { id: state.activeSceneId, changes: { obstacles: [] } });
+      },
+
+      apiCall: async () => {
+        const updatedScenes = StateHelpers.updateSceneInList(state.scenes, state.activeSceneId, { obstacles: [] });
+        await campaignService.update(campaignId, { scenes: updatedScenes });
+      }
+    });
+  };
+
+  const undoLastObstacle = () => {
+    if (!state.activeSceneId) return;
+    const scene = state.scenes.find(s => s.id === state.activeSceneId);
+    if (!scene || !scene.obstacles || scene.obstacles.length === 0) return;
+
+    const lastObstacle = scene.obstacles[scene.obstacles.length - 1];
+    removeObstacle(lastObstacle.id);
+  };
+
   return {
     addObstacles,
     updateObstacle,
     removeObstacle,
-    bulkUpdateObstacles
+    bulkUpdateObstacles,
+    undoLastObstacle,
+    clearAllObstacles
   };
 };

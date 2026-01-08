@@ -18,7 +18,7 @@ import { MapSettingsModal } from '../components/vtt/MapSettingsModal';
 import { MapContextMenu } from '../components/vtt/MapContextMenu';
 import { useAuth } from '../context/AuthContext';
 import { SceneNavigation } from '../components/vtt/SceneNavigation';
-import { PartyList } from '../components/vtt/PartyList';
+import { Sidebar } from '../components/vtt/Sidebar';
 import { CharacterSheetViewer } from '../components/vtt/CharacterSheetViewer';
 import { Modal } from '../components/ui/Modal';
 import { SmartDiceRoller } from '../components/vtt/SmartDiceRoller';
@@ -453,6 +453,7 @@ const GameSessionUI: React.FC = () => {
                     permissions={session.permissions}
                     campaign={session.campaign}
                     cursorSettings={session.cursorSettings}
+                    wandSettings={session.wandSettings}
                     drawingLightZone={session.drawingLightZone}
                     drawingAudioZone={session.drawingAudioZone}
 
@@ -527,17 +528,13 @@ const GameSessionUI: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* TEMP: 3D VIEW TOGGLE */}
-                    <div className="pointer-events-auto ml-2 bg-zinc-950/80 rounded-2xl border border-blue-500/30">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => navigateTo('game-session-3d', params)}
-                            className="text-blue-400 hover:text-blue-300 gap-2 h-10 px-3"
-                        >
-                            <span className="font-bold text-xs">3D ALPHA</span>
-                        </Button>
-                    </div>
+                    {/* 3D VIEW - WIP/DISABLED */}
+                    {/* <div className="pointer-events-auto ml-2 bg-zinc-950/80 rounded-2xl border border-zinc-700/50 opacity-60 cursor-not-allowed">
+                        <div className="relative flex items-center gap-2 h-10 px-3">
+                            <span className="font-bold text-xs text-zinc-500">3D ALPHA</span>
+                            <span className="absolute -top-1 -right-1 text-[8px] font-bold bg-amber-500/80 text-black px-1.5 py-0.5 rounded-full">WIP</span>
+                        </div>
+                    </div> */}
 
                     {session.combat?.isActive && (
                         <div className="pointer-events-auto absolute left-1/2 -translate-x-1/2 top-6 bg-red-950/90 backdrop-blur-md border border-red-500/30 text-red-100 px-6 py-2 rounded-full shadow-2xl flex items-center gap-3 animate-in slide-in-from-top-4">
@@ -693,7 +690,7 @@ const GameSessionUI: React.FC = () => {
             </div>
 
             <div className={`absolute top-0 right-0 bottom-0 z-20 w-80 md:w-96 transform transition-transform duration-300 ease-out ${session.ui.isRightSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-                <PartyList />
+                <Sidebar />
             </div>
 
             <PermissionsModal isOpen={isPermissionsOpen} onClose={() => setIsPermissionsOpen(false)} permissions={session.permissions} onUpdate={session.updatePermissions} campaign={session.campaign} players={session.players} />

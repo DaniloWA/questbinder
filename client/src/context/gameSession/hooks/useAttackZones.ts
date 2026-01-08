@@ -113,6 +113,7 @@ export const useAttackZones = ({
       targeting: 'all',
       color: 'rgba(255, 0, 0, 0.3)',
       opacity: 0.3,
+      showAffectedTokens: true,
       ...template.defaultConfig,
       origin,
       ...overrides,
@@ -234,6 +235,7 @@ export const useAttackZones = ({
       targeting: 'all',
       color: 'rgba(255, 0, 0, 0.3)',
       opacity: 0.3,
+      showAffectedTokens: true,
       ...config,
     } as AttackZoneConfig;
   }, []);

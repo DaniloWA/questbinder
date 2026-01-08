@@ -37,6 +37,8 @@ export interface ModalOptions {
   preventOutsideClick?: boolean;
   /** Se true, esconde o botão X de fechar */
   hideCloseButton?: boolean;
+  /** Se true, o fundo do modal será transparente */
+  transparent?: boolean;
 }
 
 export interface ModalContextType {

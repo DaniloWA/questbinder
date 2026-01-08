@@ -31,7 +31,7 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
     } = useGameState(campaignId);
 
     const { checkPermission, updatePermissions, permissionHelper } = usePermissions(state, setState, user);
-    const { setViewport, addPing, setRulerSettings, pullView, toggleFollowMode } = useMapInteraction(state, setState, user, permissionHelper);
+    const { setViewport, addPing, setRulerSettings, setWandSettings, pullView, toggleFollowMode } = useMapInteraction(state, setState, user, permissionHelper);
 
     const setPullNotification = (show: boolean) => setState(prev => ({ ...prev, pullNotification: show }));
 
@@ -96,7 +96,7 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
     } = useDrawingActions(state, setState, campaignId, user, permissionHelper);
 
     const {
-        addObstacles, updateObstacle, removeObstacle, bulkUpdateObstacles
+        addObstacles, updateObstacle, removeObstacle, bulkUpdateObstacles, undoLastObstacle, clearAllObstacles
     } = useObstacleActions(state, setState, campaignId);
 
     const {
@@ -134,6 +134,8 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
         addObstacles,
         updateObstacle,
         removeObstacle,
+        undoLastObstacle,
+        clearAllObstacles,
         bulkUpdateObstacles,
         updateFog,
         addPing,
@@ -189,6 +191,7 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
         clearAllDrawings,
         setDrawingSettings,
         setRulerSettings,
+        setWandSettings,
         checkPermission,
         updatePermissions,
         permissionHelper, // Global permission helper
@@ -201,6 +204,8 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
         updateAttackZone,
         removeAttackZone,
         clearAttackZones,
+        isCompendiumOpen,
+        isFollowingGM: state.followMode.active && !state.isGM,
         ...uiActions
     };
 

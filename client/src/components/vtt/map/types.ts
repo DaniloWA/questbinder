@@ -28,10 +28,11 @@ export interface MapCanvasProps {
     color: string;
     name: string;
     shape?: string;
-    clickAnimation?: 'ripple' | 'burst' | 'sparkle';
+    clickAnimation?: 'ripple' | 'burst' | 'sparkle' | 'pulse' | 'vortex' | 'shard' | 'ring' | 'echo' | 'orb';
     clickColorLeft?: string;
     clickColorRight?: string;
   };
+  wandSettings: any;
 
   setViewport: (newViewport: Partial<Viewport>) => void;
   moveToken: (tokenId: string, newX: number, newY: number) => void;

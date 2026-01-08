@@ -132,10 +132,12 @@ export const getContourFromPoint = (
   image: HTMLImageElement,
   startX: number,
   startY: number,
-  tolerance: number = 30
+  tolerance: number = 30,
+  maxDimension: number = 512,
+  simplification: number = 2.0
 ): Point[] => {
   // 1. Downscale for performance
-  const MAX_DIMENSION = 512; // Cap max dimension
+  const MAX_DIMENSION = maxDimension; // Cap max dimension
   let scale = 1;
   let w = image.width;
   let h = image.height;
@@ -273,5 +275,5 @@ export const getContourFromPoint = (
   }));
 
   // Simplify
-  return simplifyPolygon(worldContour, 2.0 / scale); // Adjust epsilon for scale
+  return simplifyPolygon(worldContour, simplification / scale); // Adjust epsilon for scale
 };

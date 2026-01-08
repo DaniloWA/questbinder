@@ -51,7 +51,7 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
     onUpdateAttackZone, mouseWorldPos, setMouseWorldPos, dragState, isPanning, setIsPanning, fogRectStart, setFogRectStart,
     currentFogRect, setCurrentFogRect, hoveredTokenId, setHoveredTokenId, setHoveredObstacleId, setCalculatedPath,
     draggedAttackZone, setDraggedAttackZone, liveDrawingPointsRef, isDrawingRef, lastCursorEmit, lastMousePos,
-    hoverOpenTimerRef, hoverCloseTimerRef, imageCache, currentUser,
+    hoverOpenTimerRef, hoverCloseTimerRef, imageCache, currentUser, wandSettings,
     // Attack Zone Placement Mode
     isPlacingAttackZone, onUpdatePreviewOrigin, onConfirmAttackZonePlacement, onCancelAttackZonePlacement
   } = props;
@@ -417,7 +417,14 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
           const ix = Math.floor(worldPos.x * scaleX);
           const iy = Math.floor(worldPos.y * scaleY);
           try {
-            const contour = getContourFromPoint(img, ix, iy, 40);
+            const contour = getContourFromPoint(
+              img,
+              ix,
+              iy,
+              wandSettings.tolerance,
+              wandSettings.resolution,
+              wandSettings.simplification
+            );
             if (contour.length > 2) {
               const worldContour = contour.map(p => ({ x: p.x / scaleX, y: p.y / scaleY }));
               addObstacles([{ type: 'wall', points: worldContour, blocksVision: true, blocksMovement: true, open: false }]);

@@ -101,10 +101,15 @@ export const useMapInteraction = (
     });
   }, [state.viewport, state.followMode, state.isGM, state.isConnected]);
 
+  const setWandSettings = (settings: any) => {
+    setState(prev => ({ ...prev, wandSettings: settings }));
+  };
+
   return {
     setViewport,
     addPing,
     setRulerSettings,
+    setWandSettings,
     pullView,
     toggleFollowMode
   };

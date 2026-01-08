@@ -442,7 +442,7 @@ export const TokenEditModal: React.FC<TokenEditModalProps> = ({ token, initialPo
             </div>
 
             <div className="flex-1 flex flex-col md:flex-row gap-0 overflow-hidden bg-zinc-950">
-                <div className="w-full md:w-5/12 bg-zinc-950 p-4 border-b md:border-b-0 md:border-r border-zinc-800 flex flex-col gap-4">
+                <div className="w-full md:w-5/12 bg-zinc-950 p-4 border-b md:border-b-0 md:border-r border-zinc-800 flex flex-col gap-4 overflow-y-auto md:overflow-visible">
                     <div className="w-full h-40 md:h-56 bg-zinc-900/50 rounded-xl border-2 border-dashed border-zinc-800 relative group overflow-hidden flex items-center justify-center shrink-0">
                         <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(#444 1px, transparent 1px), linear-gradient(90deg, #444 1px, transparent 1px)', backgroundSize: '50px 50px', backgroundPosition: 'center' }}></div>
                         {renderPreview()}
