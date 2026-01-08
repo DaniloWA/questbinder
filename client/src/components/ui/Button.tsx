@@ -3,7 +3,7 @@ import { Loader2 } from 'lucide-react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive' | 'link';
-  size?: 'sm' | 'md' | 'lg' | 'icon';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'icon';
   isLoading?: boolean;
   fullWidth?: boolean;
   tooltip?: string; // Added specific tooltip support if handled by parent wrapper, though usually separate
@@ -33,6 +33,7 @@ export const Button: React.FC<ButtonProps> = ({
   };
 
   const sizes = {
+    xs: 'h-7 px-2 text-[10px]',
     sm: 'h-9 px-3 text-xs',
     md: 'h-10 px-4 py-2',
     lg: 'h-12 px-8 text-lg',

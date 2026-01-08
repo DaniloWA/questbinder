@@ -4,7 +4,7 @@ import { Button } from '../../ui/Button';
 import { SheetInput, SheetLabel, SheetSelect } from '../../ui/SheetPrimitives';
 import { Counter } from '../../ui/Counter';
 import { ColorPicker } from '../../ui/ColorPicker';
-import { Plus, Trash2, Edit2, Shield, Zap, Activity, Circle, Square, Users, User, Skull, Target, Check, Ban, ChevronDown } from 'lucide-react';
+import { Plus, Trash2, Edit2, Shield, Zap, Activity, Circle, Square, Users, User, Skull, Target, Check, Ban, ChevronDown, ChevronLeft, X } from 'lucide-react';
 import { STATUS_RULES } from '../../../data/rules';
 import { v4 as uuidv4 } from 'uuid';
 import { calculateDistance } from '../../../utils/geometry';
@@ -94,7 +94,7 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
     if (!editingAura || !parentToken) return [];
 
     return sceneTokens.filter(t => {
-      if (t.id === parentToken.id) return false; // Don't list self in "Current Targets" list
+      if (t.id === parentToken.id) return false;
 
       const dist = calculateDistance(
         { x: parentToken.x, y: parentToken.y },
@@ -110,7 +110,6 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
     if (aura.excludedTokenIds?.includes(token.id)) return 'excluded';
     if (aura.includedTokenIds?.includes(token.id)) return 'included';
 
-    // Default logic
     const sourceDisp = parentToken.disposition || (parentToken.type === 'pc' ? 'friendly' : 'hostile');
     const targetDisp = token.disposition || (token.type === 'pc' ? 'friendly' : 'hostile');
 
@@ -128,9 +127,7 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
       ? editingAura.includedTokenIds?.filter(id => id !== tokenId)
       : [...(editingAura.includedTokenIds || []), tokenId];
 
-    // Ensure not in excluded
     const newExcluded = editingAura.excludedTokenIds?.filter(id => id !== tokenId);
-
     handleUpdateAura(editingAura.id, { includedTokenIds: newIncluded, excludedTokenIds: newExcluded });
   };
 
@@ -141,9 +138,7 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
       ? editingAura.excludedTokenIds?.filter(id => id !== tokenId)
       : [...(editingAura.excludedTokenIds || []), tokenId];
 
-    // Ensure not in included
     const newIncluded = editingAura.includedTokenIds?.filter(id => id !== tokenId);
-
     handleUpdateAura(editingAura.id, { excludedTokenIds: newExcluded, includedTokenIds: newIncluded });
   };
 
@@ -197,9 +192,13 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
   };
 
   return (
-    <div className="flex h-full gap-4">
-      {/* List */}
-      <div className="w-1/3 border-r border-zinc-800 pr-4 flex flex-col gap-2">
+    <div className="flex flex-col md:flex-row h-full gap-0 md:gap-4 relative">
+      {/* List Panel - Hidden on mobile when editing */}
+      <div className={`
+        w-full md:w-1/3 border-b md:border-b-0 md:border-r border-zinc-800 
+        p-2 md:pr-4 md:p-0 flex flex-col gap-2
+        ${editingId ? 'hidden md:flex' : 'flex'}
+      `}>
         <div className="relative">
           <Button size="sm" type="button" onClick={() => setShowTemplates(!showTemplates)} className="w-full mb-2 flex justify-between items-center">
             <span className="flex items-center"><Plus className="w-4 h-4 mr-2" /> Nova Aura</span>
@@ -249,37 +248,62 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
             <div
               key={aura.id}
               onClick={() => setEditingId(aura.id)}
-              className={`p-3 rounded-lg border cursor-pointer transition-all ${editingId === aura.id ? 'bg-primary/10 border-primary' : 'bg-zinc-900 border-zinc-800 hover:bg-zinc-800'}`}
+              className={`p-2 sm:p-3 rounded-lg border cursor-pointer transition-all ${editingId === aura.id ? 'bg-primary/10 border-primary' : 'bg-zinc-900 border-zinc-800 hover:bg-zinc-800'}`}
             >
-              <div className="flex justify-between items-start mb-1">
-                <span className="font-bold text-sm text-white truncate">{aura.name}</span>
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: aura.color }} />
+              <div className="flex justify-between items-center gap-2">
+                <span className="font-bold text-sm text-white truncate flex-1">{aura.name}</span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-[10px] text-zinc-400">{aura.radius}m</span>
+                  <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: aura.color }} />
+                </div>
               </div>
-              <div className="flex flex-wrap gap-1 mb-1">
+              <div className="flex items-center gap-2 mt-1 text-[10px] text-zinc-500">
                 {aura.category && (
-                  <span className={`text-[9px] px-1 rounded border ${getCategoryColor(aura.category)} uppercase`}>{aura.category}</span>
+                  <span className={`px-1 rounded border ${getCategoryColor(aura.category)} uppercase`}>{aura.category}</span>
                 )}
-              </div>
-              <div className="flex gap-2 text-[10px] text-zinc-400">
-                <span className="flex items-center gap-1"><Activity className="w-3 h-3" /> {aura.radius}m</span>
-                <span className="flex items-center gap-1">{aura.targets === 'allies' ? <Users className="w-3 h-3" /> : aura.targets === 'enemies' ? <Skull className="w-3 h-3" /> : <User className="w-3 h-3" />} {aura.targets}</span>
+                <span className="flex items-center gap-0.5">
+                  {aura.targets === 'allies' ? <Users className="w-3 h-3" /> : aura.targets === 'enemies' ? <Skull className="w-3 h-3" /> : <User className="w-3 h-3" />}
+                  {aura.targets}
+                </span>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Editor */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
+      {/* Editor Panel - Full screen overlay on mobile */}
+      <div className={`
+        ${editingId ? 'flex' : 'hidden md:flex'}
+        fixed inset-0 md:relative md:inset-auto
+        bg-zinc-900 md:bg-transparent
+        flex-1 flex-col overflow-hidden z-50 md:z-auto
+      `}>
         {editingAura ? (
-          <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-            <div className="flex justify-between items-center border-b border-zinc-800 pb-2">
+          <div className="flex flex-col h-full">
+            {/* Mobile Header with Back Button */}
+            <div className="md:hidden flex items-center justify-between p-3 border-b border-zinc-800 bg-zinc-950 shrink-0">
+              <button
+                type="button"
+                onClick={() => setEditingId(null)}
+                className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white"
+              >
+                <ChevronLeft className="w-5 h-5" /> Voltar
+              </button>
+              <Button size="sm" variant="destructive" type="button" onClick={() => handleDeleteAura(editingAura.id)}>
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+
+            {/* Desktop Header */}
+            <div className="hidden md:flex justify-between items-center border-b border-zinc-800 pb-2 mb-4">
               <h3 className="font-bold text-white flex items-center gap-2"><Edit2 className="w-4 h-4" /> Editando Aura</h3>
               <Button size="icon" variant="destructive" type="button" onClick={() => handleDeleteAura(editingAura.id)}><Trash2 className="w-4 h-4" /></Button>
             </div>
 
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-3 md:p-0 md:pr-2 space-y-4">
+              {/* Name & Category */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <SheetInput label="Nome da Aura" value={editingAura.name} onChange={e => handleUpdateAura(editingAura.id, { name: e.target.value })} />
                 <div className="space-y-1">
                   <SheetLabel>Categoria</SheetLabel>
@@ -297,6 +321,7 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
                 </div>
               </div>
 
+              {/* Description */}
               <div className="space-y-1">
                 <SheetLabel>Descrição / Efeito Narrativo</SheetLabel>
                 <textarea
@@ -307,12 +332,14 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              {/* Trigger & Requirements */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <SheetInput label="Gatilho" value={editingAura.trigger || ''} onChange={e => handleUpdateAura(editingAura.id, { trigger: e.target.value })} placeholder="Ex: Início do turno" />
                 <SheetInput label="Requisitos" value={editingAura.requirements?.join(', ') || ''} onChange={e => handleUpdateAura(editingAura.id, { requirements: e.target.value.split(',').map(s => s.trim()) })} placeholder="Ex: Consciente" />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              {/* Radius & Shape */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <SheetLabel>Raio (metros)</SheetLabel>
                   <Counter value={editingAura.radius} onChange={v => handleUpdateAura(editingAura.id, { radius: v })} min={0.5} max={100} step={0.5} className="bg-zinc-950" />
@@ -320,13 +347,14 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
                 <div className="space-y-1">
                   <SheetLabel>Formato</SheetLabel>
                   <div className="flex bg-zinc-950 rounded-lg p-1 border border-zinc-800">
-                    <button type="button" onClick={() => handleUpdateAura(editingAura.id, { shape: 'circle' })} className={`flex-1 flex items-center justify-center py-1 rounded ${editingAura.shape === 'circle' ? 'bg-zinc-800 text-white' : 'text-zinc-500'}`}><Circle className="w-4 h-4" /></button>
-                    <button type="button" onClick={() => handleUpdateAura(editingAura.id, { shape: 'square' })} className={`flex-1 flex items-center justify-center py-1 rounded ${editingAura.shape === 'square' ? 'bg-zinc-800 text-white' : 'text-zinc-500'}`}><Square className="w-4 h-4" /></button>
+                    <button type="button" onClick={() => handleUpdateAura(editingAura.id, { shape: 'circle' })} className={`flex-1 flex items-center justify-center py-2 rounded ${editingAura.shape === 'circle' ? 'bg-zinc-800 text-white' : 'text-zinc-500'}`}><Circle className="w-4 h-4" /></button>
+                    <button type="button" onClick={() => handleUpdateAura(editingAura.id, { shape: 'square' })} className={`flex-1 flex items-center justify-center py-2 rounded ${editingAura.shape === 'square' ? 'bg-zinc-800 text-white' : 'text-zinc-500'}`}><Square className="w-4 h-4" /></button>
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              {/* Targets & Color */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <SheetLabel>Alvos</SheetLabel>
                   <SheetSelect
@@ -347,7 +375,8 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
                 </div>
               </div>
 
-              <div className="flex gap-4 p-3 bg-zinc-950 rounded-lg border border-zinc-800">
+              {/* Active & Visible Toggles */}
+              <div className="flex flex-wrap gap-3 p-3 bg-zinc-950 rounded-lg border border-zinc-800">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
@@ -370,14 +399,18 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
 
               {/* Targeting Preview */}
               <div className="space-y-2 border-t border-zinc-800 pt-4">
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                   <SheetLabel icon={<Target className="w-3 h-3" />}>Alvos no Alcance ({targetsInRange.length})</SheetLabel>
                   <div className="flex gap-2">
-                    <Button size="xs" variant="ghost" type="button" onClick={() => bulkAction('include-allies')} title="Forçar inclusão de todos aliados">Aliados +</Button>
-                    <Button size="xs" variant="ghost" type="button" onClick={() => bulkAction('exclude-enemies')} title="Forçar exclusão de todos inimigos">Inimigos -</Button>
+                    <Button size="xs" variant="ghost" type="button" onClick={() => bulkAction('include-allies')} title="Forçar inclusão de todos aliados">
+                      <Check className="w-3 h-3 mr-1" /> Aliados
+                    </Button>
+                    <Button size="xs" variant="ghost" type="button" onClick={() => bulkAction('exclude-enemies')} title="Forçar exclusão de todos inimigos">
+                      <Ban className="w-3 h-3 mr-1" /> Inimigos
+                    </Button>
                   </div>
                 </div>
-                <div className="bg-zinc-950/50 rounded-lg border border-zinc-800 max-h-40 overflow-y-auto custom-scrollbar p-1">
+                <div className="bg-zinc-950/50 rounded-lg border border-zinc-800 max-h-32 overflow-y-auto custom-scrollbar p-1">
                   {targetsInRange.length === 0 && <p className="text-xs text-zinc-600 text-center py-2">Nenhum token no alcance.</p>}
                   {targetsInRange.map(t => {
                     const status = getTargetStatus(t, editingAura);
@@ -387,14 +420,14 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
 
                     return (
                       <div key={t.id} className={`flex items-center justify-between p-2 rounded mb-1 ${isHit ? 'bg-primary/5' : 'bg-zinc-900/50'}`}>
-                        <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${isHit ? 'bg-green-500' : 'bg-zinc-600'}`} />
-                          <span className={`text-xs font-bold ${isHit ? 'text-white' : 'text-zinc-500'}`}>{t.name}</span>
-                          <span className="text-[10px] text-zinc-600 uppercase">({t.disposition || (t.type === 'pc' ? 'Aliado' : 'Inimigo')})</span>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className={`w-2 h-2 rounded-full shrink-0 ${isHit ? 'bg-green-500' : 'bg-zinc-600'}`} />
+                          <span className={`text-xs font-bold truncate ${isHit ? 'text-white' : 'text-zinc-500'}`}>{t.name}</span>
+                          <span className="text-[9px] text-zinc-600 uppercase shrink-0 hidden sm:inline">({t.disposition || (t.type === 'pc' ? 'Aliado' : 'Inimigo')})</span>
                         </div>
-                        <div className="flex gap-1">
-                          <button type="button" onClick={() => toggleInclude(t.id)} className={`p-1 rounded ${isIncluded ? 'bg-green-500 text-white' : 'text-zinc-600 hover:bg-zinc-800'}`} title="Forçar Incluir"><Check className="w-3 h-3" /></button>
-                          <button type="button" onClick={() => toggleExclude(t.id)} className={`p-1 rounded ${isExcluded ? 'bg-red-500 text-white' : 'text-zinc-600 hover:bg-zinc-800'}`} title="Forçar Excluir"><Ban className="w-3 h-3" /></button>
+                        <div className="flex gap-1 shrink-0">
+                          <button type="button" onClick={() => toggleInclude(t.id)} className={`p-1.5 rounded ${isIncluded ? 'bg-green-500 text-white' : 'text-zinc-600 hover:bg-zinc-800'}`} title="Forçar Incluir"><Check className="w-3 h-3" /></button>
+                          <button type="button" onClick={() => toggleExclude(t.id)} className={`p-1.5 rounded ${isExcluded ? 'bg-red-500 text-white' : 'text-zinc-600 hover:bg-zinc-800'}`} title="Forçar Excluir"><Ban className="w-3 h-3" /></button>
                         </div>
                       </div>
                     );
@@ -402,22 +435,23 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
                 </div>
               </div>
 
-              <div className="border-t border-zinc-800 pt-4 space-y-4">
+              {/* Effects Section */}
+              <div className="border-t border-zinc-800 pt-4 space-y-3">
                 <div className="flex justify-between items-center">
                   <SheetLabel icon={<Zap className="w-3 h-3" />}>Efeitos Aplicados</SheetLabel>
-                  <Button size="xs" variant="secondary" type="button" onClick={() => handleAddEffect(editingAura.id)}><Plus className="w-3 h-3 mr-1" /> Add Efeito</Button>
+                  <Button size="xs" variant="secondary" type="button" onClick={() => handleAddEffect(editingAura.id)}><Plus className="w-3 h-3 mr-1" /> Efeito</Button>
                 </div>
 
-                {editingAura.effects.map((effect, idx) => (
+                {editingAura.effects.map((effect) => (
                   <div key={effect.id} className="bg-zinc-950/50 border border-zinc-800 rounded-lg p-3 space-y-3">
                     <div className="flex justify-between items-center gap-2">
                       <input
-                        className="bg-transparent border-none font-bold text-sm text-white focus:ring-0 p-0 w-full"
+                        className="bg-transparent border-none font-bold text-sm text-white focus:ring-0 p-0 w-full outline-none"
                         value={effect.name}
                         onChange={e => handleUpdateEffect(editingAura.id, effect.id, { name: e.target.value })}
                         placeholder="Nome do Efeito"
                       />
-                      <button type="button" onClick={() => handleDeleteEffect(editingAura.id, effect.id)} className="text-zinc-600 hover:text-red-500"><Trash2 className="w-3 h-3" /></button>
+                      <button type="button" onClick={() => handleDeleteEffect(editingAura.id, effect.id)} className="text-zinc-600 hover:text-red-500 shrink-0"><Trash2 className="w-4 h-4" /></button>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">
@@ -425,7 +459,7 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
                         <label className="text-[10px] font-bold text-zinc-500 uppercase">Mod. AC</label>
                         <input
                           type="number"
-                          className="w-full bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-xs text-white"
+                          className="w-full bg-zinc-900 border border-zinc-700 rounded px-2 py-1.5 text-xs text-white"
                           value={effect.modifiers?.ac || 0}
                           onChange={e => handleUpdateEffect(editingAura.id, effect.id, { modifiers: { ...effect.modifiers, ac: Number(e.target.value) } })}
                         />
@@ -434,7 +468,7 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
                         <label className="text-[10px] font-bold text-zinc-500 uppercase">Mod. Speed</label>
                         <input
                           type="number"
-                          className="w-full bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-xs text-white"
+                          className="w-full bg-zinc-900 border border-zinc-700 rounded px-2 py-1.5 text-xs text-white"
                           value={effect.modifiers?.speed || 0}
                           onChange={e => handleUpdateEffect(editingAura.id, effect.id, { modifiers: { ...effect.modifiers, speed: Number(e.target.value) } })}
                         />
@@ -443,7 +477,7 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
 
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold text-zinc-500 uppercase">Condições</label>
-                      <div className="flex flex-wrap gap-1">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5 max-h-28 overflow-y-auto custom-scrollbar p-1">
                         {Object.keys(STATUS_RULES).map(cond => {
                           const isActive = effect.conditions?.includes(cond as CombatCondition);
                           return (
@@ -455,7 +489,7 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
                                 const newConds = isActive ? current.filter(c => c !== cond) : [...current, cond as CombatCondition];
                                 handleUpdateEffect(editingAura.id, effect.id, { conditions: newConds });
                               }}
-                              className={`px-2 py-0.5 text-[10px] rounded border ${isActive ? 'bg-primary/20 border-primary text-primary' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}`}
+                              className={`px-2 py-1.5 text-[10px] rounded border text-center truncate ${isActive ? 'bg-primary/20 border-primary text-primary' : 'bg-zinc-900 border-zinc-800 text-zinc-500 hover:bg-zinc-800'}`}
                             >
                               {STATUS_RULES[cond].name}
                             </button>
@@ -470,9 +504,9 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
             </div>
           </div>
         ) : (
-          <div className="h-full flex flex-col items-center justify-center text-zinc-600">
+          <div className="h-full flex flex-col items-center justify-center text-zinc-600 p-8">
             <Shield className="w-12 h-12 mb-2 opacity-20" />
-            <p className="text-sm">Selecione ou crie uma aura para editar.</p>
+            <p className="text-sm text-center">Selecione ou crie uma aura para editar.</p>
           </div>
         )}
       </div>
