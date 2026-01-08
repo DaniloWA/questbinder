@@ -348,7 +348,7 @@ export const CursorEditor: React.FC<CursorEditorProps> = ({
       </div>
 
       {/* Tab Content - with max height and scroll */}
-      <div className="flex-1 overflow-y-auto space-y-3 max-h-[280px] pr-1">
+      <div className="flex-1 overflow-y-auto space-y-3 max-h-[60vh] sm:max-h-[280px] pr-1">
         {/* General Tab */}
         {activeTab === 'general' && (
           <>
@@ -359,7 +359,7 @@ export const CursorEditor: React.FC<CursorEditorProps> = ({
                 {!isGMMode && overrides.shape && <><Crown className="w-3 h-3 text-amber-500" /><span className="text-amber-500">Definido pelo GM</span></>}
                 {!isGMMode && !canEdit.shape && !overrides.shape && <><Lock className="w-3 h-3 text-red-400" /><span className="text-red-400">Bloqueado</span></>}
               </label>
-              <div className="grid grid-cols-9 gap-0.5 justify-items-center">
+              <div className="grid grid-cols-6 sm:grid-cols-9 gap-0.5 justify-items-center">
                 {CURSOR_SHAPES.map(s => (
                   <CursorShapeButton
                     key={s.id}
@@ -397,7 +397,7 @@ export const CursorEditor: React.FC<CursorEditorProps> = ({
                 {!isGMMode && overrides.color && <><Crown className="w-3 h-3 text-amber-500" /><span className="text-amber-500">Definido pelo GM</span></>}
                 {!isGMMode && !canEdit.color && !overrides.color && <><Lock className="w-3 h-3 text-red-400" /><span className="text-red-400">Bloqueado</span></>}
               </label>
-              <div className="grid grid-cols-6 gap-1">
+              <div className="grid grid-cols-4 sm:grid-cols-6 gap-1">
                 {PRESET_COLORS.map(c => (
                   <button
                     key={c}
@@ -441,7 +441,7 @@ export const CursorEditor: React.FC<CursorEditorProps> = ({
                 Estilo da Animação
                 {!isGMMode && overrides.animation && <><Crown className="w-3 h-3 text-amber-500" /><span className="text-amber-500">Definido pelo GM</span></>}
               </label>
-              <div className="grid grid-cols-3 gap-1">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1">
                 {[
                   { id: 'ripple', label: 'Ondas', icon: CircleDot },
                   { id: 'burst', label: 'Explosão', icon: Activity },
@@ -470,7 +470,7 @@ export const CursorEditor: React.FC<CursorEditorProps> = ({
             <div className="grid grid-cols-2 gap-2">
               <div className={!canEdit.leftColor ? 'opacity-60' : ''}>
                 <label className="text-[10px] font-medium text-muted-foreground mb-1 block">Cor Esquerdo</label>
-                <div className="grid grid-cols-6 gap-0.5">
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-0.5">
                   {PRESET_COLORS.map(c => (
                     <button
                       key={c}
@@ -484,7 +484,7 @@ export const CursorEditor: React.FC<CursorEditorProps> = ({
               </div>
               <div className={!canEdit.rightColor ? 'opacity-60' : ''}>
                 <label className="text-[10px] font-medium text-muted-foreground mb-1 block">Cor Direito</label>
-                <div className="grid grid-cols-6 gap-0.5">
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-0.5">
                   {PRESET_COLORS.map(c => (
                     <button
                       key={c}
@@ -518,7 +518,7 @@ export const CursorEditor: React.FC<CursorEditorProps> = ({
                 Estilo do Ping
                 {!isGMMode && overrides.pingAnimation && <><Crown className="w-3 h-3 text-amber-500" /><span className="text-amber-500">Definido pelo GM</span></>}
               </label>
-              <div className="grid grid-cols-3 gap-1">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1">
                 {[
                   { id: 'radar', label: 'Radar', icon: Radio },
                   { id: 'beacon', label: 'Farol', icon: Zap },
@@ -549,7 +549,7 @@ export const CursorEditor: React.FC<CursorEditorProps> = ({
                 Cor do Ping
                 {!isGMMode && overrides.pingColor && <><Crown className="w-3 h-3 text-amber-500" /><span className="text-amber-500">Definido pelo GM</span></>}
               </label>
-              <div className="grid grid-cols-6 gap-1">
+              <div className="grid grid-cols-4 sm:grid-cols-6 gap-1">
                 {PRESET_COLORS.map(c => (
                   <button
                     key={c}

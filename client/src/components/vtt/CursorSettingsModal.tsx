@@ -3,7 +3,7 @@ import { useGameSession } from '../../context/GameSessionContext';
 import { useAuth } from '../../context/AuthContext';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
-import { RefreshCw, User as UserIcon, Crown } from 'lucide-react';
+import { RefreshCw, User as UserIcon, Crown, ChevronDown } from 'lucide-react';
 import { CursorEditor, CursorEditorValues } from './CursorEditor';
 import { getCursorShape } from './constants/cursorShapes';
 
@@ -189,11 +189,31 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Cursores" size={isGM ? 'lg' : 'md'}>
-      <div className={`flex gap-4 ${isGM ? 'h-[420px]' : ''}`}>
+      <div className={`flex flex-col md:flex-row gap-0 md:gap-4 ${isGM ? 'md:h-[420px]' : ''}`}>
 
-        {/* GM: Player List Sidebar */}
+        {/* Mobile: Player Dropdown (GM only) */}
         {isGM && (
-          <div className="w-44 flex-shrink-0 border-r border-zinc-800 pr-3 flex flex-col">
+          <div className="md:hidden mb-3 pb-3 border-b border-zinc-800">
+            <label className="text-[10px] font-bold text-zinc-500 uppercase mb-1 block">Editando</label>
+            <div className="relative">
+              <select
+                value={selectedPlayerId || ''}
+                onChange={(e) => setSelectedPlayerId(e.target.value || null)}
+                className="w-full appearance-none bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white pr-8 focus:border-primary outline-none"
+              >
+                <option value="">Meu Cursor</option>
+                {nonGMPlayers.map(p => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+            </div>
+          </div>
+        )}
+
+        {/* Desktop: Player List Sidebar (GM only) */}
+        {isGM && (
+          <div className="hidden md:flex w-44 flex-shrink-0 border-r border-zinc-800 pr-3 flex-col">
             <button
               onClick={() => setSelectedPlayerId(null)}
               className={`w-full flex items-center gap-2 p-2 rounded-md text-sm mb-2 ${selectedPlayerId === null
@@ -278,9 +298,9 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
       </div>
 
       {/* Footer */}
-      <div className="flex justify-end gap-2 pt-4 border-t border-zinc-800 mt-4">
-        <Button variant="ghost" onClick={onClose}>Cancelar</Button>
-        <Button onClick={handleSaveAll}>Salvar</Button>
+      <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-4 border-t border-zinc-800 mt-4">
+        <Button variant="ghost" onClick={onClose} className="w-full sm:w-auto">Cancelar</Button>
+        <Button onClick={handleSaveAll} className="w-full sm:w-auto">Salvar</Button>
       </div>
     </Modal>
   );
