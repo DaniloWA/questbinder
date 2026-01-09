@@ -6,95 +6,123 @@ interface PopoutWindowProps {
   children: React.ReactNode;
   title?: string;
   onClose: () => void;
+  onBlocked?: () => void;
   width?: number;
   height?: number;
 }
 
-export const PopoutWindow: React.FC<PopoutWindowProps> = ({ children, title = 'QuestBinder', onClose, width = 400, height = 600 }) => {
+export const PopoutWindow: React.FC<PopoutWindowProps> = ({
+  children,
+  title = 'QuestBinder',
+  onClose,
+  onBlocked,
+  width = 400,
+  height = 600
+}) => {
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
-  const newWindow = useRef<Window | null>(null);
+  const windowRef = useRef<Window | null>(null);
+  const mountedRef = useRef(true);
 
-  // Copy styles from main window to new window
-  const copyStyles = (sourceDoc: Document, targetDoc: Document) => {
-    Array.from(sourceDoc.styleSheets).forEach(styleSheet => {
-      try {
-        if (styleSheet.cssRules) {
-          const newStyleEl = targetDoc.createElement('style');
-          Array.from(styleSheet.cssRules).forEach(cssRule => {
-            newStyleEl.appendChild(targetDoc.createTextNode(cssRule.cssText));
-          });
-          targetDoc.head.appendChild(newStyleEl);
-        } else if (styleSheet.href) {
-          const newLinkEl = targetDoc.createElement('link');
-          newLinkEl.rel = 'stylesheet';
-          newLinkEl.href = styleSheet.href;
-          targetDoc.head.appendChild(newLinkEl);
-        }
-      } catch (e) {
-        // Sementa de cross-origin stylesheets
-        console.warn('Could not copy stylesheet:', e);
-      }
-    });
-
-    // Copy Tailwind scripts or style tags specifically if they are inline
-    Array.from(sourceDoc.querySelectorAll('style')).forEach(styleNode => {
-      targetDoc.head.appendChild(styleNode.cloneNode(true));
-    });
-
-    // Copy linked stylesheets
-    Array.from(sourceDoc.querySelectorAll('link[rel="stylesheet"]')).forEach(linkNode => {
-      targetDoc.head.appendChild(linkNode.cloneNode(true));
-    });
-  };
+  // Keep refs to latest callback values (avoid stale closures)
+  const onCloseRef = useRef(onClose);
+  const onBlockedRef = useRef(onBlocked);
+  onCloseRef.current = onClose;
+  onBlockedRef.current = onBlocked;
 
   useEffect(() => {
-    // Create window
-    const win = window.open('', '', `width=${width},height=${height},left=200,top=200`);
-    if (!win) {
-      console.error("Popup blocked! Please allow popups for this site.");
-      onClose();
+    mountedRef.current = true;
+
+    // Don't create another window if one exists
+    if (windowRef.current && !windowRef.current.closed) {
       return;
     }
 
-    newWindow.current = win;
-    win.document.title = title;
+    // Open the popup window
+    const popup = window.open(
+      '',
+      `questbinder_sidebar_${Date.now()}`,
+      `width=${width},height=${height},left=200,top=200,resizable=yes,scrollbars=yes`
+    );
 
-    // Add dark mode class to html/body if present in main window
-    if (document.documentElement.classList.contains('dark')) {
-      win.document.documentElement.classList.add('dark');
+    if (!popup) {
+      console.warn("Popup blocked by browser.");
+      onBlockedRef.current?.();
+      onCloseRef.current();
+      return;
     }
-    win.document.body.className = document.body.className; // Copy body classes (bg colors etc)
 
-    // Reset body style
-    win.document.body.style.margin = '0';
-    win.document.body.style.padding = '0';
-    win.document.body.style.height = '100vh';
-    win.document.body.style.overflow = 'hidden';
+    windowRef.current = popup;
 
-    // Create container
-    const div = win.document.createElement('div');
-    div.style.height = '100%';
-    div.style.width = '100%';
-    win.document.body.appendChild(div);
-    setContainer(div);
+    // Setup the popup document
+    popup.document.title = title;
 
-    // Copy styles
-    copyStyles(document, win.document);
+    // Dark mode
+    if (document.documentElement.classList.contains('dark')) {
+      popup.document.documentElement.classList.add('dark');
+    }
 
-    // Handle close
-    win.onbeforeunload = () => {
-      onClose();
-    };
+    // Body styles
+    const body = popup.document.body;
+    body.style.margin = '0';
+    body.style.padding = '0';
+    body.style.height = '100vh';
+    body.style.overflow = 'hidden';
+    body.style.backgroundColor = '#09090b';
 
+    // Create portal container
+    const portalRoot = popup.document.createElement('div');
+    portalRoot.id = 'popout-root';
+    portalRoot.style.height = '100%';
+    portalRoot.style.width = '100%';
+    body.appendChild(portalRoot);
+
+    // Copy stylesheets (safe method - only linked stylesheets and inline styles)
+    document.querySelectorAll('style').forEach(style => {
+      try {
+        popup.document.head.appendChild(style.cloneNode(true));
+      } catch {
+        // Ignore errors
+      }
+    });
+
+    document.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
+      try {
+        popup.document.head.appendChild(link.cloneNode(true));
+      } catch {
+        // Ignore errors
+      }
+    });
+
+    // Set container for React portal
+    setContainer(portalRoot);
+
+    // Poll to check if window was closed by user
+    const pollInterval = setInterval(() => {
+      if (!windowRef.current || windowRef.current.closed) {
+        clearInterval(pollInterval);
+        windowRef.current = null;
+        if (mountedRef.current) {
+          onCloseRef.current();
+        }
+      }
+    }, 300);
+
+    // Cleanup on unmount
     return () => {
-      if (newWindow.current) {
-        newWindow.current.close();
-        newWindow.current = null;
+      mountedRef.current = false;
+      clearInterval(pollInterval);
+
+      if (windowRef.current && !windowRef.current.closed) {
+        windowRef.current.close();
+        windowRef.current = null;
       }
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty deps - run only once
 
-  if (!container) return null;
+  if (!container) {
+    return null;
+  }
 
   return createPortal(children, container);
 };

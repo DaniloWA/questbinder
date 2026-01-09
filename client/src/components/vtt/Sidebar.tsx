@@ -7,6 +7,7 @@ import { PartyList } from './PartyList';
 import { Users, Activity, Swords, X, ArrowLeftFromLine, ExternalLink, ArrowRightToLine } from 'lucide-react';
 import { Tooltip } from '../ui/Tooltip';
 import { PopoutWindow } from '../ui/PopoutWindow';
+import { useNotification } from '../../context/NotificationContext';
 
 // Internal component for content to be reused in both Docked and Popped-out states
 const SidebarContent: React.FC<{
@@ -96,15 +97,34 @@ const SidebarContent: React.FC<{
 
 export const Sidebar: React.FC = () => {
   const { toggleRightSidebar } = useGameSession();
+  const { show } = useNotification();
   const [activeTab, setActiveTab] = useState<'combat' | 'chat' | 'party'>('chat');
   const [isPoppedOut, setIsPoppedOut] = useState(false);
+  const [wasBlocked, setWasBlocked] = useState(false);
 
   const handlePopout = () => {
+    setWasBlocked(false);
     setIsPoppedOut(true);
   };
 
   const handleDock = () => {
     setIsPoppedOut(false);
+  };
+
+  const handlePopoutBlocked = () => {
+    setWasBlocked(true);
+    show({
+      type: 'warning',
+      title: 'Popup bloqueado',
+      message: 'Clique no ícone de popup bloqueado na barra do navegador para permitir.',
+      duration: 6000,
+    });
+  };
+
+  const handleRetryPopout = () => {
+    // Clear blocked state and try again
+    setWasBlocked(false);
+    setIsPoppedOut(true);
   };
 
   if (isPoppedOut) {
@@ -130,7 +150,7 @@ export const Sidebar: React.FC = () => {
         </div>
 
         {/* The Window Portal */}
-        <PopoutWindow title="QuestBinder Sidebar" onClose={handleDock} width={400} height={700}>
+        <PopoutWindow title="QuestBinder Sidebar" onClose={handleDock} onBlocked={handlePopoutBlocked} width={400} height={700}>
           <SidebarContent
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -143,12 +163,45 @@ export const Sidebar: React.FC = () => {
   }
 
   return (
-    <SidebarContent
-      activeTab={activeTab}
-      setActiveTab={setActiveTab}
-      onClose={toggleRightSidebar}
-      onPopout={handlePopout}
-      isPoppedOut={false}
-    />
+    <div className="h-full flex flex-col">
+      {/* Blocked Banner */}
+      {wasBlocked && (
+        <div className="bg-amber-500/20 border-b border-amber-500/30 p-3 shrink-0">
+          <div className="flex flex-col gap-2">
+            <p className="text-amber-200 text-xs leading-relaxed">
+              <strong>Popup bloqueado!</strong> Clique no ícone{' '}
+              <span className="inline-flex items-center justify-center w-4 h-4 bg-zinc-800 rounded text-[10px]">🚫</span>{' '}
+              na barra de endereço do navegador e permita popups para este site.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={handleRetryPopout}
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-black rounded text-xs font-bold transition-colors"
+              >
+                <ExternalLink className="w-3 h-3" />
+                Tentar Novamente
+              </button>
+              <button
+                onClick={() => setWasBlocked(false)}
+                className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded text-xs transition-colors"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Sidebar Content */}
+      <div className="flex-1 min-h-0">
+        <SidebarContent
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          onClose={toggleRightSidebar}
+          onPopout={handlePopout}
+          isPoppedOut={false}
+        />
+      </div>
+    </div>
   );
 };
