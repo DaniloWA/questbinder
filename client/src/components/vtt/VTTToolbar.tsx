@@ -13,6 +13,7 @@ import {
 import { Tooltip } from '../ui/Tooltip';
 import { useGameSession } from '../../context/GameSessionContext';
 import { useModal } from '../../context/ModalContext';
+import { useTranslation } from '../../i18n/TranslationContext';
 import { ConfirmationModal } from '../ui/ConfirmationModal';
 
 // Hook para detectar mobile/touch
@@ -324,6 +325,7 @@ const MenuItem: React.FC<{
 export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
     const { permissionHelper, toggleVisionRanges, toggleGridCoordinates, ui, permissions, pullView, viewport, toggleFollowMode, isFollowingGM, updatePermissions } = useGameSession();
     const { openModal, closeModal } = useModal();
+    const { t } = useTranslation();
 
     // Check if all cursor permissions are disabled (for non-GM players)
     const allCursorPermsDisabled = !permissionHelper.isGameMaster() &&
@@ -335,21 +337,21 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
 
 
         const interactionGroup: ToolbarItemConfig[] = [
-            { id: 'select', type: 'tool', label: 'Selecionar', icon: <MousePointer2 />, shortcut: 'V' },
-            { id: 'measure-path', type: 'tool', label: 'Régua', icon: <Ruler />, shortcut: 'M', hidden: !permissionHelper.canAsGMOr('measure') },
+            { id: 'select', type: 'tool', label: t('vtt.tools.toolbar.selectTool.button.label'), icon: <MousePointer2 />, shortcut: 'V' },
+            { id: 'measure-path', type: 'tool', label: t('vtt.tools.toolbar.rulerTool.button.label'), icon: <Ruler />, shortcut: 'M', hidden: !permissionHelper.canAsGMOr('measure') },
             {
                 id: 'drawings',
                 type: 'group',
-                label: 'Desenhar',
+                label: t('vtt.tools.toolbar.drawingTools.group.label'),
                 icon: <Brush />,
                 hidden: !permissionHelper.canAsGMOr('drawings'),
                 children: [
-                    { id: 'brush', type: 'tool', label: 'Pincel Livre', icon: <PenTool /> },
-                    { id: 'eraser-drawing', type: 'tool', label: 'Apagar Desenhos', icon: <Eraser />, danger: true, hidden: !permissionHelper.canAsGMOr('drawingDelete') }
+                    { id: 'brush', type: 'tool', label: t('vtt.tools.toolbar.drawingTools.brush.button.label'), icon: <PenTool /> },
+                    { id: 'eraser-drawing', type: 'tool', label: t('vtt.tools.toolbar.drawingTools.eraser.button.label'), icon: <Eraser />, danger: true, hidden: !permissionHelper.canAsGMOr('drawingDelete') }
                 ]
             },
             {
-                id: 'cursor-settings', type: 'action', label: 'Cursores', icon: <MousePointer2 />, onClick: props.onOpenCursorSettings,
+                id: 'cursor-settings', type: 'action', label: t('vtt.tools.toolbar.cursorSettings.button.label'), icon: <MousePointer2 />, onClick: props.onOpenCursorSettings,
                 hidden: allCursorPermsDisabled
             }
         ];
@@ -358,32 +360,32 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
             {
                 id: 'architecture',
                 type: 'group',
-                label: 'Arquitetura',
+                label: t('vtt.tools.toolbar.architectureTools.group.label'),
                 icon: <LayoutGrid />,
                 hidden: !permissionHelper.isGameMaster(),
                 children: [
-                    { id: 'draw-wall', type: 'tool', label: 'Parede', icon: <Fence /> },
-                    { id: 'freehand-wall', type: 'tool', label: 'Parede Livre (Desenho)', icon: <PenTool /> },
-                    { id: 'smart-wall', type: 'tool', label: 'Parede Inteligente (Magic Wand)', icon: <Wand2 /> },
-                    { id: 'draw-door', type: 'tool', label: 'Porta', icon: <DoorOpen /> },
-                    { id: 'draw-window', type: 'tool', label: 'Janela', icon: <Grid /> },
-                    { id: 'eraser', type: 'tool', label: 'Borracha (Estrutura)', icon: <Eraser />, danger: true },
+                    { id: 'draw-wall', type: 'tool', label: t('vtt.tools.toolbar.architectureTools.wall.button.label'), icon: <Fence /> },
+                    { id: 'freehand-wall', type: 'tool', label: t('vtt.tools.toolbar.architectureTools.freehandWall.button.label'), icon: <PenTool /> },
+                    { id: 'smart-wall', type: 'tool', label: t('vtt.tools.toolbar.architectureTools.smartWall.button.label'), icon: <Wand2 /> },
+                    { id: 'draw-door', type: 'tool', label: t('vtt.tools.toolbar.architectureTools.door.button.label'), icon: <DoorOpen /> },
+                    { id: 'draw-window', type: 'tool', label: t('vtt.tools.toolbar.architectureTools.window.button.label'), icon: <Grid /> },
+                    { id: 'eraser', type: 'tool', label: t('vtt.tools.toolbar.architectureTools.eraser.button.label'), icon: <Eraser />, danger: true },
                 ]
             },
             {
                 id: 'lighting',
                 type: 'group',
-                label: 'Iluminação & Neblina',
+                label: t('vtt.tools.toolbar.lightingTools.group.label'),
                 icon: <Lightbulb />,
                 hidden: !permissionHelper.isGameMaster(),
                 children: [
-                    { id: 'draw-light-rect', type: 'tool', label: 'Luz (Retângulo)', icon: <Sun /> },
-                    { id: 'draw-light-poly', type: 'tool', label: 'Luz (Polígono)', icon: <Hexagon /> },
+                    { id: 'draw-light-rect', type: 'tool', label: t('vtt.tools.toolbar.lightingTools.lightRect.button.label'), icon: <Sun /> },
+                    { id: 'draw-light-poly', type: 'tool', label: t('vtt.tools.toolbar.lightingTools.lightPoly.button.label'), icon: <Hexagon /> },
                     {
-                        id: 'fog-menu', type: 'group', label: 'Neblina de Guerra', icon: <EyeOff />, children: [
-                            { id: 'fog-poly', type: 'tool', label: 'Revelar (Polígono)', icon: <PenTool /> },
-                            { id: 'fog-rect', type: 'tool', label: 'Revelar (Retângulo)', icon: <Square /> },
-                            { id: 'fog-reset', type: 'action', label: 'Resetar Neblina', icon: <RefreshCw />, danger: true, onClick: props.onResetFog }
+                        id: 'fog-menu', type: 'group', label: t('vtt.tools.toolbar.lightingTools.fogOfWar.submenu.title'), icon: <EyeOff />, children: [
+                            { id: 'fog-poly', type: 'tool', label: t('vtt.tools.toolbar.lightingTools.fogOfWar.revealPoly.button.label'), icon: <PenTool /> },
+                            { id: 'fog-rect', type: 'tool', label: t('vtt.tools.toolbar.lightingTools.fogOfWar.revealRect.button.label'), icon: <Square /> },
+                            { id: 'fog-reset', type: 'action', label: t('vtt.tools.toolbar.lightingTools.fogOfWar.reset.button.label'), icon: <RefreshCw />, danger: true, onClick: props.onResetFog }
                         ]
                     }
                 ]
@@ -391,16 +393,16 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
             {
                 id: 'audio',
                 type: 'group',
-                label: 'Áudio',
+                label: t('vtt.tools.toolbar.audioTools.group.label'),
                 icon: <Music />,
                 hidden: !permissionHelper.isGameMaster(),
                 children: [
-                    { id: 'audio-panel-action', type: 'action', label: 'Painel de Áudio', icon: <Music />, onClick: props.onToggleAudioPanel, isActive: props.isAudioPanelOpen },
+                    { id: 'audio-panel-action', type: 'action', label: t('vtt.tools.toolbar.audioTools.panel.button.label'), icon: <Music />, onClick: props.onToggleAudioPanel, isActive: props.isAudioPanelOpen },
                     {
-                        id: 'audio-zones-group', type: 'group', label: 'Zonas de Áudio', icon: <Speaker />, children: [
-                            { id: 'draw-audio-rect', type: 'tool', label: 'Zona (Retângulo)', icon: <Square /> },
-                            { id: 'draw-audio-poly', type: 'tool', label: 'Zona (Polígono)', icon: <Hexagon /> },
-                            { id: 'eraser-audio', type: 'tool', label: 'Apagar Zona de Áudio', icon: <Eraser />, danger: true },
+                        id: 'audio-zones-group', type: 'group', label: t('vtt.tools.toolbar.audioTools.zones.submenu.title'), icon: <Speaker />, children: [
+                            { id: 'draw-audio-rect', type: 'tool', label: t('vtt.tools.toolbar.audioTools.zones.rect.button.label'), icon: <Square /> },
+                            { id: 'draw-audio-poly', type: 'tool', label: t('vtt.tools.toolbar.audioTools.zones.poly.button.label'), icon: <Hexagon /> },
+                            { id: 'eraser-audio', type: 'tool', label: t('vtt.tools.toolbar.audioTools.zones.eraser.button.label'), icon: <Eraser />, danger: true },
                         ]
                     }
                 ]
@@ -408,13 +410,13 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
             {
                 id: 'triggers',
                 type: 'group',
-                label: 'Gatilhos',
+                label: t('vtt.tools.toolbar.triggerTools.group.label'),
                 icon: <Zap />,
                 hidden: !permissionHelper.isGameMaster(),
                 children: [
-                    { id: 'draw-trigger-rect', type: 'tool', label: 'Gatilho (Retângulo)', icon: <Square /> },
-                    { id: 'draw-trigger-poly', type: 'tool', label: 'Gatilho (Polígono)', icon: <Hexagon /> },
-                    { id: 'eraser-trigger', type: 'tool', label: 'Apagar Gatilho', icon: <Eraser />, danger: true },
+                    { id: 'draw-trigger-rect', type: 'tool', label: t('vtt.tools.toolbar.triggerTools.rect.button.label'), icon: <Square /> },
+                    { id: 'draw-trigger-poly', type: 'tool', label: t('vtt.tools.toolbar.triggerTools.poly.button.label'), icon: <Hexagon /> },
+                    { id: 'eraser-trigger', type: 'tool', label: t('vtt.tools.toolbar.triggerTools.eraser.button.label'), icon: <Eraser />, danger: true },
                 ]
             }
         ];
@@ -423,7 +425,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
             {
                 id: 'attack-zones',
                 type: 'action',
-                label: 'Zonas de Ataque',
+                label: t('vtt.tools.toolbar.gameplayTools.attackZones.button.label'),
                 icon: <Target />,
                 onClick: props.onToggleAttackZones,
                 isActive: !!props.isAttackZonePanelOpen,
@@ -432,7 +434,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
             {
                 id: 'dice-roller',
                 type: 'action',
-                label: 'Mesa de Dados',
+                label: t('vtt.tools.toolbar.gameplayTools.diceRoller.button.label'),
                 icon: <Dices />,
                 onClick: props.onToggleDiceRoller,
                 isActive: !!props.isDiceRollerOpen,
@@ -441,25 +443,25 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
             {
                 id: 'bestiary',
                 type: 'action',
-                label: 'Bestiário (Tokens)',
+                label: t('vtt.tools.toolbar.gameplayTools.bestiary.button.label'),
                 icon: <BookOpen />,
                 onClick: props.onToggleLibrary,
                 isActive: props.isLibraryOpen,
-                hidden: !permissionHelper.canAsGMOr("bestiaryBrowse"), // Apenas GM pode acessar o bestiário
+                hidden: !permissionHelper.canAsGMOr("bestiaryBrowse"),
             },
             {
                 id: 'compendium',
                 type: 'action',
-                label: 'Grimório',
+                label: t('vtt.tools.toolbar.gameplayTools.compendium.button.label'),
                 icon: <Book />,
                 onClick: props.onToggleCompendium,
                 isActive: !!props.isCompendiumOpen,
-                hidden: !permissionHelper.canAsGMOr('compendiumBrowse'), // Requer permissão
+                hidden: !permissionHelper.canAsGMOr('compendiumBrowse'),
             },
             {
                 id: 'handouts',
                 type: 'action',
-                label: 'Recursos',
+                label: t('vtt.tools.toolbar.gameplayTools.handouts.button.label'),
                 icon: <FileText />,
                 onClick: props.onToggleHandouts,
                 isActive: !!props.isHandoutTrayOpen,
@@ -468,7 +470,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
             {
                 id: 'add-token',
                 type: 'action',
-                label: 'Novo Token',
+                label: t('vtt.tools.toolbar.gameplayTools.addToken.button.label'),
                 icon: <UserPlus />,
                 onClick: props.onAddToken,
                 hidden: !permissionHelper.canAsGMOr('tokenCreate')
@@ -476,7 +478,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
             {
                 id: 'combat',
                 type: 'action',
-                label: props.isCombatActive ? 'Encerrar Combate' : 'Iniciar Combate',
+                label: props.isCombatActive ? t('vtt.tools.toolbar.gameplayTools.endCombat.button.label') : t('vtt.tools.toolbar.gameplayTools.startCombat.button.label'),
                 icon: props.isCombatActive ? <ShieldOff /> : <Swords />,
                 danger: props.isCombatActive,
                 onClick: props.isCombatActive ? props.onEndCombat : props.onStartCombat,
@@ -488,14 +490,14 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
             {
                 id: 'gm-tools',
                 type: 'group',
-                label: 'Mestre',
+                label: t('vtt.tools.toolbar.gmTools.group.label'),
                 icon: <Crown />,
                 hidden: !permissionHelper.isGameMaster(),
                 children: [
                     {
                         id: 'view-settings',
                         type: 'action',
-                        label: 'Visualizar & Sincronizar',
+                        label: t('vtt.tools.toolbar.gmTools.viewSettings.button.label'),
                         icon: <Eye />,
                         onClick: () => {
                             if (props.onOpenViewSettings) props.onOpenViewSettings();
@@ -504,14 +506,14 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                     {
                         id: 'permissions',
                         type: 'action',
-                        label: 'Permissões',
+                        label: t('vtt.tools.toolbar.gmTools.permissions.button.label'),
                         icon: <Lock />,
                         onClick: props.onOpenPermissions
                     },
                     {
                         id: 'grid-coords',
                         type: 'action',
-                        label: 'Coordenadas da Grade',
+                        label: t('vtt.tools.toolbar.gmTools.gridCoords.button.label'),
                         icon: <Grid />,
                         isActive: ui.showGridCoordinates,
                         onClick: toggleGridCoordinates
@@ -519,7 +521,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                     {
                         id: 'settings',
                         type: 'action',
-                        label: 'Configurações do Mapa',
+                        label: t('vtt.tools.toolbar.gmTools.mapSettings.button.label'),
                         icon: <Settings />,
                         onClick: props.onOpenSettings
                     }
