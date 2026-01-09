@@ -264,7 +264,7 @@ export const AudioPanel: React.FC<AudioPanelProps> = ({ isOpen, onClose }) => {
             </div>
             <div>
                 <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">Efeitos Sonoros</h3>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {audioSettings.soundboard.map(sfx => {
                         const isSfxLooping = loopingSfxUrls.has(sfx.url);
                         return <button key={sfx.id} onClick={() => handleToggleSfxLoop(sfx.url)} className={`aspect-square flex items-center justify-center text-center border rounded-lg hover:border-primary text-xs font-bold transition-all ${isSfxLooping ? 'bg-primary/20 border-primary text-primary shadow-md animate-pulse' : 'bg-zinc-800/50 border-zinc-700 text-zinc-300 hover:text-primary'}`}>{sfx.name}</button>;
@@ -275,7 +275,7 @@ export const AudioPanel: React.FC<AudioPanelProps> = ({ isOpen, onClose }) => {
     );
 
     return (
-        <DraggableWindow isOpen={isOpen} onClose={onClose} title={isManaging ? "Gerenciar Áudio" : "Painel de Áudio"} icon={<Music className="w-4 h-4" />} initialSize={{ w: 420, h: 600 }} initialPosition={{ x: window.innerWidth - 460, y: 80 }}>
+        <DraggableWindow isOpen={isOpen} onClose={onClose} title={isManaging ? "Gerenciar Áudio" : "Painel de Áudio"} icon={<Music className="w-4 h-4" />} initialSize={{ w: Math.min(420, window.innerWidth - 40), h: Math.min(600, window.innerHeight - 100) }} initialPosition={{ x: Math.max(20, window.innerWidth - 460), y: 80 }}>
             <div className="flex flex-col h-full text-white bg-zinc-900/50">
                 <div className="p-4 bg-zinc-950/30 border-b border-zinc-800 space-y-3">
                     <div className="flex items-center gap-3"><Music className="w-4 h-4 text-zinc-500" /><input type="range" min="0" max="1" step="0.05" value={musicVolume} onChange={handleMusicVolumeChange} className="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-primary" /><span className="text-xs font-mono w-10 text-right">{Math.round(musicVolume * 100)}%</span></div>

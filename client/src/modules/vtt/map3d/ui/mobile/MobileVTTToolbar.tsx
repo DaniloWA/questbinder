@@ -7,6 +7,7 @@ import {
   Crown, Eye, Lock
 } from 'lucide-react';
 import { VTTTool, User as UserType } from '@/types';
+import { BooleanPermissionKey } from '@/context/gameSession/types';
 
 // Replicating VTTToolbarProps to ensure parity
 interface MobileVTTToolbarProps {
@@ -42,7 +43,7 @@ interface MobileVTTToolbarProps {
   onOpenViewSettings?: () => void;
   // Helper to check permissions since we passed session in wrapper
   isGameMaster: boolean;
-  canAsGMOr: (perm: string) => boolean;
+  canAsGMOr: (perm: BooleanPermissionKey) => boolean;
 }
 
 export const MobileVTTToolbar: React.FC<MobileVTTToolbarProps> = (props) => {
@@ -272,7 +273,7 @@ const MobileToolBtn: React.FC<{
     `}
   >
     <div className={`${variant === 'category' ? 'scale-125 mb-1' : ''} ${isActive ? 'scale-110' : ''}`}>
-      {React.cloneElement(icon as React.ReactElement, { className: variant === 'category' ? "w-6 h-6" : "w-5 h-5" })}
+      {React.cloneElement(icon as React.ReactElement<{ className?: string; }>, { className: variant === 'category' ? "w-6 h-6" : "w-5 h-5" })}
     </div>
     <span className="text-[10px] font-bold text-center leading-tight uppercase tracking-tight">{label}</span>
   </button>

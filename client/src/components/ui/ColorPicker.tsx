@@ -6,6 +6,7 @@ interface ColorPickerProps {
   value: string; // Expects a HEX string like #RRGGBB
   onChange: (color: string) => void;
   className?: string;
+  disabled?: boolean;
 }
 
 const PRESET_COLORS = [
@@ -33,7 +34,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({ value, onChange, class
       if (top + popoverHeight > window.innerHeight) {
         top = rect.top + window.scrollY - popoverHeight - 8;
       }
-      
+
       setCoords({ top, left });
     }
     setIsOpen(!isOpen);
@@ -54,13 +55,13 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({ value, onChange, class
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
-  
+
   const handleHexChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     if (/^#[0-9a-fA-F]{0,6}$/.test(val)) {
-        onChange(val);
+      onChange(val);
     }
-  }
+  };
 
   return (
     <>
@@ -81,9 +82,9 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({ value, onChange, class
         >
           <div className="flex justify-between items-center">
             <h3 className="text-sm font-bold text-white">Selecionar Cor</h3>
-            <button onClick={() => setIsOpen(false)} className="p-1 text-zinc-400 hover:text-white"><X size={16}/></button>
+            <button onClick={() => setIsOpen(false)} className="p-1 text-zinc-400 hover:text-white"><X size={16} /></button>
           </div>
-          
+
           <div className="grid grid-cols-8 gap-1.5">
             {PRESET_COLORS.map(color => (
               <button
@@ -98,7 +99,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({ value, onChange, class
 
           <div className="flex items-center gap-2 pt-2 border-t border-zinc-700">
             <div className="relative w-10 h-10 rounded-md overflow-hidden border border-zinc-600">
-              <div className="absolute inset-0" style={{backgroundColor: value}}></div>
+              <div className="absolute inset-0" style={{ backgroundColor: value }}></div>
               <input
                 type="color"
                 value={value}
@@ -106,7 +107,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({ value, onChange, class
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
             </div>
-            
+
             <div className="relative flex-1">
               <span className="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-500 text-sm">#</span>
               <input

@@ -10,6 +10,7 @@ import { Button } from '../components/ui/Button';
 import { MapCanvas } from '../components/vtt/map/MapCanvas';
 import { TriggerZoneConfigModalContent, AudioZoneEditModalContent } from '../components/vtt/map/modals';
 import { VTTToolbar } from '../components/vtt/VTTToolbar';
+import { MobileVTTToolbar } from '../modules/vtt/map3d/ui/mobile/MobileVTTToolbar';
 import { DrawingToolbar } from '../components/vtt/DrawingToolbar';
 import { RulerToolbar } from '../components/vtt/RulerToolbar';
 import { TokenContextMenu } from '../components/vtt/TokenContextMenu';
@@ -564,47 +565,91 @@ const GameSessionUI: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="pointer-events-auto self-center mb-4 md:mb-6 flex flex-col items-center gap-4">
+                <div className="pointer-events-auto self-center mb-4 md:mb-6 flex flex-col items-center gap-4 w-full md:w-auto">
                     {/* Render Drawing Toolbar if active */}
                     <DrawingToolbar />
                     {/* Render Ruler Toolbar if active */}
                     <RulerToolbar />
 
-                    <VTTToolbar
-                        activeTool={session.activeTool}
-                        isCombatActive={!!session.combat?.isActive}
-                        gmViewMode={session.gmViewMode}
-                        gmHideObstacles={session.ui.gmHideObstacles}
-                        players={session.players}
-                        previewPlayerId={session.previewPlayerId}
-                        onSetPreviewPlayer={session.setPreviewPlayerId}
-                        onToolSelect={session.setActiveTool}
-                        onResetFog={() => session.updateFog('')}
-                        onAddToken={() => {
-                            const gridSize = session.activeScene?.grid.size || 70;
-                            handleOpenTokenModal('new', { x: Math.floor((-session.viewport.x + window.innerWidth / 2) / session.viewport.zoom / gridSize), y: Math.floor((-session.viewport.y + window.innerHeight / 2) / session.viewport.zoom / gridSize) });
-                        }}
-                        onToggleLibrary={session.toggleLibrary}
-                        isLibraryOpen={session.ui.isLibraryOpen}
-                        onToggleDiceRoller={session.toggleDiceRoller}
-                        isDiceRollerOpen={session.ui.isDiceRollerOpen}
-                        onOpenSettings={() => setIsSettingsOpen(true)}
-                        onOpenCursorSettings={() => setIsCursorSettingsOpen(true)}
-                        onStartCombat={() => setIsInitiativeRollerOpen(true)}
-                        onEndCombat={session.endCombat}
-                        onToggleViewMode={session.toggleGMViewMode}
-                        onToggleGhostWalls={() => session.setGmHideObstacles(!session.ui.gmHideObstacles)}
-                        onOpenPermissions={() => setIsPermissionsOpen(true)}
-                        isAudioPanelOpen={session.ui.isAudioPanelOpen}
-                        onToggleAudioPanel={session.toggleAudioPanel}
-                        isHandoutTrayOpen={isHandoutTrayOpen}
-                        onToggleHandouts={() => setIsHandoutTrayOpen(!isHandoutTrayOpen)}
-                        onToggleCompendium={() => setIsCompendiumOpen(!isCompendiumOpen)}
-                        isCompendiumOpen={isCompendiumOpen}
-                        isAttackZonePanelOpen={isAttackZonePanelOpen}
-                        onToggleAttackZones={() => setIsAttackZonePanelOpen(!isAttackZonePanelOpen)}
-                        onOpenViewSettings={() => setIsViewSettingsOpen(true)}
-                    />
+                    {/* Desktop Toolbar (hidden on mobile) */}
+                    <div className="hidden md:block">
+                        <VTTToolbar
+                            activeTool={session.activeTool}
+                            isCombatActive={!!session.combat?.isActive}
+                            gmViewMode={session.gmViewMode}
+                            gmHideObstacles={session.ui.gmHideObstacles}
+                            players={session.players}
+                            previewPlayerId={session.previewPlayerId}
+                            onSetPreviewPlayer={session.setPreviewPlayerId}
+                            onToolSelect={session.setActiveTool}
+                            onResetFog={() => session.updateFog('')}
+                            onAddToken={() => {
+                                const gridSize = session.activeScene?.grid.size || 70;
+                                handleOpenTokenModal('new', { x: Math.floor((-session.viewport.x + window.innerWidth / 2) / session.viewport.zoom / gridSize), y: Math.floor((-session.viewport.y + window.innerHeight / 2) / session.viewport.zoom / gridSize) });
+                            }}
+                            onToggleLibrary={session.toggleLibrary}
+                            isLibraryOpen={session.ui.isLibraryOpen}
+                            onToggleDiceRoller={session.toggleDiceRoller}
+                            isDiceRollerOpen={session.ui.isDiceRollerOpen}
+                            onOpenSettings={() => setIsSettingsOpen(true)}
+                            onOpenCursorSettings={() => setIsCursorSettingsOpen(true)}
+                            onStartCombat={() => setIsInitiativeRollerOpen(true)}
+                            onEndCombat={session.endCombat}
+                            onToggleViewMode={session.toggleGMViewMode}
+                            onToggleGhostWalls={() => session.setGmHideObstacles(!session.ui.gmHideObstacles)}
+                            onOpenPermissions={() => setIsPermissionsOpen(true)}
+                            isAudioPanelOpen={session.ui.isAudioPanelOpen}
+                            onToggleAudioPanel={session.toggleAudioPanel}
+                            isHandoutTrayOpen={isHandoutTrayOpen}
+                            onToggleHandouts={() => setIsHandoutTrayOpen(!isHandoutTrayOpen)}
+                            onToggleCompendium={() => setIsCompendiumOpen(!isCompendiumOpen)}
+                            isCompendiumOpen={isCompendiumOpen}
+                            isAttackZonePanelOpen={isAttackZonePanelOpen}
+                            onToggleAttackZones={() => setIsAttackZonePanelOpen(!isAttackZonePanelOpen)}
+                            onOpenViewSettings={() => setIsViewSettingsOpen(true)}
+                        />
+                    </div>
+
+                    {/* Mobile Toolbar (visible only on mobile) */}
+                    <div className="block md:hidden w-full">
+                        <MobileVTTToolbar
+                            activeTool={session.activeTool}
+                            isCombatActive={!!session.combat?.isActive}
+                            gmViewMode={session.gmViewMode}
+                            gmHideObstacles={session.ui.gmHideObstacles}
+                            players={session.players}
+                            previewPlayerId={session.previewPlayerId}
+                            isLibraryOpen={session.ui.isLibraryOpen}
+                            isDiceRollerOpen={session.ui.isDiceRollerOpen}
+                            isAudioPanelOpen={session.ui.isAudioPanelOpen}
+                            isHandoutTrayOpen={isHandoutTrayOpen}
+                            isCompendiumOpen={isCompendiumOpen}
+                            isAttackZonePanelOpen={isAttackZonePanelOpen}
+                            onSetPreviewPlayer={session.setPreviewPlayerId}
+                            onToolSelect={session.setActiveTool}
+                            onResetFog={() => session.updateFog('')}
+                            onAddToken={() => {
+                                const gridSize = session.activeScene?.grid.size || 70;
+                                handleOpenTokenModal('new', { x: Math.floor((-session.viewport.x + window.innerWidth / 2) / session.viewport.zoom / gridSize), y: Math.floor((-session.viewport.y + window.innerHeight / 2) / session.viewport.zoom / gridSize) });
+                            }}
+                            onToggleLibrary={session.toggleLibrary}
+                            onToggleDiceRoller={session.toggleDiceRoller}
+                            onToggleAudioPanel={session.toggleAudioPanel}
+                            onToggleHandouts={() => setIsHandoutTrayOpen(!isHandoutTrayOpen)}
+                            onToggleCompendium={() => setIsCompendiumOpen(!isCompendiumOpen)}
+                            onToggleAttackZones={() => setIsAttackZonePanelOpen(!isAttackZonePanelOpen)}
+                            onOpenSettings={() => setIsSettingsOpen(true)}
+                            onStartCombat={() => setIsInitiativeRollerOpen(true)}
+                            onEndCombat={session.endCombat}
+                            onToggleViewMode={session.toggleGMViewMode}
+                            onToggleGhostWalls={() => session.setGmHideObstacles(!session.ui.gmHideObstacles)}
+                            onOpenPermissions={() => setIsPermissionsOpen(true)}
+                            onOpenCursorSettings={() => setIsCursorSettingsOpen(true)}
+                            onOpenViewSettings={() => setIsViewSettingsOpen(true)}
+                            isGameMaster={session.permissionHelper.isGameMaster()}
+                            canAsGMOr={(perm) => session.permissionHelper.canAsGMOr(perm)}
+                        />
+                    </div>
                 </div>
             </div>
 

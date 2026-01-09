@@ -20,27 +20,27 @@ export const RulerToolbar: React.FC = () => {
     };
 
     return (
-        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-40 bg-zinc-950/90 backdrop-blur-md border border-zinc-800 rounded-xl p-2 px-4 shadow-2xl flex items-center gap-4 animate-in slide-in-from-bottom-4 fade-in duration-200 ring-1 ring-white/10">
-            
-            <div className="flex items-center gap-2 border-r border-zinc-800 pr-4">
-                <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider mr-2">Modo</span>
+        <div className="absolute bottom-20 sm:bottom-24 left-1/2 -translate-x-1/2 z-40 bg-zinc-950/90 backdrop-blur-md border border-zinc-800 rounded-xl p-2 px-3 sm:px-4 shadow-2xl flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 animate-in slide-in-from-bottom-4 fade-in duration-200 ring-1 ring-white/10 max-w-[95vw]">
+
+            <div className="flex items-center gap-2 border-b sm:border-b-0 sm:border-r border-zinc-800 pb-2 sm:pb-0 sm:pr-4">
+                <span className="text-[10px] sm:text-xs font-bold text-zinc-400 uppercase tracking-wider mr-1 sm:mr-2">Modo</span>
                 <Tooltip content={rulerSettings.snapToGrid ? "Grudar na Grade" : "Medição Livre"}>
-                    <button 
+                    <button
                         onClick={handleSnapToggle}
-                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${rulerSettings.snapToGrid ? 'bg-primary text-white shadow-sm' : 'bg-zinc-900 text-zinc-500 hover:text-zinc-300'}`}
+                        className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${rulerSettings.snapToGrid ? 'bg-primary text-white shadow-sm' : 'bg-zinc-900 text-zinc-500 hover:text-zinc-300'}`}
                     >
                         {rulerSettings.snapToGrid ? <Magnet className="w-3.5 h-3.5" /> : <Move className="w-3.5 h-3.5" />}
-                        {rulerSettings.snapToGrid ? 'Snap On' : 'Livre'}
+                        <span className="hidden xs:inline">{rulerSettings.snapToGrid ? 'Snap On' : 'Livre'}</span>
                     </button>
                 </Tooltip>
             </div>
 
             <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider mr-2">Métrica</span>
-                <div className="w-40">
-                    <SheetSelect 
-                        value={rulerSettings.metric} 
-                        onChange={handleMetricChange} 
+                <span className="text-[10px] sm:text-xs font-bold text-zinc-400 uppercase tracking-wider mr-1 sm:mr-2">Métrica</span>
+                <div className="w-32 sm:w-40">
+                    <SheetSelect
+                        value={rulerSettings.metric}
+                        onChange={handleMetricChange}
                         options={[
                             { label: 'Euclidiana (Real)', value: 'euclidean' },
                             { label: 'D&D 5e / Célula', value: 'chebyshev' },

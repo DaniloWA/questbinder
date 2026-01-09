@@ -315,8 +315,8 @@ export const SmartDiceRoller: React.FC<SmartDiceRollerProps> = ({ isOpen, onClos
             onClose={onClose}
             title="Mesa de Dados"
             icon={<Dices className="w-4 h-4 text-primary" />}
-            initialPosition={{ x: window.innerWidth - 450, y: 80 }}
-            initialSize={{ w: 400, h: 700 }}
+            initialPosition={{ x: Math.max(20, window.innerWidth - 450), y: 80 }}
+            initialSize={{ w: Math.min(400, window.innerWidth - 40), h: Math.min(700, window.innerHeight - 100) }}
             minimizedContent={minimizedIcon}
             className="border-zinc-700/50 shadow-2xl bg-zinc-950"
         >

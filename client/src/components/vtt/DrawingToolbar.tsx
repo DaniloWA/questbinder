@@ -66,8 +66,7 @@ export const DrawingToolbar: React.FC = () => {
     };
 
     return (
-        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-40 bg-zinc-950/90 backdrop-blur-md border border-zinc-800 rounded-xl p-3 shadow-2xl flex items-center gap-4 animate-in slide-in-from-bottom-4 fade-in duration-200 ring-1 ring-white/10">
-
+        <div className="absolute bottom-20 sm:bottom-24 left-1/2 -translate-x-1/2 z-40 bg-zinc-950/90 backdrop-blur-md border border-zinc-800 rounded-xl p-2 sm:p-3 shadow-2xl flex flex-wrap items-center justify-center gap-2 sm:gap-4 animate-in slide-in-from-bottom-4 fade-in duration-200 ring-1 ring-white/10 max-w-[95vw]">
             {activeTool === 'brush' && (
                 <>
                     {/* Color Picker Section */}
@@ -94,10 +93,10 @@ export const DrawingToolbar: React.FC = () => {
                         <ColorPicker value={drawingSettings.color} onChange={handleColorChange} />
                     </div>
 
-                    <div className="w-px h-8 bg-zinc-800"></div>
+                    <div className="w-px h-6 sm:h-8 bg-zinc-800 hidden sm:block"></div>
 
                     {/* Sliders Section */}
-                    <div className="flex flex-col gap-2 w-32">
+                    <div className="flex flex-col gap-2 w-24 sm:w-32">
                         <div className="flex items-center gap-2 text-[10px] text-zinc-400 font-bold uppercase">
                             <span>Tamanho</span>
                             <span className="text-white">{drawingSettings.width}px</span>

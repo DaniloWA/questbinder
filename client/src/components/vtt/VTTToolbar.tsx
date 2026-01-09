@@ -1,20 +1,31 @@
-
-import React, { useState, useRef, useMemo, useEffect, ReactNode } from 'react';
+import React, { useState, useRef, useMemo, useEffect, ReactNode, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { VTTTool, User as UserType, PermissionSet } from '../../types';
 import {
     PenTool, EyeOff, UserPlus, Settings, Ruler, Swords,
     ShieldOff, DoorOpen, Fence, Eye, Eraser,
-    Square, Grid, MousePointer2, ChevronRight,
+    Square, Grid, MousePointer2, ChevronRight, ChevronDown,
     User, Crown, Lightbulb, Sun, Hexagon, Users, Lock,
     LayoutGrid, RefreshCw, ArrowLeft, ScanEye, Dices, BookOpen,
     Music, Speaker, FileText, Book, Zap, Brush, Wand2, Target,
-    Link, Monitor, Magnet
+    Link, Monitor, Magnet, X
 } from 'lucide-react';
 import { Tooltip } from '../ui/Tooltip';
 import { useGameSession } from '../../context/GameSessionContext';
 import { useModal } from '../../context/ModalContext';
 import { ConfirmationModal } from '../ui/ConfirmationModal';
+
+// Hook para detectar mobile/touch
+const useIsMobile = () => {
+    const [isMobile, setIsMobile] = useState(false);
+    useEffect(() => {
+        const check = () => setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window);
+        check();
+        window.addEventListener('resize', check);
+        return () => window.removeEventListener('resize', check);
+    }, []);
+    return isMobile;
+};
 
 export interface ToolbarItemConfig {
     id: string;
@@ -115,7 +126,10 @@ const MenuItem: React.FC<{
     activeTool: VTTTool;
     depth: number;
     onToolSelect: (tool: VTTTool) => void;
-}> = ({ item, activeTool, depth, onToolSelect }) => {
+    isMobile: boolean;
+    openMenuId: string | null;
+    setOpenMenuId: (id: string | null) => void;
+}> = ({ item, activeTool, depth, onToolSelect, isMobile, openMenuId, setOpenMenuId }) => {
 
     if (item.hidden) return null;
 
@@ -151,12 +165,24 @@ const MenuItem: React.FC<{
 
     const handleClick = (e: React.MouseEvent) => {
         e.stopPropagation();
+
+        // Mobile: toggle menu on click for groups
+        if (hasChildren && isMobile && depth === 0) {
+            setOpenMenuId(openMenuId === item.id ? null : item.id);
+            return;
+        }
+
         if (item.type === 'tool') {
             onToolSelect(item.id as VTTTool);
+            setOpenMenuId(null); // Close menu after selection
         } else if (item.onClick) {
             item.onClick();
+            setOpenMenuId(null); // Close menu after action
         }
     };
+
+    // For mobile: check if this menu is open
+    const isMenuOpen = isMobile ? openMenuId === item.id : isHovered;
 
     if (depth === 0) {
         return (
@@ -170,12 +196,12 @@ const MenuItem: React.FC<{
                     <button
                         onClick={handleClick}
                         className={`
-                        relative w-12 h-12 flex items-center justify-center rounded-2xl transition-all duration-300 ease-out
+                        relative w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 flex items-center justify-center rounded-xl sm:rounded-2xl transition-all duration-300 ease-out
                         ${isParentActive
-                                ? 'bg-primary text-white shadow-[0_0_20px_rgba(124,58,237,0.6)] scale-110 -translate-y-2 z-20 ring-1 ring-white/20'
+                                ? 'bg-primary text-white shadow-[0_0_20px_rgba(124,58,237,0.6)] scale-110 -translate-y-1 sm:-translate-y-2 z-20 ring-1 ring-white/20'
                                 : item.danger
-                                    ? 'text-red-400 hover:bg-red-950/30 hover:text-red-200'
-                                    : 'text-zinc-400 hover:bg-white/10 hover:text-white'
+                                    ? 'text-red-400 hover:bg-red-950/30 hover:text-red-200 active:bg-red-950/50'
+                                    : 'text-zinc-400 hover:bg-white/10 hover:text-white active:bg-white/20'
                             }
                     `}
                     >
@@ -193,13 +219,20 @@ const MenuItem: React.FC<{
                         <div
                             className={`
                         absolute bottom-full left-1/2 -translate-x-1/2 mb-4 z-50 origin-bottom transition-all duration-200
-                        ${isHovered ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-95 pointer-events-none'}
+                        ${isMenuOpen ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-95 pointer-events-none'}
                     `}
                         >
-                            <div className="bg-zinc-950/90 border border-zinc-800 rounded-2xl p-1.5 shadow-2xl backdrop-blur-xl flex flex-col gap-1 min-w-[220px] ring-1 ring-white/10">
-                                <div className="px-3 py-2 border-b border-white/5 mb-1 flex justify-between items-center">
+                            <div className="bg-zinc-950/90 border border-zinc-800 rounded-2xl p-1.5 shadow-2xl backdrop-blur-xl flex flex-col gap-1 min-w-[200px] sm:min-w-[220px] ring-1 ring-white/10 max-w-[90vw]">
+                                <div className="px-2 sm:px-3 py-2 border-b border-white/5 mb-1 flex justify-between items-center">
                                     <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">{item.label}</span>
-                                    {item.shortcut && <span className="text-[9px] font-mono bg-zinc-900 border border-zinc-800 text-zinc-400 px-1.5 rounded">{item.shortcut}</span>}
+                                    <div className="flex items-center gap-2">
+                                        {!isMobile && item.shortcut && <span className="text-[9px] font-mono bg-zinc-900 border border-zinc-800 text-zinc-400 px-1.5 rounded">{item.shortcut}</span>}
+                                        {isMobile && (
+                                            <button onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); }} className="p-1 text-zinc-500 hover:text-white">
+                                                <X className="w-3.5 h-3.5" />
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div className="flex flex-col gap-1 max-h-[50vh] overflow-y-auto custom-scrollbar">
@@ -210,6 +243,9 @@ const MenuItem: React.FC<{
                                             activeTool={activeTool}
                                             depth={depth + 1}
                                             onToolSelect={onToolSelect}
+                                            isMobile={isMobile}
+                                            openMenuId={openMenuId}
+                                            setOpenMenuId={setOpenMenuId}
                                         />
                                     ))}
                                 </div>
@@ -244,14 +280,14 @@ const MenuItem: React.FC<{
                         }
                 `}
                 >
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                         <div className={`shrink-0 ${isActive ? 'text-white' : ''}`}>
                             {React.cloneElement(item.icon as React.ReactElement<{ className?: string; }>, { className: "w-4 h-4" })}
                         </div>
-                        <span className="truncate">{item.label}</span>
+                        <span className="truncate text-sm">{item.label}</span>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                        {item.shortcut && (
+                        {!isMobile && item.shortcut && (
                             <span className={`text-[9px] font-mono px-1.5 rounded border ${isActive ? 'border-white/30 text-white/80' : 'border-zinc-800 bg-zinc-900 text-zinc-500'}`}>
                                 {item.shortcut}
                             </span>
@@ -260,7 +296,7 @@ const MenuItem: React.FC<{
                     </div>
                 </button>
 
-                {hasChildren && isHovered && (
+                {hasChildren && isMenuOpen && (
                     <SubMenuPortal
                         parentRect={itemRef.current!.getBoundingClientRect()}
                         onMouseEnter={handleMouseEnter}
@@ -273,6 +309,9 @@ const MenuItem: React.FC<{
                                 activeTool={activeTool}
                                 depth={depth + 1}
                                 onToolSelect={onToolSelect}
+                                isMobile={isMobile}
+                                openMenuId={openMenuId}
+                                setOpenMenuId={setOpenMenuId}
                             />
                         ))}
                     </SubMenuPortal>
@@ -498,11 +537,26 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
         return groups.filter(g => g.length > 0);
     }, [props, permissionHelper, toggleVisionRanges, toggleGridCoordinates, ui, isFollowingGM, permissions]); // Dependencies updated
 
+    const isMobile = useIsMobile();
+    const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+    // Close menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = () => setOpenMenuId(null);
+        if (openMenuId) {
+            document.addEventListener('click', handleClickOutside);
+            return () => document.removeEventListener('click', handleClickOutside);
+        }
+    }, [openMenuId]);
+
     return (
-        <div className="flex items-center gap-2 p-2 bg-zinc-950/80 backdrop-blur-xl border border-zinc-800 rounded-2xl shadow-2xl ring-1 ring-white/10 pointer-events-auto animate-in slide-in-from-bottom-8 duration-500">
+        <div
+            className="flex flex-wrap items-center justify-center gap-1 sm:gap-2 p-1.5 sm:p-2 bg-zinc-950/80 backdrop-blur-xl border border-zinc-800 rounded-2xl shadow-2xl ring-1 ring-white/10 pointer-events-auto animate-in slide-in-from-bottom-8 duration-500"
+            onClick={(e) => e.stopPropagation()}
+        >
             {toolbarConfig.map((group, index) => (
                 <React.Fragment key={index}>
-                    {index > 0 && group.length > 0 && <div className="w-px h-8 bg-white/10 mx-1"></div>}
+                    {index > 0 && group.length > 0 && <div className="w-px h-6 sm:h-8 bg-white/10 mx-0.5 sm:mx-1"></div>}
                     {group.map(item => (
                         <MenuItem
                             key={item.id}
@@ -510,6 +564,9 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                             activeTool={props.activeTool}
                             depth={0}
                             onToolSelect={props.onToolSelect}
+                            isMobile={isMobile}
+                            openMenuId={openMenuId}
+                            setOpenMenuId={setOpenMenuId}
                         />
                     ))}
                 </React.Fragment>
