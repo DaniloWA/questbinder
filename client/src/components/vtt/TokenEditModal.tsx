@@ -5,7 +5,7 @@ import { SheetInput, SheetLabel, SheetSelect } from '../ui/SheetPrimitives';
 import { ColorPicker } from '../ui/ColorPicker';
 import { compendiumService } from '../../services/compendiumService';
 import { ApiMonster } from '../../types/compendium';
-import { ftToM } from '../../utils/dndTranslator';
+import { ftToM } from '../../utils/unitConversion';
 import { fileService } from '../../services/fileService';
 import { useNotification } from '../../context/NotificationContext';
 import { Aura } from '../../types';

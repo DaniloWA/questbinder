@@ -2,13 +2,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { DraggableWindow } from '../ui/DraggableWindow';
 import { compendiumService } from '../../services/compendiumService';
-import { translationService } from '../../services/translationService';
+
 import { CompendiumCategory, ApiMonster, ApiSpell, ApiMagicItem, ApiSection } from '../../types/compendium';
 import { Book, Skull, Zap, Backpack, Scale, Search, ChevronRight, ChevronDown, ExternalLink, Activity, Shield, Heart, Loader2, RotateCw, Star, Bookmark, Image as ImageIcon, MessageSquare, Copy, Share2, Lock } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useGameSession } from '../../context/GameSessionContext';
 import { useNotification } from '../../context/NotificationContext';
-import { ftToM } from '../../utils/dndTranslator';
+import { ftToM } from '../../utils/unitConversion';
 import { formatMarkdown } from '../../utils/markdown';
 import { Tooltip } from '../ui/Tooltip';
 import { TokenStats } from '../../types';
@@ -276,49 +276,18 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
         setValidMonsterImage(null);
     }, [selectedItem]);
 
-    // --- TRANSLATION LOGIC ---
+    // --- DISPLAY LOGIC (Legacy translationService removed) ---
     useEffect(() => {
-        const translateContent = async () => {
-            if (!selectedItem) {
-                setDisplayItem(null);
-                return;
-            }
-
-            if (language === 'en') {
-                setDisplayItem(selectedItem);
-                return;
-            }
-
-            setIsTranslating(true);
-
-            let category = activeTab;
-            if (category === 'favorites') {
-                // @ts-ignore
-                const fav = favorites.find(f => f.slug === selectedItem.slug);
-                if (fav) category = fav.category;
-                else category = 'monsters'; // Fallback
-            }
-            if (compendiumTarget && (selectedItem as any).slug === compendiumTarget.slug) {
-                category = compendiumTarget.category;
-            }
-
-            const { translated, error } = await translationService.translateObject(selectedItem, category as CompendiumCategory);
-
-            setDisplayItem(translated);
-            setIsTranslating(false);
-
-            if (error) {
-                show({
-                    type: 'warning',
-                    title: 'Tradução Parcial',
-                    message: 'Alguns textos não puderam ser traduzidos pelas APIs e estão em inglês.',
-                    duration: 4000
-                });
-            }
-        };
-
-        translateContent();
-    }, [selectedItem, language, activeTab, show, favorites, compendiumTarget]);
+        if (!selectedItem) {
+            setDisplayItem(null);
+            return;
+        }
+        // Note: The legacy API-based translation service was removed.
+        // Items are now displayed as-is from the Open5e API (English).
+        // PT-BR translations are available via the i18n system for UI labels.
+        setDisplayItem(selectedItem);
+        setIsTranslating(false);
+    }, [selectedItem]);
 
 
     const handleLoadMore = () => {

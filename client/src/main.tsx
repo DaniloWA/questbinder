@@ -8,6 +8,7 @@ import { NotificationProvider } from './context/NotificationContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ModalProvider } from './context/ModalContext';
 import { TooltipProvider } from './context/TooltipContext';
+import { TranslationProvider } from './i18n/TranslationContext';
 import { initMockDatabase } from './data/mockDataLayer';
 
 // Inicializa a "API" Mockada com dados de teste se estiver vazia
@@ -21,18 +22,20 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <ThemeProvider>
-      <TooltipProvider>
-        <NotificationProvider>
-          <AuthProvider>
-            <NavigationProvider>
-              <ModalProvider>
-                <App />
-              </ModalProvider>
-            </NavigationProvider>
-          </AuthProvider>
-        </NotificationProvider>
-      </TooltipProvider>
-    </ThemeProvider>
+    <TranslationProvider>
+      <ThemeProvider>
+        <TooltipProvider>
+          <NotificationProvider>
+            <AuthProvider>
+              <NavigationProvider>
+                <ModalProvider>
+                  <App />
+                </ModalProvider>
+              </NavigationProvider>
+            </AuthProvider>
+          </NotificationProvider>
+        </TooltipProvider>
+      </ThemeProvider>
+    </TranslationProvider>
   </React.StrictMode>
 );
