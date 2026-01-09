@@ -8,6 +8,7 @@ import { ApiMonster } from '../../types/compendium';
 import { ftToM } from '../../utils/unitConversion';
 import { fileService } from '../../services/fileService';
 import { useNotification } from '../../context/NotificationContext';
+import { useTranslation } from '../../i18n/TranslationContext';
 import { Aura } from '../../types';
 import { UploadCloud, Eye, Lock, BookOpen, Search, Sun, Activity, Palette, FileText, Shield, Image as ImageIcon, Type, Package, Loader2 } from 'lucide-react';
 
@@ -51,8 +52,9 @@ export const TokenEditModal: React.FC<TokenEditModalProps> = ({
     onCancel,
 }) => {
     const { show } = useNotification();
+    const { t } = useTranslation();
     const isNew = token === 'new';
-    const t = isNew ? ({} as Partial<Token>) : token;
+    const tokenData = isNew ? ({} as Partial<Token>) : token;
 
     const [activeTab, setActiveTab] = useState<string>('general');
     const [searchQuery, setSearchQuery] = useState('');
@@ -61,69 +63,69 @@ export const TokenEditModal: React.FC<TokenEditModalProps> = ({
     const [isUploading, setIsUploading] = useState(false);
 
     // Identity
-    const [tokenType, setTokenType] = useState<TokenType>(t.type || 'npc');
-    const [linkedId, setLinkedId] = useState(t.linkedId || '');
-    const [controlledBy, setControlledBy] = useState<string[]>(t.controlledBy || []);
-    const [name, setName] = useState(t.name || 'Novo Token');
-    const [displayMode, setDisplayMode] = useState<'image' | 'text'>(t.displayMode || 'image');
-    const [imgUrl, setImgUrl] = useState(t.imgUrl || 'https://api.dicebear.com/7.x/bottts/svg');
-    const [textVal, setTextVal] = useState(t.textDetails?.text || '');
-    const [textBgColor, setTextBgColor] = useState(t.textDetails?.backgroundColor || '#3f3f46');
-    const [textColor, setTextColor] = useState(t.textDetails?.textColor || '#ffffff');
+    const [tokenType, setTokenType] = useState<TokenType>(tokenData.type || 'npc');
+    const [linkedId, setLinkedId] = useState(tokenData.linkedId || '');
+    const [controlledBy, setControlledBy] = useState<string[]>(tokenData.controlledBy || []);
+    const [name, setName] = useState(tokenData.name || t('vtt.tokens.editModal.nameField.placeholder'));
+    const [displayMode, setDisplayMode] = useState<'image' | 'text'>(tokenData.displayMode || 'image');
+    const [imgUrl, setImgUrl] = useState(tokenData.imgUrl || 'https://api.dicebear.com/7.x/bottts/svg');
+    const [textVal, setTextVal] = useState(tokenData.textDetails?.text || '');
+    const [textBgColor, setTextBgColor] = useState(tokenData.textDetails?.backgroundColor || '#3f3f46');
+    const [textColor, setTextColor] = useState(tokenData.textDetails?.textColor || '#ffffff');
 
     // Physics
-    const [size, setSize] = useState(t.size || 1);
-    const [speed, setSpeed] = useState(t.speed || 9);
-    const [isVisible, setIsVisible] = useState(isNew ? true : (t.isVisibleToPlayers ?? true));
-    const [rotation, setRotation] = useState(t.rotation || 0);
+    const [size, setSize] = useState(tokenData.size || 1);
+    const [speed, setSpeed] = useState(tokenData.speed || 9);
+    const [isVisible, setIsVisible] = useState(isNew ? true : (tokenData.isVisibleToPlayers ?? true));
+    const [rotation, setRotation] = useState(tokenData.rotation || 0);
 
     // Style
-    const [shape, setShape] = useState<TokenShape>(t.shape || 'circle');
-    const [scale, setScale] = useState(t.scale || 1);
-    const [borderColor, setBorderColor] = useState(t.border?.color || '#ffffff');
-    const [borderWidth, setBorderWidth] = useState(t.border?.width || 3);
-    const [borderStyle, setBorderStyle] = useState<BorderStyle>(t.border?.style || 'solid');
-    const [tintColor, setTintColor] = useState(rgbaToHexAlpha(t.tint || 'rgba(0,0,0,0)').hex);
-    const [tintAlpha, setTintAlpha] = useState(rgbaToHexAlpha(t.tint || 'rgba(0,0,0,0)').alpha);
-    const [idleAnimation, setIdleAnimation] = useState<TokenIdleAnimation>(t.idleAnimation || 'none');
-    const [effect, setEffect] = useState<TokenEffect>(t.effect || 'none');
+    const [shape, setShape] = useState<TokenShape>(tokenData.shape || 'circle');
+    const [scale, setScale] = useState(tokenData.scale || 1);
+    const [borderColor, setBorderColor] = useState(tokenData.border?.color || '#ffffff');
+    const [borderWidth, setBorderWidth] = useState(tokenData.border?.width || 3);
+    const [borderStyle, setBorderStyle] = useState<BorderStyle>(tokenData.border?.style || 'solid');
+    const [tintColor, setTintColor] = useState(rgbaToHexAlpha(tokenData.tint || 'rgba(0,0,0,0)').hex);
+    const [tintAlpha, setTintAlpha] = useState(rgbaToHexAlpha(tokenData.tint || 'rgba(0,0,0,0)').alpha);
+    const [idleAnimation, setIdleAnimation] = useState<TokenIdleAnimation>(tokenData.idleAnimation || 'none');
+    const [effect, setEffect] = useState<TokenEffect>(tokenData.effect || 'none');
 
     // Image Positioning
-    const [imageX, setImageX] = useState(t.imageX || 0);
-    const [imageY, setImageY] = useState(t.imageY || 0);
-    const [imageRotation, setImageRotation] = useState(t.imageRotation || 0);
+    const [imageX, setImageX] = useState(tokenData.imageX || 0);
+    const [imageY, setImageY] = useState(tokenData.imageY || 0);
+    const [imageRotation, setImageRotation] = useState(tokenData.imageRotation || 0);
 
     // Vision
-    const [visionRange, setVisionRange] = useState(t.visionRange || 0);
-    const [darkvisionRange, setDarkvisionRange] = useState(t.darkvisionRange || 0);
-    const initialVisColor = rgbaToHexAlpha(t.visionColor || 'rgba(255, 255, 255, 0.2)');
+    const [visionRange, setVisionRange] = useState(tokenData.visionRange || 0);
+    const [darkvisionRange, setDarkvisionRange] = useState(tokenData.darkvisionRange || 0);
+    const initialVisColor = rgbaToHexAlpha(tokenData.visionColor || 'rgba(255, 255, 255, 0.2)');
     const [visionHex, setVisionHex] = useState(initialVisColor.hex);
     const [visionAlpha, setVisionAlpha] = useState(initialVisColor.alpha);
 
     // Light
-    const [lightEnabled, setLightEnabled] = useState(t.light?.enabled || false);
-    const [lightBright, setLightBright] = useState(t.light?.brightRadius || 0);
-    const [lightDim, setLightDim] = useState(t.light?.dimRadius || 0);
-    const [lightColor, setLightColor] = useState(t.light?.color || '#fbbf24');
-    const [lightIntensity, setLightIntensity] = useState(t.light?.intensity || 0.5);
-    const [lightAnim, setLightAnim] = useState<LightAnimationType>(t.light?.animation || 'none');
+    const [lightEnabled, setLightEnabled] = useState(tokenData.light?.enabled || false);
+    const [lightBright, setLightBright] = useState(tokenData.light?.brightRadius || 0);
+    const [lightDim, setLightDim] = useState(tokenData.light?.dimRadius || 0);
+    const [lightColor, setLightColor] = useState(tokenData.light?.color || '#fbbf24');
+    const [lightIntensity, setLightIntensity] = useState(tokenData.light?.intensity || 0.5);
+    const [lightAnim, setLightAnim] = useState<LightAnimationType>(tokenData.light?.animation || 'none');
 
     // Stats
-    const [hpValue, setHpValue] = useState(t.bars?.bar1?.value || 0);
-    const [hpMax, setHpMax] = useState(t.bars?.bar1?.max || 0);
-    const [hpVisible, setHpVisible] = useState(t.bars?.bar1?.visible ?? true);
-    const [mpValue, setMpValue] = useState(t.bars?.bar2?.value || 0);
-    const [mpMax, setMpMax] = useState(t.bars?.bar2?.max || 0);
-    const [mpVisible, setMpVisible] = useState(t.bars?.bar2?.visible ?? false);
-    const [conditions, setConditions] = useState<Condition[]>(t.conditions || []);
-    const [auras, setAuras] = useState<Aura[]>(t.auras || []);
-    const [effects, setEffects] = useState<CombatEffect[]>(t.effects || []);
-    const [ignoredAuras, setIgnoredAuras] = useState<string[]>(t.ignoredAuras || []);
-    const [disposition, setDisposition] = useState<'friendly' | 'neutral' | 'hostile' | undefined>(t.disposition);
+    const [hpValue, setHpValue] = useState(tokenData.bars?.bar1?.value || 0);
+    const [hpMax, setHpMax] = useState(tokenData.bars?.bar1?.max || 0);
+    const [hpVisible, setHpVisible] = useState(tokenData.bars?.bar1?.visible ?? true);
+    const [mpValue, setMpValue] = useState(tokenData.bars?.bar2?.value || 0);
+    const [mpMax, setMpMax] = useState(tokenData.bars?.bar2?.max || 0);
+    const [mpVisible, setMpVisible] = useState(tokenData.bars?.bar2?.visible ?? false);
+    const [conditions, setConditions] = useState<Condition[]>(tokenData.conditions || []);
+    const [auras, setAuras] = useState<Aura[]>(tokenData.auras || []);
+    const [effects, setEffects] = useState<CombatEffect[]>(tokenData.effects || []);
+    const [ignoredAuras, setIgnoredAuras] = useState<string[]>(tokenData.ignoredAuras || []);
+    const [disposition, setDisposition] = useState<'friendly' | 'neutral' | 'hostile' | undefined>(tokenData.disposition);
 
     // Monster Sheet
     const [monsterStats, setMonsterStats] = useState<TokenStats>(
-        t.stats || {
+        tokenData.stats || {
             ac: 10,
             hpFormula: '',
             speed: '9m',
@@ -354,7 +356,7 @@ export const TokenEditModal: React.FC<TokenEditModalProps> = ({
         return {
             type: tokenType,
             linkedId: linkedId || undefined,
-            ownerId: linkedChar ? linkedChar.ownerId : t.ownerId,
+            ownerId: linkedChar ? linkedChar.ownerId : tokenData.ownerId,
             controlledBy: controlledBy,
             name,
             imgUrl,
