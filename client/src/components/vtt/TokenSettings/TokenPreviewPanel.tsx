@@ -1,6 +1,7 @@
 import React from 'react';
 import { TokenShape, TokenIdleAnimation, TokenEffect } from '../../../types';
 import { getIdleAnimationClass, getEffectClass } from './tokenModalUtils';
+import { useTranslation } from '../../../i18n/TranslationContext';
 
 interface TokenPreviewPanelProps {
   displayMode: 'image' | 'text';
@@ -55,6 +56,7 @@ export const TokenPreviewPanel: React.FC<TokenPreviewPanelProps> = ({
   lightColor,
   lightIntensity,
 }) => {
+  const { t } = useTranslation();
   const displaySize = size * GRID_PX;
   const scaleFactor = Math.min(1, 250 / displaySize);
 
@@ -109,7 +111,7 @@ export const TokenPreviewPanel: React.FC<TokenPreviewPanelProps> = ({
                   src={imgUrl}
                   className="w-full h-full object-cover"
                   onError={(e) => e.currentTarget.src = 'https://placehold.co/96x96/333/fff?text=?'}
-                  alt="Token Preview"
+                  alt={t('vtt.tokens.editModal.preview.alt')}
                 />
               </div>
               {tintAlpha > 0 && !isTopDown && (

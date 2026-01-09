@@ -13,6 +13,7 @@ import { getCombatSuggestions, CombatSuggestion } from '../../utils/combatAI';
 import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
 import { ActiveCombatantCard } from './combat/ActiveCombatantCard';
 import { CombatantRow } from './combat/CombatantRow';
+import { useTranslation } from '../../i18n/TranslationContext';
 
 export const CombatTrackerEnhanced: React.FC = () => {
   const {
@@ -22,6 +23,7 @@ export const CombatTrackerEnhanced: React.FC = () => {
     addCondition, removeCondition,
     getCombatStats, updateCombatSettings
   } = useGameSession();
+  const { t } = useTranslation();
 
   const [showHistory, setShowHistory] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -89,8 +91,8 @@ export const CombatTrackerEnhanced: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center p-6 text-zinc-500">
         <ShieldAlert className="w-16 h-16 mb-4 text-zinc-700" />
-        <h3 className="font-bold text-zinc-300 text-lg mb-2">Nenhum combate ativo</h3>
-        <p className="text-sm text-zinc-500">Inicie um combate pela barra de ferramentas do mestre.</p>
+        <h3 className="font-bold text-zinc-300 text-lg mb-2">{t('vtt.combat.tracker.emptyState.title')}</h3>
+        <p className="text-sm text-zinc-500">{t('vtt.combat.tracker.emptyState.message')}</p>
       </div>
     );
   }
@@ -129,13 +131,13 @@ export const CombatTrackerEnhanced: React.FC = () => {
         <div className="flex justify-between items-center mb-3">
           <h3 className="font-bold text-lg flex items-center gap-2 text-white">
             <Swords className="w-5 h-5 text-red-500" />
-            <span>Combate</span>
+            <span>{t('vtt.combat.tracker.header.title')}</span>
           </h3>
 
           <div className="flex items-center gap-2">
             {/* Timer */}
             {combat.settings.enableTurnTimer && (
-              <Tooltip content="Tempo do turno">
+              <Tooltip content={t('vtt.combat.tracker.turnTimer.tooltip')}>
                 <div className="flex items-center gap-1.5 text-xs bg-zinc-800/80 px-2.5 py-1 rounded-full border border-zinc-700 text-zinc-300">
                   <Clock className="w-3 h-3" />
                   <span className="font-mono font-bold">{formatTime(timeElapsed)}</span>
@@ -145,13 +147,13 @@ export const CombatTrackerEnhanced: React.FC = () => {
 
             {/* Round Counter */}
             <div className="bg-zinc-800/80 px-3 py-1 rounded-full border border-zinc-700">
-              <span className="text-[10px] uppercase text-zinc-500 font-bold mr-1">Rodada</span>
+              <span className="text-[10px] uppercase text-zinc-500 font-bold mr-1">{t('vtt.combat.tracker.roundCounter.label')}</span>
               <span className="font-bold text-white">{combat.round}</span>
             </div>
 
             {/* Actions */}
             <div className="flex items-center gap-1 pl-2 border-l border-zinc-800 ml-2">
-              <Tooltip content="Histórico">
+              <Tooltip content={t('vtt.combat.tracker.historyButton.tooltip')}>
                 <button
                   type="button"
                   onClick={() => setShowHistory(!showHistory)}
@@ -163,7 +165,7 @@ export const CombatTrackerEnhanced: React.FC = () => {
 
               {isGM && (
                 <>
-                  <Tooltip content="Configurações">
+                  <Tooltip content={t('vtt.combat.tracker.settingsButton.tooltip')}>
                     <button
                       type="button"
                       onClick={() => setShowSettings(!showSettings)}
@@ -173,7 +175,7 @@ export const CombatTrackerEnhanced: React.FC = () => {
                     </button>
                   </Tooltip>
 
-                  <Tooltip content="Atalhos">
+                  <Tooltip content={t('vtt.combat.tracker.shortcutsButton.tooltip')}>
                     <button
                       type="button"
                       onClick={() => setShowKeyboardHelp(true)}
@@ -201,15 +203,15 @@ export const CombatTrackerEnhanced: React.FC = () => {
       {/* Settings Panel */}
       {showSettings && isGM && (
         <div className="p-4 bg-zinc-900/90 border-b border-zinc-800 space-y-4 animate-in slide-in-from-top-2 shadow-inner">
-          <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Configurações de Batalha</h4>
+          <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">{t('vtt.combat.tracker.settingsPanel.title')}</h4>
           <div className="grid grid-cols-2 gap-3">
             {[
-              { key: 'autoRollInitiative', label: 'Auto-rolar Init' },
-              { key: 'showInitiativeToPlayers', label: 'Mostrar Init' },
-              { key: 'showEnemyHP', label: 'Mostrar HP Inimigo' },
-              { key: 'trackConcentration', label: 'Concentração' },
-              { key: 'enableTurnTimer', label: 'Timer Turno' },
-              { key: 'enableSuggestions', label: 'Sugestões IA' },
+              { key: 'autoRollInitiative', label: t('vtt.combat.tracker.settingsPanel.autoRollInit.label') },
+              { key: 'showInitiativeToPlayers', label: t('vtt.combat.tracker.settingsPanel.showInit.label') },
+              { key: 'showEnemyHP', label: t('vtt.combat.tracker.settingsPanel.showEnemyHP.label') },
+              { key: 'trackConcentration', label: t('vtt.combat.tracker.settingsPanel.concentration.label') },
+              { key: 'enableTurnTimer', label: t('vtt.combat.tracker.settingsPanel.turnTimer.label') },
+              { key: 'enableSuggestions', label: t('vtt.combat.tracker.settingsPanel.aiSuggestions.label') },
             ].map(({ key, label }) => (
               <label key={key} className="flex items-center gap-3 text-xs cursor-pointer hover:bg-zinc-800/50 p-2 rounded-lg transition-colors border border-transparent hover:border-zinc-800">
                 <input
@@ -228,7 +230,7 @@ export const CombatTrackerEnhanced: React.FC = () => {
       {/* History Panel */}
       {showHistory && (
         <div className="border-b border-zinc-800 bg-zinc-900/50 p-3 max-h-48 overflow-y-auto custom-scrollbar shrink-0 shadow-inner">
-          <h4 className="text-xs font-bold text-zinc-400 uppercase mb-2">Histórico de Ações</h4>
+          <h4 className="text-xs font-bold text-zinc-400 uppercase mb-2">{t('vtt.combat.tracker.historyPanel.title')}</h4>
           <div className="space-y-1">
             {combat.history.slice(-10).reverse().map(action => (
               <div key={action.id} className="text-xs text-zinc-500 flex items-start gap-2">
@@ -237,7 +239,7 @@ export const CombatTrackerEnhanced: React.FC = () => {
               </div>
             ))}
             {combat.history.length === 0 && (
-              <p className="text-xs text-zinc-600 italic">Nenhuma ação registrada ainda.</p>
+              <p className="text-xs text-zinc-600 italic">{t('vtt.combat.tracker.historyPanel.emptyState.message')}</p>
             )}
           </div>
         </div>
@@ -245,7 +247,7 @@ export const CombatTrackerEnhanced: React.FC = () => {
 
       {/* Turn Order List */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
-        <h4 className="text-xs font-bold text-zinc-500 uppercase px-1">Próximos Turnos</h4>
+        <h4 className="text-xs font-bold text-zinc-500 uppercase px-1">{t('vtt.combat.tracker.turnOrder.title')}</h4>
         {combat.turnOrder.map((combatant, index) => {
           if (index === combat.activeTurnIndex) return null; // Skip active (shown in card)
 
@@ -266,7 +268,7 @@ export const CombatTrackerEnhanced: React.FC = () => {
                       type="number"
                       value={damageAmount}
                       onChange={(e) => setDamageAmount(e.target.value)}
-                      placeholder="Dano"
+                      placeholder={t('vtt.combat.tracker.turnOrder.damagePlaceholder')}
                       className="flex-1 bg-zinc-950 border border-zinc-800 rounded px-2 py-1 text-sm outline-none focus:border-red-500"
                       autoFocus
                     />
@@ -279,7 +281,7 @@ export const CombatTrackerEnhanced: React.FC = () => {
                       type="number"
                       value={healAmount}
                       onChange={(e) => setHealAmount(e.target.value)}
-                      placeholder="Cura"
+                      placeholder={t('vtt.combat.tracker.turnOrder.healPlaceholder')}
                       className="flex-1 bg-zinc-950 border border-zinc-800 rounded px-2 py-1 text-sm outline-none focus:border-green-500"
                     />
                     <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleQuickHeal(combatant.id)} disabled={!healAmount}>
@@ -291,10 +293,10 @@ export const CombatTrackerEnhanced: React.FC = () => {
                     variant="ghost"
                     className="w-full text-red-400 hover:text-red-300 hover:bg-red-900/20 text-xs"
                     onClick={() => {
-                      if (confirm(`Remover ${combatant.name}?`)) removeCombatant(combatant.id);
+                      if (confirm(t('vtt.combat.tracker.turnOrder.removeFromCombat.confirmPrompt', { name: combatant.name }))) removeCombatant(combatant.id);
                     }}
                   >
-                    <Trash2 className="w-3 h-3 mr-2" /> Remover do Combate
+                    <Trash2 className="w-3 h-3 mr-2" /> {t('vtt.combat.tracker.turnOrder.removeFromCombat.label')}
                   </Button>
                 </div>
               )}
@@ -307,7 +309,7 @@ export const CombatTrackerEnhanced: React.FC = () => {
       {isGM && (
         <div className="p-3 border-t border-zinc-800 bg-zinc-900 shrink-0 space-y-2">
           <div className="flex gap-2">
-            <Tooltip content="Turno Anterior">
+            <Tooltip content={t('vtt.combat.tracker.controls.prevTurn.tooltip')}>
               <Button
                 size="sm"
                 variant="outline"
@@ -322,7 +324,7 @@ export const CombatTrackerEnhanced: React.FC = () => {
               onClick={nextTurn}
               className="flex-[3] shadow-lg shadow-primary/20"
             >
-              Próximo Turno
+              {t('vtt.combat.tracker.controls.nextTurn.label')}
               <ChevronRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
@@ -330,7 +332,7 @@ export const CombatTrackerEnhanced: React.FC = () => {
           <Button
             variant="destructive"
             onClick={() => {
-              if (confirm('Finalizar combate?')) {
+              if (confirm(t('vtt.combat.tracker.controls.endCombat.confirmPrompt'))) {
                 endCombat();
               }
             }}
@@ -338,7 +340,7 @@ export const CombatTrackerEnhanced: React.FC = () => {
             size="sm"
             className="opacity-50 hover:opacity-100 transition-opacity"
           >
-            Finalizar Combate
+            {t('vtt.combat.tracker.controls.endCombat.label')}
           </Button>
         </div>
       )}

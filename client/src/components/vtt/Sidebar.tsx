@@ -153,7 +153,7 @@ export const Sidebar: React.FC = () => {
         </div>
 
         {/* The Window Portal */}
-        <PopoutWindow title="QuestBinder Sidebar" onClose={handleDock} onBlocked={handlePopoutBlocked} width={400} height={700}>
+        <PopoutWindow title={t('vtt.session.sidebar.popoutWindow.title')} onClose={handleDock} onBlocked={handlePopoutBlocked} width={400} height={700}>
           <SidebarContent
             activeTab={activeTab}
             setActiveTab={setActiveTab}

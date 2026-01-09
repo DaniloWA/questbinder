@@ -1,6 +1,7 @@
 import React from 'react';
 import { User } from '../../../../types';
 import { Lock, Check } from 'lucide-react';
+import { useTranslation } from '../../../../i18n/TranslationContext';
 
 interface TokenPermsTabProps {
   players: User[];
@@ -13,6 +14,8 @@ export const TokenPermsTab: React.FC<TokenPermsTabProps> = ({
   controlledBy,
   onControlledByChange,
 }) => {
+  const { t } = useTranslation();
+
   const togglePlayer = (playerId: string) => {
     const isControlled = controlledBy.includes(playerId);
     if (isControlled) {
@@ -26,12 +29,12 @@ export const TokenPermsTab: React.FC<TokenPermsTabProps> = ({
     <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
       <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4">
         <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
-          <Lock className="w-4 h-4" /> Controladores do Token
+          <Lock className="w-4 h-4" /> {t('vtt.tokens.editModal.permissions.title')}
         </h3>
 
         <div className="grid grid-cols-1 gap-2">
           {players.length === 0 && (
-            <span className="text-xs text-zinc-600 italic">Nenhum jogador na sessão.</span>
+            <span className="text-xs text-zinc-600 italic">{t('vtt.tokens.editModal.permissions.noPlayers')}</span>
           )}
 
           {players.map(player => {

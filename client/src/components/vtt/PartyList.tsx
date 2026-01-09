@@ -4,15 +4,17 @@ import { useGameSession } from '../../context/GameSessionContext';
 import { useNotification } from '../../context/NotificationContext';
 import { UserPlus, Wifi, Copy } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { useTranslation } from '../../i18n/TranslationContext';
 
 export const PartyList: React.FC = () => {
     const { players, campaignCharacters, invitePlayer } = useGameSession();
     const { show } = useNotification();
+    const { t } = useTranslation();
 
     const handleInvite = () => {
         const link = invitePlayer();
         navigator.clipboard.writeText(link);
-        show({ type: 'success', message: 'Link copiado!' });
+        show({ type: 'success', message: t('vtt.party.invite.success') });
     };
 
     return (
@@ -23,18 +25,18 @@ export const PartyList: React.FC = () => {
                     <UserPlus className="w-5 h-5" />
                 </div>
                 <div>
-                    <h4 className="font-bold text-white text-sm">Convidar Jogadores</h4>
-                    <p className="text-xs text-zinc-500 mt-1">Envie o link para seus amigos.</p>
+                    <h4 className="font-bold text-white text-sm">{t('vtt.party.invite.title')}</h4>
+                    <p className="text-xs text-zinc-500 mt-1">{t('vtt.party.invite.desc')}</p>
                 </div>
                 <Button size="sm" fullWidth variant="outline" onClick={handleInvite} className="text-xs border-dashed">
-                    <Copy className="w-3 h-3 mr-2" /> Copiar Link
+                    <Copy className="w-3 h-3 mr-2" /> {t('vtt.party.invite.copyButton')}
                 </Button>
             </div>
 
             {/* Players List */}
             <div>
                 <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <Wifi className="w-3 h-3 text-green-500" /> Online ({players.length})
+                    <Wifi className="w-3 h-3 text-green-500" /> {t('vtt.party.onlineCount', { count: players.length })}
                 </h3>
                 <div className="space-y-3">
                     {players.map(player => {
@@ -48,7 +50,7 @@ export const PartyList: React.FC = () => {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="text-sm font-bold text-white truncate">{player.name}</p>
-                                        <p className="text-[10px] text-zinc-500">Jogador</p>
+                                        <p className="text-[10px] text-zinc-500">{t('vtt.party.playerLabel')}</p>
                                     </div>
                                 </div>
                                 {myChars.length > 0 && (

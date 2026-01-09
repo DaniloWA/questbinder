@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { TokenStats } from '../../../../types';
 import { SheetInput, SheetLabel, SheetTextArea } from '../../../ui/SheetPrimitives';
 import { calcMod, fmtMod } from '../tokenModalUtils';
+import { useTranslation } from '../../../../i18n/TranslationContext';
 
 interface TokenSheetTabProps {
   stats: TokenStats;
@@ -9,19 +10,22 @@ interface TokenSheetTabProps {
 }
 
 const ATTRIBUTES = ['str', 'dex', 'con', 'int', 'wis', 'cha'] as const;
-const ATTR_LABELS: Record<string, string> = {
-  str: 'FOR',
-  dex: 'DES',
-  con: 'CON',
-  int: 'INT',
-  wis: 'SAB',
-  cha: 'CAR',
-};
 
 export const TokenSheetTab: React.FC<TokenSheetTabProps> = ({
   stats,
   onStatsChange,
 }) => {
+  const { t } = useTranslation();
+
+  const attrLabels: Record<string, string> = useMemo(() => ({
+    str: 'FOR',
+    dex: 'DES',
+    con: 'CON',
+    int: 'INT',
+    wis: 'SAB',
+    cha: 'CAR',
+  }), []);
+
   const updateStats = (updates: Partial<TokenStats>) => {
     onStatsChange({ ...stats, ...updates });
   };
@@ -38,24 +42,24 @@ export const TokenSheetTab: React.FC<TokenSheetTabProps> = ({
       {/* Type, Alignment, CR */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <SheetInput
-          label="Tipo/Raça"
+          label={t('vtt.tokens.editModal.sheet.typeLabel')}
           value={stats.type || ''}
           onChange={e => updateStats({ type: e.target.value })}
-          placeholder="Humanoide (Goblin)"
+          placeholder={t('vtt.tokens.editModal.sheet.typePlaceholder')}
           variant="box"
         />
         <SheetInput
-          label="Alinhamento"
+          label={t('vtt.tokens.editModal.sheet.alignmentLabel')}
           value={stats.alignment || ''}
           onChange={e => updateStats({ alignment: e.target.value })}
-          placeholder="Neutro e Mau"
+          placeholder={t('vtt.tokens.editModal.sheet.alignmentPlaceholder')}
           variant="box"
         />
         <SheetInput
-          label="ND (CR)"
+          label={t('vtt.tokens.editModal.sheet.crLabel')}
           value={stats.cr || ''}
           onChange={e => updateStats({ cr: e.target.value })}
-          placeholder="1/4"
+          placeholder={t('vtt.tokens.editModal.sheet.crPlaceholder')}
           variant="box"
         />
       </div>
@@ -63,7 +67,7 @@ export const TokenSheetTab: React.FC<TokenSheetTabProps> = ({
       {/* AC, HP Formula, Speed */}
       <div className="grid grid-cols-3 gap-3 bg-zinc-950/50 p-3 rounded-lg border border-zinc-800">
         <div className="space-y-1">
-          <SheetLabel>CA</SheetLabel>
+          <SheetLabel>{t('vtt.tokens.editModal.sheet.acLabel')}</SheetLabel>
           <input
             type="number"
             value={stats.ac}
@@ -72,33 +76,33 @@ export const TokenSheetTab: React.FC<TokenSheetTabProps> = ({
           />
         </div>
         <div className="space-y-1">
-          <SheetLabel>PV (Fórmula)</SheetLabel>
+          <SheetLabel>{t('vtt.tokens.editModal.sheet.hpFormulaLabel')}</SheetLabel>
           <input
             value={stats.hpFormula || ''}
             onChange={e => updateStats({ hpFormula: e.target.value })}
             className="w-full bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-center text-sm"
-            placeholder="2d6"
+            placeholder={t('vtt.tokens.editModal.sheet.hpFormulaPlaceholder')}
           />
         </div>
         <div className="space-y-1">
-          <SheetLabel>Deslocamento</SheetLabel>
+          <SheetLabel>{t('vtt.tokens.editModal.sheet.speedLabel')}</SheetLabel>
           <input
             value={stats.speed || ''}
             onChange={e => updateStats({ speed: e.target.value })}
             className="w-full bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-center text-sm"
-            placeholder="9m"
+            placeholder={t('vtt.tokens.editModal.sheet.speedPlaceholder')}
           />
         </div>
       </div>
 
       {/* Attributes */}
       <div className="space-y-2">
-        <SheetLabel>Atributos</SheetLabel>
+        <SheetLabel>{t('vtt.tokens.editModal.sheet.attributesTitle')}</SheetLabel>
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 bg-zinc-900/30 p-2 rounded border border-zinc-800">
           {ATTRIBUTES.map(attr => (
             <div key={attr} className="flex flex-col items-center">
               <span className="text-[9px] font-bold uppercase text-zinc-500 mb-1">
-                {ATTR_LABELS[attr] || attr}
+                {attrLabels[attr] || attr}
               </span>
               <input
                 type="number"
@@ -117,18 +121,18 @@ export const TokenSheetTab: React.FC<TokenSheetTabProps> = ({
       {/* Senses & Languages */}
       <div className="space-y-3">
         <SheetInput
-          label="Sentidos"
+          label={t('vtt.tokens.editModal.sheet.sensesLabel')}
           value={stats.senses || ''}
           onChange={e => updateStats({ senses: e.target.value })}
-          placeholder="Visão no escuro 18m..."
+          placeholder={t('vtt.tokens.editModal.sheet.sensesPlaceholder')}
           variant="box"
           className="text-xs"
         />
         <SheetInput
-          label="Idiomas"
+          label={t('vtt.tokens.editModal.sheet.languagesLabel')}
           value={stats.languages || ''}
           onChange={e => updateStats({ languages: e.target.value })}
-          placeholder="Comum, Goblin..."
+          placeholder={t('vtt.tokens.editModal.sheet.languagesPlaceholder')}
           variant="box"
           className="text-xs"
         />
@@ -136,11 +140,11 @@ export const TokenSheetTab: React.FC<TokenSheetTabProps> = ({
 
       {/* Actions & Notes */}
       <div className="flex-1 flex flex-col min-h-[120px]">
-        <SheetLabel>Ações e Habilidades</SheetLabel>
+        <SheetLabel>{t('vtt.tokens.editModal.sheet.notesLabel')}</SheetLabel>
         <SheetTextArea
           value={stats.notes || ''}
           onChange={e => updateStats({ notes: e.target.value })}
-          placeholder="**Cimitarra.** +4 para acertar, 1d6+2 dano cortante..."
+          placeholder={t('vtt.tokens.editModal.sheet.notesPlaceholder')}
           className="flex-1 font-mono text-xs leading-relaxed bg-zinc-950 border-zinc-800"
         />
       </div>

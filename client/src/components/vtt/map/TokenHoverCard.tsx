@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { Token, Condition, Character, TokenHoverPermissions } from '../../../types';
 import { Heart, Shield, Zap, Eye, EyeOff, Droplets, Skull, AlertTriangle, Wind, ScrollText, Activity, Hand, Flame, Ghost, Anchor, EarOff, Lock, Moon, Plus } from 'lucide-react';
 import { Tooltip } from '../../ui/Tooltip';
 import { STATUS_RULES, StatusDefinition } from '../../../data/rules';
 import { useGameSession } from '../../../context/GameSessionContext';
+import { useTranslation } from '../../../i18n/TranslationContext';
 
 interface TokenHoverCardProps {
   token: Token;
@@ -66,8 +66,8 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
   token, character, position, isGM, currentUserId, permissions,
   onUpdate, onCharacterUpdate, onOpenSheet, onRoll, onMouseEnter, onMouseLeave
 }) => {
-
-  const { sendChatMessage, permissionHelper } = useGameSession();
+  const { t, hasKey } = useTranslation();
+  const { sendChatMessage, permissionHelper, permissions: sessionPermissions } = useGameSession();
   const [isAdding, setIsAdding] = useState(false);
 
   const style: React.CSSProperties = {
@@ -81,7 +81,7 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
   // Determine effective stats (PC vs NPC/Token)
   // If character is linked, use character HP/MP. Otherwise use token bars.
   const hp = character ? { value: character.hpCurrent, max: character.hpMax, visible: true } : token.bars?.bar1;
-  const mp = character ? { value: character.manaCurrent, max: character.manaMax, visible: true } : token.bars?.bar2;
+  const mp = character ? { value: character.manaCurrent ?? 0, max: character.manaMax ?? 0, visible: true } : token.bars?.bar2;
   const isController = token.ownerId === currentUserId || token.controlledBy?.includes(currentUserId || '');
   const canControl = permissionHelper.isGameMaster() || isController;
 
@@ -113,10 +113,10 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
         const newValue = Math.max(0, Math.min(max, current + amount));
         onCharacterUpdate(character.id, { hpCurrent: newValue });
       } else if (barKey === 'bar2') {
-        const current = character.manaCurrent;
-        const max = character.manaMax;
+        const current = character.manaCurrent ?? 0;
+        const max = character.manaMax ?? 0;
         const newValue = Math.max(0, Math.min(max, current + amount));
-        onCharacterUpdate(character.id, { manaCurrent: newValue });
+        onCharacterUpdate(character.id, { manaCurrent: newValue } as Partial<Character>);
       }
       return;
     }
@@ -161,15 +161,22 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
     onUpdate(token.id, { conditions: next });
 
     // Chat Message on ADD only, and only if GM and broadcastConditions is enabled
-    if (isAdding && isGM && permissions?.logConfig?.broadcastConditions && def) {
-      const markdown = `**${def.name}**\n\n${def.effects.map(e => `- ${e}`).join('\n')}\n\n*Duração: ${def.duration}*`;
+    if (isAdding && isGM && sessionPermissions?.logConfig?.broadcastConditions && def) {
+      const name = hasKey(`dnd.rules.conditions.${conditionId}.name`) ? t(`dnd.rules.conditions.${conditionId}.name`) : def.name;
+      const effectsTransl = def.effects.map((_, i) => {
+        const key = `dnd.rules.conditions.${conditionId}.effects.${i}`;
+        return hasKey(key) ? t(key) : def.effects[i];
+      });
+      const durationTransl = hasKey(`dnd.rules.conditions.${conditionId}.duration`) ? t(`dnd.rules.conditions.${conditionId}.duration`) : def.duration;
+
+      const markdown = `**${name}**\n\n${effectsTransl.map(e => `- ${e}`).join('\n')}\n\n*${t('common.duration')}: ${durationTransl}*`;
       sendChatMessage(
-        `Aplicou **${def.name}** em ${token.name}.`,
+        t('vtt.tokens.editModal.hover.applyCondition', { condition: name, name: token.name }),
         'system',
         undefined,
         {
           type: 'compendium',
-          label: def.name,
+          label: name,
           compendiumCategory: 'sections',
           contentMarkdown: markdown
         }
@@ -182,14 +189,21 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
     e.stopPropagation();
     const def = STATUS_RULES[conditionId];
     if (def) {
-      const markdown = `**${def.name}**\n\n${def.effects.map(e => `- ${e}`).join('\n')}\n\n*Duração: ${def.duration}*`;
+      const name = hasKey(`dnd.rules.conditions.${conditionId}.name`) ? t(`dnd.rules.conditions.${conditionId}.name`) : def.name;
+      const effectsTransl = def.effects.map((_, i) => {
+        const key = `dnd.rules.conditions.${conditionId}.effects.${i}`;
+        return hasKey(key) ? t(key) : def.effects[i];
+      });
+      const durationTransl = hasKey(`dnd.rules.conditions.${conditionId}.duration`) ? t(`dnd.rules.conditions.${conditionId}.duration`) : def.duration;
+
+      const markdown = `**${name}**\n\n${effectsTransl.map(e => `- ${e}`).join('\n')}\n\n*${t('common.duration')}: ${durationTransl}*`;
       sendChatMessage(
-        `Compartilhou a condição **${def.name}**.`,
+        t('vtt.tokens.editModal.hover.shareCondition', { condition: name }),
         'system',
         undefined,
         {
           type: 'compendium',
-          label: def.name,
+          label: name,
           compendiumCategory: 'sections',
           contentMarkdown: markdown
         }
@@ -201,26 +215,35 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
     e.stopPropagation(); // Prevent map click
     if (!onRoll) return;
     const mod = getMod(score);
-    onRoll(`1d20${fmtMod(mod)}`, `Teste de ${attr.toUpperCase()}`);
+    onRoll(`1d20${fmtMod(mod)}`, t('vtt.tokens.editModal.hover.testOf', { attr: attr.toUpperCase() }));
   };
 
   // Helper to render tooltip content
-  const renderConditionTooltip = (def: StatusDefinition) => (
-    <div className="space-y-2 max-w-[200px]">
-      <div className="font-bold border-b border-white/10 pb-1 mb-1">{def.name}</div>
-      <ul className="list-disc list-inside space-y-1">
-        {def.effects.map((eff, i) => <li key={i} className="text-zinc-300 leading-snug">{eff}</li>)}
-      </ul>
-      {def.duration && (
-        <div className="text-[10px] text-zinc-500 italic mt-2 border-t border-white/5 pt-1">
-          Duração: {def.duration}
+  const renderConditionTooltip = (def: StatusDefinition, conditionId: string) => {
+    const name = hasKey(`dnd.rules.conditions.${conditionId}.name`) ? t(`dnd.rules.conditions.${conditionId}.name`) : def.name;
+    const effectsTransl = def.effects.map((_, i) => {
+      const key = `dnd.rules.conditions.${conditionId}.effects.${i}`;
+      return hasKey(key) ? t(key) : def.effects[i];
+    });
+    const durationTransl = hasKey(`dnd.rules.conditions.${conditionId}.duration`) ? t(`dnd.rules.conditions.${conditionId}.duration`) : def.duration;
+
+    return (
+      <div className="space-y-2 max-w-[200px]">
+        <div className="font-bold border-b border-white/10 pb-1 mb-1">{name}</div>
+        <ul className="list-disc list-inside space-y-1">
+          {effectsTransl.map((eff, i) => <li key={i} className="text-zinc-300 leading-snug">{eff}</li>)}
+        </ul>
+        {durationTransl && (
+          <div className="text-[10px] text-zinc-500 italic mt-2 border-t border-white/5 pt-1">
+            {t('common.duration')}: {durationTransl}
+          </div>
+        )}
+        <div className="text-[9px] text-primary mt-1 flex items-center gap-1">
+          <Eye className="w-3 h-3" /> {t('common.shareTooltip')}
         </div>
-      )}
-      <div className="text-[9px] text-primary mt-1 flex items-center gap-1">
-        <Eye className="w-3 h-3" /> Clique para compartilhar
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div
@@ -256,10 +279,10 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
               {canShow('showName') && <h4 className="font-bold text-sm text-white truncate leading-tight font-fantasy tracking-wide">{token.name}</h4>}
               <div className="flex items-center gap-2 mt-0.5">
                 <span className={`text-[9px] px-1.5 rounded-sm uppercase font-bold leading-none py-0.5 ${token.type === 'pc' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' : 'bg-red-500/20 text-red-300 border border-red-500/30'}`}>
-                  {token.type === 'pc' ? 'Herói' : 'Criatura'}
+                  {token.type === 'pc' ? t('common.hero') : t('common.creature')}
                 </span>
                 {stats.pp > 0 && canControl && (
-                  <span className="text-[9px] text-zinc-400 flex items-center gap-1" title="Percepção Passiva">
+                  <span className="text-[9px] text-zinc-400 flex items-center gap-1" title={t('common.passivePerception')}>
                     <Eye className="w-2.5 h-2.5" /> PP {stats.pp}
                   </span>
                 )}
@@ -270,7 +293,7 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
               <button
                 onClick={(e) => { e.stopPropagation(); onUpdate(token.id, { isVisibleToPlayers: !token.isVisibleToPlayers }); }}
                 className={`p-1.5 rounded-md transition-all border ${!token.isVisibleToPlayers ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:text-white'}`}
-                title={token.isVisibleToPlayers ? "Token Visível" : "Token Oculto"}
+                title={token.isVisibleToPlayers ? t('common.visible') : t('common.hidden')}
               >
                 {token.isVisibleToPlayers ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
               </button>
@@ -287,7 +310,7 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
           {canShow('showHP') && (canControl || (hp && hp.visible)) && hp && hp.max > 0 && (
             <div className="space-y-1">
               <div className="flex justify-between items-center text-[10px] font-bold uppercase text-zinc-500 px-0.5">
-                <span className="flex items-center gap-1"><Heart className="w-3 h-3 text-red-500 fill-current" /> Vida</span>
+                <span className="flex items-center gap-1"><Heart className="w-3 h-3 text-red-500 fill-current" /> {t('common.hp')}</span>
                 <div className="flex items-center gap-1">
                   <span className={`text-sm font-black ${hp.value < hp.max / 2 ? 'text-red-400 animate-pulse' : 'text-white'}`}>{hp.value}</span>
                   <span className="text-[10px] text-zinc-600">/ {hp.max}</span>
@@ -317,7 +340,7 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
           {canShow('showResource') && (canControl || (mp && mp.visible)) && mp && mp.max > 0 && (
             <div className="space-y-1 pt-1 border-t border-zinc-800/50">
               <div className="flex justify-between items-center text-[10px] font-bold uppercase text-zinc-500 px-0.5">
-                <span className="flex items-center gap-1"><Zap className="w-3 h-3 text-blue-500 fill-current" /> Recurso</span>
+                <span className="flex items-center gap-1"><Zap className="w-3 h-3 text-blue-500 fill-current" /> {t('common.resource')}</span>
                 <div className="flex items-center gap-1">
                   <span className="text-sm font-black text-blue-200">{mp.value}</span>
                   <span className="text-[10px] text-zinc-600">/ {mp.max}</span>
@@ -354,12 +377,13 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
               {/* Conditions List */}
               <div className="flex flex-wrap gap-1.5 items-center relative">
                 {allConditions.map(cId => {
-                  const def = STATUS_RULES[cId] || { id: cId, name: cId, effects: ['Efeito desconhecido.'], duration: '' };
+                  const def = STATUS_RULES[cId] || { id: cId, name: cId, effects: [t('common.unknownEffect')], duration: '' };
+                  const name = hasKey(`dnd.rules.conditions.${cId}.name`) ? t(`dnd.rules.conditions.${cId}.name`) : def.name;
                   const styleClass = getDefaultStyle(cId);
                   const icon = ICON_MAP[cId] || <Activity className="w-3.5 h-3.5" />;
 
                   return (
-                    <Tooltip key={cId} content={renderConditionTooltip(def)}>
+                    <Tooltip key={cId} content={renderConditionTooltip(def, cId)}>
                       <button
                         onClick={(e) => shareCondition(e, cId)}
                         onContextMenu={(e) => { e.preventDefault(); toggleCondition(e, cId); }}
@@ -367,7 +391,7 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
                         title="Clique esquerdo: Linkar no Chat | Clique direito: Remover"
                       >
                         {icon}
-                        <span>{def.name}</span>
+                        <span>{name}</span>
                       </button>
                     </Tooltip>
                   );
@@ -379,7 +403,7 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
                     <button
                       onClick={(e) => { e.stopPropagation(); setIsAdding(!isAdding); }}
                       className={`w-6 h-6 flex items-center justify-center rounded-full border border-dashed border-zinc-600 text-zinc-500 hover:text-white hover:border-white hover:bg-zinc-800 transition-colors ${isAdding ? 'bg-zinc-800 text-white' : ''}`}
-                      title="Adicionar Condição"
+                      title={t('vtt.tokens.editModal.hover.addCondition')}
                     >
                       <Plus className="w-3 h-3" />
                     </button>
@@ -387,16 +411,17 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
                     {/* POPUP LIST */}
                     {isAdding && (
                       <div className="absolute top-full left-0 mt-2 w-48 bg-zinc-900 border border-zinc-700 rounded-xl shadow-xl p-1.5 max-h-60 overflow-y-auto custom-scrollbar z-50 animate-in fade-in zoom-in-95">
-                        <div className="px-2 py-1 mb-1 text-[9px] font-bold uppercase text-zinc-500">Adicionar Condição</div>
+                        <div className="px-2 py-1 mb-1 text-[9px] font-bold uppercase text-zinc-500">{t('vtt.tokens.editModal.hover.addCondition')}</div>
                         {Object.entries(STATUS_RULES).map(([key, rule]) => {
                           if (token.conditions?.includes(key as Condition)) return null;
+                          const name = hasKey(`dnd.rules.conditions.${key}.name`) ? t(`dnd.rules.conditions.${key}.name`) : rule.name;
                           return (
                             <button
                               key={key}
                               onClick={(e) => toggleCondition(e, key as Condition)}
                               className="w-full text-left px-2 py-1.5 text-xs text-zinc-300 hover:bg-primary/20 hover:text-white rounded transition-colors flex items-center gap-2"
                             >
-                              {ICON_MAP[key] || <Activity className="w-3 h-3" />} <span>{rule.name}</span>
+                              {ICON_MAP[key] || <Activity className="w-3 h-3" />} <span>{name}</span>
                             </button>
                           );
                         })}
@@ -409,14 +434,14 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
               {/* Active Effects List */}
               {token.effects && token.effects.length > 0 && (
                 <div className="space-y-1">
-                  <div className="text-[9px] font-bold uppercase text-zinc-500 px-1">Efeitos Ativos</div>
+                  <div className="text-[9px] font-bold uppercase text-zinc-500 px-1">{t('common.activeEffects')}</div>
                   <div className="flex flex-col gap-1">
                     {token.effects.map(effect => (
                       <div key={effect.id} className="bg-zinc-900/50 border border-zinc-800 rounded px-2 py-1 text-[10px] flex justify-between items-center">
                         <span className="text-zinc-300 font-medium truncate max-w-[120px]" title={effect.name}>{effect.name}</span>
                         <div className="flex gap-2 text-zinc-500">
-                          {effect.modifiers?.ac ? <span className="text-blue-400 font-bold" title="Modificador de CA">CA {fmtMod(effect.modifiers.ac)}</span> : null}
-                          {effect.modifiers?.speed ? <span className="text-green-400 font-bold" title="Modificador de Deslocamento">Desl. {fmtMod(effect.modifiers.speed)}</span> : null}
+                          {effect.modifiers?.ac ? <span className="text-blue-400 font-bold" title={t('common.acModifier')}>{t('common.ac')} {fmtMod(effect.modifiers.ac)}</span> : null}
+                          {effect.modifiers?.speed ? <span className="text-green-400 font-bold" title={t('common.speedModifier')}>{t('common.speed')} {fmtMod(effect.modifiers.speed)}</span> : null}
                         </div>
                       </div>
                     ))}
@@ -431,13 +456,13 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
         {canShow('showStats') && (
           <div className="flex gap-2 bg-zinc-900/50 p-1 rounded-lg border border-zinc-800">
             <div className="flex-1 flex flex-col items-center justify-center p-1.5 border-r border-zinc-800/50 last:border-0">
-              <span className="text-[9px] uppercase text-zinc-500 font-bold mb-0.5">CA</span>
+              <span className="text-[9px] uppercase text-zinc-500 font-bold mb-0.5">{t('common.ac')}</span>
               <div className="flex items-center gap-1 text-blue-300 font-bold text-xs">
                 <Shield className="w-3 h-3" /> {stats.ac}
               </div>
             </div>
             <div className="flex-1 flex flex-col items-center justify-center p-1.5 border-r border-zinc-800/50 last:border-0">
-              <span className="text-[9px] uppercase text-zinc-500 font-bold mb-0.5">Desl.</span>
+              <span className="text-[9px] uppercase text-zinc-500 font-bold mb-0.5">{t('common.speed')}</span>
               <div className="flex items-center gap-1 text-green-300 font-bold text-xs">
                 <Wind className="w-3 h-3" /> {stats.speed}
               </div>
@@ -449,7 +474,7 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
                   className="w-full h-full flex flex-col items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 rounded transition-colors group"
                 >
                   <ScrollText className="w-3.5 h-3.5 mb-0.5 group-hover:text-primary" />
-                  <span className="text-[9px] uppercase font-bold">Ficha</span>
+                  <span className="text-[9px] uppercase font-bold">{t('common.sheet')}</span>
                 </button>
               </div>
             )}
@@ -460,7 +485,7 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
         {canShow('showAttributes') && canControl && (
           <div className="grid grid-cols-3 gap-1.5">
             {(Object.entries(stats.attributes) as [string, number][]).slice(0, 6).map(([key, val]) => (
-              <Tooltip key={key} content={`Rolar Teste de ${key.toUpperCase()} (${fmtMod(getMod(val))})`}>
+              <Tooltip key={key} content={t('vtt.tokens.editModal.hover.rollAttribute', { attr: key.toUpperCase(), mod: fmtMod(getMod(val)) })}>
                 <button
                   onClick={(e) => handleAttributeRoll(e, key, val)}
                   className="flex items-center justify-between bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-600 rounded px-2 py-1 transition-all group active:bg-zinc-700"

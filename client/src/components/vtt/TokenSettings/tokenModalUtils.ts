@@ -67,7 +67,7 @@ export const CONDITION_ICONS: Record<string, React.ReactNode> = {
 
 export interface ObjectPreset {
   id: string;
-  label: string;
+  labelKey: string;
   icon: string;
   light: Partial<LightConfig>;
   color: string;
@@ -76,13 +76,69 @@ export interface ObjectPreset {
 }
 
 export const OBJECT_PRESETS: ObjectPreset[] = [
-  { id: 'torch', label: 'Tocha', icon: '🔥', light: { enabled: true, brightRadius: 6, dimRadius: 12, color: '#f97316', intensity: 0.8, animation: 'torch' }, color: '#f97316', effect: 'burning', animation: 'breath' },
-  { id: 'lantern', label: 'Lanterna', icon: '🏮', light: { enabled: true, brightRadius: 9, dimRadius: 18, color: '#fbbf24', intensity: 0.7, animation: 'none' }, color: '#fbbf24', effect: 'none', animation: 'none' },
-  { id: 'campfire', label: 'Fogueira', icon: '🪵', light: { enabled: true, brightRadius: 4, dimRadius: 9, color: '#ef4444', intensity: 0.9, animation: 'torch' }, color: '#ef4444', effect: 'burning', animation: 'breath' },
-  { id: 'magic_orb', label: 'Orbe', icon: '🔮', light: { enabled: true, brightRadius: 3, dimRadius: 6, color: '#8b5cf6', intensity: 0.6, animation: 'pulse' }, color: '#8b5cf6', effect: 'outline', animation: 'float' },
-  { id: 'chest', label: 'Baú', icon: '📦', light: { enabled: false }, color: '#a16207', effect: 'none', animation: 'none' },
-  { id: 'door', label: 'Porta', icon: '🚪', light: { enabled: false }, color: '#78350f', effect: 'none', animation: 'none' },
-  { id: 'trap', label: 'Armadilha', icon: '⚙️', light: { enabled: false }, color: '#52525b', effect: 'none', animation: 'none' },
+  {
+    id: 'torch',
+    labelKey: 'vtt.tokens.editModal.object.presets.torch',
+    icon: '🕯️',
+    color: '#f59e0b',
+    light: { enabled: true, brightRadius: 3, dimRadius: 6, color: '#ff9800', intensity: 0.8, animation: 'torch' as const },
+    effect: 'none' as const,
+    animation: 'breath' as const,
+  },
+  {
+    id: 'lantern',
+    labelKey: 'vtt.tokens.editModal.object.presets.lantern',
+    icon: '🏮',
+    color: '#facc15',
+    light: { enabled: true, brightRadius: 6, dimRadius: 12, color: '#ffc107', intensity: 0.9, animation: 'torch' as const },
+    effect: 'none' as const,
+    animation: 'none' as const,
+  },
+  {
+    id: 'campfire',
+    labelKey: 'vtt.tokens.editModal.object.presets.campfire',
+    icon: '🔥',
+    color: '#ef4444',
+    light: { enabled: true, brightRadius: 4.5, dimRadius: 9, color: '#ff5722', intensity: 1, animation: 'torch' as const },
+    effect: 'burning' as const,
+    animation: 'breath' as const,
+  },
+  {
+    id: 'orb',
+    labelKey: 'vtt.tokens.editModal.object.presets.magic_orb',
+    icon: '🔮',
+    color: '#a855f7',
+    light: { enabled: true, brightRadius: 6, dimRadius: 15, color: '#9c27b0', intensity: 0.7, animation: 'pulse' as const },
+    effect: 'ghostly' as const,
+    animation: 'float' as const,
+  },
+  {
+    id: 'chest',
+    labelKey: 'vtt.tokens.editModal.object.presets.chest',
+    icon: '📦',
+    color: '#71717a',
+    light: { enabled: false },
+    effect: 'none' as const,
+    animation: 'none' as const,
+  },
+  {
+    id: 'door',
+    labelKey: 'vtt.tokens.editModal.object.presets.door',
+    icon: '🚪',
+    color: '#71717a',
+    light: { enabled: false },
+    effect: 'none' as const,
+    animation: 'none' as const,
+  },
+  {
+    id: 'trap',
+    labelKey: 'vtt.tokens.editModal.object.presets.trap',
+    icon: '🕸️',
+    color: '#71717a',
+    light: { enabled: false },
+    effect: 'none' as const,
+    animation: 'none' as const,
+  },
 ];
 
 // --- Size Map for Monster Import ---

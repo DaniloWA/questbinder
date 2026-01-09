@@ -1,6 +1,7 @@
 import React from 'react';
 import { SheetInput } from '../../ui/SheetPrimitives';
 import { Eye, EyeOff } from 'lucide-react';
+import { useTranslation } from '../../../i18n/TranslationContext';
 
 interface StatusBarEditorProps {
   label: string;
@@ -25,6 +26,8 @@ export const StatusBarEditor: React.FC<StatusBarEditorProps> = ({
   onMaxChange,
   onVisibleChange,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-1.5">
       <div className="flex justify-between items-center text-[10px] font-bold uppercase text-zinc-500">
@@ -37,7 +40,7 @@ export const StatusBarEditor: React.FC<StatusBarEditorProps> = ({
           className={`hover:text-white flex items-center gap-1 transition-colors ${visible ? iconColor : 'text-zinc-600'}`}
         >
           {visible ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-          {visible ? 'Pública' : 'Oculta'}
+          {visible ? t('vtt.tokens.editModal.statusBar.public') : t('vtt.tokens.editModal.statusBar.hidden')}
         </button>
       </div>
       <div className="flex items-center gap-2">
@@ -46,7 +49,7 @@ export const StatusBarEditor: React.FC<StatusBarEditorProps> = ({
           value={value}
           onChange={e => onValueChange(Number(e.target.value))}
           className="text-center font-bold text-lg bg-zinc-950 rounded border-zinc-800"
-          placeholder="Atual"
+          placeholder={t('vtt.tokens.editModal.statusBar.currentPlaceholder')}
         />
         <span className="text-zinc-600">/</span>
         <SheetInput
@@ -54,7 +57,7 @@ export const StatusBarEditor: React.FC<StatusBarEditorProps> = ({
           value={max}
           onChange={e => onMaxChange(Number(e.target.value))}
           className="text-center font-bold text-lg bg-zinc-950 rounded border-zinc-800 text-zinc-400"
-          placeholder="Máx"
+          placeholder={t('vtt.tokens.editModal.statusBar.maxPlaceholder')}
         />
       </div>
     </div>

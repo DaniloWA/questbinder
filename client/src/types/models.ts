@@ -155,6 +155,8 @@ export interface Character {
   hpMax: number;
   hpCurrent: number;
   hpTemp: number;
+  manaMax?: number;
+  manaCurrent?: number;
   hitDiceTotal: string;
   hitDiceCurrent: number;
   deathSaves: { successes: number, failures: number; };

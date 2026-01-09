@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { LightAnimationType } from '../../../../types';
 import { SheetLabel } from '../../../ui/SheetPrimitives';
 import { Counter } from '../../../ui/Counter';
 import { ColorPicker } from '../../../ui/ColorPicker';
 import { ToggleSwitch } from '../../../ui/ToggleSwitch';
 import { Lightbulb } from 'lucide-react';
+import { useTranslation } from '../../../../i18n/TranslationContext';
 
 interface TokenLightTabProps {
   lightEnabled: boolean;
@@ -21,12 +22,6 @@ interface TokenLightTabProps {
   onLightAnimChange: (val: LightAnimationType) => void;
 }
 
-const LIGHT_ANIM_OPTIONS = [
-  { id: 'none', label: 'Fixo' },
-  { id: 'torch', label: 'Tocha' },
-  { id: 'pulse', label: 'Pulso' },
-];
-
 export const TokenLightTab: React.FC<TokenLightTabProps> = ({
   lightEnabled,
   onLightEnabledChange,
@@ -41,13 +36,21 @@ export const TokenLightTab: React.FC<TokenLightTabProps> = ({
   lightAnim,
   onLightAnimChange,
 }) => {
+  const { t } = useTranslation();
+
+  const lightAnimOptions = useMemo(() => [
+    { id: 'none', label: t('vtt.tokens.editModal.light.animations.none') },
+    { id: 'torch', label: t('vtt.tokens.editModal.light.animations.torch') },
+    { id: 'pulse', label: t('vtt.tokens.editModal.light.animations.pulse') },
+  ], [t]);
+
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
       <ToggleSwitch
         enabled={lightEnabled}
         onChange={onLightEnabledChange}
-        label="Emissor de Luz"
-        description="Token ilumina o ambiente?"
+        label={t('vtt.tokens.editModal.light.enabledLabel')}
+        description={t('vtt.tokens.editModal.light.enabledDescription')}
         icon={<Lightbulb className="w-6 h-6" />}
         iconActiveColor="bg-yellow-500/20 text-yellow-500"
       />
@@ -57,18 +60,18 @@ export const TokenLightTab: React.FC<TokenLightTabProps> = ({
           {/* Radius */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <SheetLabel>Raio Brilhante</SheetLabel>
+              <SheetLabel>{t('vtt.tokens.editModal.light.brightRadius')}</SheetLabel>
               <Counter value={lightBright} onChange={onLightBrightChange} min={0} max={200} className="bg-zinc-950" />
             </div>
             <div className="space-y-1">
-              <SheetLabel>Raio Penumbra</SheetLabel>
+              <SheetLabel>{t('vtt.tokens.editModal.light.dimRadius')}</SheetLabel>
               <Counter value={lightDim} onChange={onLightDimChange} min={0} max={200} className="bg-zinc-950" />
             </div>
           </div>
 
           {/* Color & Intensity */}
           <div className="space-y-2">
-            <SheetLabel>Cor e Intensidade</SheetLabel>
+            <SheetLabel>{t('vtt.tokens.editModal.light.colorIntensity')}</SheetLabel>
             <div className="flex gap-3 items-center bg-zinc-950 p-2 rounded-lg border border-zinc-800">
               <ColorPicker value={lightColor} onChange={onLightColorChange} />
               <div className="flex-1 px-2">
@@ -88,9 +91,9 @@ export const TokenLightTab: React.FC<TokenLightTabProps> = ({
 
           {/* Animation */}
           <div className="space-y-2">
-            <SheetLabel>Animação da Luz</SheetLabel>
+            <SheetLabel>{t('vtt.tokens.editModal.light.animationLabel')}</SheetLabel>
             <div className="grid grid-cols-3 gap-2">
-              {LIGHT_ANIM_OPTIONS.map(opt => (
+              {lightAnimOptions.map(opt => (
                 <button
                   key={opt.id}
                   type="button"

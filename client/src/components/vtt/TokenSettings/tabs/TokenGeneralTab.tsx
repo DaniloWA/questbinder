@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { TokenType } from '../../../../types';
 import { SheetInput, SheetLabel, SheetSelect } from '../../../ui/SheetPrimitives';
 import { Counter } from '../../../ui/Counter';
 import { ColorPicker } from '../../../ui/ColorPicker';
 import { ScanEye, Moon } from 'lucide-react';
+import { useTranslation } from '../../../../i18n/TranslationContext';
 
 interface TokenGeneralTabProps {
   tokenType: TokenType;
@@ -25,12 +26,6 @@ interface TokenGeneralTabProps {
   onVisionAlphaChange: (val: number) => void;
 }
 
-const DISPOSITION_OPTIONS = [
-  { id: 'friendly', label: 'Aliado', color: 'text-green-500', bg: 'bg-green-500/10 border-green-500/50' },
-  { id: 'neutral', label: 'Neutro', color: 'text-zinc-400', bg: 'bg-zinc-800 border-zinc-700' },
-  { id: 'hostile', label: 'Inimigo', color: 'text-red-500', bg: 'bg-red-500/10 border-red-500/50' },
-] as const;
-
 export const TokenGeneralTab: React.FC<TokenGeneralTabProps> = ({
   tokenType,
   name,
@@ -50,11 +45,19 @@ export const TokenGeneralTab: React.FC<TokenGeneralTabProps> = ({
   visionAlpha,
   onVisionAlphaChange,
 }) => {
+  const { t } = useTranslation();
+
+  const dispositionOptions = useMemo(() => [
+    { id: 'friendly', label: t('vtt.tokens.editModal.general.dispositions.friendly'), color: 'text-green-500', bg: 'bg-green-500/10 border-green-500/50' },
+    { id: 'neutral', label: t('vtt.tokens.editModal.general.dispositions.neutral'), color: 'text-zinc-400', bg: 'bg-zinc-800 border-zinc-700' },
+    { id: 'hostile', label: t('vtt.tokens.editModal.general.dispositions.hostile'), color: 'text-red-500', bg: 'bg-red-500/10 border-red-500/50' },
+  ] as const, [t]);
+
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
       <SheetInput
         variant="title"
-        placeholder="Nome do Token"
+        placeholder={t('vtt.tokens.editModal.general.namePlaceholder')}
         value={name}
         onChange={e => onNameChange(e.target.value)}
         className="w-full text-zinc-100"
@@ -62,12 +65,12 @@ export const TokenGeneralTab: React.FC<TokenGeneralTabProps> = ({
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1">
-          <SheetLabel>Tamanho (Quadrados)</SheetLabel>
+          <SheetLabel>{t('vtt.tokens.editModal.general.sizeLabel')}</SheetLabel>
           <Counter value={size} onChange={onSizeChange} min={0.5} max={10} step={0.5} className="bg-zinc-950 w-full" />
         </div>
         {tokenType !== 'object' && (
           <div className="space-y-1">
-            <SheetLabel>Movimento (m)</SheetLabel>
+            <SheetLabel>{t('vtt.tokens.editModal.general.speedLabel')}</SheetLabel>
             <Counter value={speed} onChange={onSpeedChange} min={0} max={100} step={1.5} className="bg-zinc-950 w-full" />
           </div>
         )}
@@ -75,9 +78,9 @@ export const TokenGeneralTab: React.FC<TokenGeneralTabProps> = ({
 
       {tokenType !== 'object' && (
         <div className="space-y-2">
-          <SheetLabel>Disposição (IA)</SheetLabel>
+          <SheetLabel>{t('vtt.tokens.editModal.general.dispositionLabel')}</SheetLabel>
           <div className="flex bg-zinc-950 p-1 rounded-lg border border-zinc-800">
-            {DISPOSITION_OPTIONS.map(opt => (
+            {dispositionOptions.map(opt => (
               <button
                 key={opt.id}
                 type="button"
@@ -97,22 +100,22 @@ export const TokenGeneralTab: React.FC<TokenGeneralTabProps> = ({
       {tokenType !== 'object' && (
         <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-950/30 space-y-4">
           <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
-            <ScanEye className="w-3 h-3" /> Visão
+            <ScanEye className="w-3 h-3" /> {t('vtt.tokens.editModal.general.vision.title')}
           </h3>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <SheetLabel tooltip="Alcance de visão em área iluminada">Alcance Normal</SheetLabel>
+              <SheetLabel tooltip={t('vtt.tokens.editModal.general.vision.normalTooltip')}>{t('vtt.tokens.editModal.general.vision.normalRange')}</SheetLabel>
               <Counter value={visionRange} onChange={onVisionRangeChange} min={0} max={999} className="bg-zinc-900 w-full" />
             </div>
             <div>
-              <SheetLabel icon={<Moon className="w-3 h-3" />} tooltip="Alcance de visão no escuro total">Visão Escuro</SheetLabel>
+              <SheetLabel icon={<Moon className="w-3 h-3" />} tooltip={t('vtt.tokens.editModal.general.vision.darkvisionTooltip')}>{t('vtt.tokens.editModal.general.vision.darkvisionRange')}</SheetLabel>
               <Counter value={darkvisionRange} onChange={onDarkvisionRangeChange} min={0} max={999} className="bg-zinc-900 w-full" />
             </div>
           </div>
 
           <div className="flex-1 space-y-1">
-            <SheetLabel>Cor da Visão (Overlay GM)</SheetLabel>
+            <SheetLabel>{t('vtt.tokens.editModal.general.vision.overlayGM')}</SheetLabel>
             <div className="flex gap-2">
               <ColorPicker value={visionHex} onChange={onVisionHexChange} />
               <div className="flex-1 h-10 bg-zinc-900 rounded border border-zinc-700 flex items-center px-2">

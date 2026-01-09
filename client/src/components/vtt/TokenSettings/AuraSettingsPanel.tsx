@@ -9,6 +9,7 @@ import { STATUS_RULES } from '../../../data/rules';
 import { v4 as uuidv4 } from 'uuid';
 import { calculateDistance } from '../../../utils/geometry';
 import { AURA_TEMPLATES, createAuraFromTemplate } from '../../../data/auraTemplates';
+import { useTranslation } from '../../../i18n/TranslationContext';
 
 interface AuraSettingsPanelProps {
   auras: Aura[];
@@ -18,6 +19,7 @@ interface AuraSettingsPanelProps {
 }
 
 export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onChange, sceneTokens, parentToken }) => {
+  const { t } = useTranslation();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showTemplates, setShowTemplates] = useState(false);
 
@@ -29,7 +31,7 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
     } else {
       newAura = {
         id: uuidv4(),
-        name: 'Nova Aura',
+        name: t('vtt.tokens.editModal.auras.newAuraDefaultName'),
         radius: 3,
         color: '#fbbf24',
         shape: 'circle',
@@ -39,7 +41,7 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
         includedTokenIds: [],
         excludedTokenIds: [],
         category: 'support',
-        trigger: 'Constante'
+        trigger: t('vtt.tokens.editModal.auras.constantTrigger')
       };
     }
 
@@ -63,7 +65,7 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
 
     const newEffect: CombatEffect = {
       id: uuidv4(),
-      name: 'Efeito da Aura',
+      name: t('vtt.tokens.editModal.auras.effectDefaultName'),
       duration: { type: 'permanent', value: 0, remaining: 0 },
       modifiers: {},
       conditions: []
@@ -201,7 +203,7 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
       `}>
         <div className="relative">
           <Button size="sm" type="button" onClick={() => setShowTemplates(!showTemplates)} className="w-full mb-2 flex justify-between items-center">
-            <span className="flex items-center"><Plus className="w-4 h-4 mr-2" /> Nova Aura</span>
+            <span className="flex items-center"><Plus className="w-4 h-4 mr-2" /> {t('vtt.tokens.editModal.auras.newAuraButton')}</span>
             <ChevronDown className={`w-4 h-4 transition-transform ${showTemplates ? 'rotate-180' : ''}`} />
           </Button>
 
@@ -212,7 +214,7 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
                 onClick={() => handleAddAura()}
                 className="w-full text-left px-3 py-2 text-xs text-white hover:bg-zinc-800 rounded flex items-center gap-2"
               >
-                <Edit2 className="w-3 h-3" /> Personalizada
+                <Edit2 className="w-3 h-3" /> {t('vtt.tokens.editModal.auras.customTemplate')}
               </button>
 
               {Object.entries(groupedTemplates).map(([cat, templates]) => {
@@ -220,7 +222,9 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
                 return (
                   <div key={cat}>
                     <div className="h-px bg-zinc-800 my-1" />
-                    <div className="px-2 py-1 text-[10px] font-bold text-zinc-500 uppercase">{cat === 'other' ? 'Outros' : cat}</div>
+                    <div className="px-2 py-1 text-[10px] font-bold text-zinc-500 uppercase">
+                      {cat === 'other' ? t('vtt.tokens.editModal.auras.categories.other') : t(`vtt.tokens.editModal.auras.categories.${cat}`)}
+                    </div>
                     {templates.map((tpl, i) => (
                       <button
                         key={i}
@@ -243,7 +247,7 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
         </div>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2">
-          {auras.length === 0 && <p className="text-xs text-zinc-500 text-center py-4">Nenhuma aura configurada.</p>}
+          {auras.length === 0 && <p className="text-xs text-zinc-500 text-center py-4">{t('vtt.tokens.editModal.auras.noAurasMessage')}</p>}
           {auras.map(aura => (
             <div
               key={aura.id}
@@ -259,11 +263,13 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
               </div>
               <div className="flex items-center gap-2 mt-1 text-[10px] text-zinc-500">
                 {aura.category && (
-                  <span className={`px-1 rounded border ${getCategoryColor(aura.category)} uppercase`}>{aura.category}</span>
+                  <span className={`px-1 rounded border ${getCategoryColor(aura.category)} uppercase`}>
+                    {t(`vtt.tokens.editModal.auras.categories.${aura.category}`)}
+                  </span>
                 )}
                 <span className="flex items-center gap-0.5">
                   {aura.targets === 'allies' ? <Users className="w-3 h-3" /> : aura.targets === 'enemies' ? <Skull className="w-3 h-3" /> : <User className="w-3 h-3" />}
-                  {aura.targets}
+                  {t(`vtt.tokens.editModal.auras.targetOptions.${aura.targets}`)}
                 </span>
               </div>
             </div>
@@ -287,7 +293,7 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
                 onClick={() => setEditingId(null)}
                 className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white"
               >
-                <ChevronLeft className="w-5 h-5" /> Voltar
+                <ChevronLeft className="w-5 h-5" /> {t('vtt.tokens.editModal.auras.backButton')}
               </button>
               <Button size="sm" variant="destructive" type="button" onClick={() => handleDeleteAura(editingAura.id)}>
                 <Trash2 className="w-4 h-4" />
@@ -296,7 +302,7 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
 
             {/* Desktop Header */}
             <div className="hidden md:flex justify-between items-center border-b border-zinc-800 pb-2 mb-4">
-              <h3 className="font-bold text-white flex items-center gap-2"><Edit2 className="w-4 h-4" /> Editando Aura</h3>
+              <h3 className="font-bold text-white flex items-center gap-2"><Edit2 className="w-4 h-4" /> {t('vtt.tokens.editModal.auras.editingTitle')}</h3>
               <Button size="icon" variant="destructive" type="button" onClick={() => handleDeleteAura(editingAura.id)}><Trash2 className="w-4 h-4" /></Button>
             </div>
 
@@ -304,17 +310,17 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
             <div className="flex-1 overflow-y-auto custom-scrollbar p-3 md:p-0 md:pr-2 space-y-4">
               {/* Name & Category */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <SheetInput label="Nome da Aura" value={editingAura.name} onChange={e => handleUpdateAura(editingAura.id, { name: e.target.value })} />
+                <SheetInput label={t('vtt.tokens.editModal.auras.nameLabel')} value={editingAura.name} onChange={e => handleUpdateAura(editingAura.id, { name: e.target.value })} />
                 <div className="space-y-1">
-                  <SheetLabel>Categoria</SheetLabel>
+                  <SheetLabel>{t('vtt.tokens.editModal.auras.categoryLabel')}</SheetLabel>
                   <SheetSelect
                     value={editingAura.category || 'support'}
                     onChange={v => handleUpdateAura(editingAura.id, { category: v as any })}
                     options={[
-                      { label: 'Ofensiva', value: 'offensive' },
-                      { label: 'Defensiva', value: 'defensive' },
-                      { label: 'Suporte', value: 'support' },
-                      { label: 'Controle', value: 'control' }
+                      { label: t('vtt.tokens.editModal.auras.categories.offensive'), value: 'offensive' },
+                      { label: t('vtt.tokens.editModal.auras.categories.defensive'), value: 'defensive' },
+                      { label: t('vtt.tokens.editModal.auras.categories.support'), value: 'support' },
+                      { label: t('vtt.tokens.editModal.auras.categories.control'), value: 'control' }
                     ]}
                     variant="box"
                   />
@@ -323,29 +329,29 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
 
               {/* Description */}
               <div className="space-y-1">
-                <SheetLabel>Descrição / Efeito Narrativo</SheetLabel>
+                <SheetLabel>{t('vtt.tokens.editModal.auras.descriptionLabel')}</SheetLabel>
                 <textarea
                   className="w-full bg-zinc-950 border border-zinc-800 rounded-md p-2 text-xs text-zinc-300 focus:ring-1 focus:ring-primary focus:border-primary outline-none resize-none h-16"
                   value={editingAura.description || ''}
                   onChange={e => handleUpdateAura(editingAura.id, { description: e.target.value })}
-                  placeholder="Descreva o efeito da aura..."
+                  placeholder={t('vtt.tokens.editModal.auras.descriptionPlaceholder')}
                 />
               </div>
 
               {/* Trigger & Requirements */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <SheetInput label="Gatilho" value={editingAura.trigger || ''} onChange={e => handleUpdateAura(editingAura.id, { trigger: e.target.value })} placeholder="Ex: Início do turno" />
-                <SheetInput label="Requisitos" value={editingAura.requirements?.join(', ') || ''} onChange={e => handleUpdateAura(editingAura.id, { requirements: e.target.value.split(',').map(s => s.trim()) })} placeholder="Ex: Consciente" />
+                <SheetInput label={t('vtt.tokens.editModal.auras.triggerLabel')} value={editingAura.trigger || ''} onChange={e => handleUpdateAura(editingAura.id, { trigger: e.target.value })} placeholder={t('vtt.tokens.editModal.auras.triggerPlaceholder')} />
+                <SheetInput label={t('vtt.tokens.editModal.auras.requirementsLabel')} value={editingAura.requirements?.join(', ') || ''} onChange={e => handleUpdateAura(editingAura.id, { requirements: e.target.value.split(',').map(s => s.trim()) })} placeholder={t('vtt.tokens.editModal.auras.requirementsPlaceholder')} />
               </div>
 
               {/* Radius & Shape */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <SheetLabel>Raio (metros)</SheetLabel>
+                  <SheetLabel>{t('vtt.tokens.editModal.auras.radiusLabel')}</SheetLabel>
                   <Counter value={editingAura.radius} onChange={v => handleUpdateAura(editingAura.id, { radius: v })} min={0.5} max={100} step={0.5} className="bg-zinc-950" />
                 </div>
                 <div className="space-y-1">
-                  <SheetLabel>Formato</SheetLabel>
+                  <SheetLabel>{t('vtt.tokens.editModal.auras.shapeLabel')}</SheetLabel>
                   <div className="flex bg-zinc-950 rounded-lg p-1 border border-zinc-800">
                     <button type="button" onClick={() => handleUpdateAura(editingAura.id, { shape: 'circle' })} className={`flex-1 flex items-center justify-center py-2 rounded ${editingAura.shape === 'circle' ? 'bg-zinc-800 text-white' : 'text-zinc-500'}`}><Circle className="w-4 h-4" /></button>
                     <button type="button" onClick={() => handleUpdateAura(editingAura.id, { shape: 'square' })} className={`flex-1 flex items-center justify-center py-2 rounded ${editingAura.shape === 'square' ? 'bg-zinc-800 text-white' : 'text-zinc-500'}`}><Square className="w-4 h-4" /></button>
@@ -356,21 +362,21 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
               {/* Targets & Color */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <SheetLabel>Alvos</SheetLabel>
+                  <SheetLabel>{t('vtt.tokens.editModal.auras.targetsLabel')}</SheetLabel>
                   <SheetSelect
                     value={editingAura.targets}
                     onChange={v => handleUpdateAura(editingAura.id, { targets: v as any })}
                     options={[
-                      { label: 'Aliados', value: 'allies' },
-                      { label: 'Inimigos', value: 'enemies' },
-                      { label: 'Todos', value: 'all' },
-                      { label: 'Apenas Eu', value: 'self' }
+                      { label: t('vtt.tokens.editModal.auras.targetOptions.allies'), value: 'allies' },
+                      { label: t('vtt.tokens.editModal.auras.targetOptions.enemies'), value: 'enemies' },
+                      { label: t('vtt.tokens.editModal.auras.targetOptions.all'), value: 'all' },
+                      { label: t('vtt.tokens.editModal.auras.targetOptions.self'), value: 'self' }
                     ]}
                     variant="box"
                   />
                 </div>
                 <div className="space-y-1">
-                  <SheetLabel>Cor</SheetLabel>
+                  <SheetLabel>{t('vtt.tokens.editModal.auras.colorLabel')}</SheetLabel>
                   <ColorPicker value={editingAura.color} onChange={v => handleUpdateAura(editingAura.id, { color: v })} className="w-full" />
                 </div>
               </div>
@@ -384,7 +390,7 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
                     onChange={e => handleUpdateAura(editingAura.id, { active: e.target.checked })}
                     className="rounded border-zinc-700 bg-zinc-900 text-primary focus:ring-primary"
                   />
-                  <span className="text-xs font-bold text-white">Ativa</span>
+                  <span className="text-xs font-bold text-white">{t('vtt.tokens.editModal.auras.activeLabel')}</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -393,41 +399,41 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
                     onChange={e => handleUpdateAura(editingAura.id, { visible: e.target.checked })}
                     className="rounded border-zinc-700 bg-zinc-900 text-primary focus:ring-primary"
                   />
-                  <span className="text-xs font-bold text-white">Visível (Jogadores)</span>
+                  <span className="text-xs font-bold text-white">{t('vtt.tokens.editModal.auras.visibleLabel')}</span>
                 </label>
               </div>
 
               {/* Targeting Preview */}
               <div className="space-y-2 border-t border-zinc-800 pt-4">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                  <SheetLabel icon={<Target className="w-3 h-3" />}>Alvos no Alcance ({targetsInRange.length})</SheetLabel>
+                  <SheetLabel icon={<Target className="w-3 h-3" />}>{t('vtt.tokens.editModal.auras.targetsInRangeLabel')} ({targetsInRange.length})</SheetLabel>
                   <div className="flex gap-2">
-                    <Button size="xs" variant="ghost" type="button" onClick={() => bulkAction('include-allies')} title="Forçar inclusão de todos aliados">
-                      <Check className="w-3 h-3 mr-1" /> Aliados
+                    <Button size="xs" variant="ghost" type="button" onClick={() => bulkAction('include-allies')} title={t('vtt.tokens.editModal.auras.bulkIncludeAlliesTooltip')}>
+                      <Check className="w-3 h-3 mr-1" /> {t('vtt.tokens.editModal.auras.bulkIncludeAllies')}
                     </Button>
-                    <Button size="xs" variant="ghost" type="button" onClick={() => bulkAction('exclude-enemies')} title="Forçar exclusão de todos inimigos">
-                      <Ban className="w-3 h-3 mr-1" /> Inimigos
+                    <Button size="xs" variant="ghost" type="button" onClick={() => bulkAction('exclude-enemies')} title={t('vtt.tokens.editModal.auras.bulkExcludeEnemiesTooltip')}>
+                      <Ban className="w-3 h-3 mr-1" /> {t('vtt.tokens.editModal.auras.bulkExcludeEnemies')}
                     </Button>
                   </div>
                 </div>
                 <div className="bg-zinc-950/50 rounded-lg border border-zinc-800 max-h-32 overflow-y-auto custom-scrollbar p-1">
-                  {targetsInRange.length === 0 && <p className="text-xs text-zinc-600 text-center py-2">Nenhum token no alcance.</p>}
-                  {targetsInRange.map(t => {
-                    const status = getTargetStatus(t, editingAura);
+                  {targetsInRange.length === 0 && <p className="text-xs text-zinc-600 text-center py-2">{t('vtt.tokens.editModal.auras.noTokensInRange')}</p>}
+                  {targetsInRange.map(t_inner => {
+                    const status = getTargetStatus(t_inner, editingAura);
                     const isIncluded = status === 'included';
                     const isExcluded = status === 'excluded';
                     const isHit = status === 'auto-hit' || isIncluded;
 
                     return (
-                      <div key={t.id} className={`flex items-center justify-between p-2 rounded mb-1 ${isHit ? 'bg-primary/5' : 'bg-zinc-900/50'}`}>
+                      <div key={t_inner.id} className={`flex items-center justify-between p-2 rounded mb-1 ${isHit ? 'bg-primary/5' : 'bg-zinc-900/50'}`}>
                         <div className="flex items-center gap-2 min-w-0">
                           <div className={`w-2 h-2 rounded-full shrink-0 ${isHit ? 'bg-green-500' : 'bg-zinc-600'}`} />
-                          <span className={`text-xs font-bold truncate ${isHit ? 'text-white' : 'text-zinc-500'}`}>{t.name}</span>
-                          <span className="text-[9px] text-zinc-600 uppercase shrink-0 hidden sm:inline">({t.disposition || (t.type === 'pc' ? 'Aliado' : 'Inimigo')})</span>
+                          <span className={`text-xs font-bold truncate ${isHit ? 'text-white' : 'text-zinc-500'}`}>{t_inner.name}</span>
+                          <span className="text-[9px] text-zinc-600 uppercase shrink-0 hidden sm:inline">({t_inner.disposition || (t_inner.type === 'pc' ? t('vtt.tokens.editModal.general.dispositions.friendly') : t('vtt.tokens.editModal.general.dispositions.hostile'))})</span>
                         </div>
                         <div className="flex gap-1 shrink-0">
-                          <button type="button" onClick={() => toggleInclude(t.id)} className={`p-1.5 rounded ${isIncluded ? 'bg-green-500 text-white' : 'text-zinc-600 hover:bg-zinc-800'}`} title="Forçar Incluir"><Check className="w-3 h-3" /></button>
-                          <button type="button" onClick={() => toggleExclude(t.id)} className={`p-1.5 rounded ${isExcluded ? 'bg-red-500 text-white' : 'text-zinc-600 hover:bg-zinc-800'}`} title="Forçar Excluir"><Ban className="w-3 h-3" /></button>
+                          <button type="button" onClick={() => toggleInclude(t_inner.id)} className={`p-1.5 rounded ${isIncluded ? 'bg-green-500 text-white' : 'text-zinc-600 hover:bg-zinc-800'}`} title={t('vtt.tokens.editModal.auras.includeTooltip')}><Check className="w-3 h-3" /></button>
+                          <button type="button" onClick={() => toggleExclude(t_inner.id)} className={`p-1.5 rounded ${isExcluded ? 'bg-red-500 text-white' : 'text-zinc-600 hover:bg-zinc-800'}`} title={t('vtt.tokens.editModal.auras.excludeTooltip')}><Ban className="w-3 h-3" /></button>
                         </div>
                       </div>
                     );
@@ -438,8 +444,8 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
               {/* Effects Section */}
               <div className="border-t border-zinc-800 pt-4 space-y-3">
                 <div className="flex justify-between items-center">
-                  <SheetLabel icon={<Zap className="w-3 h-3" />}>Efeitos Aplicados</SheetLabel>
-                  <Button size="xs" variant="secondary" type="button" onClick={() => handleAddEffect(editingAura.id)}><Plus className="w-3 h-3 mr-1" /> Efeito</Button>
+                  <SheetLabel icon={<Zap className="w-3 h-3" />}>{t('vtt.tokens.editModal.auras.appliedEffectsLabel')}</SheetLabel>
+                  <Button size="xs" variant="secondary" type="button" onClick={() => handleAddEffect(editingAura.id)}><Plus className="w-3 h-3 mr-1" /> {t('vtt.tokens.editModal.auras.addEffectButton')}</Button>
                 </div>
 
                 {editingAura.effects.map((effect) => (
@@ -449,7 +455,7 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
                         className="bg-transparent border-none font-bold text-sm text-white focus:ring-0 p-0 w-full outline-none"
                         value={effect.name}
                         onChange={e => handleUpdateEffect(editingAura.id, effect.id, { name: e.target.value })}
-                        placeholder="Nome do Efeito"
+                        placeholder={t('vtt.tokens.editModal.auras.effectNamePlaceholder')}
                       />
                       <button type="button" onClick={() => handleDeleteEffect(editingAura.id, effect.id)} className="text-zinc-600 hover:text-red-500 shrink-0"><Trash2 className="w-4 h-4" /></button>
                     </div>
@@ -476,7 +482,7 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-zinc-500 uppercase">Condições</label>
+                      <label className="text-[10px] font-bold text-zinc-500 uppercase">{t('vtt.tokens.editModal.status.conditionsTitle')}</label>
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5 max-h-28 overflow-y-auto custom-scrollbar p-1">
                         {Object.keys(STATUS_RULES).map(cond => {
                           const isActive = effect.conditions?.includes(cond as CombatCondition);
@@ -499,14 +505,14 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
                     </div>
                   </div>
                 ))}
-                {editingAura.effects.length === 0 && <p className="text-xs text-zinc-600 italic">Nenhum efeito configurado. A aura será apenas visual.</p>}
+                {editingAura.effects.length === 0 && <p className="text-xs text-zinc-600 italic">{t('vtt.tokens.editModal.auras.noEffectsMessage')}</p>}
               </div>
             </div>
           </div>
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-zinc-600 p-8">
             <Shield className="w-12 h-12 mb-2 opacity-20" />
-            <p className="text-sm text-center">Selecione ou crie uma aura para editar.</p>
+            <p className="text-sm text-center">{t('vtt.tokens.editModal.auras.selectEditMessage')}</p>
           </div>
         )}
       </div>

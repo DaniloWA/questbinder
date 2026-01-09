@@ -332,7 +332,7 @@ export const TokenEditModal: React.FC<TokenEditModalProps> = ({
     const handleApplyObjectPreset = (presetId: string) => {
         const preset = OBJECT_PRESETS.find((p) => p.id === presetId);
         if (preset) {
-            setName(preset.label);
+            setName(t(preset.labelKey));
             setDisplayMode('text');
             setTextVal(preset.icon);
             setTextBgColor(preset.color);
@@ -402,28 +402,28 @@ export const TokenEditModal: React.FC<TokenEditModalProps> = ({
     const getVisibleTabs = () => {
         if (tokenType === 'pc')
             return [
-                { id: 'general', label: 'Geral', icon: <Eye className="w-4 h-4" /> },
-                { id: 'style', label: 'Estilo', icon: <Palette className="w-4 h-4" /> },
-                { id: 'stats', label: 'Status', icon: <Activity className="w-4 h-4" /> },
-                { id: 'light', label: 'Luz', icon: <Sun className="w-4 h-4" /> },
-                { id: 'auras', label: 'Auras', icon: <Shield className="w-4 h-4" /> },
-                { id: 'perms', label: 'Permissões', icon: <Lock className="w-4 h-4" /> },
+                { id: 'general', label: t('vtt.tokens.editModal.tabs.general.label'), icon: <Eye className="w-4 h-4" /> },
+                { id: 'style', label: t('vtt.tokens.editModal.tabs.style.label'), icon: <Palette className="w-4 h-4" /> },
+                { id: 'stats', label: t('vtt.tokens.editModal.tabs.status.label'), icon: <Activity className="w-4 h-4" /> },
+                { id: 'light', label: t('vtt.tokens.editModal.tabs.light.label'), icon: <Sun className="w-4 h-4" /> },
+                { id: 'auras', label: t('vtt.tokens.editModal.tabs.auras.label'), icon: <Shield className="w-4 h-4" /> },
+                { id: 'perms', label: t('vtt.tokens.editModal.tabs.perms.label'), icon: <Lock className="w-4 h-4" /> },
             ];
         if (tokenType === 'npc')
             return [
-                { id: 'general', label: 'Geral', icon: <Eye className="w-4 h-4" /> },
-                { id: 'sheet', label: 'Ficha', icon: <FileText className="w-4 h-4" /> },
-                { id: 'style', label: 'Estilo', icon: <Palette className="w-4 h-4" /> },
-                { id: 'stats', label: 'Status', icon: <Activity className="w-4 h-4" /> },
-                { id: 'light', label: 'Luz', icon: <Sun className="w-4 h-4" /> },
-                { id: 'auras', label: 'Auras', icon: <Shield className="w-4 h-4" /> },
-                { id: 'perms', label: 'Permissões', icon: <Lock className="w-4 h-4" /> },
+                { id: 'general', label: t('vtt.tokens.editModal.tabs.general.label'), icon: <Eye className="w-4 h-4" /> },
+                { id: 'sheet', label: t('vtt.tokens.editModal.tabs.sheet.label'), icon: <FileText className="w-4 h-4" /> },
+                { id: 'style', label: t('vtt.tokens.editModal.tabs.style.label'), icon: <Palette className="w-4 h-4" /> },
+                { id: 'stats', label: t('vtt.tokens.editModal.tabs.status.label'), icon: <Activity className="w-4 h-4" /> },
+                { id: 'light', label: t('vtt.tokens.editModal.tabs.light.label'), icon: <Sun className="w-4 h-4" /> },
+                { id: 'auras', label: t('vtt.tokens.editModal.tabs.auras.label'), icon: <Shield className="w-4 h-4" /> },
+                { id: 'perms', label: t('vtt.tokens.editModal.tabs.perms.label'), icon: <Lock className="w-4 h-4" /> },
             ];
         return [
-            { id: 'general', label: 'Geral', icon: <Eye className="w-4 h-4" /> },
-            { id: 'style', label: 'Estilo', icon: <Palette className="w-4 h-4" /> },
-            { id: 'light', label: 'Luz', icon: <Sun className="w-4 h-4" /> },
-            { id: 'auras', label: 'Auras', icon: <Shield className="w-4 h-4" /> },
+            { id: 'general', label: t('vtt.tokens.editModal.tabs.general.label'), icon: <Eye className="w-4 h-4" /> },
+            { id: 'style', label: t('vtt.tokens.editModal.tabs.style.label'), icon: <Palette className="w-4 h-4" /> },
+            { id: 'light', label: t('vtt.tokens.editModal.tabs.light.label'), icon: <Sun className="w-4 h-4" /> },
+            { id: 'auras', label: t('vtt.tokens.editModal.tabs.auras.label'), icon: <Shield className="w-4 h-4" /> },
         ];
     };
 
@@ -490,7 +490,7 @@ export const TokenEditModal: React.FC<TokenEditModalProps> = ({
                                 >
                                     <Button type="button" size="sm" variant="secondary" disabled={isUploading}>
                                         {isUploading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <UploadCloud className="w-4 h-4 mr-2" />}
-                                        {isUploading ? 'Enviando...' : 'Upload'}
+                                        {isUploading ? t('vtt.tokens.editModal.footer.uploading') : 'Upload'}
                                     </Button>
                                 </div>
                             )}
@@ -501,15 +501,15 @@ export const TokenEditModal: React.FC<TokenEditModalProps> = ({
                         <div className="space-y-4">
                             {tokenType === 'pc' && (
                                 <div className="space-y-2 animate-in fade-in slide-in-from-left-4">
-                                    <SheetLabel icon={<Lock className="w-3 h-3" />}>Vincular Ficha</SheetLabel>
+                                    <SheetLabel icon={<Lock className="w-3 h-3" />}>{t('vtt.tokens.editModal.pc.linkSheet')}</SheetLabel>
                                     <SheetSelect
                                         value={linkedId}
                                         onChange={handleLinkCharacter}
                                         options={[
-                                            { label: 'Sem Vínculo', value: '' },
+                                            { label: t('vtt.tokens.editModal.pc.noLink'), value: '' },
                                             ...availableCharacters.map((p) => ({ label: `${p.name} (Nvl ${p.level})`, value: p.id })),
                                         ]}
-                                        placeholder="Selecionar Herói..."
+                                        placeholder={t('vtt.tokens.editModal.pc.selectHero')}
                                         variant="box"
                                     />
                                 </div>
@@ -517,12 +517,12 @@ export const TokenEditModal: React.FC<TokenEditModalProps> = ({
 
                             {tokenType === 'npc' && (
                                 <div className="relative z-20 animate-in fade-in slide-in-from-left-4">
-                                    <SheetLabel icon={<BookOpen className="w-3 h-3" />}>Buscar no Bestiário</SheetLabel>
+                                    <SheetLabel icon={<BookOpen className="w-3 h-3" />}>{t('vtt.tokens.editModal.npc.searchBestiary')}</SheetLabel>
                                     <div className="relative">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                                         <input
                                             className="w-full bg-zinc-900 border border-zinc-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white focus:border-primary outline-none placeholder:text-zinc-600"
-                                            placeholder="Ex: Goblin, Dragão..."
+                                            placeholder={t('vtt.tokens.editModal.npc.searchPlaceholder')}
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                         />
@@ -550,7 +550,7 @@ export const TokenEditModal: React.FC<TokenEditModalProps> = ({
 
                             {tokenType === 'object' && (
                                 <div className="space-y-2 animate-in fade-in slide-in-from-left-4">
-                                    <SheetLabel icon={<Package className="w-3 h-3" />}>Presets Rápidos</SheetLabel>
+                                    <SheetLabel icon={<Package className="w-3 h-3" />}>{t('vtt.tokens.editModal.object.quickPresets')}</SheetLabel>
                                     <div className="grid grid-cols-4 sm:grid-cols-3 md:grid-cols-3 gap-2">
                                         {OBJECT_PRESETS.map((preset) => (
                                             <button
@@ -560,7 +560,7 @@ export const TokenEditModal: React.FC<TokenEditModalProps> = ({
                                                 className="flex flex-col items-center justify-center p-2 bg-zinc-900 border border-zinc-800 rounded-lg hover:border-primary/50 hover:bg-zinc-800 transition-all group"
                                             >
                                                 <span className="text-xl md:text-2xl mb-1 group-hover:scale-110 transition-transform">{preset.icon}</span>
-                                                <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 truncate w-full text-center">{preset.label}</span>
+                                                <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 truncate w-full text-center">{t(preset.labelKey)}</span>
                                             </button>
                                         ))}
                                     </div>
@@ -575,14 +575,14 @@ export const TokenEditModal: React.FC<TokenEditModalProps> = ({
                                         onClick={() => setDisplayMode('image')}
                                         className={`flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-bold rounded transition-all ${displayMode === 'image' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
                                     >
-                                        <ImageIcon className="w-4 h-4" /> Imagem
+                                        <ImageIcon className="w-4 h-4" /> {t('vtt.tokens.editModal.displayMode.image')}
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => setDisplayMode('text')}
                                         className={`flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-bold rounded transition-all ${displayMode === 'text' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
                                     >
-                                        <Type className="w-4 h-4" /> Sigla
+                                        <Type className="w-4 h-4" /> {t('vtt.tokens.editModal.displayMode.text')}
                                     </button>
                                 </div>
 
@@ -590,7 +590,7 @@ export const TokenEditModal: React.FC<TokenEditModalProps> = ({
                                     <SheetInput
                                         variant="ghost"
                                         className="text-xs bg-zinc-900 border border-zinc-800 rounded-md px-2"
-                                        placeholder="URL da Imagem..."
+                                        placeholder={t('vtt.tokens.editModal.imageField.placeholder')}
                                         value={imgUrl}
                                         onChange={(e) => setImgUrl(e.target.value)}
                                     />

@@ -7,6 +7,7 @@ import { ChatMessage, ChatLinkMetadata } from '../../types';
 import { Send, Dices, MapPin, User, Sword, Zap, Backpack, ThumbsUp, ThumbsDown, ChevronDown, MessageSquare, ExternalLink, Maximize2, Minimize2, Move, GripHorizontal, ArrowRightToLine, Eye, EyeOff, Hash, Heart, ShieldAlert, Footprints, Activity, Filter, BookOpen, Skull, Lock, Unlock, Users } from 'lucide-react';
 import { Tooltip } from '../ui/Tooltip';
 import { formatMarkdown } from '../../utils/markdown';
+import { useTranslation } from '../../i18n/TranslationContext';
 
 // --- RICH LINK CARD COMPONENT (Reusable) ---
 const RichLinkCard: React.FC<{ link: ChatLinkMetadata; onClick: () => void; }> = ({ link, onClick }) => {
@@ -14,6 +15,7 @@ const RichLinkCard: React.FC<{ link: ChatLinkMetadata; onClick: () => void; }> =
     const [isOverflowing, setIsOverflowing] = useState(false);
     const contentRef = useRef<HTMLDivElement>(null);
     const { type, data, label, compendiumSlug, contentMarkdown } = link;
+    const { t } = useTranslation();
 
     // Check for overflow whenever content changes
     useEffect(() => {
@@ -44,7 +46,7 @@ const RichLinkCard: React.FC<{ link: ChatLinkMetadata; onClick: () => void; }> =
                             onClick={onClick}
                             className={`text-xs flex items-center gap-1 hover:underline ${config.accent}`}
                         >
-                            Abrir <ExternalLink className="w-3 h-3" />
+                            {t('vtt.chat.cards.compendium.open')} <ExternalLink className="w-3 h-3" />
                         </button>
                     )}
                 </div>
@@ -59,13 +61,13 @@ const RichLinkCard: React.FC<{ link: ChatLinkMetadata; onClick: () => void; }> =
                         {!isExpanded && isOverflowing && (
                             <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-zinc-950/90 to-transparent flex items-end justify-center pb-1">
                                 <button onClick={() => setIsExpanded(true)} className="text-[10px] uppercase font-bold text-zinc-500 hover:text-zinc-300 flex items-center gap-1 bg-zinc-900/80 px-2 py-0.5 rounded-full border border-zinc-800 transition-colors hover:bg-zinc-800">
-                                    <ChevronDown className="w-3 h-3" /> Ler Mais
+                                    <ChevronDown className="w-3 h-3" /> {t('vtt.chat.cards.compendium.readMore')}
                                 </button>
                             </div>
                         )}
                         {isExpanded && (
                             <div className="flex justify-center mt-2 pt-2 border-t border-white/5">
-                                <button onClick={() => setIsExpanded(false)} className="text-[10px] uppercase font-bold text-zinc-500 hover:text-zinc-300">Colapsar</button>
+                                <button onClick={() => setIsExpanded(false)} className="text-[10px] uppercase font-bold text-zinc-500 hover:text-zinc-300">{t('vtt.chat.cards.compendium.collapse')}</button>
                             </div>
                         )}
                     </div>
@@ -92,9 +94,9 @@ const RichLinkCard: React.FC<{ link: ChatLinkMetadata; onClick: () => void; }> =
 
     const renderDetails = () => {
         switch (type) {
-            case 'attack': return <div className="flex gap-2 mb-2"><div className="bg-black/30 rounded px-2 py-1 text-[10px] border border-white/5 shrink-0"><span className="text-zinc-500 block text-[9px] uppercase">Acerto</span><span className={`font-bold ${config.accent}`}>{data.atkBonus}</span></div><div className="bg-black/30 rounded px-2 py-1 text-[10px] border border-white/5 shrink-0"><span className="text-zinc-500 block text-[9px] uppercase">Dano</span><span className="font-bold text-zinc-200">{data.damage}</span></div></div>;
-            case 'spell': return <div className="flex gap-2 mb-2"><div className="bg-black/30 rounded px-2 py-1 text-[10px] border border-white/5 shrink-0"><span className="text-zinc-500 block text-[9px] uppercase">Nível</span><span className={`font-bold ${config.accent}`}>{data.level === 0 ? 'Truque' : data.level}</span></div><div className="bg-black/30 rounded px-2 py-1 text-[10px] border border-white/5 flex-1 min-w-0"><span className="text-zinc-500 block text-[9px] uppercase">Escola</span><span className="font-bold text-zinc-200 truncate block">{data.school}</span></div></div>;
-            case 'item': return <div className="flex gap-2 mb-2"><div className="bg-black/30 rounded px-2 py-1 text-[10px] border border-white/5 shrink-0"><span className="text-zinc-500 block text-[9px] uppercase">Qtd</span><span className={`font-bold ${config.accent}`}>{data.qty}</span></div></div>;
+            case 'attack': return <div className="flex gap-2 mb-2"><div className="bg-black/30 rounded px-2 py-1 text-[10px] border border-white/5 shrink-0"><span className="text-zinc-500 block text-[9px] uppercase">{t('vtt.chat.cards.attack.hit')}</span><span className={`font-bold ${config.accent}`}>{data.atkBonus}</span></div><div className="bg-black/30 rounded px-2 py-1 text-[10px] border border-white/5 shrink-0"><span className="text-zinc-500 block text-[9px] uppercase">{t('vtt.chat.cards.attack.damage')}</span><span className="font-bold text-zinc-200">{data.damage}</span></div></div>;
+            case 'spell': return <div className="flex gap-2 mb-2"><div className="bg-black/30 rounded px-2 py-1 text-[10px] border border-white/5 shrink-0"><span className="text-zinc-500 block text-[9px] uppercase">{t('vtt.chat.cards.spell.level')}</span><span className={`font-bold ${config.accent}`}>{data.level === 0 ? t('vtt.chat.cards.spell.cantrip') : data.level}</span></div><div className="bg-black/30 rounded px-2 py-1 text-[10px] border border-white/5 flex-1 min-w-0"><span className="text-zinc-500 block text-[9px] uppercase">{t('vtt.chat.cards.spell.school')}</span><span className="font-bold text-zinc-200 truncate block">{data.school}</span></div></div>;
+            case 'item': return <div className="flex gap-2 mb-2"><div className="bg-black/30 rounded px-2 py-1 text-[10px] border border-white/5 shrink-0"><span className="text-zinc-500 block text-[9px] uppercase">{t('vtt.chat.cards.item.qty')}</span><span className={`font-bold ${config.accent}`}>{data.qty}</span></div></div>;
             default: return null;
         }
     };
@@ -110,9 +112,9 @@ const RichLinkCard: React.FC<{ link: ChatLinkMetadata; onClick: () => void; }> =
                 {data.description && (<div className={`text-[10px] text-zinc-400 leading-relaxed cursor-pointer break-words ${isExpanded ? '' : 'line-clamp-2 hover:text-zinc-300'}`} onClick={() => setIsExpanded(!isExpanded)}>{data.description}</div>)}
                 <div className="mt-2 pt-2 border-t border-white/5 flex justify-end">
                     {compendiumSlug ? (
-                        <button onClick={(e) => { e.stopPropagation(); onClick(); }} className={`flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider hover:underline ${config.accent}`}>Abrir no Grimório <ExternalLink className="w-2.5 h-2.5" /></button>
+                        <button onClick={(e) => { e.stopPropagation(); onClick(); }} className={`flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider hover:underline ${config.accent}`}>{t('vtt.chat.cards.compendium.grimoire')} <ExternalLink className="w-2.5 h-2.5" /></button>
                     ) : (
-                        <button onClick={(e) => { e.stopPropagation(); onClick(); }} className={`flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider hover:underline ${config.accent}`}>{type === 'attack' ? 'Rolar Ataque' : 'Ver Detalhes'} <ExternalLink className="w-2.5 h-2.5" /></button>
+                        <button onClick={(e) => { e.stopPropagation(); onClick(); }} className={`flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider hover:underline ${config.accent}`}>{type === 'attack' ? t('vtt.chat.cards.attack.rollAttack') : t('vtt.chat.cards.generic.viewDetails')} <ExternalLink className="w-2.5 h-2.5" /></button>
                     )}
                 </div>
             </div>
@@ -130,6 +132,7 @@ interface GameLogProps {
 export const GameLog: React.FC<GameLogProps> = ({ onModeChange }) => {
     const { chatMessages, sendChatMessage, toggleChatReaction, handleChatLinkClick, campaignCharacters, isGM } = useGameSession();
     const { user } = useAuth();
+    const { t } = useTranslation();
 
     const [inputText, setInputText] = useState('');
     const [speakingAs, setSpeakingAs] = useState<'player' | string>('player');
@@ -277,7 +280,7 @@ export const GameLog: React.FC<GameLogProps> = ({ onModeChange }) => {
 
         const iconMap: any = { token: <User className="w-3 h-3" />, position: <MapPin className="w-3 h-3" /> };
         const styles: any = { token: 'border-blue-500/30 bg-blue-500/5 text-blue-300 hover:bg-blue-500/10 hover:border-blue-500/50', position: 'border-amber-500/30 bg-amber-500/5 text-amber-300 hover:bg-amber-500/10 hover:border-amber-500/50' };
-        return <button onClick={() => handleChatLinkClick(link)} className={`mt-2 flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-medium transition-all w-fit shadow-sm max-w-full truncate ${styles[link.type] || 'border-zinc-700 bg-zinc-800 text-zinc-300'}`}>{iconMap[link.type]} <span className="truncate">{link.type === 'position' ? `Ir para ${link.label}` : link.label}</span></button>;
+        return <button onClick={() => handleChatLinkClick(link)} className={`mt-2 flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-medium transition-all w-fit shadow-sm max-w-full truncate ${styles[link.type] || 'border-zinc-700 bg-zinc-800 text-zinc-300'}`}>{iconMap[link.type]} <span className="truncate">{link.type === 'position' ? t('vtt.chat.cards.position.goTo', { label: link.label }) : link.label}</span></button>;
     };
 
     const renderSystemEvent = (msg: ChatMessage) => {
@@ -290,7 +293,7 @@ export const GameLog: React.FC<GameLogProps> = ({ onModeChange }) => {
                             <Sword className="w-4 h-4" />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-xs text-zinc-300"><strong className="text-red-400">{link.data.targetName}</strong> sofreu <strong className="text-white">{link.data.diff}</strong> de dano.</p>
+                            <p className="text-xs text-zinc-300" dangerouslySetInnerHTML={{ __html: formatMarkdown(t('vtt.chat.messages.system.damage', { name: link.data.targetName, diff: link.data.diff })) }} />
                             <div className="w-full bg-zinc-900 h-1.5 mt-1.5 rounded-full overflow-hidden"><div className="h-full bg-red-600 transition-all duration-500" style={{ width: `${Math.min(100, (link.data.new / Math.max(1, (link.data.new - link.data.diff))) * 100)}%` }}></div></div>
                         </div>
                     </div>
@@ -303,7 +306,7 @@ export const GameLog: React.FC<GameLogProps> = ({ onModeChange }) => {
                             <Heart className="w-4 h-4" />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-xs text-zinc-300"><strong className="text-green-400">{link.data.targetName}</strong> recuperou <strong className="text-white">{link.data.diff}</strong> de vida.</p>
+                            <p className="text-xs text-zinc-300" dangerouslySetInnerHTML={{ __html: formatMarkdown(t('vtt.chat.messages.system.heal', { name: link.data.targetName, diff: link.data.diff })) }} />
                         </div>
                     </div>
                 );
@@ -351,7 +354,7 @@ export const GameLog: React.FC<GameLogProps> = ({ onModeChange }) => {
         if (!canSee && isObfuscated) {
             return (
                 <div className="p-2 rounded border bg-zinc-900/50 border-zinc-800 flex items-center gap-2 text-zinc-600 italic text-[10px] justify-center">
-                    <Hash className="w-3 h-3" /> Rolagem Oculta
+                    <Hash className="w-3 h-3" /> {t('vtt.chat.messages.roll.hidden')}
                 </div>
             );
         }
@@ -359,7 +362,7 @@ export const GameLog: React.FC<GameLogProps> = ({ onModeChange }) => {
         return (
             <div className={`relative p-3 rounded-lg border shadow-sm overflow-hidden w-full ${msg.rollDetails.isCritical ? 'bg-yellow-950/20 border-yellow-500/40 shadow-[0_0_10px_rgba(234,179,8,0.1)]' : msg.rollDetails.isFumble ? 'bg-red-950/20 border-red-500/40' : 'bg-zinc-800/50 border-zinc-700'}`}>
                 <div className="flex items-center justify-between gap-2 mb-2 border-b border-white/5 pb-2">
-                    <span className="font-bold text-xs text-zinc-300 truncate">{msg.rollDetails.label || 'Rolagem'}</span>
+                    <span className="font-bold text-xs text-zinc-300 truncate">{msg.rollDetails.label || t('vtt.chat.messages.roll.label')}</span>
                     <div className="flex gap-1">
                         {visibility === 'gm' && <EyeOff className="w-3 h-3 text-purple-400" />}
                         {visibility === 'total' && <Hash className="w-3 h-3 text-amber-400" />}
@@ -394,23 +397,23 @@ export const GameLog: React.FC<GameLogProps> = ({ onModeChange }) => {
                 <div className="flex items-center gap-2 text-zinc-300">
                     {viewMode === 'floating' && <Move className="w-4 h-4 opacity-50 mr-1" />}
                     <Activity className="w-4 h-4 text-primary" />
-                    <span className="font-bold font-fantasy tracking-wider text-sm">Histórico</span>
+                    <span className="font-bold font-fantasy tracking-wider text-sm">{t('vtt.chat.title')}</span>
                 </div>
 
                 <div className="flex items-center gap-1">
-                    {viewMode !== 'sidebar' && <Tooltip content="Acoplar"><button onClick={() => setViewMode('sidebar')} className="p-1.5 hover:bg-white/10 rounded text-zinc-400 hover:text-white"><ArrowRightToLine className="w-4 h-4" /></button></Tooltip>}
-                    {viewMode === 'sidebar' && <Tooltip content="Destacar"><button onClick={() => setViewMode('floating')} className="p-1.5 hover:bg-white/10 rounded text-zinc-400 hover:text-white"><ExternalLink className="w-4 h-4" /></button></Tooltip>}
-                    {viewMode !== 'fullscreen' ? <Tooltip content="Expandir"><button onClick={() => setViewMode('fullscreen')} className="p-1.5 hover:bg-white/10 rounded text-zinc-400 hover:text-white"><Maximize2 className="w-4 h-4" /></button></Tooltip> : <Tooltip content="Reduzir"><button onClick={() => setViewMode('sidebar')} className="p-1.5 hover:bg-white/10 rounded text-zinc-400 hover:text-white"><Minimize2 className="w-4 h-4" /></button></Tooltip>}
+                    {viewMode !== 'sidebar' && <Tooltip content={t('vtt.chat.tooltips.dock')}><button onClick={() => setViewMode('sidebar')} className="p-1.5 hover:bg-white/10 rounded text-zinc-400 hover:text-white"><ArrowRightToLine className="w-4 h-4" /></button></Tooltip>}
+                    {viewMode === 'sidebar' && <Tooltip content={t('vtt.chat.tooltips.popout')}><button onClick={() => setViewMode('floating')} className="p-1.5 hover:bg-white/10 rounded text-zinc-400 hover:text-white"><ExternalLink className="w-4 h-4" /></button></Tooltip>}
+                    {viewMode !== 'fullscreen' ? <Tooltip content={t('vtt.chat.tooltips.expand')}><button onClick={() => setViewMode('fullscreen')} className="p-1.5 hover:bg-white/10 rounded text-zinc-400 hover:text-white"><Maximize2 className="w-4 h-4" /></button></Tooltip> : <Tooltip content={t('vtt.chat.tooltips.collapse')}><button onClick={() => setViewMode('sidebar')} className="p-1.5 hover:bg-white/10 rounded text-zinc-400 hover:text-white"><Minimize2 className="w-4 h-4" /></button></Tooltip>}
                 </div>
             </div>
 
             {/* FILTERS */}
             <div className="flex border-b border-white/5 bg-zinc-900/30 px-2 overflow-x-auto hide-scrollbar shrink-0">
                 {[
-                    { id: 'all', label: 'Tudo' },
-                    { id: 'chat', label: 'Chat' },
-                    { id: 'roll', label: 'Dados' },
-                    { id: 'system', label: 'Sistema' },
+                    { id: 'all', label: t('vtt.chat.tabs.all') },
+                    { id: 'chat', label: t('vtt.chat.tabs.chat') },
+                    { id: 'roll', label: t('vtt.chat.tabs.roll') },
+                    { id: 'system', label: t('vtt.chat.tabs.system') },
                 ].map((f) => (
                     <button
                         key={f.id}
@@ -424,7 +427,7 @@ export const GameLog: React.FC<GameLogProps> = ({ onModeChange }) => {
 
             {/* MESSAGES */}
             <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 custom-scrollbar relative">
-                {filteredMessages.length === 0 && <div className="flex flex-col items-center justify-center h-full text-zinc-600 gap-3 opacity-50"><Filter className="w-8 h-8" /><p className="text-xs italic">Sem registros visíveis.</p></div>}
+                {filteredMessages.length === 0 && <div className="flex flex-col items-center justify-center h-full text-zinc-600 gap-3 opacity-50"><Filter className="w-8 h-8" /><p className="text-xs italic">{t('vtt.chat.tabs.empty')}</p></div>}
 
                 {groupedMessages.map((group, gIndex) => {
                     const firstMsg = group[0];
@@ -467,7 +470,7 @@ export const GameLog: React.FC<GameLogProps> = ({ onModeChange }) => {
                                                         {msg.recipientId && (
                                                             <div className="text-[10px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1 text-purple-400 border-b border-purple-500/20 pb-1">
                                                                 <Lock className="w-3 h-3" />
-                                                                {msg.senderId === user?.id ? `Sussurrou para ${msg.recipientName}` : msg.recipientId === user?.id ? 'Sussurrou para você' : `Sussurro para ${msg.recipientName}`}
+                                                                {msg.senderId === user?.id ? t('vtt.chat.messages.whisper.fromMe', { name: msg.recipientName }) : msg.recipientId === user?.id ? t('vtt.chat.messages.whisper.toMe') : t('vtt.chat.messages.whisper.other', { name: msg.recipientName })}
                                                             </div>
                                                         )}
                                                         {msg.content} {msg.link && renderLink(msg.link)}
@@ -517,7 +520,7 @@ export const GameLog: React.FC<GameLogProps> = ({ onModeChange }) => {
                                 ) : (
                                     <>
                                         <MessageSquare className="w-3 h-3 shrink-0" />
-                                        <span className="truncate flex-1">Todos (OOC)</span>
+                                        <span className="truncate flex-1">{t('vtt.chat.menus.global')}</span>
                                     </>
                                 )}
                             </>
@@ -558,7 +561,7 @@ export const GameLog: React.FC<GameLogProps> = ({ onModeChange }) => {
                                     className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors ${!whisperTo ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200'}`}
                                 >
                                     <Users className="w-3 h-3" />
-                                    Todos (Global)
+                                    {t('vtt.chat.menus.recipient.global')}
                                     {!whisperTo && <div className="w-1.5 h-1.5 rounded-full bg-primary ml-auto"></div>}
                                 </button>
                                 {canChatPrivate && playersOnline.filter(p => p.id !== user?.id).map(p => (
@@ -568,7 +571,7 @@ export const GameLog: React.FC<GameLogProps> = ({ onModeChange }) => {
                                         className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors ${whisperTo === p.id ? 'bg-purple-500/20 text-purple-200' : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200'}`}
                                     >
                                         <Lock className="w-3 h-3" />
-                                        Sussurar para {p.name}
+                                        {t('vtt.chat.menus.recipient.whisper', { name: p.name })}
                                         {whisperTo === p.id && <div className="w-1.5 h-1.5 rounded-full bg-purple-500 ml-auto"></div>}
                                     </button>
                                 ))}
@@ -584,7 +587,7 @@ export const GameLog: React.FC<GameLogProps> = ({ onModeChange }) => {
                             type="text"
                             value={inputText}
                             onChange={(e) => setInputText(e.target.value)}
-                            placeholder={whisperTo ? "Escreva seu sussurro..." : "Escreva sua mensagem..."}
+                            placeholder={whisperTo ? t('vtt.chat.input.placeholder.whisper') : t('vtt.chat.input.placeholder.global')}
                             className="flex-1 bg-transparent px-3 py-2.5 text-sm text-white placeholder:text-zinc-600 outline-none min-w-0"
                         />
                         <button

@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { TokenShape, TokenEffect, TokenIdleAnimation, BorderStyle } from '../../../../types';
 import { SheetLabel, SheetSelect } from '../../../ui/SheetPrimitives';
 import { ColorPicker } from '../../../ui/ColorPicker';
 import { SliderField, SliderFieldVertical } from '../../../ui/SliderField';
 import { Circle, Square, Hexagon, Ghost, Palette, ArrowDownUp, Wand2, Activity } from 'lucide-react';
+import { useTranslation } from '../../../../i18n/TranslationContext';
 
 interface TokenStyleTabProps {
   displayMode: 'image' | 'text';
@@ -33,37 +34,6 @@ interface TokenStyleTabProps {
   onIdleAnimationChange: (anim: TokenIdleAnimation) => void;
 }
 
-const SHAPE_OPTIONS = [
-  { id: 'circle', icon: <Circle className="w-4 h-4" />, label: '' },
-  { id: 'square', icon: <Square className="w-4 h-4" />, label: '' },
-  { id: 'hex', icon: <Hexagon className="w-4 h-4" />, label: '' },
-  { id: 'topdown', icon: <Ghost className="w-4 h-4" />, label: 'PNG' },
-];
-
-const BORDER_STYLE_OPTIONS = [
-  { label: 'Sólido', value: 'solid' },
-  { label: 'Tracejado', value: 'dashed' },
-  { label: 'Pontilhado', value: 'dotted' },
-  { label: 'Duplo', value: 'double' },
-];
-
-const EFFECT_OPTIONS = [
-  { label: 'Nenhum', value: 'none' },
-  { label: 'Fantasma', value: 'ghostly' },
-  { label: 'Em Chamas', value: 'burning' },
-  { label: 'Congelado', value: 'frozen' },
-  { label: 'Glitch', value: 'glitch' },
-  { label: 'Outline', value: 'outline' },
-];
-
-const ANIMATION_OPTIONS = [
-  { label: 'Estático', value: 'none' },
-  { label: 'Respirar', value: 'breath' },
-  { label: 'Flutuar', value: 'float' },
-  { label: 'Girar', value: 'spin' },
-  { label: 'Balançar', value: 'wobble' },
-];
-
 export const TokenStyleTab: React.FC<TokenStyleTabProps> = ({
   displayMode,
   shape,
@@ -91,15 +61,47 @@ export const TokenStyleTab: React.FC<TokenStyleTabProps> = ({
   idleAnimation,
   onIdleAnimationChange,
 }) => {
+  const { t } = useTranslation();
   const isTopDown = shape === 'topdown';
+
+  const shapeOptions = [
+    { id: 'circle', icon: <Circle className="w-4 h-4" />, label: '' },
+    { id: 'square', icon: <Square className="w-4 h-4" />, label: '' },
+    { id: 'hex', icon: <Hexagon className="w-4 h-4" />, label: '' },
+    { id: 'topdown', icon: <Ghost className="w-4 h-4" />, label: 'PNG' },
+  ];
+
+  const borderStyleOptions = [
+    { label: t('vtt.tokens.editModal.style.borderStyles.solid'), value: 'solid' },
+    { label: t('vtt.tokens.editModal.style.borderStyles.dashed'), value: 'dashed' },
+    { label: t('vtt.tokens.editModal.style.borderStyles.dotted'), value: 'dotted' },
+    { label: t('vtt.tokens.editModal.style.borderStyles.double'), value: 'double' },
+  ];
+
+  const effectOptions = [
+    { label: t('vtt.tokens.editModal.style.effects.none'), value: 'none' },
+    { label: t('vtt.tokens.editModal.style.effects.ghostly'), value: 'ghostly' },
+    { label: t('vtt.tokens.editModal.style.effects.burning'), value: 'burning' },
+    { label: t('vtt.tokens.editModal.style.effects.frozen'), value: 'frozen' },
+    { label: t('vtt.tokens.editModal.style.effects.glitch'), value: 'glitch' },
+    { label: t('vtt.tokens.editModal.style.effects.outline'), value: 'outline' },
+  ];
+
+  const animationOptions = [
+    { label: t('vtt.tokens.editModal.style.animations.none'), value: 'none' },
+    { label: t('vtt.tokens.editModal.style.animations.breath'), value: 'breath' },
+    { label: t('vtt.tokens.editModal.style.animations.float'), value: 'float' },
+    { label: t('vtt.tokens.editModal.style.animations.spin'), value: 'spin' },
+    { label: t('vtt.tokens.editModal.style.animations.wobble'), value: 'wobble' },
+  ];
 
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
       {/* Shape & Border */}
       <div className="space-y-3">
-        <SheetLabel icon={<Palette className="w-3 h-3" />}>Forma & Borda</SheetLabel>
+        <SheetLabel icon={<Palette className="w-3 h-3" />}>{t('vtt.tokens.editModal.style.title')}</SheetLabel>
         <div className="grid grid-cols-4 gap-2">
-          {SHAPE_OPTIONS.map(s => (
+          {shapeOptions.map(s => (
             <button
               key={s.id}
               type="button"
@@ -132,7 +134,7 @@ export const TokenStyleTab: React.FC<TokenStyleTabProps> = ({
               <SheetSelect
                 value={borderStyle}
                 onChange={v => onBorderStyleChange(v as BorderStyle)}
-                options={BORDER_STYLE_OPTIONS}
+                options={borderStyleOptions}
                 variant="box"
                 className="h-8 text-xs"
               />
@@ -145,10 +147,10 @@ export const TokenStyleTab: React.FC<TokenStyleTabProps> = ({
 
       {/* Image Positioning */}
       <div className="space-y-2">
-        <SheetLabel icon={<ArrowDownUp className="w-3 h-3" />}>Ajuste de Imagem & Posição</SheetLabel>
+        <SheetLabel icon={<ArrowDownUp className="w-3 h-3" />}>{t('vtt.tokens.editModal.style.positioningTitle')}</SheetLabel>
         <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-3 space-y-4">
           <SliderField
-            label="Zoom"
+            label={t('vtt.tokens.editModal.style.zoomLabel')}
             value={scale}
             onChange={onScaleChange}
             min={0.5}
@@ -156,7 +158,7 @@ export const TokenStyleTab: React.FC<TokenStyleTabProps> = ({
             step={0.1}
           />
           <SliderField
-            label="Rotação"
+            label={t('vtt.tokens.editModal.style.rotationLabel')}
             value={imageRotation}
             onChange={onImageRotationChange}
             min={0}
@@ -165,7 +167,7 @@ export const TokenStyleTab: React.FC<TokenStyleTabProps> = ({
           />
           <div className="flex gap-4">
             <SliderFieldVertical
-              label="Pos X"
+              label={t('vtt.tokens.editModal.style.posXLabel')}
               value={imageX}
               onChange={onImageXChange}
               min={-0.5}
@@ -174,7 +176,7 @@ export const TokenStyleTab: React.FC<TokenStyleTabProps> = ({
               accentColor="accent-blue-500"
             />
             <SliderFieldVertical
-              label="Pos Y"
+              label={t('vtt.tokens.editModal.style.posYLabel')}
               value={imageY}
               onChange={onImageYChange}
               min={-0.5}
@@ -186,7 +188,7 @@ export const TokenStyleTab: React.FC<TokenStyleTabProps> = ({
 
           {displayMode === 'image' && !isTopDown && (
             <div className="flex items-center gap-3 pt-2 border-t border-zinc-800/50">
-              <span className="text-[10px] uppercase font-bold text-zinc-500 w-16">Tintura</span>
+              <span className="text-[10px] uppercase font-bold text-zinc-500 w-16">{t('vtt.tokens.editModal.style.tintLabel')}</span>
               <ColorPicker value={tintColor} onChange={onTintColorChange} />
               <input
                 type="range"
@@ -205,20 +207,20 @@ export const TokenStyleTab: React.FC<TokenStyleTabProps> = ({
       {/* Effects & Animation */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <SheetLabel icon={<Wand2 className="w-3 h-3" />}>Efeitos Visuais</SheetLabel>
+          <SheetLabel icon={<Wand2 className="w-3 h-3" />}>{t('vtt.tokens.editModal.style.effectsTitle')}</SheetLabel>
           <SheetSelect
             value={effect}
             onChange={v => onEffectChange(v as TokenEffect)}
-            options={EFFECT_OPTIONS}
+            options={effectOptions}
             variant="box"
           />
         </div>
         <div className="space-y-2">
-          <SheetLabel icon={<Activity className="w-3 h-3" />}>Animação Idle</SheetLabel>
+          <SheetLabel icon={<Activity className="w-3 h-3" />}>{t('vtt.tokens.editModal.style.animationTitle')}</SheetLabel>
           <SheetSelect
             value={idleAnimation}
             onChange={v => onIdleAnimationChange(v as TokenIdleAnimation)}
-            options={ANIMATION_OPTIONS}
+            options={animationOptions}
             variant="box"
           />
         </div>

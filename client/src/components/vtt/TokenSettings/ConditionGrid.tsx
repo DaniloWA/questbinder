@@ -4,6 +4,7 @@ import { Activity } from 'lucide-react';
 import { STATUS_RULES } from '../../../data/rules';
 import { CONDITION_ICONS } from './tokenModalUtils';
 import { Tooltip } from '../../ui/Tooltip';
+import { useTranslation } from '../../../i18n/TranslationContext';
 
 interface ConditionGridProps {
   conditions: Condition[];
@@ -16,6 +17,8 @@ export const ConditionGrid: React.FC<ConditionGridProps> = ({
   onChange,
   maxHeight = 'max-h-48',
 }) => {
+  const { t, hasKey } = useTranslation();
+
   const toggleCondition = (key: string) => {
     const isActive = conditions.includes(key as Condition);
     if (isActive) {
@@ -31,14 +34,21 @@ export const ConditionGrid: React.FC<ConditionGridProps> = ({
         const isActive = conditions.includes(key as Condition);
         const icon = CONDITION_ICONS[key] || <Activity className="w-5 h-5" />;
 
+        // Use translated name if available, fallback to rule.name
+        const nameKey = `dnd.rules.conditions.${key}.name`;
+        const translatedName = hasKey(nameKey) ? t(nameKey) : rule.name;
+
         return (
           <Tooltip
             key={key}
             content={
               <div className="max-w-[200px]">
-                <div className="font-bold mb-1">{rule.name}</div>
+                <div className="font-bold mb-1">{translatedName}</div>
                 <ul className="list-disc pl-3 text-xs space-y-1">
-                  {rule.effects.map((e, i) => <li key={i}>{e}</li>)}
+                  {rule.effects.map((e, i) => {
+                    const effectKey = `dnd.rules.conditions.${key}.effects.${i}`;
+                    return <li key={i}>{hasKey(effectKey) ? t(effectKey) : e}</li>;
+                  })}
                 </ul>
               </div>
             }
@@ -56,7 +66,7 @@ export const ConditionGrid: React.FC<ConditionGridProps> = ({
             >
               {icon}
               <span className="text-[10px] font-bold uppercase tracking-wide text-center leading-tight line-clamp-2 w-full">
-                {rule.name}
+                {translatedName}
               </span>
             </button>
           </Tooltip>

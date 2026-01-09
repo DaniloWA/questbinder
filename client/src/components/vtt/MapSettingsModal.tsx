@@ -8,6 +8,7 @@ import { X, UploadCloud, Image as ImageIcon, Eye, EyeOff, ShieldAlert, Sun, Moon
 import { ColorPicker } from '../ui/ColorPicker';
 import { fileService } from '../../services/fileService';
 import { useNotification } from '../../context/NotificationContext';
+import { useTranslation } from '../../i18n/TranslationContext';
 
 interface MapSettingsModalProps {
     scene: MapScene;
@@ -24,6 +25,7 @@ export const MapSettingsModal: React.FC<MapSettingsModalProps> = ({
     scene, onClose, onSave, audioSettings,
     bulkUpdateObstacles, defaultObstacleHidden, onToggleDefaultObstacleHidden
 }) => {
+    const { t } = useTranslation();
     const { show } = useNotification();
     const [imageUrl, setImageUrl] = useState(scene.imageUrl);
     const [gridSize, setGridSize] = useState(scene.grid.size);
@@ -45,11 +47,11 @@ export const MapSettingsModal: React.FC<MapSettingsModalProps> = ({
             p.tracks.map(t => ({ label: `${p.name} - ${t.name}`, value: t.url }))
         );
         return [
-            { label: 'Nenhuma Música', value: '' },
+            { label: t('vtt.maps.settingsModal.audio.noMusic'), value: '' },
             ...tracks,
-            { label: 'URL Personalizada', value: 'custom' }
+            { label: t('vtt.maps.settingsModal.audio.customUrl'), value: 'custom' }
         ];
-    }, [audioSettings]);
+    }, [audioSettings, t]);
 
     const handleAudioSelectChange = (value: string) => {
         setAudioUrl(value);
@@ -92,19 +94,19 @@ export const MapSettingsModal: React.FC<MapSettingsModalProps> = ({
 
             if (response.success && response.data) {
                 setImageUrl(response.data);
-                setUploadSuccess(response.message || `✅ Upload concluído: ${file.name}`);
-                show({ type: 'success', message: 'Imagem carregada com sucesso!', duration: 3000 });
+                setUploadSuccess(response.message || t('vtt.maps.settingsModal.background.image.uploadSuccess'));
+                show({ type: 'success', message: t('vtt.maps.settingsModal.background.image.uploadSuccess'), duration: 3000 });
 
                 // Clear success message after 5 seconds
                 setTimeout(() => setUploadSuccess(null), 5000);
             } else {
-                const errorMsg = response.message || 'Erro desconhecido no upload.';
+                const errorMsg = response.message || t('vtt.maps.settingsModal.background.image.unknownError');
                 setUploadError(errorMsg);
                 show({ type: 'error', message: errorMsg, duration: 5000 });
                 console.error('[MapSettings] Upload failed:', errorMsg);
             }
         } catch (error) {
-            const errorMsg = '❌ Erro inesperado ao fazer upload da imagem.';
+            const errorMsg = t('vtt.maps.settingsModal.background.image.error');
             setUploadError(errorMsg);
             show({ type: 'error', message: errorMsg, duration: 5000 });
             console.error('[MapSettings] Upload exception:', error);
@@ -121,7 +123,7 @@ export const MapSettingsModal: React.FC<MapSettingsModalProps> = ({
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="w-full max-w-lg bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl text-white">
                 <div className="flex items-center justify-between p-4 border-b border-zinc-800">
-                    <h2 className="text-lg font-bold">Configurações do Mapa</h2>
+                    <h2 className="text-lg font-bold">{t('vtt.maps.settingsModal.header.title')}</h2>
                     <button onClick={onClose} className="p-2 rounded-full hover:bg-zinc-800 transition-colors">
                         <X className="w-5 h-5" />
                     </button>
@@ -132,9 +134,9 @@ export const MapSettingsModal: React.FC<MapSettingsModalProps> = ({
                     {/* Global Lighting */}
                     <div className="bg-zinc-950/50 p-4 rounded-xl border border-zinc-800 space-y-3">
                         <div className="flex items-center justify-between">
-                            <SheetLabel icon={<Sun className="w-4 h-4 text-yellow-500" />}>Luz Ambiente Global</SheetLabel>
+                            <SheetLabel icon={<Sun className="w-4 h-4 text-yellow-500" />}>{t('vtt.maps.settingsModal.ambientLight.label')}</SheetLabel>
                             <span className={`text-xs font-bold ${ambientLight === 0 ? 'text-red-400' : 'text-zinc-400'}`}>
-                                {ambientLight === 0 ? 'Escuridão Total' : `${Math.round(ambientLight * 100)}%`}
+                                {ambientLight === 0 ? t('vtt.maps.settingsModal.ambientLight.totalDarkness') : `${Math.round(ambientLight * 100)}%`}
                             </span>
                         </div>
                         <div className="flex items-center gap-3">
@@ -150,12 +152,12 @@ export const MapSettingsModal: React.FC<MapSettingsModalProps> = ({
                             />
                             <Sun className="w-4 h-4 text-yellow-500" />
                         </div>
-                        <p className="text-[10px] text-zinc-500">Define o brilho base do mapa. 0% é escuridão total (requer fontes de luz), 100% é luz do dia.</p>
+                        <p className="text-[10px] text-zinc-500">{t('vtt.maps.settingsModal.ambientLight.desc')}</p>
                     </div>
 
                     {/* Map Image */}
                     <div className="space-y-2">
-                        <SheetLabel icon={<ImageIcon className="w-3 h-3" />}>Imagem de Fundo</SheetLabel>
+                        <SheetLabel icon={<ImageIcon className="w-3 h-3" />}>{t('vtt.maps.settingsModal.background.image.label')}</SheetLabel>
 
                         {/* Upload Error Display */}
                         {uploadError && (
@@ -170,7 +172,7 @@ export const MapSettingsModal: React.FC<MapSettingsModalProps> = ({
                                     }}
                                     className="text-xs text-red-300 hover:text-red-100 underline"
                                 >
-                                    Tentar novamente
+                                    {t('vtt.maps.settingsModal.background.image.retry')}
                                 </button>
                             </div>
                         )}
@@ -187,7 +189,7 @@ export const MapSettingsModal: React.FC<MapSettingsModalProps> = ({
                             <div className="bg-blue-950/50 border border-blue-800 rounded-lg p-3">
                                 <div className="flex items-center gap-3">
                                     <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
-                                    <span className="text-blue-400 text-xs">Fazendo upload da imagem...</span>
+                                    <span className="text-blue-400 text-xs">{t('vtt.maps.settingsModal.background.image.uploading')}</span>
                                 </div>
                             </div>
                         )}
@@ -201,7 +203,7 @@ export const MapSettingsModal: React.FC<MapSettingsModalProps> = ({
                                     setUploadError(null);
                                     setUploadSuccess(null);
                                 }}
-                                placeholder="URL da imagem ou faça upload..."
+                                placeholder={t('vtt.maps.settingsModal.background.image.placeholder')}
                                 className="flex-1 h-10 bg-zinc-800 border border-zinc-700 rounded-md px-3 text-sm focus:border-primary focus:ring-primary outline-none"
                                 disabled={isUploading}
                             />
@@ -218,7 +220,7 @@ export const MapSettingsModal: React.FC<MapSettingsModalProps> = ({
                                 size="icon"
                                 onClick={() => fileInputRef.current?.click()}
                                 disabled={isUploading}
-                                title="Fazer upload de imagem (JPG, PNG, GIF, WEBP, BMP - máx 10MB)"
+                                title={t('vtt.maps.settingsModal.background.image.uploadTooltip')}
                             >
                                 {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
                             </Button>
@@ -227,26 +229,26 @@ export const MapSettingsModal: React.FC<MapSettingsModalProps> = ({
                         {/* File Info */}
                         {!isUploading && !uploadError && !uploadSuccess && (
                             <p className="text-[10px] text-zinc-500">
-                                Formatos aceitos: JPG, PNG, GIF, WEBP, BMP • Tamanho máximo: 10MB
+                                {t('vtt.maps.settingsModal.background.image.formatsInfo')}
                             </p>
                         )}
                     </div>
 
                     {/* Background Music */}
                     <div className="space-y-2">
-                        <SheetLabel icon={<Music className="w-3 h-3" />}>Música de Fundo da Cena</SheetLabel>
+                        <SheetLabel icon={<Music className="w-3 h-3" />}>{t('vtt.maps.settingsModal.audio.label')}</SheetLabel>
                         <SheetSelect
                             value={audioUrl}
                             onChange={handleAudioSelectChange}
                             options={audioTracksForSelect}
-                            placeholder="Selecione uma faixa..."
+                            placeholder={t('vtt.maps.settingsModal.audio.placeholder')}
                             variant="box"
                         />
                         {audioUrl === 'custom' && (
                             <SheetInput
                                 value={customAudioUrl}
                                 onChange={e => setCustomAudioUrl(e.target.value)}
-                                placeholder="Cole a URL da música aqui..."
+                                placeholder={t('vtt.maps.settingsModal.audio.customUrlPlaceholder')}
                                 variant="box"
                                 className="mt-2"
                             />
@@ -255,25 +257,25 @@ export const MapSettingsModal: React.FC<MapSettingsModalProps> = ({
 
                     {/* Grid Dimensions */}
                     <div className="space-y-2">
-                        <SheetLabel>Dimensões da Grade</SheetLabel>
+                        <SheetLabel>{t('vtt.maps.settingsModal.grid.dimensions.title')}</SheetLabel>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <SheetInput label="Tamanho (px)" type="number" value={gridSize} onChange={e => setGridSize(Number(e.target.value))} />
-                            <SheetInput label="Colunas (X)" type="number" value={gridCols} onChange={e => setGridCols(Number(e.target.value))} />
-                            <SheetInput label="Linhas (Y)" type="number" value={gridRows} onChange={e => setGridRows(Number(e.target.value))} />
-                            <SheetInput label="Unidades/Q" type="number" value={unitsPerSquare} onChange={e => setUnitsPerSquare(Number(e.target.value))} />
+                            <SheetInput label={t('vtt.maps.settingsModal.grid.dimensions.size')} type="number" value={gridSize} onChange={e => setGridSize(Number(e.target.value))} />
+                            <SheetInput label={t('vtt.maps.settingsModal.grid.dimensions.cols')} type="number" value={gridCols} onChange={e => setGridCols(Number(e.target.value))} />
+                            <SheetInput label={t('vtt.maps.settingsModal.grid.dimensions.rows')} type="number" value={gridRows} onChange={e => setGridRows(Number(e.target.value))} />
+                            <SheetInput label={t('vtt.maps.settingsModal.grid.dimensions.units')} type="number" value={unitsPerSquare} onChange={e => setUnitsPerSquare(Number(e.target.value))} />
                         </div>
                     </div>
 
                     {/* Grid Appearance */}
                     <div className="space-y-2">
-                        <SheetLabel>Aparência da Grade</SheetLabel>
+                        <SheetLabel>{t('vtt.maps.settingsModal.grid.appearance.title')}</SheetLabel>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <SheetLabel>Cor da Grade</SheetLabel>
+                                <SheetLabel>{t('vtt.maps.settingsModal.grid.appearance.color')}</SheetLabel>
                                 <ColorPicker value={gridColor} onChange={setGridColor} />
                             </div>
                             <div>
-                                <SheetLabel>Opacidade ({Math.round(gridAlpha * 100)}%)</SheetLabel>
+                                <SheetLabel>{t('vtt.maps.settingsModal.grid.appearance.opacity', { percent: Math.round(gridAlpha * 100) })}</SheetLabel>
                                 <input
                                     type="range"
                                     min="0"
@@ -289,10 +291,10 @@ export const MapSettingsModal: React.FC<MapSettingsModalProps> = ({
 
                     {/* Defaults */}
                     <div className="space-y-2 border-t border-zinc-800 pt-4">
-                        <SheetLabel>Padrões de Criação</SheetLabel>
+                        <SheetLabel>{t('vtt.maps.settingsModal.defaults.title')}</SheetLabel>
                         {onToggleDefaultObstacleHidden && defaultObstacleHidden !== undefined && (
                             <div className="bg-zinc-800/50 p-3 rounded-lg flex items-center justify-between">
-                                <span className="text-sm text-zinc-300">Criar novas paredes invisíveis?</span>
+                                <span className="text-sm text-zinc-300">{t('vtt.maps.settingsModal.defaults.hiddenObstacles')}</span>
                                 <button
                                     onClick={onToggleDefaultObstacleHidden}
                                     className={`w-10 h-5 rounded-full transition-colors relative ${defaultObstacleHidden ? 'bg-primary' : 'bg-zinc-600'}`}
@@ -306,7 +308,7 @@ export const MapSettingsModal: React.FC<MapSettingsModalProps> = ({
                     {/* Bulk Actions */}
                     {bulkUpdateObstacles && (
                         <div className="space-y-2 border-t border-zinc-800 pt-4">
-                            <SheetLabel icon={<ShieldAlert className="w-3 h-3" />}>Ações em Massa (Estruturas)</SheetLabel>
+                            <SheetLabel icon={<ShieldAlert className="w-3 h-3" />}>{t('vtt.maps.settingsModal.bulkActions.title')}</SheetLabel>
                             <div className="bg-zinc-800/50 p-3 rounded-lg space-y-3">
                                 <div className="flex gap-3">
                                     <Button
@@ -316,7 +318,7 @@ export const MapSettingsModal: React.FC<MapSettingsModalProps> = ({
                                         onClick={() => bulkUpdateObstacles({ hidden: true })}
                                         className="border-dashed border-zinc-600 hover:border-zinc-400 text-zinc-400 hover:text-white"
                                     >
-                                        <EyeOff className="w-4 h-4 mr-2" /> Ocultar Todas
+                                        <EyeOff className="w-4 h-4 mr-2" /> {t('vtt.maps.settingsModal.bulkActions.hideAll')}
                                     </Button>
                                     <Button
                                         variant="outline"
@@ -325,19 +327,19 @@ export const MapSettingsModal: React.FC<MapSettingsModalProps> = ({
                                         onClick={() => bulkUpdateObstacles({ hidden: false })}
                                         className="border-dashed border-zinc-600 hover:border-zinc-400 text-zinc-400 hover:text-white"
                                     >
-                                        <Eye className="w-4 h-4 mr-2" /> Revelar Todas
+                                        <Eye className="w-4 h-4 mr-2" /> {t('vtt.maps.settingsModal.bulkActions.revealAll')}
                                     </Button>
                                 </div>
-                                <p className="text-[10px] text-zinc-500 italic text-center">Isso altera a visibilidade real para os jogadores.</p>
+                                <p className="text-[10px] text-zinc-500 italic text-center">{t('vtt.maps.settingsModal.bulkActions.desc')}</p>
                             </div>
                         </div>
                     )}
                 </div>
 
                 <div className="p-4 border-t border-zinc-800 bg-zinc-900/50 flex justify-end gap-3 rounded-b-xl">
-                    <Button variant="outline" onClick={onClose}>Cancelar</Button>
+                    <Button variant="outline" onClick={onClose}>{t('common.cancel')}</Button>
                     <Button onClick={handleSave} disabled={isUploading}>
-                        {isUploading ? 'Enviando...' : 'Salvar Alterações'}
+                        {isUploading ? t('vtt.maps.settingsModal.footer.uploading') : t('vtt.maps.settingsModal.footer.saveChanges')}
                     </Button>
                 </div>
             </div>

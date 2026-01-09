@@ -3,6 +3,7 @@ import { Condition, CombatEffect } from '../../../../types';
 import { Heart, Zap, Activity, Skull, Shield, Trash2 } from 'lucide-react';
 import { StatusBarEditor } from '../StatusBarEditor';
 import { ConditionGrid } from '../ConditionGrid';
+import { useTranslation } from '../../../../i18n/TranslationContext';
 
 interface TokenStatsTabProps {
   hpValue: number;
@@ -45,6 +46,8 @@ export const TokenStatsTab: React.FC<TokenStatsTabProps> = ({
   ignoredAuras,
   onIgnoredAurasChange,
 }) => {
+  const { t } = useTranslation();
+
   const handleRemoveEffect = (effectId: string, sourceAuraId?: string) => {
     const newEffects = effects.filter(e => e.id !== effectId);
     onEffectsChange(newEffects);
@@ -55,10 +58,10 @@ export const TokenStatsTab: React.FC<TokenStatsTabProps> = ({
 
   const formatDuration = (duration: CombatEffect['duration']): string => {
     if (typeof duration === 'number') {
-      return `${duration} rodadas`;
+      return `${duration} ${t('vtt.tokens.editModal.status.rounds')}`;
     }
     if (typeof duration === 'object' && duration !== null && 'remaining' in duration) {
-      return `${duration.remaining} rodadas`;
+      return `${duration.remaining} ${t('vtt.tokens.editModal.status.rounds')}`;
     }
     return '';
   };
@@ -68,11 +71,11 @@ export const TokenStatsTab: React.FC<TokenStatsTabProps> = ({
       {/* Status Bars */}
       <div className="space-y-4 bg-zinc-950/50 p-4 md:p-5 rounded-xl border border-zinc-800/50">
         <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-2 mb-2">
-          <Activity className="w-3 h-3" /> Barras de Status
+          <Activity className="w-3 h-3" /> {t('vtt.tokens.editModal.status.barsTitle')}
         </h3>
 
         <StatusBarEditor
-          label="Vida (Barra 1)"
+          label={t('vtt.tokens.editModal.status.bar1Label')}
           icon={<Heart className="w-3 h-3" />}
           iconColor="text-green-500"
           value={hpValue}
@@ -85,7 +88,7 @@ export const TokenStatsTab: React.FC<TokenStatsTabProps> = ({
 
         <div className="pt-2 border-t border-zinc-800/50 mt-2">
           <StatusBarEditor
-            label="Recurso (Barra 2)"
+            label={t('vtt.tokens.editModal.status.bar2Label')}
             icon={<Zap className="w-3 h-3" />}
             iconColor="text-blue-500"
             value={mpValue}
@@ -101,7 +104,7 @@ export const TokenStatsTab: React.FC<TokenStatsTabProps> = ({
       {/* Conditions */}
       <div className="space-y-2">
         <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
-          <Skull className="w-3 h-3" /> Condições Iniciais
+          <Skull className="w-3 h-3" /> {t('vtt.tokens.editModal.status.conditionsTitle')}
         </h3>
         <ConditionGrid conditions={conditions} onChange={onConditionsChange} />
       </div>
@@ -109,12 +112,12 @@ export const TokenStatsTab: React.FC<TokenStatsTabProps> = ({
       {/* Active Effects */}
       <div className="space-y-2">
         <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
-          <Zap className="w-3 h-3" /> Efeitos Ativos
+          <Zap className="w-3 h-3" /> {t('vtt.tokens.editModal.status.effectsTitle')}
         </h3>
         <div className="bg-zinc-950/50 p-2 rounded-lg border border-zinc-800 space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
           {effects.length === 0 && (
             <span className="text-xs text-zinc-600 italic p-2 block text-center">
-              Nenhum efeito ativo.
+              {t('vtt.tokens.editModal.status.noEffects')}
             </span>
           )}
           {effects.map(eff => (
@@ -126,7 +129,7 @@ export const TokenStatsTab: React.FC<TokenStatsTabProps> = ({
                   <div className="text-[10px] text-zinc-500 flex gap-2">
                     {eff.sourceAuraId && (
                       <span className="text-blue-400 flex items-center gap-1">
-                        <Shield className="w-3 h-3" /> Aura
+                        <Shield className="w-3 h-3" /> {t('vtt.tokens.editModal.status.auraBadge')}
                       </span>
                     )}
                     {eff.duration && <span>{formatDuration(eff.duration)}</span>}
@@ -137,7 +140,7 @@ export const TokenStatsTab: React.FC<TokenStatsTabProps> = ({
                 type="button"
                 onClick={() => handleRemoveEffect(eff.id, eff.sourceAuraId)}
                 className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
-                title={eff.sourceAuraId ? "Remover e Ignorar Aura" : "Remover Efeito"}
+                title={eff.sourceAuraId ? t('vtt.tokens.editModal.status.removeAuraTooltip') : t('vtt.tokens.editModal.status.removeEffectTooltip')}
               >
                 <Trash2 className="w-4 h-4" />
               </button>

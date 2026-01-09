@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '../../ui/Button';
 import { BookOpen } from 'lucide-react';
+import { useTranslation } from '../../../i18n/TranslationContext';
 
 interface TokenModalFooterProps {
   onCancel: () => void;
@@ -13,6 +14,8 @@ export const TokenModalFooter: React.FC<TokenModalFooterProps> = ({
   onSaveTemplate,
   isUploading = false,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="p-3 md:p-4 bg-zinc-950 border-t border-zinc-800 flex flex-col sm:flex-row justify-between items-center gap-2 shrink-0 z-10">
       <div>
@@ -24,21 +27,21 @@ export const TokenModalFooter: React.FC<TokenModalFooterProps> = ({
             className="text-zinc-400 hover:text-white text-xs"
           >
             <BookOpen className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Salvar no Bestiário</span>
-            <span className="sm:hidden">Bestiário</span>
+            <span className="hidden sm:inline">{t('vtt.tokens.editModal.footer.saveToBestiary')}</span>
+            <span className="sm:hidden">{t('vtt.tokens.editModal.footer.bestiaryAbbr')}</span>
           </Button>
         )}
       </div>
       <div className="flex gap-2 w-full sm:w-auto">
         <Button type="button" variant="outline" onClick={onCancel} className="flex-1 sm:flex-none">
-          Cancelar
+          {t('vtt.tokens.editModal.footer.cancel')}
         </Button>
         <Button
           type="submit"
           className="flex-1 sm:flex-none sm:min-w-[140px] shadow-lg shadow-primary/20"
           disabled={isUploading}
         >
-          {isUploading ? 'Carregando...' : 'Salvar'}
+          {isUploading ? t('vtt.tokens.editModal.footer.uploading') : t('vtt.tokens.editModal.footer.save')}
         </Button>
       </div>
     </div>

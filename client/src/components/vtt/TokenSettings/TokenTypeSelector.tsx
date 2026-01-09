@@ -1,6 +1,7 @@
 import React from 'react';
 import { TokenType } from '../../../types';
 import { User as UserIcon, Ghost, Box } from 'lucide-react';
+import { useTranslation } from '../../../i18n/TranslationContext';
 
 interface TokenTypeSelectorProps {
   tokenType: TokenType;
@@ -11,10 +12,12 @@ export const TokenTypeSelector: React.FC<TokenTypeSelectorProps> = ({
   tokenType,
   onTypeChange,
 }) => {
+  const { t } = useTranslation();
+
   const types = [
-    { id: 'pc', label: 'Herói', icon: UserIcon, activeColor: 'bg-blue-500/20 text-blue-400 ring-1 ring-blue-500/50' },
-    { id: 'npc', label: 'Criatura', icon: Ghost, activeColor: 'bg-red-500/20 text-red-400 ring-1 ring-red-500/50' },
-    { id: 'object', label: 'Objeto', icon: Box, activeColor: 'bg-yellow-500/20 text-yellow-400 ring-1 ring-yellow-500/50' },
+    { id: 'pc', label: t('vtt.tokens.editModal.types.pc'), icon: UserIcon, activeColor: 'bg-blue-500/20 text-blue-400 ring-1 ring-blue-500/50' },
+    { id: 'npc', label: t('vtt.tokens.editModal.types.npc'), icon: Ghost, activeColor: 'bg-red-500/20 text-red-400 ring-1 ring-red-500/50' },
+    { id: 'object', label: t('vtt.tokens.editModal.types.object'), icon: Box, activeColor: 'bg-yellow-500/20 text-yellow-400 ring-1 ring-yellow-500/50' },
   ] as const;
 
   return (
