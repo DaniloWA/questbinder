@@ -1,0 +1,44 @@
+{
+  "translations": [
+    {
+      "key": "vtt.chat.labels.recipient",
+      "en": "Recipient",
+      "pt": "Destinatário"
+    },
+    {
+      "key": "vtt.chat.labels.identity",
+      "en": "Identity",
+      "pt": "Identidade"
+    },
+    {
+      "key": "vtt.chat.labels.private",
+      "en": "Private:",
+      "pt": "Privado:"
+    },
+    {
+      "key": "vtt.common.all",
+      "en": "All",
+      "pt": "Todos"
+    },
+    {
+      "key": "vtt.common.me",
+      "en": "Me",
+      "pt": "Eu"
+    },
+    {
+      "key": "vtt.chat.tags.ooc",
+      "en": "(OOC)",
+      "pt": "(OOC)"
+    },
+    {
+      "key": "vtt.chat.badges.ooc",
+      "en": "OOC",
+      "pt": "OOC"
+    },
+    {
+      "key": "vtt.chat.badges.rp",
+      "en": "RP",
+      "pt": "RP"
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "filePath": "client/src/components/vtt/Sidebar.tsx",
+  "timestamp": "2026-01-10T22:37:12.632Z",
+  "componentName": "Sidebar.tsx",
+  "totalFound": 11,
+  "userFacingCount": 11,
+  "strings": [
+    {
+      "original": "party",
+      "line": 104,
+      "context": "const { t } = useTranslation();\r\n  const [activeTab, setActiveTab] = useState<'combat' | 'chat' | 'party'>('chat');\r\n  const [isPoppedOut, setIsPoppedOut] = useState(false);",
+      "suggestedKey": "vtt.sidebar.main.party.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 4974,
+      "end": 4981
+    },
+    {
+      "original": "combat",
+      "line": 104,
+      "context": "const { t } = useTranslation();\r\n  const [activeTab, setActiveTab] = useState<'combat' | 'chat' | 'party'>('chat');\r\n  const [isPoppedOut, setIsPoppedOut] = useState(false);",
+      "suggestedKey": "vtt.sidebar.main.combat.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 4954,
+      "end": 4962
+    },
+    {
+      "original": "party",
+      "line": 94,
+      "context": "{activeTab === 'combat' && <CombatTrackerEnhanced />}\r\n        {activeTab === 'party' && <PartyList />}\r\n      </div>",
+      "suggestedKey": "vtt.sidebar.main.party.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 4676,
+      "end": 4683
+    },
+    {
+      "original": "combat",
+      "line": 93,
+      "context": "{activeTab === 'combat' && <CombatTrackerEnhanced />}\r\n        {activeTab === 'party' && <PartyList />}",
+      "suggestedKey": "vtt.sidebar.main.combat.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 4613,
+      "end": 4621
+    },
+    {
+      "original": "party",
+      "line": 53,
+      "context": "<button\r\n              onClick={() => setActiveTab('party')}\r\n              className={`p-2 rounded-md transition-all ${activeTab === 'party' ? 'bg-zinc-800 text-green-400 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}",
+      "suggestedKey": "vtt.sidebar.main.party.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 2857,
+      "end": 2864
+    },
+    {
+      "original": "combat",
+      "line": 45,
+      "context": "<button\r\n              onClick={() => setActiveTab('combat')}\r\n              className={`p-2 rounded-md transition-all ${activeTab === 'combat' ? 'bg-zinc-800 text-red-400 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}",
+      "suggestedKey": "vtt.sidebar.main.combat.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 2436,
+      "end": 2444
+    },
+    {
+      "original": "sidebar",
+      "line": 25,
+      "context": "// Chat view mode inside the sidebar is always 'sidebar' or 'fullscreen', actually inside the small container it behaves like sidebar\r\n  const [chatMode, setChatMode] = useState<ChatViewMode>('sidebar');",
+      "suggestedKey": "vtt.sidebar.main.sidebar.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 1292,
+      "end": 1301
+    },
+    {
+      "original": "party",
+      "line": 16,
+      "context": "activeTab: 'combat' | 'chat' | 'party';\r\n  setActiveTab: (t: 'combat' | 'chat' | 'party') => void;\r\n  onClose?: () => void;",
+      "suggestedKey": "vtt.sidebar.main.party.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 816,
+      "end": 823
+    },
+    {
+      "original": "combat",
+      "line": 16,
+      "context": "activeTab: 'combat' | 'chat' | 'party';\r\n  setActiveTab: (t: 'combat' | 'chat' | 'party') => void;\r\n  onClose?: () => void;",
+      "suggestedKey": "vtt.sidebar.main.combat.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 796,
+      "end": 804
+    },
+    {
+      "original": "party",
+      "line": 15,
+      "context": "const SidebarContent: React.FC<{\r\n  activeTab: 'combat' | 'chat' | 'party';\r\n  setActiveTab: (t: 'combat' | 'chat' | 'party') => void;",
+      "suggestedKey": "vtt.sidebar.main.party.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 766,
+      "end": 773
+    },
+    {
+      "original": "combat",
+      "line": 15,
+      "context": "const SidebarContent: React.FC<{\r\n  activeTab: 'combat' | 'chat' | 'party';\r\n  setActiveTab: (t: 'combat' | 'chat' | 'party') => void;",
+      "suggestedKey": "vtt.sidebar.main.combat.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 746,
+      "end": 754
+    }
+  ]
+}

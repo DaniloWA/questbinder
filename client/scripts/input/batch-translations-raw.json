@@ -1,0 +1,29 @@
+{
+  "translations": [
+    {
+      "key": "vtt.v.tttoolbar.drawings.label",
+      "en": "drawings",
+      "pt": "drawings"
+    },
+    {
+      "key": "vtt.v.tttoolbar.measure.label",
+      "en": "measure",
+      "pt": "measure"
+    },
+    {
+      "key": "vtt.v.tttoolbar.group.label",
+      "en": "group",
+      "pt": "group"
+    },
+    {
+      "key": "vtt.v.tttoolbar.action.label",
+      "en": "action",
+      "pt": "action"
+    },
+    {
+      "key": "vtt.v.tttoolbar.ontouchstart.label",
+      "en": "ontouchstart",
+      "pt": "ontouchstart"
+    }
+  ]
+}

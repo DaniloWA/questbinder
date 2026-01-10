@@ -453,8 +453,8 @@ export const GameLog: React.FC<GameLogProps> = ({ onModeChange }) => {
                                 <div className={`flex items-baseline gap-2 mb-0.5 px-1 ${isMe ? 'flex-row-reverse' : ''}`}>
                                     <span className={`text-xs font-bold truncate max-w-[150px] flex items-center gap-1 ${isMe ? 'text-primary' : 'text-zinc-300'}`}>
                                         {firstMsg.characterName || firstMsg.senderName}
-                                        {firstMsg.characterName && <span className="text-[9px] px-1 py-0.5 bg-primary/20 text-primary rounded border border-primary/30 uppercase tracking-wider">RP</span>}
-                                        {!firstMsg.characterName && <span className="text-[9px] px-1 py-0.5 bg-zinc-800 text-zinc-500 rounded border border-white/5 uppercase tracking-wider">OOC</span>}
+                                        {firstMsg.characterName && <span className="text-[9px] px-1 py-0.5 bg-primary/20 text-primary rounded border border-primary/30 uppercase tracking-wider">{t('vtt.chat.badges.rp')}</span>}
+                                        {!firstMsg.characterName && <span className="text-[9px] px-1 py-0.5 bg-zinc-800 text-zinc-500 rounded border border-white/5 uppercase tracking-wider">{t('vtt.chat.badges.ooc')}</span>}
                                     </span>
                                     <span className="text-[9px] text-zinc-600 shrink-0">{formatTime(firstMsg.timestamp)}</span>
                                 </div>
@@ -508,7 +508,7 @@ export const GameLog: React.FC<GameLogProps> = ({ onModeChange }) => {
                         {whisperTo ? (
                             <>
                                 <Lock className="w-3 h-3 shrink-0" />
-                                <span className="truncate flex-1">Privado: {playersOnline.find(p => p.id === whisperTo)?.name || 'Todos'}</span>
+                                <span className="truncate flex-1">{t('vtt.chat.labels.private')} {playersOnline.find(p => p.id === whisperTo)?.name || t('vtt.common.all')}</span>
                             </>
                         ) : (
                             <>
@@ -533,13 +533,13 @@ export const GameLog: React.FC<GameLogProps> = ({ onModeChange }) => {
                             {/* IDENTITY */}
                             {myCharacter && (
                                 <div className="p-1 border-b border-white/5">
-                                    <div className="px-2 py-1 text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Identidade</div>
+                                    <div className="px-2 py-1 text-[10px] font-bold text-zinc-600 uppercase tracking-wider">{t('vtt.chat.labels.identity')}</div>
                                     <button
                                         onClick={() => { setSpeakingAs('player'); setShowWhisperMenu(false); }}
                                         className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors ${speakingAs === 'player' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200'}`}
                                     >
                                         <User className="w-3 h-3" />
-                                        {user?.name || 'Eu'} (OOC)
+                                        {user?.name || t('vtt.common.me')} {t('vtt.chat.tags.ooc')}
                                         {speakingAs === 'player' && <div className="w-1.5 h-1.5 rounded-full bg-primary ml-auto"></div>}
                                     </button>
                                     <button
@@ -555,7 +555,7 @@ export const GameLog: React.FC<GameLogProps> = ({ onModeChange }) => {
 
                             {/* RECIPIENT */}
                             <div className="p-1">
-                                <div className="px-2 py-1 text-[10px] font-bold text-zinc-600 uppercase tracking-wider">Destinatário</div>
+                                <div className="px-2 py-1 text-[10px] font-bold text-zinc-600 uppercase tracking-wider">{t('vtt.chat.labels.recipient')}</div>
                                 <button
                                     onClick={() => { setWhisperTo(null); setShowWhisperMenu(false); }}
                                     className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors ${!whisperTo ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200'}`}

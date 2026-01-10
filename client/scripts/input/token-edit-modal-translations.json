@@ -1,0 +1,34 @@
+{
+  "translations": [
+    {
+      "key": "vtt.token.editModal.fields.backgroundColor",
+      "en": "Background Color",
+      "pt": "Cor Fundo"
+    },
+    {
+      "key": "vtt.token.editModal.fields.textColor",
+      "en": "Text Color",
+      "pt": "Cor Texto"
+    },
+    {
+      "key": "vtt.token.editModal.fields.sigla",
+      "en": "Label",
+      "pt": "Sigla"
+    },
+    {
+      "key": "vtt.token.editModal.errors.uploadFailed",
+      "en": "Image upload failed.",
+      "pt": "Erro no upload da imagem."
+    },
+    {
+      "key": "vtt.token.editModal.markdown.actions",
+      "en": "### Actions",
+      "pt": "### Ações"
+    },
+    {
+      "key": "vtt.token.editModal.markdown.legendaryActions",
+      "en": "### Legendary Actions",
+      "pt": "### Ações Lendárias"
+    }
+  ]
+}

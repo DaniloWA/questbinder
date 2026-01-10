@@ -418,6 +418,8 @@ export default {
       passivePerception: 'Passive Perception',
       acModifier: 'AC Modifier',
       speedModifier: 'Speed Modifier',
+      all: 'All',
+      me: 'Me',
     },
     tokens: {
       editModal: {
@@ -833,6 +835,18 @@ export default {
         position: {
           goTo: 'Go to {label}',
         },
+      },
+      labels: {
+        recipient: 'Recipient',
+        identity: 'Identity',
+        private: 'Private:',
+      },
+      tags: {
+        ooc: '(OOC)',
+      },
+      badges: {
+        ooc: 'OOC',
+        rp: 'RP',
       },
     },
     party: {
@@ -1822,6 +1836,211 @@ export default {
         },
         limparTodosOs: {
           tooltip: 'Clear ALL drawings',
+        },
+      },
+    },
+    token: {
+      editModal: {
+        fields: {
+          backgroundColor: 'Background Color',
+          textColor: 'Text Color',
+          sigla: 'Label',
+        },
+        errors: {
+          uploadFailed: 'Image upload failed.',
+        },
+        markdown: {
+          actions: '### Actions',
+          legendaryActions: '### Legendary Actions',
+        },
+      },
+    },
+    character: {
+      sheetviewer: {
+        histrico: {
+          label: 'History',
+        },
+        bio: {
+          label: 'Bio',
+        },
+        feitos: {
+          label: 'Features',
+        },
+        combate: {
+          label: 'Combat',
+        },
+        descansoLongo: {
+          tooltip: 'Long Rest',
+        },
+        descansoCurto: {
+          tooltip: 'Short Rest',
+        },
+        classe: {
+          placeholder: 'Class',
+        },
+        espcie: {
+          placeholder: 'Species',
+        },
+        nomeDoPersonagem: {
+          placeholder: 'Character Name',
+        },
+        avatar: {
+          alt: 'Avatar',
+        },
+        adicioneNotasPrivadas: {
+          placeholder: 'Add private notes about this character...',
+        },
+        estasNotasSo: {
+          title: 'These notes are private and only visible to the GM.',
+        },
+        notasDoMestre: {
+          title: 'GM Notes',
+        },
+        nenhumaAlteraoRegistrada: {
+          text: 'No changes recorded yet.',
+        },
+        alterou: {
+          label: 'Changed:',
+        },
+        ltimas100Alteraes: {
+          title: 'Last 100 changes on the sheet.',
+        },
+        histricoDeAlteraes: {
+          title: 'Change History',
+        },
+        tesouroItensEspeciais: {
+          text: 'Treasure & Special Items',
+        },
+        aliadosOrganizaes: {
+          text: 'Allies & Organizations',
+        },
+        notasOutros: {
+          title: 'Notes & Others',
+        },
+        nenhumaBiografiaDisponvel: {
+          text: 'No biography available.',
+        },
+        escrevaAHistria: {
+          placeholder: 'Write your character\'s history...',
+        },
+        biografia: {
+          title: 'Biography',
+        },
+        personalidade: {
+          title: 'Personality',
+        },
+        aparncia: {
+          title: 'Appearance',
+        },
+        descrio: {
+          placeholder: 'Description...',
+        },
+        fonteExRaa: {
+          placeholder: 'Source (e.g. Race, Class)',
+        },
+        nomeDaCaracterstica: {
+          placeholder: 'Feature Name',
+        },
+        caractersticasETalentos: {
+          title: 'Features & Feats',
+        },
+        equipamento: {
+          title: 'Equipment',
+        },
+        truques: {
+          label: 'Cantrips',
+        },
+        nvel: {
+          label: 'Level',
+        },
+        espaosDeMagia: {
+          title: 'Spell Slots',
+        },
+        ataque: {
+          label: 'Attack',
+        },
+        atributo: {
+          label: 'Attribute',
+        },
+        nenhumAtaqueConfigurado: {
+          text: 'No attack configured.',
+        },
+        alcance: {
+          placeholder: 'Range',
+        },
+        nomeDoAtaque: {
+          placeholder: 'Attack Name',
+        },
+        aesAtaques: {
+          title: 'Actions & Attacks',
+        },
+        dadosDeVida: {
+          text: 'Hit Dice',
+        },
+        exausto: {
+          label: 'Exhaustion',
+        },
+        inspirao: {
+          label: 'Inspiration',
+        },
+        percepoPas: {
+          label: 'Pass. Perception',
+        },
+        proficincia: {
+          label: 'Proficiency',
+        },
+        deslocamento: {
+          label: 'Speed',
+        },
+        iniciativa: {
+          label: 'Initiative',
+        },
+        classeArmadura: {
+          label: 'Armor Class',
+        },
+        percepo: {
+          label: 'Perception',
+        },
+        prof: {
+          label: 'Prof.',
+        },
+        desloc: {
+          label: 'Spd.',
+        },
+        mx: {
+          label: 'Max:',
+        },
+        pontosDeVida: {
+          text: 'Hit Points',
+        },
+        percias: {
+          label: 'Skills',
+        },
+        atributos: {
+          label: 'Attributes',
+        },
+      },
+    },
+    scene: {
+      navigation: {
+        gerenciarCenasandares: {
+          tooltip: 'Manage Scenes/Floors',
+        },
+        tokens: {
+          label: 'tokens',
+        },
+        camadas: {
+          label: 'Layers',
+        },
+        excluirCamada: {
+          title: 'Delete Layer',
+          text: 'Delete Layer',
+        },
+        cancelar: {
+          label: 'Cancel',
+        },
+        temCertezaQue: {
+          text: 'Are you sure you want to delete this layer? All tokens and settings in it will be permanently lost.',
         },
       },
     },

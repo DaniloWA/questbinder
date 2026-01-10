@@ -1,0 +1,39 @@
+{
+  "translations": [
+    {
+      "key": "vtt.scene.navigation.gerenciarCenasandares.tooltip",
+      "en": "Manage Scenes/Floors",
+      "pt": "Gerenciar Cenas/Andares"
+    },
+    {
+      "key": "vtt.scene.navigation.tokens.label",
+      "en": "tokens",
+      "pt": "tokens"
+    },
+    {
+      "key": "vtt.scene.navigation.camadas.label",
+      "en": "Layers",
+      "pt": "Camadas"
+    },
+    {
+      "key": "vtt.scene.navigation.excluirCamada.title",
+      "en": "Delete Layer",
+      "pt": "Delete Layer"
+    },
+    {
+      "key": "vtt.scene.navigation.excluirCamada.text",
+      "en": "Delete Layer",
+      "pt": "Delete Layer"
+    },
+    {
+      "key": "vtt.scene.navigation.cancelar.label",
+      "en": "Cancel",
+      "pt": "Cancelar"
+    },
+    {
+      "key": "vtt.scene.navigation.temCertezaQue.text",
+      "en": "Are you sure you want to delete this layer? All tokens and settings in it will be permanently lost.",
+      "pt": "Tem certeza que deseja excluir esta camada? Todos os tokens e configurações nela serão perdidos permanentemente."
+    }
+  ]
+}

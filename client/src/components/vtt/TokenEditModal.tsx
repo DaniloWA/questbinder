@@ -187,11 +187,11 @@ export const TokenEditModal: React.FC<TokenEditModalProps> = ({
         const notesParts = [];
         if (m.special_abilities) notesParts.push(...m.special_abilities.map((a) => `**${a.name}.** ${a.desc}`));
         if (m.actions) {
-            notesParts.push('### Ações');
+            notesParts.push(t('vtt.token.editModal.markdown.actions'));
             notesParts.push(...m.actions.map((a) => `**${a.name}.** ${a.desc}`));
         }
         if (m.legendary_actions) {
-            notesParts.push('### Ações Lendárias');
+            notesParts.push(t('vtt.token.editModal.markdown.legendaryActions'));
             notesParts.push(...m.legendary_actions.map((a) => `**${a.name}.** ${a.desc}`));
         }
 
@@ -233,7 +233,7 @@ export const TokenEditModal: React.FC<TokenEditModalProps> = ({
                 setImgUrl(response.data);
                 setDisplayMode('image');
             } else {
-                show({ type: 'error', message: response.message || 'Erro no upload da imagem.' });
+                show({ type: 'error', message: response.message || t('vtt.token.editModal.errors.uploadFailed') });
             }
         }
     };
@@ -598,7 +598,7 @@ export const TokenEditModal: React.FC<TokenEditModalProps> = ({
                                     <div className="space-y-3 p-3 bg-zinc-900/50 rounded-lg border border-zinc-800">
                                         <div className="grid grid-cols-2 gap-3">
                                             <div>
-                                                <SheetLabel>Sigla</SheetLabel>
+                                                <SheetLabel>{t('vtt.token.editModal.fields.sigla')}</SheetLabel>
                                                 <input
                                                     maxLength={2}
                                                     value={textVal}
@@ -607,12 +607,12 @@ export const TokenEditModal: React.FC<TokenEditModalProps> = ({
                                                 />
                                             </div>
                                             <div>
-                                                <SheetLabel>Cor Texto</SheetLabel>
+                                                <SheetLabel>{t('vtt.token.editModal.fields.textColor')}</SheetLabel>
                                                 <ColorPicker value={textColor} onChange={setTextColor} className="w-full" />
                                             </div>
                                         </div>
                                         <div>
-                                            <SheetLabel>Cor Fundo</SheetLabel>
+                                            <SheetLabel>{t('vtt.token.editModal.fields.backgroundColor')}</SheetLabel>
                                             <ColorPicker value={textBgColor} onChange={setTextBgColor} className="w-full" />
                                         </div>
                                     </div>

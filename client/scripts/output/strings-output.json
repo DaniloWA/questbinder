@@ -1,177 +1,629 @@
 {
-  "filePath": "src/components/vtt/DrawingToolbar.tsx",
-  "timestamp": "2026-01-10T21:23:40.336Z",
-  "componentName": "DrawingToolbar.tsx",
-  "totalFound": 26,
-  "userFacingCount": 21,
+  "filePath": "src/components/vtt/VTTToolbar.tsx",
+  "timestamp": "2026-01-10T22:41:56.330Z",
+  "componentName": "VTTToolbar.tsx",
+  "totalFound": 62,
+  "userFacingCount": 62,
   "strings": [
     {
-      "original": "paredes dinâmicas",
-      "line": 51,
-      "context": "const isSmartWall = activeTool === 'smart-wall';\n        const typeLabel = isSmartWall ? 'paredes dinâmicas' : 'desenhos';\n        const action = isSmartWall ? clearAllObstacles : clearAllDrawings;",
-      "suggestedKey": "vtt.drawing.toolbar.paredesDinmicas.text",
-      "contentType": "text",
-      "confidence": "high"
-    },
-    {
-      "original": "desenhos",
-      "line": 51,
-      "context": "const isSmartWall = activeTool === 'smart-wall';\n        const typeLabel = isSmartWall ? 'paredes dinâmicas' : 'desenhos';\n        const action = isSmartWall ? clearAllObstacles : clearAllDrawings;",
-      "suggestedKey": "vtt.drawing.toolbar.desenhos.label",
+      "original": "action",
+      "line": 523,
+      "context": "id: 'settings',\r\n                        type: 'action',\r\n                        label: t('vtt.tools.toolbar.gmTools.mapSettings.button.label'),",
+      "suggestedKey": "vtt.v.tttoolbar.action.label",
       "contentType": "label",
-      "confidence": "high"
+      "confidence": "high",
+      "start": 25485,
+      "end": 25493
     },
     {
-      "original": "Tem certeza que deseja apagar",
-      "line": 56,
-      "context": "<div className=\"space-y-4\">\n                <p className=\"text-zinc-400\">Tem certeza que deseja apagar <strong>todos</strong> os {typeLabel} desta cena? Esta ação é irreversível.</p>\n                <div className=\"flex justify-end gap-2 pt-2\">",
-      "suggestedKey": "vtt.drawing.toolbar.temCertezaQue.text",
-      "contentType": "text",
-      "confidence": "high"
-    },
-    {
-      "original": "todos",
-      "line": 56,
-      "context": "<div className=\"space-y-4\">\n                <p className=\"text-zinc-400\">Tem certeza que deseja apagar <strong>todos</strong> os {typeLabel} desta cena? Esta ação é irreversível.</p>\n                <div className=\"flex justify-end gap-2 pt-2\">",
-      "suggestedKey": "vtt.drawing.toolbar.todos.label",
+      "original": "settings",
+      "line": 522,
+      "context": "{\r\n                        id: 'settings',\r\n                        type: 'action',",
+      "suggestedKey": "vtt.v.tttoolbar.settings.label",
       "contentType": "label",
-      "confidence": "high"
+      "confidence": "high",
+      "start": 25442,
+      "end": 25452
     },
     {
-      "original": "desta cena? Esta ação é irreversível.",
-      "line": 56,
-      "context": "<div className=\"space-y-4\">\n                <p className=\"text-zinc-400\">Tem certeza que deseja apagar <strong>todos</strong> os {typeLabel} desta cena? Esta ação é irreversível.</p>\n                <div className=\"flex justify-end gap-2 pt-2\">",
-      "suggestedKey": "vtt.drawing.toolbar.destaCenaEsta.text",
-      "contentType": "text",
-      "confidence": "high"
-    },
-    {
-      "original": "Cancelar",
-      "line": 58,
-      "context": "<div className=\"flex justify-end gap-2 pt-2\">\n                    <Button variant=\"ghost\" onClick={closeModal}>Cancelar</Button>\n                    <Button variant=\"destructive\" onClick={() => { action(); closeModal(); }}>",
-      "suggestedKey": "vtt.drawing.toolbar.cancelar.label",
+      "original": "action",
+      "line": 515,
+      "context": "id: 'grid-coords',\r\n                        type: 'action',\r\n                        label: t('vtt.tools.toolbar.gmTools.gridCoords.button.label'),",
+      "suggestedKey": "vtt.v.tttoolbar.action.label",
       "contentType": "label",
-      "confidence": "high"
+      "confidence": "high",
+      "start": 25112,
+      "end": 25120
     },
     {
-      "original": "Limpar Tudo",
-      "line": 60,
-      "context": "<Button variant=\"destructive\" onClick={() => { action(); closeModal(); }}>\n                        <Trash2 className=\"w-4 h-4 mr-2\" /> Limpar Tudo\n                    </Button>",
-      "suggestedKey": "vtt.drawing.toolbar.limparTudo.text",
-      "contentType": "text",
-      "confidence": "high"
+      "original": "action",
+      "line": 508,
+      "context": "id: 'permissions',\r\n                        type: 'action',\r\n                        label: t('vtt.tools.toolbar.gmTools.permissions.button.label'),",
+      "suggestedKey": "vtt.v.tttoolbar.action.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 24792,
+      "end": 24800
     },
     {
-      "original": "Limpar Paredes",
-      "line": 64,
-      "context": "</div>,\n            { title: isSmartWall ? 'Limpar Paredes' : 'Limpar Desenhos', variant: 'alert', size: 'sm' }\n        );",
-      "suggestedKey": "vtt.drawing.toolbar.limparParedes.title",
+      "original": "permissions",
+      "line": 507,
+      "context": "{\r\n                        id: 'permissions',\r\n                        type: 'action',",
+      "suggestedKey": "vtt.v.tttoolbar.permissions.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 24746,
+      "end": 24759
+    },
+    {
+      "original": "action",
+      "line": 499,
+      "context": "id: 'view-settings',\r\n                        type: 'action',\r\n                        label: t('vtt.tools.toolbar.gmTools.viewSettings.button.label'),",
+      "suggestedKey": "vtt.v.tttoolbar.action.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 24374,
+      "end": 24382
+    },
+    {
+      "original": "group",
+      "line": 492,
+      "context": "id: 'gm-tools',\r\n                type: 'group',\r\n                label: t('vtt.tools.toolbar.gmTools.group.label'),",
+      "suggestedKey": "vtt.v.tttoolbar.group.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 24075,
+      "end": 24082
+    },
+    {
+      "original": "action",
+      "line": 480,
+      "context": "id: 'combat',\r\n                type: 'action',\r\n                label: props.isCombatActive ? t('vtt.tools.toolbar.gameplayTools.endCombat.button.label') : t('vtt.tools.toolbar.gameplayTools.startCombat.button.label'),",
+      "suggestedKey": "vtt.v.tttoolbar.action.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 23476,
+      "end": 23484
+    },
+    {
+      "original": "combat",
+      "line": 479,
+      "context": "{\r\n                id: 'combat',\r\n                type: 'action',",
+      "suggestedKey": "vtt.v.tttoolbar.combat.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 23443,
+      "end": 23451
+    },
+    {
+      "original": "action",
+      "line": 472,
+      "context": "id: 'add-token',\r\n                type: 'action',\r\n                label: t('vtt.tools.toolbar.gameplayTools.addToken.button.label'),",
+      "suggestedKey": "vtt.v.tttoolbar.action.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 23148,
+      "end": 23156
+    },
+    {
+      "original": "action",
+      "line": 463,
+      "context": "id: 'handouts',\r\n                type: 'action',\r\n                label: t('vtt.tools.toolbar.gameplayTools.handouts.button.label'),",
+      "suggestedKey": "vtt.v.tttoolbar.action.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 22766,
+      "end": 22774
+    },
+    {
+      "original": "handouts",
+      "line": 462,
+      "context": "{\r\n                id: 'handouts',\r\n                type: 'action',",
+      "suggestedKey": "vtt.v.tttoolbar.handouts.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 22731,
+      "end": 22741
+    },
+    {
+      "original": "action",
+      "line": 454,
+      "context": "id: 'compendium',\r\n                type: 'action',\r\n                label: t('vtt.tools.toolbar.gameplayTools.compendium.button.label'),",
+      "suggestedKey": "vtt.v.tttoolbar.action.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 22371,
+      "end": 22379
+    },
+    {
+      "original": "action",
+      "line": 445,
+      "context": "id: 'bestiary',\r\n                type: 'action',\r\n                label: t('vtt.tools.toolbar.gameplayTools.bestiary.button.label'),",
+      "suggestedKey": "vtt.v.tttoolbar.action.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 21982,
+      "end": 21990
+    },
+    {
+      "original": "bestiary",
+      "line": 444,
+      "context": "{\r\n                id: 'bestiary',\r\n                type: 'action',",
+      "suggestedKey": "vtt.v.tttoolbar.bestiary.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 21947,
+      "end": 21957
+    },
+    {
+      "original": "action",
+      "line": 436,
+      "context": "id: 'dice-roller',\r\n                type: 'action',\r\n                label: t('vtt.tools.toolbar.gameplayTools.diceRoller.button.label'),",
+      "suggestedKey": "vtt.v.tttoolbar.action.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 21592,
+      "end": 21600
+    },
+    {
+      "original": "action",
+      "line": 427,
+      "context": "id: 'attack-zones',\r\n                type: 'action',\r\n                label: t('vtt.tools.toolbar.gameplayTools.attackZones.button.label'),",
+      "suggestedKey": "vtt.v.tttoolbar.action.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 21188,
+      "end": 21196
+    },
+    {
+      "original": "tool",
+      "line": 419,
+      "context": "{ id: 'draw-trigger-poly', type: 'tool', label: t('vtt.tools.toolbar.triggerTools.poly.button.label'), icon: <Hexagon /> },\r\n                    { id: 'eraser-trigger', type: 'tool', label: t('vtt.tools.toolbar.triggerTools.eraser.button.label'), icon: <Eraser />, danger: true },\r\n                ]",
+      "suggestedKey": "vtt.v.tttoolbar.tool.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 20905,
+      "end": 20911
+    },
+    {
+      "original": "tool",
+      "line": 418,
+      "context": "{ id: 'draw-trigger-rect', type: 'tool', label: t('vtt.tools.toolbar.triggerTools.rect.button.label'), icon: <Square /> },\r\n                    { id: 'draw-trigger-poly', type: 'tool', label: t('vtt.tools.toolbar.triggerTools.poly.button.label'), icon: <Hexagon /> },\r\n                    { id: 'eraser-trigger', type: 'tool', label: t('vtt.tools.toolbar.triggerTools.eraser.button.label'), icon: <Eraser />, danger: true },",
+      "suggestedKey": "vtt.v.tttoolbar.tool.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 20763,
+      "end": 20769
+    },
+    {
+      "original": "tool",
+      "line": 417,
+      "context": "children: [\r\n                    { id: 'draw-trigger-rect', type: 'tool', label: t('vtt.tools.toolbar.triggerTools.rect.button.label'), icon: <Square /> },\r\n                    { id: 'draw-trigger-poly', type: 'tool', label: t('vtt.tools.toolbar.triggerTools.poly.button.label'), icon: <Hexagon /> },",
+      "suggestedKey": "vtt.v.tttoolbar.tool.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 20619,
+      "end": 20625
+    },
+    {
+      "original": "group",
+      "line": 412,
+      "context": "id: 'triggers',\r\n                type: 'group',\r\n                label: t('vtt.tools.toolbar.triggerTools.group.label'),",
+      "suggestedKey": "vtt.v.tttoolbar.group.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 20363,
+      "end": 20370
+    },
+    {
+      "original": "triggers",
+      "line": 411,
+      "context": "{\r\n                id: 'triggers',\r\n                type: 'group',",
+      "suggestedKey": "vtt.v.tttoolbar.triggers.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 20328,
+      "end": 20338
+    },
+    {
+      "original": "tool",
+      "line": 405,
+      "context": "{ id: 'draw-audio-poly', type: 'tool', label: t('vtt.tools.toolbar.audioTools.zones.poly.button.label'), icon: <Hexagon /> },\r\n                            { id: 'eraser-audio', type: 'tool', label: t('vtt.tools.toolbar.audioTools.zones.eraser.button.label'), icon: <Eraser />, danger: true },\r\n                        ]",
+      "suggestedKey": "vtt.v.tttoolbar.tool.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 20097,
+      "end": 20103
+    },
+    {
+      "original": "tool",
+      "line": 404,
+      "context": "{ id: 'draw-audio-rect', type: 'tool', label: t('vtt.tools.toolbar.audioTools.zones.rect.button.label'), icon: <Square /> },\r\n                            { id: 'draw-audio-poly', type: 'tool', label: t('vtt.tools.toolbar.audioTools.zones.poly.button.label'), icon: <Hexagon /> },\r\n                            { id: 'eraser-audio', type: 'tool', label: t('vtt.tools.toolbar.audioTools.zones.eraser.button.label'), icon: <Eraser />, danger: true },",
+      "suggestedKey": "vtt.v.tttoolbar.tool.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 19945,
+      "end": 19951
+    },
+    {
+      "original": "tool",
+      "line": 403,
+      "context": "id: 'audio-zones-group', type: 'group', label: t('vtt.tools.toolbar.audioTools.zones.submenu.title'), icon: <Speaker />, children: [\r\n                            { id: 'draw-audio-rect', type: 'tool', label: t('vtt.tools.toolbar.audioTools.zones.rect.button.label'), icon: <Square /> },\r\n                            { id: 'draw-audio-poly', type: 'tool', label: t('vtt.tools.toolbar.audioTools.zones.poly.button.label'), icon: <Hexagon /> },",
+      "suggestedKey": "vtt.v.tttoolbar.tool.title",
       "contentType": "title",
-      "confidence": "high"
+      "confidence": "high",
+      "start": 19791,
+      "end": 19797
     },
     {
-      "original": "Limpar Desenhos",
-      "line": 64,
-      "context": "</div>,\n            { title: isSmartWall ? 'Limpar Paredes' : 'Limpar Desenhos', variant: 'alert', size: 'sm' }\n        );",
-      "suggestedKey": "vtt.drawing.toolbar.limparDesenhos.title",
+      "original": "group",
+      "line": 402,
+      "context": "{\r\n                        id: 'audio-zones-group', type: 'group', label: t('vtt.tools.toolbar.audioTools.zones.submenu.title'), icon: <Speaker />, children: [\r\n                            { id: 'draw-audio-rect', type: 'tool', label: t('vtt.tools.toolbar.audioTools.zones.rect.button.label'), icon: <Square /> },",
+      "suggestedKey": "vtt.v.tttoolbar.group.title",
       "contentType": "title",
-      "confidence": "high"
+      "confidence": "high",
+      "start": 19629,
+      "end": 19636
     },
     {
-      "original": "Tamanho",
-      "line": 101,
-      "context": "<div className=\"flex items-center gap-2 text-[10px] text-zinc-400 font-bold uppercase\">\n                            <span>Tamanho</span>\n                            <span className=\"text-white\">{drawingSettings.width}px</span>",
-      "suggestedKey": "vtt.drawing.toolbar.tamanho.label",
+      "original": "action",
+      "line": 400,
+      "context": "children: [\r\n                    { id: 'audio-panel-action', type: 'action', label: t('vtt.tools.toolbar.audioTools.panel.button.label'), icon: <Music />, onClick: props.onToggleAudioPanel, isActive: props.isAudioPanelOpen },\r\n                    {",
+      "suggestedKey": "vtt.v.tttoolbar.action.label",
       "contentType": "label",
-      "confidence": "high"
+      "confidence": "high",
+      "start": 19391,
+      "end": 19399
     },
     {
-      "original": "Opacidade",
-      "line": 116,
-      "context": "<div className=\"flex items-center gap-2 text-[10px] text-zinc-400 font-bold uppercase\">\n                            <span>Opacidade</span>\n                            <span className=\"text-white\">{Math.round(drawingSettings.opacity * 100)}%</span>",
-      "suggestedKey": "vtt.drawing.toolbar.opacidade.label",
+      "original": "group",
+      "line": 395,
+      "context": "id: 'audio',\r\n                type: 'group',\r\n                label: t('vtt.tools.toolbar.audioTools.group.label'),",
+      "suggestedKey": "vtt.v.tttoolbar.group.label",
       "contentType": "label",
-      "confidence": "high"
+      "confidence": "high",
+      "start": 19134,
+      "end": 19141
     },
     {
-      "original": "Smart Wall",
-      "line": 139,
-      "context": "<div className=\"flex flex-col\">\n                            <span className=\"text-[10px] text-zinc-400 font-bold uppercase tracking-wider leading-none\">Smart Wall</span>\n                            <span className=\"text-[9px] text-zinc-500 italic mt-0.5\">Configurações da Varinha</span>",
-      "suggestedKey": "vtt.drawing.toolbar.smartWall.text",
-      "contentType": "text",
-      "confidence": "high"
-    },
-    {
-      "original": "Configurações da Varinha",
-      "line": 140,
-      "context": "<span className=\"text-[10px] text-zinc-400 font-bold uppercase tracking-wider leading-none\">Smart Wall</span>\n                            <span className=\"text-[9px] text-zinc-500 italic mt-0.5\">Configurações da Varinha</span>\n                        </div>",
-      "suggestedKey": "vtt.drawing.toolbar.configuraesDaVarinha.text",
-      "contentType": "text",
-      "confidence": "high"
-    },
-    {
-      "original": "Tolerância",
-      "line": 148,
-      "context": "<div className=\"flex items-center justify-between text-[10px] text-zinc-400 font-bold uppercase\">\n                            <span>Tolerância</span>\n                            <span className=\"text-white font-mono\">{wandSettings.tolerance}</span>",
-      "suggestedKey": "vtt.drawing.toolbar.tolerncia.label",
+      "original": "action",
+      "line": 388,
+      "context": "{ id: 'fog-rect', type: 'tool', label: t('vtt.tools.toolbar.lightingTools.fogOfWar.revealRect.button.label'), icon: <Square /> },\r\n                            { id: 'fog-reset', type: 'action', label: t('vtt.tools.toolbar.lightingTools.fogOfWar.reset.button.label'), icon: <RefreshCw />, danger: true, onClick: props.onResetFog }\r\n                        ]",
+      "suggestedKey": "vtt.v.tttoolbar.action.label",
       "contentType": "label",
-      "confidence": "high"
+      "confidence": "high",
+      "start": 18835,
+      "end": 18843
     },
     {
-      "original": "Simplificação",
-      "line": 163,
-      "context": "<div className=\"flex items-center justify-between text-[10px] text-zinc-400 font-bold uppercase\">\n                            <span>Simplificação</span>\n                            <span className=\"text-white font-mono\">{wandSettings.simplification.toFixed(1)}</span>",
-      "suggestedKey": "vtt.drawing.toolbar.simplificao.label",
+      "original": "tool",
+      "line": 387,
+      "context": "{ id: 'fog-poly', type: 'tool', label: t('vtt.tools.toolbar.lightingTools.fogOfWar.revealPoly.button.label'), icon: <PenTool /> },\r\n                            { id: 'fog-rect', type: 'tool', label: t('vtt.tools.toolbar.lightingTools.fogOfWar.revealRect.button.label'), icon: <Square /> },\r\n                            { id: 'fog-reset', type: 'action', label: t('vtt.tools.toolbar.lightingTools.fogOfWar.reset.button.label'), icon: <RefreshCw />, danger: true, onClick: props.onResetFog }",
+      "suggestedKey": "vtt.v.tttoolbar.tool.label",
       "contentType": "label",
-      "confidence": "high"
+      "confidence": "high",
+      "start": 18675,
+      "end": 18681
     },
     {
-      "original": "Resolução",
-      "line": 179,
-      "context": "<div className=\"flex items-center justify-between text-[10px] text-zinc-400 font-bold uppercase\">\n                            <span>Resolução</span>\n                            <span className=\"text-white font-mono\">{wandSettings.resolution}px</span>",
-      "suggestedKey": "vtt.drawing.toolbar.resoluo.label",
+      "original": "tool",
+      "line": 386,
+      "context": "id: 'fog-menu', type: 'group', label: t('vtt.tools.toolbar.lightingTools.fogOfWar.submenu.title'), icon: <EyeOff />, children: [\r\n                            { id: 'fog-poly', type: 'tool', label: t('vtt.tools.toolbar.lightingTools.fogOfWar.revealPoly.button.label'), icon: <PenTool /> },\r\n                            { id: 'fog-rect', type: 'tool', label: t('vtt.tools.toolbar.lightingTools.fogOfWar.revealRect.button.label'), icon: <Square /> },",
+      "suggestedKey": "vtt.v.tttoolbar.tool.title",
+      "contentType": "title",
+      "confidence": "high",
+      "start": 18515,
+      "end": 18521
+    },
+    {
+      "original": "group",
+      "line": 385,
+      "context": "{\r\n                        id: 'fog-menu', type: 'group', label: t('vtt.tools.toolbar.lightingTools.fogOfWar.submenu.title'), icon: <EyeOff />, children: [\r\n                            { id: 'fog-poly', type: 'tool', label: t('vtt.tools.toolbar.lightingTools.fogOfWar.revealPoly.button.label'), icon: <PenTool /> },",
+      "suggestedKey": "vtt.v.tttoolbar.group.title",
+      "contentType": "title",
+      "confidence": "high",
+      "start": 18355,
+      "end": 18362
+    },
+    {
+      "original": "tool",
+      "line": 383,
+      "context": "{ id: 'draw-light-rect', type: 'tool', label: t('vtt.tools.toolbar.lightingTools.lightRect.button.label'), icon: <Sun /> },\r\n                    { id: 'draw-light-poly', type: 'tool', label: t('vtt.tools.toolbar.lightingTools.lightPoly.button.label'), icon: <Hexagon /> },\r\n                    {",
+      "suggestedKey": "vtt.v.tttoolbar.tool.label",
       "contentType": "label",
-      "confidence": "high"
+      "confidence": "high",
+      "start": 18188,
+      "end": 18194
     },
     {
-      "original": "Sandbox do Smart Wall",
-      "line": 195,
-      "context": "<button\n                            onClick={() => openModal(<SmartWallPreviewModal wandSettings={wandSettings} setWandSettings={setWandSettings} />, { title: 'Sandbox do Smart Wall', size: 'lg' })}\n                            className=\"p-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-all group shadow-lg shadow-primary/5 hover:scale-110 active:scale-95 border border-primary/20\"",
-      "suggestedKey": "vtt.drawing.toolbar.sandboxDoSmart.label",
+      "original": "tool",
+      "line": 382,
+      "context": "children: [\r\n                    { id: 'draw-light-rect', type: 'tool', label: t('vtt.tools.toolbar.lightingTools.lightRect.button.label'), icon: <Sun /> },\r\n                    { id: 'draw-light-poly', type: 'tool', label: t('vtt.tools.toolbar.lightingTools.lightPoly.button.label'), icon: <Hexagon /> },",
+      "suggestedKey": "vtt.v.tttoolbar.tool.label",
       "contentType": "label",
-      "confidence": "high"
+      "confidence": "high",
+      "start": 18043,
+      "end": 18049
     },
     {
-      "original": "Preview",
-      "line": 200,
-      "context": "</button>\n                        <span className=\"text-[8px] font-bold text-primary uppercase tracking-tighter\">Preview</span>\n                    </div>",
-      "suggestedKey": "vtt.drawing.toolbar.preview.label",
+      "original": "group",
+      "line": 377,
+      "context": "id: 'lighting',\r\n                type: 'group',\r\n                label: t('vtt.tools.toolbar.lightingTools.group.label'),",
+      "suggestedKey": "vtt.v.tttoolbar.group.label",
       "contentType": "label",
-      "confidence": "high"
+      "confidence": "high",
+      "start": 17782,
+      "end": 17789
     },
     {
-      "original": "Desfazer última parede",
-      "line": 209,
-      "context": "<div className=\"flex gap-2\">\n                <Tooltip content={activeTool === 'smart-wall' ? \"Desfazer última parede\" : \"Desfazer último traço\"}>\n                    <button",
-      "suggestedKey": "vtt.drawing.toolbar.desfazerLtimaParede.tooltip",
-      "contentType": "tooltip",
-      "confidence": "high"
+      "original": "lighting",
+      "line": 376,
+      "context": "{\r\n                id: 'lighting',\r\n                type: 'group',",
+      "suggestedKey": "vtt.v.tttoolbar.lighting.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 17747,
+      "end": 17757
     },
     {
-      "original": "Desfazer último traço",
-      "line": 209,
-      "context": "<div className=\"flex gap-2\">\n                <Tooltip content={activeTool === 'smart-wall' ? \"Desfazer última parede\" : \"Desfazer último traço\"}>\n                    <button",
-      "suggestedKey": "vtt.drawing.toolbar.desfazerLtimoTrao.tooltip",
-      "contentType": "tooltip",
-      "confidence": "high"
+      "original": "tool",
+      "line": 372,
+      "context": "{ id: 'draw-window', type: 'tool', label: t('vtt.tools.toolbar.architectureTools.window.button.label'), icon: <Grid /> },\r\n                    { id: 'eraser', type: 'tool', label: t('vtt.tools.toolbar.architectureTools.eraser.button.label'), icon: <Eraser />, danger: true },\r\n                ]",
+      "suggestedKey": "vtt.v.tttoolbar.tool.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 17565,
+      "end": 17571
     },
     {
-      "original": "Limpar TODOS os desenhos",
-      "line": 219,
-      "context": "{canClearAll && (\n                    <Tooltip content=\"Limpar TODOS os desenhos\">\n                        <button",
-      "suggestedKey": "vtt.drawing.toolbar.limparTodosOs.tooltip",
-      "contentType": "tooltip",
-      "confidence": "high"
+      "original": "tool",
+      "line": 371,
+      "context": "{ id: 'draw-door', type: 'tool', label: t('vtt.tools.toolbar.architectureTools.door.button.label'), icon: <DoorOpen /> },\r\n                    { id: 'draw-window', type: 'tool', label: t('vtt.tools.toolbar.architectureTools.window.button.label'), icon: <Grid /> },\r\n                    { id: 'eraser', type: 'tool', label: t('vtt.tools.toolbar.architectureTools.eraser.button.label'), icon: <Eraser />, danger: true },",
+      "suggestedKey": "vtt.v.tttoolbar.tool.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 17427,
+      "end": 17433
+    },
+    {
+      "original": "tool",
+      "line": 370,
+      "context": "{ id: 'smart-wall', type: 'tool', label: t('vtt.tools.toolbar.architectureTools.smartWall.button.label'), icon: <Wand2 /> },\r\n                    { id: 'draw-door', type: 'tool', label: t('vtt.tools.toolbar.architectureTools.door.button.label'), icon: <DoorOpen /> },\r\n                    { id: 'draw-window', type: 'tool', label: t('vtt.tools.toolbar.architectureTools.window.button.label'), icon: <Grid /> },",
+      "suggestedKey": "vtt.v.tttoolbar.tool.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 17282,
+      "end": 17288
+    },
+    {
+      "original": "tool",
+      "line": 369,
+      "context": "{ id: 'freehand-wall', type: 'tool', label: t('vtt.tools.toolbar.architectureTools.freehandWall.button.label'), icon: <PenTool /> },\r\n                    { id: 'smart-wall', type: 'tool', label: t('vtt.tools.toolbar.architectureTools.smartWall.button.label'), icon: <Wand2 /> },\r\n                    { id: 'draw-door', type: 'tool', label: t('vtt.tools.toolbar.architectureTools.door.button.label'), icon: <DoorOpen /> },",
+      "suggestedKey": "vtt.v.tttoolbar.tool.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 17137,
+      "end": 17143
+    },
+    {
+      "original": "tool",
+      "line": 368,
+      "context": "{ id: 'draw-wall', type: 'tool', label: t('vtt.tools.toolbar.architectureTools.wall.button.label'), icon: <Fence /> },\r\n                    { id: 'freehand-wall', type: 'tool', label: t('vtt.tools.toolbar.architectureTools.freehandWall.button.label'), icon: <PenTool /> },\r\n                    { id: 'smart-wall', type: 'tool', label: t('vtt.tools.toolbar.architectureTools.smartWall.button.label'), icon: <Wand2 /> },",
+      "suggestedKey": "vtt.v.tttoolbar.tool.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 16986,
+      "end": 16992
+    },
+    {
+      "original": "tool",
+      "line": 367,
+      "context": "children: [\r\n                    { id: 'draw-wall', type: 'tool', label: t('vtt.tools.toolbar.architectureTools.wall.button.label'), icon: <Fence /> },\r\n                    { id: 'freehand-wall', type: 'tool', label: t('vtt.tools.toolbar.architectureTools.freehandWall.button.label'), icon: <PenTool /> },",
+      "suggestedKey": "vtt.v.tttoolbar.tool.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 16842,
+      "end": 16848
+    },
+    {
+      "original": "group",
+      "line": 362,
+      "context": "id: 'architecture',\r\n                type: 'group',\r\n                label: t('vtt.tools.toolbar.architectureTools.group.label'),",
+      "suggestedKey": "vtt.v.tttoolbar.group.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 16582,
+      "end": 16589
+    },
+    {
+      "original": "architecture",
+      "line": 361,
+      "context": "{\r\n                id: 'architecture',\r\n                type: 'group',",
+      "suggestedKey": "vtt.v.tttoolbar.architecture.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 16543,
+      "end": 16557
+    },
+    {
+      "original": "action",
+      "line": 354,
+      "context": "{\r\n                id: 'cursor-settings', type: 'action', label: t('vtt.tools.toolbar.cursorSettings.button.label'), icon: <MousePointer2 />, onClick: props.onOpenCursorSettings,\r\n                hidden: allCursorPermsDisabled",
+      "suggestedKey": "vtt.v.tttoolbar.action.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 16245,
+      "end": 16253
+    },
+    {
+      "original": "tool",
+      "line": 350,
+      "context": "{ id: 'brush', type: 'tool', label: t('vtt.tools.toolbar.drawingTools.brush.button.label'), icon: <PenTool /> },\r\n                    { id: 'eraser-drawing', type: 'tool', label: t('vtt.tools.toolbar.drawingTools.eraser.button.label'), icon: <Eraser />, danger: true, hidden: !permissionHelper.canAsGMOr('drawingDelete') }\r\n                ]",
+      "suggestedKey": "vtt.v.tttoolbar.tool.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 15990,
+      "end": 15996
+    },
+    {
+      "original": "tool",
+      "line": 349,
+      "context": "children: [\r\n                    { id: 'brush', type: 'tool', label: t('vtt.tools.toolbar.drawingTools.brush.button.label'), icon: <PenTool /> },\r\n                    { id: 'eraser-drawing', type: 'tool', label: t('vtt.tools.toolbar.drawingTools.eraser.button.label'), icon: <Eraser />, danger: true, hidden: !permissionHelper.canAsGMOr('drawingDelete') }",
+      "suggestedKey": "vtt.v.tttoolbar.tool.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 15847,
+      "end": 15853
+    },
+    {
+      "original": "drawings",
+      "line": 347,
+      "context": "icon: <Brush />,\r\n                hidden: !permissionHelper.canAsGMOr('drawings'),\r\n                children: [",
+      "suggestedKey": "vtt.v.tttoolbar.drawings.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 15763,
+      "end": 15773
+    },
+    {
+      "original": "group",
+      "line": 344,
+      "context": "id: 'drawings',\r\n                type: 'group',\r\n                label: t('vtt.tools.toolbar.drawingTools.group.label'),",
+      "suggestedKey": "vtt.v.tttoolbar.group.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 15594,
+      "end": 15601
+    },
+    {
+      "original": "drawings",
+      "line": 343,
+      "context": "{\r\n                id: 'drawings',\r\n                type: 'group',",
+      "suggestedKey": "vtt.v.tttoolbar.drawings.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 15559,
+      "end": 15569
+    },
+    {
+      "original": "measure",
+      "line": 341,
+      "context": "{ id: 'select', type: 'tool', label: t('vtt.tools.toolbar.selectTool.button.label'), icon: <MousePointer2 />, shortcut: 'V' },\r\n            { id: 'measure-path', type: 'tool', label: t('vtt.tools.toolbar.rulerTool.button.label'), icon: <Ruler />, shortcut: 'M', hidden: !permissionHelper.canAsGMOr('measure') },\r\n            {",
+      "suggestedKey": "vtt.v.tttoolbar.measure.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 15509,
+      "end": 15518
+    },
+    {
+      "original": "tool",
+      "line": 341,
+      "context": "{ id: 'select', type: 'tool', label: t('vtt.tools.toolbar.selectTool.button.label'), icon: <MousePointer2 />, shortcut: 'V' },\r\n            { id: 'measure-path', type: 'tool', label: t('vtt.tools.toolbar.rulerTool.button.label'), icon: <Ruler />, shortcut: 'M', hidden: !permissionHelper.canAsGMOr('measure') },\r\n            {",
+      "suggestedKey": "vtt.v.tttoolbar.tool.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 15379,
+      "end": 15385
+    },
+    {
+      "original": "tool",
+      "line": 340,
+      "context": "const interactionGroup: ToolbarItemConfig[] = [\r\n            { id: 'select', type: 'tool', label: t('vtt.tools.toolbar.selectTool.button.label'), icon: <MousePointer2 />, shortcut: 'V' },\r\n            { id: 'measure-path', type: 'tool', label: t('vtt.tools.toolbar.rulerTool.button.label'), icon: <Ruler />, shortcut: 'M', hidden: !permissionHelper.canAsGMOr('measure') },",
+      "suggestedKey": "vtt.v.tttoolbar.tool.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 15233,
+      "end": 15239
+    },
+    {
+      "original": "tool",
+      "line": 176,
+      "context": "if (item.type === 'tool') {\r\n            onToolSelect(item.id as VTTTool);",
+      "suggestedKey": "vtt.v.tttoolbar.tool.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 6243,
+      "end": 6249
+    },
+    {
+      "original": "tool",
+      "line": 145,
+      "context": "if (!children) return false;\r\n            return children.some(c => (c.type === 'tool' && activeTool === c.id) || !!c.isActive || check(c.children));\r\n        };",
+      "suggestedKey": "vtt.v.tttoolbar.tool.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 5228,
+      "end": 5234
+    },
+    {
+      "original": "tool",
+      "line": 141,
+      "context": "const isSelfActive = (item.type === 'tool' && activeTool === item.id) || !!item.isActive;\r\n    const hasActiveChild = useMemo(() => {",
+      "suggestedKey": "vtt.v.tttoolbar.tool.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 4967,
+      "end": 4973
+    },
+    {
+      "original": "all",
+      "line": 57,
+      "context": "isAttackZonePanelOpen?: boolean;\r\n    onSetPreviewPlayer?: (id: string | 'all') => void;\r\n    onToolSelect: (tool: VTTTool) => void;",
+      "suggestedKey": "vtt.v.tttoolbar.all.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 2095,
+      "end": 2100
+    },
+    {
+      "original": "all",
+      "line": 50,
+      "context": "players?: UserType[];\r\n    previewPlayerId?: string | 'all';\r\n    isLibraryOpen: boolean;",
+      "suggestedKey": "vtt.v.tttoolbar.all.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 1848,
+      "end": 1853
+    },
+    {
+      "original": "group",
+      "line": 33,
+      "context": "id: string;\r\n    type: 'tool' | 'action' | 'group';\r\n    label: string;",
+      "suggestedKey": "vtt.v.tttoolbar.group.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 1417,
+      "end": 1424
+    },
+    {
+      "original": "action",
+      "line": 33,
+      "context": "id: string;\r\n    type: 'tool' | 'action' | 'group';\r\n    label: string;",
+      "suggestedKey": "vtt.v.tttoolbar.action.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 1406,
+      "end": 1414
+    },
+    {
+      "original": "tool",
+      "line": 33,
+      "context": "id: string;\r\n    type: 'tool' | 'action' | 'group';\r\n    label: string;",
+      "suggestedKey": "vtt.v.tttoolbar.tool.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 1397,
+      "end": 1403
+    },
+    {
+      "original": "ontouchstart",
+      "line": 23,
+      "context": "useEffect(() => {\r\n        const check = () => setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window);\r\n        check();",
+      "suggestedKey": "vtt.v.tttoolbar.ontouchstart.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 1127,
+      "end": 1141
     }
   ]
 }

@@ -413,6 +413,8 @@ export default {
       passivePerception: 'Percepção Passiva',
       acModifier: 'Modificador de CA',
       speedModifier: 'Modificador de Deslocamento',
+      all: 'Todos',
+      me: 'Eu',
     },
     tokens: {
       editModal: {
@@ -828,6 +830,18 @@ export default {
         position: {
           goTo: 'Ir para {label}',
         },
+      },
+      labels: {
+        recipient: 'Destinatário',
+        identity: 'Identidade',
+        private: 'Privado:',
+      },
+      tags: {
+        ooc: '(OOC)',
+      },
+      badges: {
+        ooc: 'OOC',
+        rp: 'RP',
       },
     },
     party: {
@@ -1253,6 +1267,211 @@ export default {
         },
         limparTodosOs: {
           tooltip: 'Limpar TODOS os desenhos',
+        },
+      },
+    },
+    token: {
+      editModal: {
+        fields: {
+          backgroundColor: 'Cor Fundo',
+          textColor: 'Cor Texto',
+          sigla: 'Sigla',
+        },
+        errors: {
+          uploadFailed: 'Erro no upload da imagem.',
+        },
+        markdown: {
+          actions: '### Ações',
+          legendaryActions: '### Ações Lendárias',
+        },
+      },
+    },
+    character: {
+      sheetviewer: {
+        histrico: {
+          label: 'Histórico',
+        },
+        bio: {
+          label: 'Bio',
+        },
+        feitos: {
+          label: 'Feitos',
+        },
+        combate: {
+          label: 'Combate',
+        },
+        descansoLongo: {
+          tooltip: 'Descanso Longo',
+        },
+        descansoCurto: {
+          tooltip: 'Descanso Curto',
+        },
+        classe: {
+          placeholder: 'Classe',
+        },
+        espcie: {
+          placeholder: 'Espécie',
+        },
+        nomeDoPersonagem: {
+          placeholder: 'Nome do Personagem',
+        },
+        avatar: {
+          alt: 'Avatar',
+        },
+        adicioneNotasPrivadas: {
+          placeholder: 'Adicione notas privadas sobre este personagem...',
+        },
+        estasNotasSo: {
+          title: 'Estas notas são privadas e visíveis apenas para o Mestre.',
+        },
+        notasDoMestre: {
+          title: 'Notas do Mestre',
+        },
+        nenhumaAlteraoRegistrada: {
+          text: 'Nenhuma alteração registrada ainda.',
+        },
+        alterou: {
+          label: 'Alterou:',
+        },
+        ltimas100Alteraes: {
+          title: 'Últimas 100 alterações na ficha.',
+        },
+        histricoDeAlteraes: {
+          title: 'Histórico de Alterações',
+        },
+        tesouroItensEspeciais: {
+          text: 'Tesouro & Itens Especiais',
+        },
+        aliadosOrganizaes: {
+          text: 'Aliados & Organizações',
+        },
+        notasOutros: {
+          title: 'Notas & Outros',
+        },
+        nenhumaBiografiaDisponvel: {
+          text: 'Nenhuma biografia disponível.',
+        },
+        escrevaAHistria: {
+          placeholder: 'Escreva a história do seu personagem...',
+        },
+        biografia: {
+          title: 'Biografia',
+        },
+        personalidade: {
+          title: 'Personalidade',
+        },
+        aparncia: {
+          title: 'Aparência',
+        },
+        descrio: {
+          placeholder: 'Descrição...',
+        },
+        fonteExRaa: {
+          placeholder: 'Fonte (ex: Raça, Classe)',
+        },
+        nomeDaCaracterstica: {
+          placeholder: 'Nome da característica',
+        },
+        caractersticasETalentos: {
+          title: 'Características e Talentos',
+        },
+        equipamento: {
+          title: 'Equipamento',
+        },
+        truques: {
+          label: 'Truques',
+        },
+        nvel: {
+          label: 'Nível',
+        },
+        espaosDeMagia: {
+          title: 'Espaços de Magia',
+        },
+        ataque: {
+          label: 'Ataque',
+        },
+        atributo: {
+          label: 'Atributo',
+        },
+        nenhumAtaqueConfigurado: {
+          text: 'Nenhum ataque configurado.',
+        },
+        alcance: {
+          placeholder: 'Alcance',
+        },
+        nomeDoAtaque: {
+          placeholder: 'Nome do ataque',
+        },
+        aesAtaques: {
+          title: 'Ações & Ataques',
+        },
+        dadosDeVida: {
+          text: 'Dados de Vida',
+        },
+        exausto: {
+          label: 'Exaustão',
+        },
+        inspirao: {
+          label: 'Inspiração',
+        },
+        percepoPas: {
+          label: 'Percepção Pas.',
+        },
+        proficincia: {
+          label: 'Proficiência',
+        },
+        deslocamento: {
+          label: 'Deslocamento',
+        },
+        iniciativa: {
+          label: 'Iniciativa',
+        },
+        classeArmadura: {
+          label: 'Classe Armadura',
+        },
+        percepo: {
+          label: 'Percepção',
+        },
+        prof: {
+          label: 'Prof.',
+        },
+        desloc: {
+          label: 'Desloc.',
+        },
+        mx: {
+          label: 'Máx:',
+        },
+        pontosDeVida: {
+          text: 'Pontos de Vida',
+        },
+        percias: {
+          label: 'Perícias',
+        },
+        atributos: {
+          label: 'Atributos',
+        },
+      },
+    },
+    scene: {
+      navigation: {
+        gerenciarCenasandares: {
+          tooltip: 'Gerenciar Cenas/Andares',
+        },
+        tokens: {
+          label: 'tokens',
+        },
+        camadas: {
+          label: 'Camadas',
+        },
+        excluirCamada: {
+          title: 'Delete Layer',
+          text: 'Delete Layer',
+        },
+        cancelar: {
+          label: 'Cancelar',
+        },
+        temCertezaQue: {
+          text: 'Tem certeza que deseja excluir esta camada? Todos os tokens e configurações nela serão perdidos permanentemente.',
         },
       },
     },

@@ -26,6 +26,8 @@ interface ExtractedString {
   suggestedKey: string;
   contentType: string;
   confidence: 'high' | 'medium' | 'low';
+  start: number;
+  end: number;
 }
 
 interface ExtractionResult {
@@ -469,6 +471,8 @@ function processString(value: string, line: number, nodePath: any) {
     suggestedKey: generateHierarchicalKey(value, contentType, componentName, attrContext),
     contentType,
     confidence,
+    start: nodePath.node.start!,
+    end: nodePath.node.end!,
   });
 }
 
@@ -523,7 +527,8 @@ const result: ExtractionResult = {
   componentName,
   totalFound: extractedStrings.length,
   userFacingCount: sortedStrings.length,
-  strings: sortedStrings,
+  // Sort by reverse index to allow safe replacements from bottom to top
+  strings: sortedStrings.sort((a, b) => b.start - a.start),
 };
 
 // Ensure output directory exists

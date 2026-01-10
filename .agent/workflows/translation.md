@@ -10,7 +10,7 @@ description: Mandatory i18n workflow - every UI text must have translation keys 
 
 ## 🚀 Automated Workflow (Preferred)
 
-For migrating existing components or adding multiple strings, use the automation scripts to ensure consistency.
+For migrating existing components or adding multiple strings, use the automation scripts to ensure consistency and speed.
 
 ### Step 1: Extraction
 Run the script to find hardcoded strings and generate suggested keys.
@@ -20,13 +20,23 @@ npx ts-node scripts/extract-strings.ts --file src/components/vtt/MyComponent.tsx
 *   **Result:** Creates `scripts/output/strings-output.json`.
 *   **What it does:** Filters out technical code (Tailwind, props) and keeps only user-facing text.
 
-### Step 2: Preparation (The Bridge)
-The output from Step 1 is just a report. You must prepare the **Input** for the injection script.
-1.  Open `scripts/output/strings-output.json`.
-2.  Create/Open `scripts/input/translations-input.json`.
-3.  Copy the strings you want to translate and add the Portuguese (`pt`) and English (`en`) values.
+### Step 2: Batch Preparation
+Filter the results and prepare the input files automatically.
+```bash
+npx ts-node scripts/prepare-batch.ts
+```
+*   **Result:** Creates:
+    *   `scripts/input/batch-translations-raw.json`: A list of unique strings found, ready for translation.
+    *   `scripts/input/batch-replacements.json`: Detailed locations of strings for the replacement script.
+*   **What it does:** Applies advanced filters to remove common internal strings (e.g., specific IDs, code keywords) and deduplicates the list for translation.
 
-**Format (`scripts/input/translations-input.json`):**
+### Step 3: Manual Translation
+1.  Open `scripts/input/batch-translations-raw.json`.
+2.  Rename it to `scripts/input/batch-translations.json` (or just edit a new file with that name).
+3.  Fill in the Portuguese (`pt`) and English (`en`) values for each key.
+    *   *Tip:* The `key` and `en` fields are pre-filled with suggested values.
+
+**Format (`scripts/input/batch-translations.json`):**
 ```json
 {
   "translations": [
@@ -34,35 +44,29 @@ The output from Step 1 is just a report. You must prepare the **Input** for the 
       "key": "vtt.myModule.myComponent.button.label",
       "pt": "Salvar",
       "en": "Save"
-    },
-    {
-      "key": "vtt.myModule.myComponent.alert.text",
-      "pt": "Erro ao salvar!",
-      "en": "Error saving!"
     }
   ]
 }
 ```
 
-### Step 3: Injection
+### Step 4: Injection
 Run the script to insert these keys into both locale files safely.
 ```bash
-npx ts-node scripts/inject-translations.ts --input scripts/input/translations-input.json
+npx ts-node scripts/inject-translations.ts --input scripts/input/batch-translations.json
 ```
 *   **Result:** Updates `src/i18n/locales/pt-BR.ts` and `en-US.ts`.
 *   **Safety:** It won't overwrite existing keys unless you pass `--overwrite`.
 
-### Step 4: Code Replacement
-Update your component to use the new keys.
-```tsx
-import { useTranslation } from '@/i18n/TranslationContext'; // or relative path
-
-// Inside component:
-const { t } = useTranslation();
-
-// Replace: <button>Salvar</button>
-// With:    <button>{t('vtt.myModule.myComponent.button.label')}</button>
+### Step 5: Code Replacement
+Run the script to automatically replace the strings in your component code.
+```bash
+npx ts-node scripts/apply-translations.ts --input scripts/input/batch-replacements.json
 ```
+*   **Result:** Modifies `src/components/vtt/MyComponent.tsx` (or whatever file provided in Step 1).
+*   **What it does:**
+    *   Replaces hardcoded strings with `{t('key')}` or `t('key')` depending on context (JSX vs Props).
+    *   Injects `import { useTranslation } from ...` if missing.
+    *   Injects `const { t } = useTranslation();` hook if missing.
 
 ---
 

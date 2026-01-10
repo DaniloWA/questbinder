@@ -1,0 +1,45 @@
+{
+  "filePath": "src/components/vtt/GameLog.tsx",
+  "strings": [
+    {
+      "original": "Destinatário",
+      "line": 558,
+      "context": "...",
+      "suggestedKey": "vtt.chat.labels.recipient",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 38595,
+      "end": 38607
+    },
+    {
+      "original": "Identidade",
+      "line": 536,
+      "context": "...",
+      "suggestedKey": "vtt.chat.labels.identity",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 36697,
+      "end": 36707
+    },
+    {
+      "original": "Todos",
+      "line": 511,
+      "context": "...",
+      "suggestedKey": "vtt.common.all",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 35071,
+      "end": 35078
+    },
+    {
+      "original": "OOC",
+      "line": 457,
+      "context": "...",
+      "suggestedKey": "vtt.chat.badges.ooc",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 29816,
+      "end": 29819
+    }
+  ]
+}
