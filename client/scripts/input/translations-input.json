@@ -1,0 +1,109 @@
+{
+  "translations": [
+    {
+      "key": "vtt.drawing.toolbar.paredesDinmicas.text",
+      "pt": "paredes dinâmicas",
+      "en": "smart walls"
+    },
+    {
+      "key": "vtt.drawing.toolbar.desenhos.label",
+      "pt": "desenhos",
+      "en": "drawings"
+    },
+    {
+      "key": "vtt.drawing.toolbar.temCertezaQue.text",
+      "pt": "Tem certeza que deseja apagar",
+      "en": "Are you sure you want to delete"
+    },
+    {
+      "key": "vtt.drawing.toolbar.todos.label",
+      "pt": "todos",
+      "en": "all"
+    },
+    {
+      "key": "vtt.drawing.toolbar.destaCenaEsta.text",
+      "pt": "desta cena? Esta ação é irreversível.",
+      "en": "from this scene? This action is irreversible."
+    },
+    {
+      "key": "vtt.drawing.toolbar.cancelar.label",
+      "pt": "Cancelar",
+      "en": "Cancel"
+    },
+    {
+      "key": "vtt.drawing.toolbar.limparTudo.text",
+      "pt": "Limpar Tudo",
+      "en": "Clear All"
+    },
+    {
+      "key": "vtt.drawing.toolbar.limparParedes.title",
+      "pt": "Limpar Paredes",
+      "en": "Clear Walls"
+    },
+    {
+      "key": "vtt.drawing.toolbar.limparDesenhos.title",
+      "pt": "Limpar Desenhos",
+      "en": "Clear Drawings"
+    },
+    {
+      "key": "vtt.drawing.toolbar.tamanho.label",
+      "pt": "Tamanho",
+      "en": "Size"
+    },
+    {
+      "key": "vtt.drawing.toolbar.opacidade.label",
+      "pt": "Opacidade",
+      "en": "Opacity"
+    },
+    {
+      "key": "vtt.drawing.toolbar.smartWall.text",
+      "pt": "Smart Wall",
+      "en": "Smart Wall"
+    },
+    {
+      "key": "vtt.drawing.toolbar.configuraesDaVarinha.text",
+      "pt": "Configurações da Varinha",
+      "en": "Wand Settings"
+    },
+    {
+      "key": "vtt.drawing.toolbar.tolerncia.label",
+      "pt": "Tolerância",
+      "en": "Tolerance"
+    },
+    {
+      "key": "vtt.drawing.toolbar.simplificao.label",
+      "pt": "Simplificação",
+      "en": "Simplification"
+    },
+    {
+      "key": "vtt.drawing.toolbar.resoluo.label",
+      "pt": "Resolução",
+      "en": "Resolution"
+    },
+    {
+      "key": "vtt.drawing.toolbar.sandboxDoSmart.label",
+      "pt": "Sandbox do Smart Wall",
+      "en": "Smart Wall Sandbox"
+    },
+    {
+      "key": "vtt.drawing.toolbar.preview.label",
+      "pt": "Preview",
+      "en": "Preview"
+    },
+    {
+      "key": "vtt.drawing.toolbar.desfazerLtimaParede.tooltip",
+      "pt": "Desfazer última parede",
+      "en": "Undo last wall"
+    },
+    {
+      "key": "vtt.drawing.toolbar.desfazerLtimoTrao.tooltip",
+      "pt": "Desfazer último traço",
+      "en": "Undo last stroke"
+    },
+    {
+      "key": "vtt.drawing.toolbar.limparTodosOs.tooltip",
+      "pt": "Limpar TODOS os desenhos",
+      "en": "Clear ALL drawings"
+    }
+  ]
+}

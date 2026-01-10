@@ -7,6 +7,7 @@ import { Button } from '../ui/Button';
 import { RotateCcw, Trash2, Eraser, Sparkles, Eye } from 'lucide-react';
 import { SmartWallPreviewModal } from './SmartWallPreviewModal';
 import { Tooltip } from '../ui/Tooltip';
+import { useTranslation } from '../../i18n/TranslationContext';
 
 const PRESET_COLORS = [
     '#ffffff', '#ef4444', '#f97316', '#f59e0b',
@@ -16,6 +17,7 @@ const PRESET_COLORS = [
 export const DrawingToolbar: React.FC = () => {
     const { activeTool, drawingSettings, wandSettings, setDrawingSettings, setWandSettings, undoLastDrawing, clearAllDrawings, undoLastObstacle, clearAllObstacles, permissionHelper } = useGameSession();
     const { openModal, closeModal } = useModal();
+    const { t } = useTranslation();
 
     if (activeTool !== 'brush' && activeTool !== 'smart-wall') return null;
 
@@ -48,20 +50,20 @@ export const DrawingToolbar: React.FC = () => {
 
     const handleClearAll = () => {
         const isSmartWall = activeTool === 'smart-wall';
-        const typeLabel = isSmartWall ? 'paredes dinâmicas' : 'desenhos';
+        const typeLabel = isSmartWall ? t('vtt.drawing.toolbar.paredesDinmicas.text') : t('vtt.drawing.toolbar.desenhos.label');
         const action = isSmartWall ? clearAllObstacles : clearAllDrawings;
 
         openModal(
             <div className="space-y-4">
-                <p className="text-zinc-400">Tem certeza que deseja apagar <strong>todos</strong> os {typeLabel} desta cena? Esta ação é irreversível.</p>
+                <p className="text-zinc-400">{t('vtt.drawing.toolbar.temCertezaQue.text')} <strong>{t('vtt.drawing.toolbar.todos.label')}</strong> os {typeLabel} {t('vtt.drawing.toolbar.destaCenaEsta.text')}</p>
                 <div className="flex justify-end gap-2 pt-2">
-                    <Button variant="ghost" onClick={closeModal}>Cancelar</Button>
+                    <Button variant="ghost" onClick={closeModal}>{t('vtt.drawing.toolbar.cancelar.label')}</Button>
                     <Button variant="destructive" onClick={() => { action(); closeModal(); }}>
-                        <Trash2 className="w-4 h-4 mr-2" /> Limpar Tudo
+                        <Trash2 className="w-4 h-4 mr-2" /> {t('vtt.drawing.toolbar.limparTudo.text')}
                     </Button>
                 </div>
             </div>,
-            { title: isSmartWall ? 'Limpar Paredes' : 'Limpar Desenhos', variant: 'alert', size: 'sm' }
+            { title: isSmartWall ? t('vtt.drawing.toolbar.limparParedes.title') : t('vtt.drawing.toolbar.limparDesenhos.title'), variant: 'alert', size: 'sm' }
         );
     };
 
@@ -98,7 +100,7 @@ export const DrawingToolbar: React.FC = () => {
                     {/* Sliders Section */}
                     <div className="flex flex-col gap-2 w-24 sm:w-32">
                         <div className="flex items-center gap-2 text-[10px] text-zinc-400 font-bold uppercase">
-                            <span>Tamanho</span>
+                            <span>{t('vtt.drawing.toolbar.tamanho.label')}</span>
                             <span className="text-white">{drawingSettings.width}px</span>
                         </div>
                         <input
@@ -113,7 +115,7 @@ export const DrawingToolbar: React.FC = () => {
 
                     <div className="flex flex-col gap-2 w-32">
                         <div className="flex items-center gap-2 text-[10px] text-zinc-400 font-bold uppercase">
-                            <span>Opacidade</span>
+                            <span>{t('vtt.drawing.toolbar.opacidade.label')}</span>
                             <span className="text-white">{Math.round(drawingSettings.opacity * 100)}%</span>
                         </div>
                         <input
@@ -136,8 +138,8 @@ export const DrawingToolbar: React.FC = () => {
                             <Sparkles className="w-4 h-4 text-primary" />
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider leading-none">Smart Wall</span>
-                            <span className="text-[9px] text-zinc-500 italic mt-0.5">Configurações da Varinha</span>
+                            <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider leading-none">{t('vtt.drawing.toolbar.smartWall.text')}</span>
+                            <span className="text-[9px] text-zinc-500 italic mt-0.5">{t('vtt.drawing.toolbar.configuraesDaVarinha.text')}</span>
                         </div>
                     </div>
 
@@ -145,7 +147,7 @@ export const DrawingToolbar: React.FC = () => {
 
                     <div className="flex flex-col gap-2 w-32">
                         <div className="flex items-center justify-between text-[10px] text-zinc-400 font-bold uppercase">
-                            <span>Tolerância</span>
+                            <span>{t('vtt.drawing.toolbar.tolerncia.label')}</span>
                             <span className="text-white font-mono">{wandSettings.tolerance}</span>
                         </div>
                         <input
@@ -160,7 +162,7 @@ export const DrawingToolbar: React.FC = () => {
 
                     <div className="flex flex-col gap-2 w-32">
                         <div className="flex items-center justify-between text-[10px] text-zinc-400 font-bold uppercase">
-                            <span>Simplificação</span>
+                            <span>{t('vtt.drawing.toolbar.simplificao.label')}</span>
                             <span className="text-white font-mono">{wandSettings.simplification.toFixed(1)}</span>
                         </div>
                         <input
@@ -176,7 +178,7 @@ export const DrawingToolbar: React.FC = () => {
 
                     <div className="flex flex-col gap-2 w-32">
                         <div className="flex items-center justify-between text-[10px] text-zinc-400 font-bold uppercase">
-                            <span>Resolução</span>
+                            <span>{t('vtt.drawing.toolbar.resoluo.label')}</span>
                             <span className="text-white font-mono">{wandSettings.resolution}px</span>
                         </div>
                         <input
@@ -192,12 +194,12 @@ export const DrawingToolbar: React.FC = () => {
 
                     <div className="flex flex-col gap-1 items-center px-1">
                         <button
-                            onClick={() => openModal(<SmartWallPreviewModal wandSettings={wandSettings} setWandSettings={setWandSettings} />, { title: 'Sandbox do Smart Wall', size: 'lg' })}
+                            onClick={() => openModal(<SmartWallPreviewModal wandSettings={wandSettings} setWandSettings={setWandSettings} />, { title: t('vtt.drawing.toolbar.sandboxDoSmart.label'), size: 'lg' })}
                             className="p-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-all group shadow-lg shadow-primary/5 hover:scale-110 active:scale-95 border border-primary/20"
                         >
                             <Eye className="w-4 h-4" />
                         </button>
-                        <span className="text-[8px] font-bold text-primary uppercase tracking-tighter">Preview</span>
+                        <span className="text-[8px] font-bold text-primary uppercase tracking-tighter">{t('vtt.drawing.toolbar.preview.label')}</span>
                     </div>
                 </>
             )}
@@ -206,7 +208,7 @@ export const DrawingToolbar: React.FC = () => {
 
             {/* Actions Section */}
             <div className="flex gap-2">
-                <Tooltip content={activeTool === 'smart-wall' ? "Desfazer última parede" : "Desfazer último traço"}>
+                <Tooltip content={activeTool === 'smart-wall' ? t('vtt.drawing.toolbar.desfazerLtimaParede.tooltip') : t('vtt.drawing.toolbar.desfazerLtimoTrao.tooltip')}>
                     <button
                         onClick={activeTool === 'smart-wall' ? undoLastObstacle : undoLastDrawing}
                         className="p-2 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors border border-transparent hover:border-zinc-700"
@@ -216,7 +218,7 @@ export const DrawingToolbar: React.FC = () => {
                 </Tooltip>
 
                 {canClearAll && (
-                    <Tooltip content="Limpar TODOS os desenhos">
+                    <Tooltip content={t('vtt.drawing.toolbar.limparTodosOs.tooltip')}>
                         <button
                             onClick={handleClearAll}
                             className="p-2 rounded-lg hover:bg-red-900/20 text-zinc-400 hover:text-red-400 transition-colors border border-transparent hover:border-red-900/30"

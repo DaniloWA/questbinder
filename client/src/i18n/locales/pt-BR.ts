@@ -6,36 +6,89 @@
 export default {
   common: {
     actions: {
-      save: { label: 'Salvar' },
-      cancel: { label: 'Cancelar' },
-      confirm: { label: 'Confirmar' },
-      delete: { label: 'Excluir' },
-      close: { label: 'Fechar' },
-      retry: { label: 'Tentar Novamente' },
-      edit: { label: 'Editar' },
-      create: { label: 'Criar' },
-      add: { label: 'Adicionar' },
-      remove: { label: 'Remover' },
-      search: { label: 'Buscar' },
-      clear: { label: 'Limpar' },
-      reset: { label: 'Resetar' },
-      apply: { label: 'Aplicar' },
-      undo: { label: 'Desfazer' },
-      redo: { label: 'Refazer' },
+      save: {
+        label: 'Salvar',
+      },
+      cancel: {
+        label: 'Cancelar',
+      },
+      confirm: {
+        label: 'Confirmar',
+      },
+      delete: {
+        label: 'Excluir',
+      },
+      close: {
+        label: 'Fechar',
+      },
+      retry: {
+        label: 'Tentar Novamente',
+      },
+      edit: {
+        label: 'Editar',
+      },
+      create: {
+        label: 'Criar',
+      },
+      add: {
+        label: 'Adicionar',
+      },
+      remove: {
+        label: 'Remover',
+      },
+      search: {
+        label: 'Buscar',
+      },
+      clear: {
+        label: 'Limpar',
+      },
+      reset: {
+        label: 'Resetar',
+      },
+      apply: {
+        label: 'Aplicar',
+      },
+      undo: {
+        label: 'Desfazer',
+      },
+      redo: {
+        label: 'Refazer',
+      },
     },
     states: {
-      loading: { message: 'Carregando...' },
-      saving: { message: 'Salvando...' },
-      error: { title: 'Erro', description: 'Algo deu errado.' },
-      success: { message: 'Sucesso!' },
-      empty: { message: 'Nenhum item encontrado.' },
-      notFound: { message: 'Não encontrado.' },
+      loading: {
+        message: 'Carregando...',
+      },
+      saving: {
+        message: 'Salvando...',
+      },
+      error: {
+        title: 'Erro',
+        description: 'Algo deu errado.',
+      },
+      success: {
+        message: 'Sucesso!',
+      },
+      empty: {
+        message: 'Nenhum item encontrado.',
+      },
+      notFound: {
+        message: 'Não encontrado.',
+      },
     },
     validation: {
-      required: { errorMessage: 'Este campo é obrigatório.' },
-      email: { errorMessage: 'E-mail inválido.' },
-      minLength: { errorMessage: 'Mínimo de :min caracteres.' },
-      maxLength: { errorMessage: 'Máximo de :max caracteres.' },
+      required: {
+        errorMessage: 'Este campo é obrigatório.',
+      },
+      email: {
+        errorMessage: 'E-mail inválido.',
+      },
+      minLength: {
+        errorMessage: 'Mínimo de :min caracteres.',
+      },
+      maxLength: {
+        errorMessage: 'Máximo de :max caracteres.',
+      },
     },
     plurals: {
       items: '{0} Nenhum item|{1} :count item|[2,*] :count itens',
@@ -48,102 +101,294 @@ export default {
       hours: '{1} :count hora|[2,*] :count horas',
     },
   },
-
   vtt: {
     tools: {
       toolbar: {
         selectTool: {
-          button: { label: 'Selecionar', tooltip: 'Ferramenta de seleção (V)' },
+          button: {
+            label: 'Selecionar',
+            tooltip: 'Ferramenta de seleção (V)',
+          },
         },
         rulerTool: {
-          button: { label: 'Régua', tooltip: 'Medir distâncias (M)' },
+          button: {
+            label: 'Régua',
+            tooltip: 'Medir distâncias (M)',
+          },
         },
         drawingTools: {
-          group: { label: 'Desenhar' },
-          brush: { button: { label: 'Pincel Livre', tooltip: 'Desenho à mão livre' } },
-          eraser: { button: { label: 'Apagar Desenhos', tooltip: 'Remover desenhos' } },
+          group: {
+            label: 'Desenhar',
+          },
+          brush: {
+            button: {
+              label: 'Pincel Livre',
+              tooltip: 'Desenho à mão livre',
+            },
+          },
+          eraser: {
+            button: {
+              label: 'Apagar Desenhos',
+              tooltip: 'Remover desenhos',
+            },
+          },
         },
         cursorSettings: {
-          button: { label: 'Cursores', tooltip: 'Configurações de cursor' },
+          button: {
+            label: 'Cursores',
+            tooltip: 'Configurações de cursor',
+          },
         },
         architectureTools: {
-          group: { label: 'Arquitetura' },
-          wall: { button: { label: 'Parede', tooltip: 'Desenhar parede' } },
-          freehandWall: { button: { label: 'Parede Livre (Desenho)', tooltip: 'Parede à mão livre' } },
-          smartWall: { button: { label: 'Parede Inteligente (Magic Wand)', tooltip: 'Detectar paredes automaticamente' } },
-          door: { button: { label: 'Porta', tooltip: 'Adicionar porta' } },
-          window: { button: { label: 'Janela', tooltip: 'Adicionar janela' } },
-          eraser: { button: { label: 'Borracha (Estrutura)', tooltip: 'Remover estruturas' } },
+          group: {
+            label: 'Arquitetura',
+          },
+          wall: {
+            button: {
+              label: 'Parede',
+              tooltip: 'Desenhar parede',
+            },
+          },
+          freehandWall: {
+            button: {
+              label: 'Parede Livre (Desenho)',
+              tooltip: 'Parede à mão livre',
+            },
+          },
+          smartWall: {
+            button: {
+              label: 'Parede Inteligente (Magic Wand)',
+              tooltip: 'Detectar paredes automaticamente',
+            },
+          },
+          door: {
+            button: {
+              label: 'Porta',
+              tooltip: 'Adicionar porta',
+            },
+          },
+          window: {
+            button: {
+              label: 'Janela',
+              tooltip: 'Adicionar janela',
+            },
+          },
+          eraser: {
+            button: {
+              label: 'Borracha (Estrutura)',
+              tooltip: 'Remover estruturas',
+            },
+          },
         },
         lightingTools: {
-          group: { label: 'Iluminação & Neblina' },
-          lightRect: { button: { label: 'Luz (Retângulo)', tooltip: 'Área de luz retangular' } },
-          lightPoly: { button: { label: 'Luz (Polígono)', tooltip: 'Área de luz poligonal' } },
+          group: {
+            label: 'Iluminação & Neblina',
+          },
+          lightRect: {
+            button: {
+              label: 'Luz (Retângulo)',
+              tooltip: 'Área de luz retangular',
+            },
+          },
+          lightPoly: {
+            button: {
+              label: 'Luz (Polígono)',
+              tooltip: 'Área de luz poligonal',
+            },
+          },
           fogOfWar: {
-            submenu: { title: 'Neblina de Guerra' },
-            revealPoly: { button: { label: 'Revelar (Polígono)' } },
-            revealRect: { button: { label: 'Revelar (Retângulo)' } },
-            reset: { button: { label: 'Resetar Neblina', confirmPrompt: 'Tem certeza que deseja resetar toda a neblina?' } },
+            submenu: {
+              title: 'Neblina de Guerra',
+            },
+            revealPoly: {
+              button: {
+                label: 'Revelar (Polígono)',
+              },
+            },
+            revealRect: {
+              button: {
+                label: 'Revelar (Retângulo)',
+              },
+            },
+            reset: {
+              button: {
+                label: 'Resetar Neblina',
+                confirmPrompt: 'Tem certeza que deseja resetar toda a neblina?',
+              },
+            },
           },
         },
         audioTools: {
-          group: { label: 'Áudio' },
-          panel: { button: { label: 'Painel de Áudio', tooltip: 'Abrir painel de áudio' } },
+          group: {
+            label: 'Áudio',
+          },
+          panel: {
+            button: {
+              label: 'Painel de Áudio',
+              tooltip: 'Abrir painel de áudio',
+            },
+          },
           zones: {
-            submenu: { title: 'Zonas de Áudio' },
-            rect: { button: { label: 'Zona (Retângulo)' } },
-            poly: { button: { label: 'Zona (Polígono)' } },
-            eraser: { button: { label: 'Apagar Zona de Áudio' } },
+            submenu: {
+              title: 'Zonas de Áudio',
+            },
+            rect: {
+              button: {
+                label: 'Zona (Retângulo)',
+              },
+            },
+            poly: {
+              button: {
+                label: 'Zona (Polígono)',
+              },
+            },
+            eraser: {
+              button: {
+                label: 'Apagar Zona de Áudio',
+              },
+            },
           },
         },
         triggerTools: {
-          group: { label: 'Gatilhos' },
-          rect: { button: { label: 'Gatilho (Retângulo)' } },
-          poly: { button: { label: 'Gatilho (Polígono)' } },
-          eraser: { button: { label: 'Apagar Gatilho' } },
+          group: {
+            label: 'Gatilhos',
+          },
+          rect: {
+            button: {
+              label: 'Gatilho (Retângulo)',
+            },
+          },
+          poly: {
+            button: {
+              label: 'Gatilho (Polígono)',
+            },
+          },
+          eraser: {
+            button: {
+              label: 'Apagar Gatilho',
+            },
+          },
         },
         gameplayTools: {
-          attackZones: { button: { label: 'Zonas de Ataque', tooltip: 'Gerenciar zonas de ataque' } },
-          diceRoller: { button: { label: 'Mesa de Dados', tooltip: 'Abrir rolador de dados' } },
-          bestiary: { button: { label: 'Bestiário (Tokens)', tooltip: 'Biblioteca de criaturas' } },
-          compendium: { button: { label: 'Grimório', tooltip: 'Compêndio de magias e itens' } },
-          handouts: { button: { label: 'Recursos', tooltip: 'Gerenciar handouts' } },
-          addToken: { button: { label: 'Novo Token', tooltip: 'Adicionar token ao mapa' } },
-          startCombat: { button: { label: 'Iniciar Combate', tooltip: 'Começar encontro de combate' } },
-          endCombat: { button: { label: 'Encerrar Combate', tooltip: 'Finalizar combate atual' } },
+          attackZones: {
+            button: {
+              label: 'Zonas de Ataque',
+              tooltip: 'Gerenciar zonas de ataque',
+            },
+          },
+          diceRoller: {
+            button: {
+              label: 'Mesa de Dados',
+              tooltip: 'Abrir rolador de dados',
+            },
+          },
+          bestiary: {
+            button: {
+              label: 'Bestiário (Tokens)',
+              tooltip: 'Biblioteca de criaturas',
+            },
+          },
+          compendium: {
+            button: {
+              label: 'Grimório',
+              tooltip: 'Compêndio de magias e itens',
+            },
+          },
+          handouts: {
+            button: {
+              label: 'Recursos',
+              tooltip: 'Gerenciar handouts',
+            },
+          },
+          addToken: {
+            button: {
+              label: 'Novo Token',
+              tooltip: 'Adicionar token ao mapa',
+            },
+          },
+          startCombat: {
+            button: {
+              label: 'Iniciar Combate',
+              tooltip: 'Começar encontro de combate',
+            },
+          },
+          endCombat: {
+            button: {
+              label: 'Encerrar Combate',
+              tooltip: 'Finalizar combate atual',
+            },
+          },
         },
         gmTools: {
-          group: { label: 'Mestre' },
-          viewSettings: { button: { label: 'Visualizar & Sincronizar' } },
-          permissions: { button: { label: 'Permissões' } },
-          gridCoords: { button: { label: 'Coordenadas da Grade' } },
-          mapSettings: { button: { label: 'Configurações do Mapa' } },
+          group: {
+            label: 'Mestre',
+          },
+          viewSettings: {
+            button: {
+              label: 'Visualizar & Sincronizar',
+            },
+          },
+          permissions: {
+            button: {
+              label: 'Permissões',
+            },
+          },
+          gridCoords: {
+            button: {
+              label: 'Coordenadas da Grade',
+            },
+          },
+          mapSettings: {
+            button: {
+              label: 'Configurações do Mapa',
+            },
+          },
         },
       },
     },
     session: {
       sidebar: {
         tabHeader: {
-          chat: { label: 'Log & Chat' },
-          combat: { label: 'Combate' },
-          party: { label: 'Grupo' },
+          chat: {
+            label: 'Log & Chat',
+          },
+          combat: {
+            label: 'Combate',
+          },
+          party: {
+            label: 'Grupo',
+          },
         },
-        popoutButton: { tooltip: 'Desacoplar em Nova Janela' },
-        dockButton: { tooltip: 'Acoplar de volta' },
-        closeButton: { tooltip: 'Fechar Sidebar' },
+        popoutButton: {
+          tooltip: 'Desacoplar em Nova Janela',
+        },
+        dockButton: {
+          tooltip: 'Acoplar de volta',
+        },
+        closeButton: {
+          tooltip: 'Fechar Sidebar',
+        },
         undockedPlaceholder: {
           title: 'Sidebar Desacoplada',
           description: 'A barra lateral está aberta em outra janela.',
-          redockButton: { label: 'Reacoplar' },
-          closeSidebarButton: { label: 'Fechar Sidebar' },
+          redockButton: {
+            label: 'Reacoplar',
+          },
+          closeSidebarButton: {
+            label: 'Fechar Sidebar',
+          },
         },
         popupBlocked: {
           warningBanner: {
             title: 'Popup bloqueado!',
             message: 'Clique no ícone na barra de endereço do navegador e permita popups para este site.',
           },
-          retryButton: { label: 'Tentar Novamente' },
-          closeButton: { label: 'Fechar' },
+          retryButton: {
+            label: 'Tentar Novamente',
+          },
+          closeButton: {
+            label: 'Fechar',
+          },
         },
         popoutWindow: {
           title: 'Sidebar do QuestBinder',
@@ -172,20 +417,45 @@ export default {
     tokens: {
       editModal: {
         header: {
-          title: { creating: 'Novo Token', editing: 'Editar Token' },
+          title: {
+            creating: 'Novo Token',
+            editing: 'Editar Token',
+          },
         },
         tabs: {
-          basic: { label: 'Básico' },
-          stats: { label: 'Atributos' },
-          appearance: { label: 'Aparência' },
-          permissions: { label: 'Permissões' },
-          general: { label: 'Geral' },
-          style: { label: 'Estilo' },
-          status: { label: 'Status' },
-          light: { label: 'Luz' },
-          auras: { label: 'Auras' },
-          sheet: { label: 'Ficha' },
-          perms: { label: 'Permissões' },
+          basic: {
+            label: 'Básico',
+          },
+          stats: {
+            label: 'Atributos',
+          },
+          appearance: {
+            label: 'Aparência',
+          },
+          permissions: {
+            label: 'Permissões',
+          },
+          general: {
+            label: 'Geral',
+          },
+          style: {
+            label: 'Estilo',
+          },
+          status: {
+            label: 'Status',
+          },
+          light: {
+            label: 'Luz',
+          },
+          auras: {
+            label: 'Auras',
+          },
+          sheet: {
+            label: 'Ficha',
+          },
+          perms: {
+            label: 'Permissões',
+          },
         },
         general: {
           namePlaceholder: 'Nome do Token',
@@ -305,16 +575,32 @@ export default {
         preview: {
           alt: 'Pré-visualização do Token',
         },
-        nameField: { label: 'Nome', placeholder: 'Nome do token' },
-        sizeField: { label: 'Tamanho' },
+        nameField: {
+          label: 'Nome',
+          placeholder: 'Nome do token',
+        },
+        sizeField: {
+          label: 'Tamanho',
+        },
         healthField: {
           label: 'Pontos de Vida',
-          current: { label: 'Atual' },
-          max: { label: 'Máximo' },
+          current: {
+            label: 'Atual',
+          },
+          max: {
+            label: 'Máximo',
+          },
         },
-        imageField: { label: 'Imagem', placeholder: 'URL da imagem' },
-        saveButton: { label: 'Salvar' },
-        cancelButton: { label: 'Cancelar' },
+        imageField: {
+          label: 'Imagem',
+          placeholder: 'URL da imagem',
+        },
+        saveButton: {
+          label: 'Salvar',
+        },
+        cancelButton: {
+          label: 'Cancelar',
+        },
         hover: {
           applyCondition: 'Aplicou **{condition}** em {name}.',
           shareCondition: 'Compartilhou a condição **{condition}**.',
@@ -424,68 +710,48 @@ export default {
         shareTokenNotify: 'Linkou o token {name} no chat.',
       },
       hoverCard: {
-        healthBar: { label: 'Vida' },
-        conditions: { label: 'Condições' },
-        notes: { label: 'Notas' },
+        healthBar: {
+          label: 'Vida',
+        },
+        conditions: {
+          label: 'Condições',
+        },
+        notes: {
+          label: 'Notas',
+        },
       },
     },
     combat: {
-      tracker: {
-        header: { title: 'Combate' },
-        emptyState: {
-          title: 'Nenhum combate ativo',
-          message: 'Inicie um combate pela barra de ferramentas do mestre.',
-        },
-        turnTimer: { tooltip: 'Tempo do turno' },
-        roundCounter: { label: 'Rodada' },
-        historyButton: { tooltip: 'Histórico' },
-        settingsButton: { tooltip: 'Configurações' },
-        shortcutsButton: { tooltip: 'Atalhos' },
-        settingsPanel: {
-          title: 'Configurações de Batalha',
-          autoRollInit: { label: 'Auto-rolar Init' },
-          showInit: { label: 'Mostrar Init' },
-          showEnemyHP: { label: 'Mostrar HP Inimigo' },
-          concentration: { label: 'Concentração' },
-          turnTimer: { label: 'Timer Turno' },
-          aiSuggestions: { label: 'Sugestões IA' },
-        },
-        historyPanel: {
-          title: 'Histórico de Ações',
-          emptyState: { message: 'Nenhuma ação registrada ainda.' },
-        },
-        turnOrder: {
-          title: 'Próximos Turnos',
-          damagePlaceholder: 'Dano',
-          healPlaceholder: 'Cura',
-          removeFromCombat: {
-            label: 'Remover do Combate',
-            confirmPrompt: 'Remover :name?',
-          },
-        },
-        controls: {
-          prevTurn: { tooltip: 'Turno Anterior' },
-          nextTurn: { label: 'Próximo Turno' },
-          endCombat: {
-            label: 'Finalizar Combate',
-            confirmPrompt: 'Finalizar combate?',
-          },
-        },
-        initiativeList: {
-          header: { title: 'Ordem de Iniciativa' },
-          emptyState: { message: 'Nenhum combatente na iniciativa.' },
-        },
-        turnIndicator: {
-          currentTurn: { label: 'Turno Atual' },
-          nextButton: { label: 'Próximo', tooltip: 'Avançar turno' },
-          prevButton: { label: 'Anterior', tooltip: 'Voltar turno' },
-        },
-        addCombatant: { button: { label: 'Adicionar Combatente' } },
-        rollInitiative: { button: { label: 'Rolar Iniciativa' } },
-        endCombatButton: {
-          label: 'Encerrar Combate',
-          confirmPrompt: 'Tem certeza que deseja encerrar o combate?',
-        },
+      start: {
+        title: 'Iniciar Combate',
+        pcs: 'PCs: :count',
+        npcs: 'NPCs: :count',
+        rollNpcs: 'Rolar Todos os NPCs',
+        rollAll: 'Rolar Todos',
+        settings: 'Configurações',
+        participants: 'Participantes',
+        selectAll: 'Selecionar Todos',
+        clear: 'Limpar',
+        empty: 'Nenhum token disponível no mapa.',
+        startButton: 'Iniciar Combate (:count)',
+      },
+      settings: {
+        title: 'Configurações do Combate',
+        autoRoll: 'Auto-rolar iniciativa',
+        showToPlayers: 'Mostrar iniciativa aos jogadores',
+        showEnemyHp: 'Mostrar HP de inimigos',
+        trackConcentration: 'Rastrear concentração',
+        turnTimer: 'Timer de turno',
+        suggestions: 'Sugestões inteligentes',
+        surprise: 'Rodada Surpresa',
+      },
+      labels: {
+        pc: 'PC',
+        invisible: 'Invisível para jogadores',
+        hp: 'HP: :current/:max',
+        ac: 'CA: :value',
+        initiative: 'Init',
+        rollInitiative: 'Rolar Iniciativa',
       },
     },
     chat: {
@@ -504,7 +770,9 @@ export default {
         },
       },
       menus: {
-        identity: { title: 'Identidade' },
+        identity: {
+          title: 'Identidade',
+        },
         recipient: {
           title: 'Destinatário',
           global: 'Todos (Global)',
@@ -574,7 +842,9 @@ export default {
     },
     maps: {
       settingsModal: {
-        header: { title: 'Configurações do Mapa' },
+        header: {
+          title: 'Configurações do Mapa',
+        },
         ambientLight: {
           label: 'Luz Ambiente Global',
           totalDarkness: 'Escuridão Total',
@@ -648,14 +918,30 @@ export default {
             title: 'Regras Globais',
             desc: 'Estas regras se aplicam a todos, a menos que substituídas.',
           },
-          visibility: { title: 'Visibilidade & Câmera' },
-          interaction: { title: 'Interação' },
-          tools: { title: 'Ferramentas & Conteúdo' },
-          access: { title: 'Acesso' },
-          manipulation: { title: 'Criação & Manipulação' },
-          chat: { title: 'Chat' },
-          cursor: { title: 'Personalização de Cursor' },
-          privacy: { title: 'Privacidade Global' },
+          visibility: {
+            title: 'Visibilidade & Câmera',
+          },
+          interaction: {
+            title: 'Interação',
+          },
+          tools: {
+            title: 'Ferramentas & Conteúdo',
+          },
+          access: {
+            title: 'Acesso',
+          },
+          manipulation: {
+            title: 'Criação & Manipulação',
+          },
+          chat: {
+            title: 'Chat',
+          },
+          cursor: {
+            title: 'Personalização de Cursor',
+          },
+          privacy: {
+            title: 'Privacidade Global',
+          },
           overrides: {
             title: 'Exceções específicas para este jogador.',
             desc: 'Exceções específicas para este jogador.',
@@ -691,306 +977,695 @@ export default {
         applyButton: 'Aplicar Regras',
       },
       definitions: {
-        tokenMovement: { label: 'Mover Tokens', desc: 'Mover tokens que eles controlam.' },
-        doorControl: { label: 'Usar Portas', desc: 'Abrir/fechar portas e janelas.' },
-        drawings: { label: 'Desenhar', desc: 'Desenhar no mapa.' },
-        drawingDelete: { label: 'Apagar (Seus)', desc: 'Apagar desenhos próprios.' },
-        drawingClear: { label: 'Limpar Tudo', desc: 'Apagar todos os desenhos da camada.' },
-        measure: { label: 'Régua', desc: 'Usar ferramenta de medição.' },
-        pingMap: { label: 'Ping no Mapa', desc: 'Sinalizar locais para o grupo.' },
-        diceRolling: { label: 'Rolagem de Dados', desc: 'Usar o rola-dados digital.' },
-        initiativeRoll: { label: 'Rolar Iniciativa', desc: 'Jogadores rolam própria iniciativa.' },
-        compendiumBrowse: { label: 'Acessar Grimório', desc: 'Consultar monstros/magias/regras.' },
-        bestiaryBrowse: { label: 'Acessar Bestiário', desc: 'Ver lista de tokens e monstros.' },
-        journalCreate: { label: 'Criar Notas', desc: 'Criar handouts/recursos.' },
-        sheetEdit: { label: 'Editar Ficha', desc: 'Modificar valores da ficha de personagem.' },
-        tokenCreate: { label: 'Criar Tokens', desc: 'Adicionar novos tokens ao mapa.' },
-        tokenEdit: { label: 'Editar Tokens', desc: 'Alterar status e aparência de tokens.' },
-        tokenDelete: { label: 'Deletar Tokens', desc: 'Remover tokens do mapa.' },
-        fogReveal: { label: 'Revelar Neblina', desc: 'Remover neblina de guerra manualmente.' },
-        cursorAllowColorChange: { label: 'Alterar Cor do Cursor', desc: 'Jogadores podem mudar a cor do cursor.' },
-        cursorAllowShapeChange: { label: 'Alterar Formato do Cursor', desc: 'Jogadores podem mudar o formato do cursor.' },
-        cursorAllowNameChange: { label: 'Alterar Nome do Cursor', desc: 'Jogadores podem mudar o nome exibido no cursor.' },
-        cursorAllowAnimationChange: { label: 'Alterar Animação', desc: 'Jogadores podem mudar a animação de clique.' },
-        cursorAllowAnimationColorChange: { label: 'Cor da Animação', desc: 'Jogadores podem mudar a cor da animação de clique.' },
-        chatGlobalAllowed: { label: 'Chat Global', desc: 'Jogador pode enviar mensagens públicas no chat.' },
-        chatPrivateAllowed: { label: 'Mensagens Privadas', desc: 'Jogador pode enviar mensagens privadas para outros.' },
-        showRemoteViewports: { label: 'Ver Outros Jogadores', desc: 'Pode ver onde outros jogadores estão olhando (retângulos).' },
-        shareViewport: { label: 'Compartilhar Visão', desc: 'Outros podem ver onde este jogador está olhando.' },
-        shareCursor: { label: 'Compartilhar Ponteiro', desc: 'Permitir que o cursor do jogador seja visto por outros.' },
-        allowSpectate: { label: 'Permitir Espectador', desc: 'Permitir que o Mestre veja a tela deste jogador.' },
+        tokenMovement: {
+          label: 'Mover Tokens',
+          desc: 'Mover tokens que eles controlam.',
+        },
+        doorControl: {
+          label: 'Usar Portas',
+          desc: 'Abrir/fechar portas e janelas.',
+        },
+        drawings: {
+          label: 'Desenhar',
+          desc: 'Desenhar no mapa.',
+        },
+        drawingDelete: {
+          label: 'Apagar (Seus)',
+          desc: 'Apagar desenhos próprios.',
+        },
+        drawingClear: {
+          label: 'Limpar Tudo',
+          desc: 'Apagar todos os desenhos da camada.',
+        },
+        measure: {
+          label: 'Régua',
+          desc: 'Usar ferramenta de medição.',
+        },
+        pingMap: {
+          label: 'Ping no Mapa',
+          desc: 'Sinalizar locais para o grupo.',
+        },
+        diceRolling: {
+          label: 'Rolagem de Dados',
+          desc: 'Usar o rola-dados digital.',
+        },
+        initiativeRoll: {
+          label: 'Rolar Iniciativa',
+          desc: 'Jogadores rolam própria iniciativa.',
+        },
+        compendiumBrowse: {
+          label: 'Acessar Grimório',
+          desc: 'Consultar monstros/magias/regras.',
+        },
+        bestiaryBrowse: {
+          label: 'Acessar Bestiário',
+          desc: 'Ver lista de tokens e monstros.',
+        },
+        journalCreate: {
+          label: 'Criar Notas',
+          desc: 'Criar handouts/recursos.',
+        },
+        sheetEdit: {
+          label: 'Editar Ficha',
+          desc: 'Modificar valores da ficha de personagem.',
+        },
+        tokenCreate: {
+          label: 'Criar Tokens',
+          desc: 'Adicionar novos tokens ao mapa.',
+        },
+        tokenEdit: {
+          label: 'Editar Tokens',
+          desc: 'Alterar status e aparência de tokens.',
+        },
+        tokenDelete: {
+          label: 'Deletar Tokens',
+          desc: 'Remover tokens do mapa.',
+        },
+        fogReveal: {
+          label: 'Revelar Neblina',
+          desc: 'Remover neblina de guerra manualmente.',
+        },
+        cursorAllowColorChange: {
+          label: 'Alterar Cor do Cursor',
+          desc: 'Jogadores podem mudar a cor do cursor.',
+        },
+        cursorAllowShapeChange: {
+          label: 'Alterar Formato do Cursor',
+          desc: 'Jogadores podem mudar o formato do cursor.',
+        },
+        cursorAllowNameChange: {
+          label: 'Alterar Nome do Cursor',
+          desc: 'Jogadores podem mudar o nome exibido no cursor.',
+        },
+        cursorAllowAnimationChange: {
+          label: 'Alterar Animação',
+          desc: 'Jogadores podem mudar a animação de clique.',
+        },
+        cursorAllowAnimationColorChange: {
+          label: 'Cor da Animação',
+          desc: 'Jogadores podem mudar a cor da animação de clique.',
+        },
+        chatGlobalAllowed: {
+          label: 'Chat Global',
+          desc: 'Jogador pode enviar mensagens públicas no chat.',
+        },
+        chatPrivateAllowed: {
+          label: 'Mensagens Privadas',
+          desc: 'Jogador pode enviar mensagens privadas para outros.',
+        },
+        showRemoteViewports: {
+          label: 'Ver Outros Jogadores',
+          desc: 'Pode ver onde outros jogadores estão olhando (retângulos).',
+        },
+        shareViewport: {
+          label: 'Compartilhar Visão',
+          desc: 'Outros podem ver onde este jogador está olhando.',
+        },
+        shareCursor: {
+          label: 'Compartilhar Ponteiro',
+          desc: 'Permitir que o cursor do jogador seja visto por outros.',
+        },
+        allowSpectate: {
+          label: 'Permitir Espectador',
+          desc: 'Permitir que o Mestre veja a tela deste jogador.',
+        },
+      },
+    },
+    dice: {
+      modes: {
+        advantage: 'Vantagem',
+        normal: 'Normal',
+        disadvantage: 'Desvantagem',
+        vant: 'VANT',
+        desv: 'DESV',
+      },
+      visibility: {
+        public: 'Público: Todos veem',
+        gm: 'Privado: Apenas você e o Mestre',
+        total: 'Resumido: Apenas total',
+        publicShort: 'Público',
+        gmShort: 'Secreto (GM)',
+        totalShort: 'Resumido',
+      },
+      status: {
+        rolling: 'ROLANDO...',
+        result: 'RESULTADO',
+        critical: 'Crítico!',
+        fumble: 'Falha Crítica!',
+        newRoll: 'Nova Rolagem',
+        emptyTray: 'Adicione dados à mesa',
+        formula: 'Fórmula: :formula',
+        manual: 'Rolagem Manual',
+        auto: 'Rolagem Automática',
+        denied: 'Rolagem negada - sem permissão',
+      },
+      roller: {
+        title: 'Mesa de Dados',
+        character: 'Personagem Ativo',
+        noCharacter: 'Nenhum Herói Selecionado',
+        tabs: {
+          manual: 'Mesa',
+          attributes: 'Atrib',
+          combat: 'Combate',
+          skills: 'Perícias',
+          inventory: 'Itens',
+        },
+        sections: {
+          attributes: 'Testes de Atributo',
+          saves: 'Salvaguardas (Resistência)',
+          combat: 'Ataques Físicos',
+          spells: 'Grimório',
+          skills: 'Perícias',
+          inventory: 'Itens',
+        },
+        labels: {
+          ca: 'CA :value',
+          hp: 'HP :value',
+          save: ':attr Save',
+          atkMod: 'ATK +:value',
+          saveDc: 'CD :value',
+          spellLevel: '{0} Truque|{1,*} Nível :level',
+          noAttacks: 'Nenhum ataque registrado.',
+          noSpells: 'Nenhuma magia preparada.',
+          noItems: 'Mochila vazia.',
+          emptySelect: 'Selecione um token no mapa para acessar ações rápidas.',
+          genericSpell: 'Rolar Ataque Mágico Genérico',
+          useItem: 'Usar',
+        },
+      },
+    },
+    audio: {
+      panel: {
+        title: 'Painel de Áudio',
+        manageTitle: 'Gerenciar Áudio',
+        stopAll: 'Parar Tudo',
+        shuffle: 'Aleatório',
+        manage: 'Gerenciar',
+        back: 'Voltar',
+        save: 'Salvar Alterações',
+        volumeMusic: 'Volume da Música',
+        volumeSfx: 'Volume dos Efeitos',
+      },
+      manage: {
+        playlists: 'Gerenciar Playlists',
+        sfx: 'Gerenciar Efeitos Sonoros',
+        newPlaylist: 'Nome da Nova Playlist',
+        addTrack: 'Faixa',
+        addSfx: 'Efeito Sonoro',
+        uploadError: 'Erro no upload.',
+        placeholderName: 'Nome',
+        placeholderUrl: 'URL',
+      },
+    },
+    navigation: {
+      scenes: {
+        activate: 'Ativar',
+        edit: 'Editar',
+        delete: 'Excluir',
+      },
+      map: {
+        ping: 'Ping Aqui',
+        move: 'Mover Seleção Aqui',
+        addToken: 'Adicionar Token',
+      },
+    },
+    drawing: {
+      toolbar: {
+        paredesDinmicas: {
+          text: 'paredes dinâmicas',
+        },
+        desenhos: {
+          label: 'desenhos',
+        },
+        temCertezaQue: {
+          text: 'Tem certeza que deseja apagar',
+        },
+        todos: {
+          label: 'todos',
+        },
+        destaCenaEsta: {
+          text: 'desta cena? Esta ação é irreversível.',
+        },
+        cancelar: {
+          label: 'Cancelar',
+        },
+        limparTudo: {
+          text: 'Limpar Tudo',
+        },
+        limparParedes: {
+          title: 'Limpar Paredes',
+        },
+        limparDesenhos: {
+          title: 'Limpar Desenhos',
+        },
+        tamanho: {
+          label: 'Tamanho',
+        },
+        opacidade: {
+          label: 'Opacidade',
+        },
+        smartWall: {
+          text: 'Smart Wall',
+        },
+        configuraesDaVarinha: {
+          text: 'Configurações da Varinha',
+        },
+        tolerncia: {
+          label: 'Tolerância',
+        },
+        simplificao: {
+          label: 'Simplificação',
+        },
+        resoluo: {
+          label: 'Resolução',
+        },
+        sandboxDoSmart: {
+          label: 'Sandbox do Smart Wall',
+        },
+        preview: {
+          label: 'Preview',
+        },
+        desfazerLtimaParede: {
+          tooltip: 'Desfazer última parede',
+        },
+        desfazerLtimoTrao: {
+          tooltip: 'Desfazer último traço',
+        },
+        limparTodosOs: {
+          tooltip: 'Limpar TODOS os desenhos',
+        },
       },
     },
   },
-
   dnd: {
     attributes: {
-      strength: { name: 'Força', abbreviation: 'FOR' },
-      dexterity: { name: 'Destreza', abbreviation: 'DES' },
-      constitution: { name: 'Constituição', abbreviation: 'CON' },
-      intelligence: { name: 'Inteligência', abbreviation: 'INT' },
-      wisdom: { name: 'Sabedoria', abbreviation: 'SAB' },
-      charisma: { name: 'Carisma', abbreviation: 'CAR' },
+      strength: {
+        name: 'Força',
+        abbreviation: 'FOR',
+      },
+      dexterity: {
+        name: 'Destreza',
+        abbreviation: 'DES',
+      },
+      constitution: {
+        name: 'Constituição',
+        abbreviation: 'CON',
+      },
+      intelligence: {
+        name: 'Inteligência',
+        abbreviation: 'INT',
+      },
+      wisdom: {
+        name: 'Sabedoria',
+        abbreviation: 'SAB',
+      },
+      charisma: {
+        name: 'Carisma',
+        abbreviation: 'CAR',
+      },
     },
     sizes: {
-      tiny: { name: 'Minúsculo' },
-      small: { name: 'Pequeno' },
-      medium: { name: 'Médio' },
-      large: { name: 'Grande' },
-      huge: { name: 'Enorme' },
-      gargantuan: { name: 'Imenso' },
+      tiny: {
+        name: 'Minúsculo',
+      },
+      small: {
+        name: 'Pequeno',
+      },
+      medium: {
+        name: 'Médio',
+      },
+      large: {
+        name: 'Grande',
+      },
+      huge: {
+        name: 'Enorme',
+      },
+      gargantuan: {
+        name: 'Imenso',
+      },
     },
     creatureTypes: {
-      aberration: { name: 'Aberração' },
-      beast: { name: 'Fera' },
-      celestial: { name: 'Celestial' },
-      construct: { name: 'Construto' },
-      dragon: { name: 'Dragão' },
-      elemental: { name: 'Elemental' },
-      fey: { name: 'Fada' },
-      fiend: { name: 'Corruptor' },
-      giant: { name: 'Gigante' },
-      humanoid: { name: 'Humanoide' },
-      monstrosity: { name: 'Monstruosidade' },
-      ooze: { name: 'Limo' },
-      plant: { name: 'Planta' },
-      undead: { name: 'Morto-vivo' },
+      aberration: {
+        name: 'Aberração',
+      },
+      beast: {
+        name: 'Fera',
+      },
+      celestial: {
+        name: 'Celestial',
+      },
+      construct: {
+        name: 'Construto',
+      },
+      dragon: {
+        name: 'Dragão',
+      },
+      elemental: {
+        name: 'Elemental',
+      },
+      fey: {
+        name: 'Fada',
+      },
+      fiend: {
+        name: 'Corruptor',
+      },
+      giant: {
+        name: 'Gigante',
+      },
+      humanoid: {
+        name: 'Humanoide',
+      },
+      monstrosity: {
+        name: 'Monstruosidade',
+      },
+      ooze: {
+        name: 'Limo',
+      },
+      plant: {
+        name: 'Planta',
+      },
+      undead: {
+        name: 'Morto-vivo',
+      },
     },
     alignments: {
-      lawfulGood: { name: 'Leal e Bom' },
-      neutralGood: { name: 'Neutro e Bom' },
-      chaoticGood: { name: 'Caótico e Bom' },
-      lawfulNeutral: { name: 'Leal e Neutro' },
-      neutral: { name: 'Neutro' },
-      chaoticNeutral: { name: 'Caótico e Neutro' },
-      lawfulEvil: { name: 'Leal e Mau' },
-      neutralEvil: { name: 'Neutro e Mau' },
-      chaoticEvil: { name: 'Caótico e Mau' },
-      unaligned: { name: 'Sem alinhamento' },
+      lawfulGood: {
+        name: 'Leal e Bom',
+      },
+      neutralGood: {
+        name: 'Neutro e Bom',
+      },
+      chaoticGood: {
+        name: 'Caótico e Bom',
+      },
+      lawfulNeutral: {
+        name: 'Leal e Neutro',
+      },
+      neutral: {
+        name: 'Neutro',
+      },
+      chaoticNeutral: {
+        name: 'Caótico e Neutro',
+      },
+      lawfulEvil: {
+        name: 'Leal e Mau',
+      },
+      neutralEvil: {
+        name: 'Neutro e Mau',
+      },
+      chaoticEvil: {
+        name: 'Caótico e Mau',
+      },
+      unaligned: {
+        name: 'Sem alinhamento',
+      },
     },
     schools: {
-      abjuration: { name: 'Abjuração' },
-      conjuration: { name: 'Conjuração' },
-      divination: { name: 'Adivinhação' },
-      enchantment: { name: 'Encantamento' },
-      evocation: { name: 'Evocação' },
-      illusion: { name: 'Ilusão' },
-      necromancy: { name: 'Necromancia' },
-      transmutation: { name: 'Transmutação' },
+      abjuration: {
+        name: 'Abjuração',
+      },
+      conjuration: {
+        name: 'Conjuração',
+      },
+      divination: {
+        name: 'Adivinhação',
+      },
+      enchantment: {
+        name: 'Encantamento',
+      },
+      evocation: {
+        name: 'Evocação',
+      },
+      illusion: {
+        name: 'Ilusão',
+      },
+      necromancy: {
+        name: 'Necromancia',
+      },
+      transmutation: {
+        name: 'Transmutação',
+      },
     },
     skills: {
-      acrobatics: { name: 'Acrobacia' },
-      animalHandling: { name: 'Lidar com Animais' },
-      arcana: { name: 'Arcanismo' },
-      athletics: { name: 'Atletismo' },
-      deception: { name: 'Enganação' },
-      history: { name: 'História' },
-      insight: { name: 'Intuição' },
-      intimidation: { name: 'Intimidação' },
-      investigation: { name: 'Investigação' },
-      medicine: { name: 'Medicina' },
-      nature: { name: 'Natureza' },
-      perception: { name: 'Percepção' },
-      performance: { name: 'Atuação' },
-      persuasion: { name: 'Persuasão' },
-      religion: { name: 'Religião' },
-      sleightOfHand: { name: 'Prestidigitação' },
-      stealth: { name: 'Furtividade' },
-      survival: { name: 'Sobrevivência' },
+      acrobatics: {
+        name: 'Acrobacia',
+      },
+      animalHandling: {
+        name: 'Lidar com Animais',
+      },
+      arcana: {
+        name: 'Arcanismo',
+      },
+      athletics: {
+        name: 'Atletismo',
+      },
+      deception: {
+        name: 'Enganação',
+      },
+      history: {
+        name: 'História',
+      },
+      insight: {
+        name: 'Intuição',
+      },
+      intimidation: {
+        name: 'Intimidação',
+      },
+      investigation: {
+        name: 'Investigação',
+      },
+      medicine: {
+        name: 'Medicina',
+      },
+      nature: {
+        name: 'Natureza',
+      },
+      perception: {
+        name: 'Percepção',
+      },
+      performance: {
+        name: 'Atuação',
+      },
+      persuasion: {
+        name: 'Persuasão',
+      },
+      religion: {
+        name: 'Religião',
+      },
+      sleightOfHand: {
+        name: 'Prestidigitação',
+      },
+      stealth: {
+        name: 'Furtividade',
+      },
+      survival: {
+        name: 'Sobrevivência',
+      },
     },
     damageTypes: {
-      acid: { name: 'Ácido' },
-      bludgeoning: { name: 'Contundente' },
-      cold: { name: 'Frio' },
-      fire: { name: 'Fogo' },
-      force: { name: 'Força' },
-      lightning: { name: 'Elétrico' },
-      necrotic: { name: 'Necrótico' },
-      piercing: { name: 'Perfurante' },
-      poison: { name: 'Veneno' },
-      psychic: { name: 'Psíquico' },
-      radiant: { name: 'Radiante' },
-      slashing: { name: 'Cortante' },
-      thunder: { name: 'Trovejante' },
+      acid: {
+        name: 'Ácido',
+      },
+      bludgeoning: {
+        name: 'Contundente',
+      },
+      cold: {
+        name: 'Frio',
+      },
+      fire: {
+        name: 'Fogo',
+      },
+      force: {
+        name: 'Força',
+      },
+      lightning: {
+        name: 'Elétrico',
+      },
+      necrotic: {
+        name: 'Necrótico',
+      },
+      piercing: {
+        name: 'Perfurante',
+      },
+      poison: {
+        name: 'Veneno',
+      },
+      psychic: {
+        name: 'Psíquico',
+      },
+      radiant: {
+        name: 'Radiante',
+      },
+      slashing: {
+        name: 'Cortante',
+      },
+      thunder: {
+        name: 'Trovejante',
+      },
     },
     rarities: {
-      common: { name: 'Comum' },
-      uncommon: { name: 'Incomum' },
-      rare: { name: 'Raro' },
-      veryRare: { name: 'Muito Raro' },
-      legendary: { name: 'Lendário' },
-      artifact: { name: 'Artefato' },
+      common: {
+        name: 'Comum',
+      },
+      uncommon: {
+        name: 'Incomum',
+      },
+      rare: {
+        name: 'Raro',
+      },
+      veryRare: {
+        name: 'Muito Raro',
+      },
+      legendary: {
+        name: 'Lendário',
+      },
+      artifact: {
+        name: 'Artefato',
+      },
     },
     itemTypes: {
-      weapon: { name: 'Arma' },
-      armor: { name: 'Armadura' },
-      potion: { name: 'Poção' },
-      ring: { name: 'Anel' },
-      scroll: { name: 'Pergaminho' },
-      staff: { name: 'Cajado' },
-      wand: { name: 'Varinha' },
-      wondrousItem: { name: 'Item Maravilhoso' },
+      weapon: {
+        name: 'Arma',
+      },
+      armor: {
+        name: 'Armadura',
+      },
+      potion: {
+        name: 'Poção',
+      },
+      ring: {
+        name: 'Anel',
+      },
+      scroll: {
+        name: 'Pergaminho',
+      },
+      staff: {
+        name: 'Cajado',
+      },
+      wand: {
+        name: 'Varinha',
+      },
+      wondrousItem: {
+        name: 'Item Maravilhoso',
+      },
     },
     combat: {
-      meleeWeaponAttack: { name: 'Ataque com Arma Corpo a Corpo' },
-      rangedWeaponAttack: { name: 'Ataque com Arma à Distância' },
-      toHit: { name: 'para acertar' },
-      reach: { name: 'alcance' },
-      range: { name: 'distância' },
-      oneTarget: { name: 'um alvo' },
-      hit: { name: 'Acerto' },
-      damage: { name: 'dano' },
-      savingThrow: { name: 'salvaguarda' },
-      difficultyClass: { abbreviation: 'CD' },
+      meleeWeaponAttack: {
+        name: 'Ataque com Arma Corpo a Corpo',
+      },
+      rangedWeaponAttack: {
+        name: 'Ataque com Arma à Distância',
+      },
+      toHit: {
+        name: 'para acertar',
+      },
+      reach: {
+        name: 'alcance',
+      },
+      range: {
+        name: 'distância',
+      },
+      oneTarget: {
+        name: 'um alvo',
+      },
+      hit: {
+        name: 'Acerto',
+      },
+      damage: {
+        name: 'dano',
+      },
+      savingThrow: {
+        name: 'salvaguarda',
+      },
+      difficultyClass: {
+        abbreviation: 'CD',
+      },
     },
     rules: {
       conditions: {
         frightened: {
           name: 'Amedrontado',
-          effects: [
-            'Desvantagem em testes de habilidade e jogadas de ataque enquanto a fonte do medo estiver à vista.',
-            'Não pode se aproximar voluntariamente da fonte do medo.',
-          ],
+          effects: ['Desvantagem em testes de habilidade e jogadas de ataque enquanto a fonte do medo estiver à vista.', 'Não pode se aproximar voluntariamente da fonte do medo.'],
           duration: 'Até o fim do próximo turno ou removido da visão da fonte.',
         },
         grappled: {
           name: 'Agarrado',
-          effects: [
-            'Deslocamento reduzido a 0.',
-            'Termina se o agarrador ficar incapacitado ou se a criatura for removida do alcance.',
-          ],
+          effects: ['Deslocamento reduzido a 0.', 'Termina se o agarrador ficar incapacitado ou se a criatura for removida do alcance.'],
           duration: 'Até o fim do agarrador ou teste de Força/Fuga.',
         },
         stunned: {
           name: 'Atordoado',
-          effects: [
-            'Incapacitado (sem ações/reações).',
-            'Falha automática em testes de Força e Destreza.',
-            'Jogadas de ataque contra a criatura têm vantagem.',
-          ],
+          effects: ['Incapacitado (sem ações/reações).', 'Falha automática em testes de Força e Destreza.', 'Jogadas de ataque contra a criatura têm vantagem.'],
           duration: 'Até o fim do próximo turno (geralmente).',
         },
         prone: {
           name: 'Caído',
-          effects: [
-            'Só pode rastejar ou gastar metade do movimento para levantar.',
-            'Desvantagem em suas jogadas de ataque.',
-            'Ataques corpo a corpo contra a criatura têm vantagem; à distância têm desvantagem.',
-          ],
+          effects: ['Só pode rastejar ou gastar metade do movimento para levantar.', 'Desvantagem em suas jogadas de ataque.', 'Ataques corpo a corpo contra a criatura têm vantagem; à distância têm desvantagem.'],
           duration: 'Até se levantar.',
         },
         blinded: {
           name: 'Cego',
-          effects: [
-            'Falha automática em testes que dependam de visão.',
-            'Suas jogadas de ataque têm desvantagem.',
-            'Ataques contra a criatura têm vantagem.',
-          ],
+          effects: ['Falha automática em testes que dependam de visão.', 'Suas jogadas de ataque têm desvantagem.', 'Ataques contra a criatura têm vantagem.'],
           duration: 'Varia.',
         },
         charmed: {
           name: 'Enfeitiçado',
-          effects: [
-            'Não pode atacar o enfeitiçador nem mirar nele efeitos hostis.',
-            'O enfeitiçador tem vantagem em testes de Carisma contra a criatura.',
-          ],
+          effects: ['Não pode atacar o enfeitiçador nem mirar nele efeitos hostis.', 'O enfeitiçador tem vantagem em testes de Carisma contra a criatura.'],
           duration: '1 hora ou até sofrer dano do enfeitiçador.',
         },
         poisoned: {
           name: 'Envenenado',
-          effects: [
-            'Desvantagem em jogadas de ataque e testes de habilidade.',
-          ],
+          effects: ['Desvantagem em jogadas de ataque e testes de habilidade.'],
           duration: 'Varia (TS CON repetido).',
         },
         restrained: {
           name: 'Impedido',
-          effects: [
-            'Deslocamento 0.',
-            'Desvantagem em jogadas de ataque e testes de Destreza.',
-            'Ataques contra a criatura têm vantagem.',
-          ],
+          effects: ['Deslocamento 0.', 'Desvantagem em jogadas de ataque e testes de Destreza.', 'Ataques contra a criatura têm vantagem.'],
           duration: 'Varia.',
         },
         incapacitated: {
           name: 'Incapacitado',
-          effects: [
-            'Não pode realizar ações nem reações.',
-          ],
+          effects: ['Não pode realizar ações nem reações.'],
           duration: 'Varia.',
         },
         unconscious: {
           name: 'Inconsciente',
-          effects: [
-            'Incapacitado, não se move, não fala, sem consciência.',
-            'Solta itens e fica Caído.',
-            'Falha automática em testes de Força e Destreza.',
-            'Ataques contra a criatura têm vantagem e são críticos se atacante estiver a 1,5m.',
-          ],
+          effects: ['Incapacitado, não se move, não fala, sem consciência.', 'Solta itens e fica Caído.', 'Falha automática em testes de Força e Destreza.', 'Ataques contra a criatura têm vantagem e são críticos se atacante estiver a 1,5m.'],
           duration: 'Até ser curado ou estabilizado.',
         },
         invisible: {
           name: 'Invisível',
-          effects: [
-            'Impossível de ser visto sem magia/sentidos especiais.',
-            'Considerado muito obscurecido para esconder-se.',
-            'Suas jogadas de ataque têm vantagem.',
-            'Ataques contra a criatura têm desvantagem.',
-          ],
+          effects: ['Impossível de ser visto sem magia/sentidos especiais.', 'Considerado muito obscurecido para esconder-se.', 'Suas jogadas de ataque têm vantagem.', 'Ataques contra a criatura têm desvantagem.'],
           duration: 'Varia (magia).',
         },
         paralyzed: {
           name: 'Paralisado',
-          effects: [
-            'Incapacitado e não pode se mover nem falar.',
-            'Falha automática em testes de Força e Destreza.',
-            'Ataques contra a criatura têm vantagem e são críticos se atacante estiver a 1,5m.',
-          ],
+          effects: ['Incapacitado e não pode se mover nem falar.', 'Falha automática em testes de Força e Destreza.', 'Ataques contra a criatura têm vantagem e são críticos se atacante estiver a 1,5m.'],
           duration: 'Varia.',
         },
         petrified: {
           name: 'Petrificado',
-          effects: [
-            'Transformado em substância sólida (inanimado).',
-            'Incapacitado, não envelhece, peso x10.',
-            'Resistência a todo dano, imune a veneno/doença.',
-            'Falha automática em testes de Força e Destreza.',
-          ],
+          effects: ['Transformado em substância sólida (inanimado).', 'Incapacitado, não envelhece, peso x10.', 'Resistência a todo dano, imune a veneno/doença.', 'Falha automática em testes de Força e Destreza.'],
           duration: 'Permanente até restaurado.',
         },
         deafened: {
           name: 'Surdo',
-          effects: [
-            'Falha automática em testes que dependam de audição.',
-          ],
+          effects: ['Falha automática em testes que dependam de audição.'],
           duration: '1 hora (típico).',
         },
         exhausted: {
           name: 'Exausto',
-          effects: [
-            'Nvl 1: Desvantagem em testes de habilidade.',
-            'Nvl 2: Deslocamento reduzido à metade.',
-            'Nvl 3: Desvantagem em ataques e testes de resistência.',
-            'Nvl 4: PV Máximo reduzido à metade.',
-            'Nvl 5: Deslocamento 0.',
-            'Nvl 6: Morte.',
-          ],
+          effects: ['Nvl 1: Desvantagem em testes de habilidade.', 'Nvl 2: Deslocamento reduzido à metade.', 'Nvl 3: Desvantagem em ataques e testes de resistência.', 'Nvl 4: PV Máximo reduzido à metade.', 'Nvl 5: Deslocamento 0.', 'Nvl 6: Morte.'],
           duration: 'Descanso Longo reduz 1 nível.',
         },
         burning: {
           name: 'Queimando',
-          effects: [
-            'Sofre 1d6 de dano de fogo no início de cada turno.',
-            'Pode gastar uma ação para apagar as chamas (CD 10 Destreza).',
-          ],
+          effects: ['Sofre 1d6 de dano de fogo no início de cada turno.', 'Pode gastar uma ação para apagar as chamas (CD 10 Destreza).'],
           duration: '1 minuto ou até apagado.',
         },
         bleeding: {
           name: 'Sangrando',
-          effects: [
-            'Sofre 1d4 de dano necrótico/perfurante no início do turno.',
-            'Qualquer cura mágica encerra a condição.',
-          ],
+          effects: ['Sofre 1d4 de dano necrótico/perfurante no início do turno.', 'Qualquer cura mágica encerra a condição.'],
           duration: 'Até curado (Medicina CD 10 ou Cura).',
         },
         dead: {
@@ -1015,14 +1690,38 @@ export default {
         },
       },
       weaponMasteries: {
-        cleave: { name: 'Cleave', desc: 'Atinge uma segunda criatura a 1,5m.' },
-        graze: { name: 'Graze', desc: 'Causa dano igual ao mod de atributo se errar.' },
-        nick: { name: 'Nick', desc: 'Ataque extra da propriedade Leve não custa Ação Bônus.' },
-        push: { name: 'Push', desc: 'Empurra a criatura 3m.' },
-        sap: { name: 'Sap', desc: 'Desvantagem na próxima jogada de ataque do alvo.' },
-        slow: { name: 'Slow', desc: 'Reduz o deslocamento do alvo em 3m.' },
-        topple: { name: 'Topple', desc: 'Alvo faz salvaguarda de CON ou cai.' },
-        vex: { name: 'Vex', desc: 'Vantagem na próxima jogada de ataque contra o alvo.' },
+        cleave: {
+          name: 'Cleave',
+          desc: 'Atinge uma segunda criatura a 1,5m.',
+        },
+        graze: {
+          name: 'Graze',
+          desc: 'Causa dano igual ao mod de atributo se errar.',
+        },
+        nick: {
+          name: 'Nick',
+          desc: 'Ataque extra da propriedade Leve não custa Ação Bônus.',
+        },
+        push: {
+          name: 'Push',
+          desc: 'Empurra a criatura 3m.',
+        },
+        sap: {
+          name: 'Sap',
+          desc: 'Desvantagem na próxima jogada de ataque do alvo.',
+        },
+        slow: {
+          name: 'Slow',
+          desc: 'Reduz o deslocamento do alvo em 3m.',
+        },
+        topple: {
+          name: 'Topple',
+          desc: 'Alvo faz salvaguarda de CON ou cai.',
+        },
+        vex: {
+          name: 'Vex',
+          desc: 'Vantagem na próxima jogada de ataque contra o alvo.',
+        },
       },
     },
   },

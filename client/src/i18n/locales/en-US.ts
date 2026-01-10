@@ -6,36 +6,89 @@
 export default {
   common: {
     actions: {
-      save: { label: 'Save' },
-      cancel: { label: 'Cancel' },
-      confirm: { label: 'Confirm' },
-      delete: { label: 'Delete' },
-      close: { label: 'Close' },
-      retry: { label: 'Retry' },
-      edit: { label: 'Edit' },
-      create: { label: 'Create' },
-      add: { label: 'Add' },
-      remove: { label: 'Remove' },
-      search: { label: 'Search' },
-      clear: { label: 'Clear' },
-      reset: { label: 'Reset' },
-      apply: { label: 'Apply' },
-      undo: { label: 'Undo' },
-      redo: { label: 'Redo' },
+      save: {
+        label: 'Save',
+      },
+      cancel: {
+        label: 'Cancel',
+      },
+      confirm: {
+        label: 'Confirm',
+      },
+      delete: {
+        label: 'Delete',
+      },
+      close: {
+        label: 'Close',
+      },
+      retry: {
+        label: 'Retry',
+      },
+      edit: {
+        label: 'Edit',
+      },
+      create: {
+        label: 'Create',
+      },
+      add: {
+        label: 'Add',
+      },
+      remove: {
+        label: 'Remove',
+      },
+      search: {
+        label: 'Search',
+      },
+      clear: {
+        label: 'Clear',
+      },
+      reset: {
+        label: 'Reset',
+      },
+      apply: {
+        label: 'Apply',
+      },
+      undo: {
+        label: 'Undo',
+      },
+      redo: {
+        label: 'Redo',
+      },
     },
     states: {
-      loading: { message: 'Loading...' },
-      saving: { message: 'Saving...' },
-      error: { title: 'Error', description: 'Something went wrong.' },
-      success: { message: 'Success!' },
-      empty: { message: 'No items found.' },
-      notFound: { message: 'Not found.' },
+      loading: {
+        message: 'Loading...',
+      },
+      saving: {
+        message: 'Saving...',
+      },
+      error: {
+        title: 'Error',
+        description: 'Something went wrong.',
+      },
+      success: {
+        message: 'Success!',
+      },
+      empty: {
+        message: 'No items found.',
+      },
+      notFound: {
+        message: 'Not found.',
+      },
     },
     validation: {
-      required: { errorMessage: 'This field is required.' },
-      email: { errorMessage: 'Invalid email.' },
-      minLength: { errorMessage: 'Minimum :min characters.' },
-      maxLength: { errorMessage: 'Maximum :max characters.' },
+      required: {
+        errorMessage: 'This field is required.',
+      },
+      email: {
+        errorMessage: 'Invalid email.',
+      },
+      minLength: {
+        errorMessage: 'Minimum :min characters.',
+      },
+      maxLength: {
+        errorMessage: 'Maximum :max characters.',
+      },
     },
     plurals: {
       items: '{0} No items|{1} :count item|[2,*] :count items',
@@ -48,102 +101,294 @@ export default {
       hours: '{1} :count hour|[2,*] :count hours',
     },
   },
-
   vtt: {
     tools: {
       toolbar: {
         selectTool: {
-          button: { label: 'Select', tooltip: 'Selection tool (V)' },
+          button: {
+            label: 'Select',
+            tooltip: 'Selection tool (V)',
+          },
         },
         rulerTool: {
-          button: { label: 'Ruler', tooltip: 'Measure distances (M)' },
+          button: {
+            label: 'Ruler',
+            tooltip: 'Measure distances (M)',
+          },
         },
         drawingTools: {
-          group: { label: 'Draw' },
-          brush: { button: { label: 'Free Brush', tooltip: 'Freehand drawing' } },
-          eraser: { button: { label: 'Erase Drawings', tooltip: 'Remove drawings' } },
+          group: {
+            label: 'Draw',
+          },
+          brush: {
+            button: {
+              label: 'Free Brush',
+              tooltip: 'Freehand drawing',
+            },
+          },
+          eraser: {
+            button: {
+              label: 'Erase Drawings',
+              tooltip: 'Remove drawings',
+            },
+          },
         },
         cursorSettings: {
-          button: { label: 'Cursors', tooltip: 'Cursor settings' },
+          button: {
+            label: 'Cursors',
+            tooltip: 'Cursor settings',
+          },
         },
         architectureTools: {
-          group: { label: 'Architecture' },
-          wall: { button: { label: 'Wall', tooltip: 'Draw wall' } },
-          freehandWall: { button: { label: 'Freehand Wall (Drawing)', tooltip: 'Freehand wall' } },
-          smartWall: { button: { label: 'Smart Wall (Magic Wand)', tooltip: 'Auto-detect walls' } },
-          door: { button: { label: 'Door', tooltip: 'Add door' } },
-          window: { button: { label: 'Window', tooltip: 'Add window' } },
-          eraser: { button: { label: 'Eraser (Structure)', tooltip: 'Remove structures' } },
+          group: {
+            label: 'Architecture',
+          },
+          wall: {
+            button: {
+              label: 'Wall',
+              tooltip: 'Draw wall',
+            },
+          },
+          freehandWall: {
+            button: {
+              label: 'Freehand Wall (Drawing)',
+              tooltip: 'Freehand wall',
+            },
+          },
+          smartWall: {
+            button: {
+              label: 'Smart Wall (Magic Wand)',
+              tooltip: 'Auto-detect walls',
+            },
+          },
+          door: {
+            button: {
+              label: 'Door',
+              tooltip: 'Add door',
+            },
+          },
+          window: {
+            button: {
+              label: 'Window',
+              tooltip: 'Add window',
+            },
+          },
+          eraser: {
+            button: {
+              label: 'Eraser (Structure)',
+              tooltip: 'Remove structures',
+            },
+          },
         },
         lightingTools: {
-          group: { label: 'Lighting & Fog' },
-          lightRect: { button: { label: 'Light (Rectangle)', tooltip: 'Rectangular light area' } },
-          lightPoly: { button: { label: 'Light (Polygon)', tooltip: 'Polygonal light area' } },
+          group: {
+            label: 'Lighting & Fog',
+          },
+          lightRect: {
+            button: {
+              label: 'Light (Rectangle)',
+              tooltip: 'Rectangular light area',
+            },
+          },
+          lightPoly: {
+            button: {
+              label: 'Light (Polygon)',
+              tooltip: 'Polygonal light area',
+            },
+          },
           fogOfWar: {
-            submenu: { title: 'Fog of War' },
-            revealPoly: { button: { label: 'Reveal (Polygon)' } },
-            revealRect: { button: { label: 'Reveal (Rectangle)' } },
-            reset: { button: { label: 'Reset Fog', confirmPrompt: 'Are you sure you want to reset all fog?' } },
+            submenu: {
+              title: 'Fog of War',
+            },
+            revealPoly: {
+              button: {
+                label: 'Reveal (Polygon)',
+              },
+            },
+            revealRect: {
+              button: {
+                label: 'Reveal (Rectangle)',
+              },
+            },
+            reset: {
+              button: {
+                label: 'Reset Fog',
+                confirmPrompt: 'Are you sure you want to reset all fog?',
+              },
+            },
           },
         },
         audioTools: {
-          group: { label: 'Audio' },
-          panel: { button: { label: 'Audio Panel', tooltip: 'Open audio panel' } },
+          group: {
+            label: 'Audio',
+          },
+          panel: {
+            button: {
+              label: 'Audio Panel',
+              tooltip: 'Open audio panel',
+            },
+          },
           zones: {
-            submenu: { title: 'Audio Zones' },
-            rect: { button: { label: 'Zone (Rectangle)' } },
-            poly: { button: { label: 'Zone (Polygon)' } },
-            eraser: { button: { label: 'Erase Audio Zone' } },
+            submenu: {
+              title: 'Audio Zones',
+            },
+            rect: {
+              button: {
+                label: 'Zone (Rectangle)',
+              },
+            },
+            poly: {
+              button: {
+                label: 'Zone (Polygon)',
+              },
+            },
+            eraser: {
+              button: {
+                label: 'Erase Audio Zone',
+              },
+            },
           },
         },
         triggerTools: {
-          group: { label: 'Triggers' },
-          rect: { button: { label: 'Trigger (Rectangle)' } },
-          poly: { button: { label: 'Trigger (Polygon)' } },
-          eraser: { button: { label: 'Erase Trigger' } },
+          group: {
+            label: 'Triggers',
+          },
+          rect: {
+            button: {
+              label: 'Trigger (Rectangle)',
+            },
+          },
+          poly: {
+            button: {
+              label: 'Trigger (Polygon)',
+            },
+          },
+          eraser: {
+            button: {
+              label: 'Erase Trigger',
+            },
+          },
         },
         gameplayTools: {
-          attackZones: { button: { label: 'Attack Zones', tooltip: 'Manage attack zones' } },
-          diceRoller: { button: { label: 'Dice Table', tooltip: 'Open dice roller' } },
-          bestiary: { button: { label: 'Bestiary (Tokens)', tooltip: 'Creature library' } },
-          compendium: { button: { label: 'Compendium', tooltip: 'Spells and items compendium' } },
-          handouts: { button: { label: 'Handouts', tooltip: 'Manage handouts' } },
-          addToken: { button: { label: 'New Token', tooltip: 'Add token to map' } },
-          startCombat: { button: { label: 'Start Combat', tooltip: 'Begin combat encounter' } },
-          endCombat: { button: { label: 'End Combat', tooltip: 'End current combat' } },
+          attackZones: {
+            button: {
+              label: 'Attack Zones',
+              tooltip: 'Manage attack zones',
+            },
+          },
+          diceRoller: {
+            button: {
+              label: 'Dice Table',
+              tooltip: 'Open dice roller',
+            },
+          },
+          bestiary: {
+            button: {
+              label: 'Bestiary (Tokens)',
+              tooltip: 'Creature library',
+            },
+          },
+          compendium: {
+            button: {
+              label: 'Compendium',
+              tooltip: 'Spells and items compendium',
+            },
+          },
+          handouts: {
+            button: {
+              label: 'Handouts',
+              tooltip: 'Manage handouts',
+            },
+          },
+          addToken: {
+            button: {
+              label: 'New Token',
+              tooltip: 'Add token to map',
+            },
+          },
+          startCombat: {
+            button: {
+              label: 'Start Combat',
+              tooltip: 'Begin combat encounter',
+            },
+          },
+          endCombat: {
+            button: {
+              label: 'End Combat',
+              tooltip: 'End current combat',
+            },
+          },
         },
         gmTools: {
-          group: { label: 'Game Master' },
-          viewSettings: { button: { label: 'View & Sync' } },
-          permissions: { button: { label: 'Permissions' } },
-          gridCoords: { button: { label: 'Grid Coordinates' } },
-          mapSettings: { button: { label: 'Map Settings' } },
+          group: {
+            label: 'Game Master',
+          },
+          viewSettings: {
+            button: {
+              label: 'View & Sync',
+            },
+          },
+          permissions: {
+            button: {
+              label: 'Permissions',
+            },
+          },
+          gridCoords: {
+            button: {
+              label: 'Grid Coordinates',
+            },
+          },
+          mapSettings: {
+            button: {
+              label: 'Map Settings',
+            },
+          },
         },
       },
     },
     session: {
       sidebar: {
         tabHeader: {
-          chat: { label: 'Log & Chat' },
-          combat: { label: 'Combat' },
-          party: { label: 'Party' },
+          chat: {
+            label: 'Log & Chat',
+          },
+          combat: {
+            label: 'Combat',
+          },
+          party: {
+            label: 'Party',
+          },
         },
-        popoutButton: { tooltip: 'Pop-out in New Window' },
-        dockButton: { tooltip: 'Dock back' },
-        closeButton: { tooltip: 'Close Sidebar' },
+        popoutButton: {
+          tooltip: 'Pop-out in New Window',
+        },
+        dockButton: {
+          tooltip: 'Dock back',
+        },
+        closeButton: {
+          tooltip: 'Close Sidebar',
+        },
         undockedPlaceholder: {
           title: 'Sidebar Undocked',
           description: 'The sidebar is open in another window.',
-          redockButton: { label: 'Re-dock' },
-          closeSidebarButton: { label: 'Close Sidebar' },
+          redockButton: {
+            label: 'Re-dock',
+          },
+          closeSidebarButton: {
+            label: 'Close Sidebar',
+          },
         },
         popupBlocked: {
           warningBanner: {
             title: 'Popup blocked!',
             message: 'Click the icon in your browser address bar and allow popups for this site.',
           },
-          retryButton: { label: 'Retry' },
-          closeButton: { label: 'Close' },
+          retryButton: {
+            label: 'Retry',
+          },
+          closeButton: {
+            label: 'Close',
+          },
         },
         popoutWindow: {
           title: 'QuestBinder Sidebar',
@@ -151,7 +396,9 @@ export default {
       },
     },
     sidebar: {
-      popout: { title: 'Popout' },
+      popout: {
+        title: 'Popout',
+      },
     },
     common: {
       hero: 'Hero',
@@ -175,20 +422,45 @@ export default {
     tokens: {
       editModal: {
         header: {
-          title: { creating: 'New Token', editing: 'Edit Token' },
+          title: {
+            creating: 'New Token',
+            editing: 'Edit Token',
+          },
         },
         tabs: {
-          basic: { label: 'Basic' },
-          stats: { label: 'Stats' },
-          appearance: { label: 'Appearance' },
-          permissions: { label: 'Permissions' },
-          general: { label: 'General' },
-          style: { label: 'Style' },
-          status: { label: 'Status' },
-          light: { label: 'Light' },
-          auras: { label: 'Auras' },
-          sheet: { label: 'Sheet' },
-          perms: { label: 'Permissions' },
+          basic: {
+            label: 'Basic',
+          },
+          stats: {
+            label: 'Stats',
+          },
+          appearance: {
+            label: 'Appearance',
+          },
+          permissions: {
+            label: 'Permissions',
+          },
+          general: {
+            label: 'General',
+          },
+          style: {
+            label: 'Style',
+          },
+          status: {
+            label: 'Status',
+          },
+          light: {
+            label: 'Light',
+          },
+          auras: {
+            label: 'Auras',
+          },
+          sheet: {
+            label: 'Sheet',
+          },
+          perms: {
+            label: 'Permissions',
+          },
         },
         general: {
           namePlaceholder: 'Token Name',
@@ -315,16 +587,32 @@ export default {
         preview: {
           alt: 'Token Preview',
         },
-        nameField: { label: 'Name', placeholder: 'Token name' },
-        sizeField: { label: 'Size' },
+        nameField: {
+          label: 'Name',
+          placeholder: 'Token name',
+        },
+        sizeField: {
+          label: 'Size',
+        },
         healthField: {
           label: 'Hit Points',
-          current: { label: 'Current' },
-          max: { label: 'Maximum' },
+          current: {
+            label: 'Current',
+          },
+          max: {
+            label: 'Maximum',
+          },
         },
-        imageField: { label: 'Image', placeholder: 'Image URL' },
-        saveButton: { label: 'Save' },
-        cancelButton: { label: 'Cancel' },
+        imageField: {
+          label: 'Image',
+          placeholder: 'Image URL',
+        },
+        saveButton: {
+          label: 'Save',
+        },
+        cancelButton: {
+          label: 'Cancel',
+        },
         deleteButton: {
           label: 'Delete Token',
           confirmPrompt: 'Are you sure you want to delete this token?',
@@ -427,68 +715,48 @@ export default {
         shareTokenNotify: 'Linked token {name} to chat.',
       },
       hoverCard: {
-        healthBar: { label: 'Health' },
-        conditions: { label: 'Conditions' },
-        notes: { label: 'Notes' },
+        healthBar: {
+          label: 'Health',
+        },
+        conditions: {
+          label: 'Conditions',
+        },
+        notes: {
+          label: 'Notes',
+        },
       },
     },
     combat: {
-      tracker: {
-        header: { title: 'Combat' },
-        emptyState: {
-          title: 'No active combat',
-          message: 'Start a combat from the GM toolbar.',
-        },
-        turnTimer: { tooltip: 'Turn timer' },
-        roundCounter: { label: 'Round' },
-        historyButton: { tooltip: 'History' },
-        settingsButton: { tooltip: 'Settings' },
-        shortcutsButton: { tooltip: 'Shortcuts' },
-        settingsPanel: {
-          title: 'Battle Settings',
-          autoRollInit: { label: 'Auto-roll Init' },
-          showInit: { label: 'Show Init' },
-          showEnemyHP: { label: 'Show Enemy HP' },
-          concentration: { label: 'Concentration' },
-          turnTimer: { label: 'Turn Timer' },
-          aiSuggestions: { label: 'AI Suggestions' },
-        },
-        historyPanel: {
-          title: 'Action History',
-          emptyState: { message: 'No actions recorded yet.' },
-        },
-        turnOrder: {
-          title: 'Next Turns',
-          damagePlaceholder: 'Damage',
-          healPlaceholder: 'Heal',
-          removeFromCombat: {
-            label: 'Remove from Combat',
-            confirmPrompt: 'Remove :name?',
-          },
-        },
-        controls: {
-          prevTurn: { tooltip: 'Previous Turn' },
-          nextTurn: { label: 'Next Turn' },
-          endCombat: {
-            label: 'End Combat',
-            confirmPrompt: 'End combat?',
-          },
-        },
-        initiativeList: {
-          header: { title: 'Initiative Order' },
-          emptyState: { message: 'No combatants in initiative.' },
-        },
-        turnIndicator: {
-          currentTurn: { label: 'Current Turn' },
-          nextButton: { label: 'Next', tooltip: 'Advance turn' },
-          prevButton: { label: 'Previous', tooltip: 'Go back' },
-        },
-        addCombatant: { button: { label: 'Add Combatant' } },
-        rollInitiative: { button: { label: 'Roll Initiative' } },
-        endCombatButton: {
-          label: 'End Combat',
-          confirmPrompt: 'Are you sure you want to end combat?',
-        },
+      start: {
+        title: 'Start Combat',
+        pcs: 'PCs: :count',
+        npcs: 'NPCs: :count',
+        rollNpcs: 'Roll All NPCs',
+        rollAll: 'Roll All',
+        settings: 'Settings',
+        participants: 'Participants',
+        selectAll: 'Select All',
+        clear: 'Clear',
+        empty: 'No tokens available on the map.',
+        startButton: 'Start Combat (:count)',
+      },
+      settings: {
+        title: 'Combat Settings',
+        autoRoll: 'Auto-roll initiative',
+        showToPlayers: 'Show initiative to players',
+        showEnemyHp: 'Show enemy HP',
+        trackConcentration: 'Track concentration',
+        turnTimer: 'Turn timer',
+        suggestions: 'Smart suggestions',
+        surprise: 'Surprise Round',
+      },
+      labels: {
+        pc: 'PC',
+        invisible: 'Invisible to players',
+        hp: 'HP: :current/:max',
+        ac: 'AC: :value',
+        initiative: 'Init',
+        rollInitiative: 'Roll Initiative',
       },
     },
     chat: {
@@ -507,7 +775,9 @@ export default {
         },
       },
       menus: {
-        identity: { title: 'Identity' },
+        identity: {
+          title: 'Identity',
+        },
         recipient: {
           title: 'Recipient',
           global: 'All (Global)',
@@ -577,7 +847,9 @@ export default {
     },
     maps: {
       settingsModal: {
-        header: { title: 'Map Settings' },
+        header: {
+          title: 'Map Settings',
+        },
         ambientLight: {
           label: 'Global Ambient Light',
           totalDarkness: 'Total Darkness',
@@ -651,21 +923,37 @@ export default {
             title: 'Global Rules',
             desc: 'These rules apply to everyone unless overridden.',
           },
-          visibility: { title: 'Visibility & Camera' },
-          interaction: { title: 'Interaction' },
-          tools: { title: 'Tools & Content' },
-          access: { title: 'Access' },
-          manipulation: { title: 'Creation & Manipulation' },
-          chat: { title: 'Chat' },
-          cursor: { title: 'Cursor Customization' },
-          privacy: { title: 'Global Privacy' },
+          visibility: {
+            title: 'Visibility & Camera',
+          },
+          interaction: {
+            title: 'Interaction',
+          },
+          tools: {
+            title: 'Tools & Content',
+          },
+          access: {
+            title: 'Access',
+          },
+          manipulation: {
+            title: 'Creation & Manipulation',
+          },
+          chat: {
+            title: 'Chat',
+          },
+          cursor: {
+            title: 'Cursor Customization',
+          },
+          privacy: {
+            title: 'Global Privacy',
+          },
           overrides: {
             title: 'Specific exceptions for this player.',
             desc: 'Specific exceptions for this player.',
           },
           logs: {
             title: 'Log Visibility',
-            desc: 'Set who can see the system\'s automatic events.',
+            desc: 'Define who can see automatic system events.',
           },
           conditions: {
             title: 'Condition Notifications',
@@ -694,338 +982,847 @@ export default {
         applyButton: 'Apply Rules',
       },
       definitions: {
-        tokenMovement: { label: 'Move Tokens', desc: 'Move tokens they control.' },
-        doorControl: { label: 'Use Doors', desc: 'Open/close doors and windows.' },
-        drawings: { label: 'Draw', desc: 'Draw on the map.' },
-        drawingDelete: { label: 'Delete (Yours)', desc: 'Delete own drawings.' },
-        drawingClear: { label: 'Clear All', desc: 'Delete all drawings in the layer.' },
-        measure: { label: 'Ruler', desc: 'Use measuring tool.' },
-        pingMap: { label: 'Map Ping', desc: 'Signal locations to the group.' },
-        diceRolling: { label: 'Dice Rolling', desc: 'Use digital dice roller.' },
-        initiativeRoll: { label: 'Roll Initiative', desc: 'Players roll own initiative.' },
-        compendiumBrowse: { label: 'Access Compendium', desc: 'Search monsters/spells/rules.' },
-        bestiaryBrowse: { label: 'Access Bestiary', desc: 'View list of tokens and monsters.' },
-        journalCreate: { label: 'Create Notes', desc: 'Create handouts/resources.' },
-        sheetEdit: { label: 'Edit Sheet', desc: 'Modify character sheet values.' },
-        tokenCreate: { label: 'Create Tokens', desc: 'Add new tokens to the map.' },
-        tokenEdit: { label: 'Edit Tokens', desc: 'Change token status and appearance.' },
-        tokenDelete: { label: 'Delete Tokens', desc: 'Remove tokens from the map.' },
-        fogReveal: { label: 'Reveal Fog', desc: 'Manually remove fog of war.' },
-        cursorAllowColorChange: { label: 'Change Cursor Color', desc: 'Players can change cursor color.' },
-        cursorAllowShapeChange: { label: 'Change Cursor Shape', desc: 'Players can change cursor shape.' },
-        cursorAllowNameChange: { label: 'Change Cursor Name', desc: 'Players can change cursor name.' },
-        cursorAllowAnimationChange: { label: 'Change Animation', desc: 'Players can change click animation.' },
-        cursorAllowAnimationColorChange: { label: 'Animation Color', desc: 'Players can change click animation color.' },
-        chatGlobalAllowed: { label: 'Global Chat', desc: 'Player can send public messages in chat.' },
-        chatPrivateAllowed: { label: 'Private Messages', desc: 'Player can send private messages to others.' },
-        showRemoteViewports: { label: 'See Other Players', desc: 'Can see where other players are looking (rectangles).' },
-        shareViewport: { label: 'Share Viewport', desc: 'Others can see where this player is looking.' },
-        shareCursor: { label: 'Share Pointer', desc: 'Allow the player\'s cursor to be seen by others.' },
-        allowSpectate: { label: 'Allow Spectator', desc: 'Allow the GM to see this player\'s screen.' },
-      },
-    },
-  },
-
-  dnd: {
-    attributes: {
-      strength: { name: 'Strength', abbreviation: 'STR' },
-      dexterity: { name: 'Dexterity', abbreviation: 'DEX' },
-      constitution: { name: 'Constitution', abbreviation: 'CON' },
-      intelligence: { name: 'Intelligence', abbreviation: 'INT' },
-      wisdom: { name: 'Wisdom', abbreviation: 'WIS' },
-      charisma: { name: 'Charisma', abbreviation: 'CHA' },
-    },
-    sizes: {
-      tiny: { name: 'Tiny' },
-      small: { name: 'Small' },
-      medium: { name: 'Medium' },
-      large: { name: 'Large' },
-      huge: { name: 'Huge' },
-      gargantuan: { name: 'Gargantuan' },
-    },
-    creatureTypes: {
-      aberration: { name: 'Aberration' },
-      beast: { name: 'Beast' },
-      celestial: { name: 'Celestial' },
-      construct: { name: 'Construct' },
-      dragon: { name: 'Dragon' },
-      elemental: { name: 'Elemental' },
-      fey: { name: 'Fey' },
-      fiend: { name: 'Fiend' },
-      giant: { name: 'Giant' },
-      humanoid: { name: 'Humanoid' },
-      monstrosity: { name: 'Monstrosity' },
-      ooze: { name: 'Ooze' },
-      plant: { name: 'Plant' },
-      undead: { name: 'Undead' },
-    },
-    alignments: {
-      lawfulGood: { name: 'Lawful Good' },
-      neutralGood: { name: 'Neutral Good' },
-      chaoticGood: { name: 'Chaotic Good' },
-      lawfulNeutral: { name: 'Lawful Neutral' },
-      neutral: { name: 'Neutral' },
-      chaoticNeutral: { name: 'Chaotic Neutral' },
-      lawfulEvil: { name: 'Lawful Evil' },
-      neutralEvil: { name: 'Neutral Evil' },
-      chaoticEvil: { name: 'Chaotic Evil' },
-      unaligned: { name: 'Unaligned' },
-    },
-    schools: {
-      abjuration: { name: 'Abjuration' },
-      conjuration: { name: 'Conjuration' },
-      divination: { name: 'Divination' },
-      enchantment: { name: 'Enchantment' },
-      evocation: { name: 'Evocation' },
-      illusion: { name: 'Illusion' },
-      necromancy: { name: 'Necromancy' },
-      transmutation: { name: 'Transmutation' },
-    },
-    skills: {
-      acrobatics: { name: 'Acrobatics' },
-      animalHandling: { name: 'Animal Handling' },
-      arcana: { name: 'Arcana' },
-      athletics: { name: 'Athletics' },
-      deception: { name: 'Deception' },
-      history: { name: 'History' },
-      insight: { name: 'Insight' },
-      intimidation: { name: 'Intimidation' },
-      investigation: { name: 'Investigation' },
-      medicine: { name: 'Medicine' },
-      nature: { name: 'Nature' },
-      perception: { name: 'Perception' },
-      performance: { name: 'Performance' },
-      persuasion: { name: 'Persuasion' },
-      religion: { name: 'Religion' },
-      sleightOfHand: { name: 'Sleight of Hand' },
-      stealth: { name: 'Stealth' },
-      survival: { name: 'Survival' },
-    },
-    damageTypes: {
-      acid: { name: 'Acid' },
-      bludgeoning: { name: 'Bludgeoning' },
-      cold: { name: 'Cold' },
-      fire: { name: 'Fire' },
-      force: { name: 'Force' },
-      lightning: { name: 'Lightning' },
-      necrotic: { name: 'Necrotic' },
-      piercing: { name: 'Piercing' },
-      poison: { name: 'Poison' },
-      psychic: { name: 'Psychic' },
-      radiant: { name: 'Radiant' },
-      slashing: { name: 'Slashing' },
-      thunder: { name: 'Thunder' },
-    },
-    rarities: {
-      common: { name: 'Common' },
-      uncommon: { name: 'Uncommon' },
-      rare: { name: 'Rare' },
-      veryRare: { name: 'Very Rare' },
-      legendary: { name: 'Legendary' },
-      artifact: { name: 'Artifact' },
-    },
-    itemTypes: {
-      weapon: { name: 'Weapon' },
-      armor: { name: 'Armor' },
-      potion: { name: 'Potion' },
-      ring: { name: 'Anel' },
-      scroll: { name: 'Scroll' },
-      staff: { name: 'Staff' },
-      wand: { name: 'Wand' },
-      wondrousItem: { name: 'Wondrous Item' },
-    },
-    combat: {
-      meleeWeaponAttack: { name: 'Melee Weapon Attack' },
-      rangedWeaponAttack: { name: 'Ranged Weapon Attack' },
-      toHit: { name: 'to hit' },
-      reach: { name: 'reach' },
-      range: { name: 'range' },
-      oneTarget: { name: 'one target' },
-      hit: { name: 'Hit' },
-      damage: { name: 'damage' },
-      savingThrow: { name: 'saving throw' },
-      difficultyClass: { abbreviation: 'DC' },
-    },
-    rules: {
-      conditions: {
-        frightened: {
-          name: 'Frightened',
-          effects: [
-            'Disadvantage on ability checks and attack rolls while the source of fear is within sight.',
-            'Cannot willingly move closer to the source of fear.',
-          ],
-          duration: 'Until the end of the next turn or removed from sight of the source.',
+        tokenMovement: {
+          label: 'Move Tokens',
+          desc: 'Move tokens they control.',
         },
-        grappled: {
-          name: 'Grappled',
-          effects: [
-            'Speed reduced to 0.',
-            'Ends if the grappler becomes incapacitated or if the creature is removed from range.',
-          ],
-          duration: 'Until the end of the grappler or Strength/Escape check.',
+        doorControl: {
+          label: 'Use Doors',
+          desc: 'Open/close doors and windows.',
         },
-        stunned: {
-          name: 'Stunned',
-          effects: [
-            'Incapacitated (no actions/reactions).',
-            'Automatic failure on Strength and Dexterity checks.',
-            'Attack rolls against the creature have advantage.',
-          ],
-          duration: 'Until the end of the next turn (usually).',
+        drawings: {
+          label: 'Draw',
+          desc: 'Draw on the map.',
         },
-        prone: {
-          name: 'Prone',
-          effects: [
-            'Can only crawl or spend half movement to stand up.',
-            'Disadvantage on attack rolls.',
-            'Melee attacks against the creature have advantage; ranged have disadvantage.',
-          ],
-          duration: 'Until standing up.',
+        drawingDelete: {
+          label: 'Delete (Yours)',
+          desc: 'Delete own drawings.',
         },
-        blinded: {
-          name: 'Blinded',
-          effects: [
-            'Automatic failure on checks that depend on sight.',
-            'Disadvantage on attack rolls.',
-            'Attack rolls against the creature have advantage.',
-          ],
-          duration: 'Varies.',
+        drawingClear: {
+          label: 'Clear All',
+          desc: 'Delete all drawings in the layer.',
         },
-        charmed: {
-          name: 'Charmed',
-          effects: [
-            'Cannot attack the charmer or target them with hostile effects.',
-            'The charmer has advantage on Charisma checks against the creature.',
-          ],
-          duration: '1 hour or until taking damage from the charmer.',
+        measure: {
+          label: 'Ruler',
+          desc: 'Use measuring tool.',
         },
-        poisoned: {
-          name: 'Poisoned',
-          effects: [
-            'Disadvantage on attack rolls and ability checks.',
-          ],
-          duration: 'Varies (repeated CON save).',
+        pingMap: {
+          label: 'Map Ping',
+          desc: 'Signal locations to the group.',
         },
-        restrained: {
-          name: 'Restrained',
-          effects: [
-            'Speed 0.',
-            'Disadvantage on attack rolls and Dexterity checks.',
-            'Attack rolls against the creature have advantage.',
-          ],
-          duration: 'Varies.',
+        diceRolling: {
+          label: 'Dice Rolling',
+          desc: 'Use digital dice roller.',
         },
-        incapacitated: {
-          name: 'Incapacitated',
-          effects: [
-            'Cannot take actions or reactions.',
-          ],
-          duration: 'Varies.',
+        initiativeRoll: {
+          label: 'Roll Initiative',
+          desc: 'Players roll own initiative.',
         },
-        unconscious: {
-          name: 'Unconscious',
-          effects: [
-            'Incapacitated, cannot move, cannot speak, unaware.',
-            'Drops items and falls Prone.',
-            'Automatic failure on Strength and Dexterity checks.',
-            'Attack rolls against the creature have advantage and are critical hits if attacker is within 5 feet.',
-          ],
-          duration: 'Until healed or stabilized.',
+        compendiumBrowse: {
+          label: 'Access Compendium',
+          desc: 'Search monsters/spells/rules.',
         },
-        invisible: {
-          name: 'Invisible',
-          effects: [
-            'Impossible to be seen without magic/special senses.',
-            'Considered heavily obscured for hiding.',
-            'Attack rolls have advantage.',
-            'Attack rolls against the creature have disadvantage.',
-          ],
-          duration: 'Varies (magic).',
+        bestiaryBrowse: {
+          label: 'Access Bestiary',
+          desc: 'View list of tokens and monsters.',
         },
-        paralyzed: {
-          name: 'Paralyzed',
-          effects: [
-            'Incapacitated and cannot move or speak.',
-            'Automatic failure on Strength and Dexterity checks.',
-            'Attack rolls against the creature have advantage and are critical hits if attacker is within 5 feet.',
-          ],
-          duration: 'Varies.',
+        journalCreate: {
+          label: 'Create Notes',
+          desc: 'Create handouts/resources.',
         },
-        petrified: {
-          name: 'Petrified',
-          effects: [
-            'Transformed into solid substance (inanimate).',
-            'Incapacitated, does not age, weight x10.',
-            'Resistance to all damage, immune to poison/disease.',
-            'Automatic failure on Strength and Dexterity checks.',
-          ],
-          duration: 'Permanent until restored.',
+        sheetEdit: {
+          label: 'Edit Sheet',
+          desc: 'Modify character sheet values.',
         },
-        deafened: {
-          name: 'Deafened',
-          effects: [
-            'Automatic failure on checks that depend on hearing.',
-          ],
-          duration: '1 hour (typical).',
+        tokenCreate: {
+          label: 'Create Tokens',
+          desc: 'Add new tokens to the map.',
         },
-        exhausted: {
-          name: 'Exhausted',
-          effects: [
-            'Lvl 1: Disadvantage on ability checks.',
-            'Lvl 2: Speed reduced by half.',
-            'Lvl 3: Disadvantage on attacks and saves.',
-            'Lvl 4: Max HP reduced by half.',
-            'Lvl 5: Speed 0.',
-            'Lvl 6: Death.',
-          ],
-          duration: 'Long Rest reduces 1 level.',
+        tokenEdit: {
+          label: 'Edit Tokens',
+          desc: 'Change token status and appearance.',
         },
-        burning: {
-          name: 'Burning',
-          effects: [
-            'Takes 1d6 fire damage at the start of each turn.',
-            'Can spend an action to douse the flames (DC 10 Dexterity).',
-          ],
-          duration: '1 minute or until doused.',
+        tokenDelete: {
+          label: 'Delete Tokens',
+          desc: 'Remove tokens from the map.',
         },
-        bleeding: {
-          name: 'Bleeding',
-          effects: [
-            'Takes 1d4 necrotic/piercing damage at the start of turn.',
-            'Any magical healing ends the condition.',
-          ],
-          duration: 'Until healed (Medicine DC 10 or Healing).',
+        fogReveal: {
+          label: 'Reveal Fog',
+          desc: 'Manually remove fog of war.',
         },
-        dead: {
-          name: 'Dead',
-          effects: ['Character has passed away.'],
-          duration: 'Permanent.',
+        cursorAllowColorChange: {
+          label: 'Change Cursor Color',
+          desc: 'Players can change cursor color.',
         },
-        bloodied: {
-          name: 'Bloodied',
-          effects: ['Below half hit points.'],
-          duration: 'Until healed above 50%.',
+        cursorAllowShapeChange: {
+          label: 'Change Cursor Shape',
+          desc: 'Players can change cursor shape.',
         },
-        shielded: {
-          name: 'Shielded',
-          effects: ['Has bonus to AC or magical protection.'],
-          duration: 'Varies.',
+        cursorAllowNameChange: {
+          label: 'Change Cursor Name',
+          desc: 'Players can change cursor name.',
         },
-        alert: {
-          name: 'Alert',
-          effects: ['Advantage on initiative and perception.'],
-          duration: 'Varies.',
+        cursorAllowAnimationChange: {
+          label: 'Change Animation',
+          desc: 'Players can change click animation.',
+        },
+        cursorAllowAnimationColorChange: {
+          label: 'Animation Color',
+          desc: 'Players can change click animation color.',
+        },
+        chatGlobalAllowed: {
+          label: 'Global Chat',
+          desc: 'Player can send public messages in chat.',
+        },
+        chatPrivateAllowed: {
+          label: 'Private Messages',
+          desc: 'Player can send private messages to others.',
+        },
+        showRemoteViewports: {
+          label: 'See Other Players',
+          desc: 'Can see where other players are looking (rectangles).',
+        },
+        shareViewport: {
+          label: 'Share Viewport',
+          desc: 'Others can see where this player is looking.',
+        },
+        shareCursor: {
+          label: 'Share Pointer',
+          desc: 'Allow the player\'s cursor to be seen by others.',
+        },
+        allowSpectate: {
+          label: 'Allow Spectator',
+          desc: 'Allow the GM to see this player\'s screen.',
         },
       },
-      weaponMasteries: {
-        cleave: { name: 'Cleave', desc: 'Hit a second creature within 5 feet.' },
-        graze: { name: 'Graze', desc: 'Deal damage equal to ability mod on miss.' },
-        nick: { name: 'Nick', desc: 'Extra attack from Light property doesn\'t cost Bonus Action.' },
-        push: { name: 'Push', desc: 'Push creature 10 feet.' },
-        sap: { name: 'Sap', desc: 'Disadvantage on target\'s next attack roll.' },
-        slow: { name: 'Slow', desc: 'Reduce target\'s speed by 10 feet.' },
-        topple: { name: 'Topple', desc: 'Target makes CON save or falls prone.' },
-        vex: { name: 'Vex', desc: 'Advantage on next attack roll against target.' },
+    },
+    dice: {
+      modes: {
+        advantage: 'Advantage',
+        normal: 'Normal',
+        disadvantage: 'Disadvantage',
+        vant: 'ADV',
+        desv: 'DIS',
+      },
+      visibility: {
+        public: 'Public: Everyone sees',
+        gm: 'Private: Only you and the GM',
+        total: 'Summarized: Total only',
+        publicShort: 'Public',
+        gmShort: 'Secret (GM)',
+        totalShort: 'Summarized',
+      },
+      status: {
+        rolling: 'ROLLING...',
+        result: 'RESULT',
+        critical: 'Critical!',
+        fumble: 'Critical Failure!',
+        newRoll: 'New Roll',
+        emptyTray: 'Add dice to the table',
+        formula: 'Formula: :formula',
+        manual: 'Manual Roll',
+        auto: 'Automatic Roll',
+        denied: 'Roll denied - no permission',
+      },
+      roller: {
+        title: 'Dice Table',
+        character: 'Active Character',
+        noCharacter: 'No Hero Selected',
+        tabs: {
+          manual: 'Table',
+          attributes: 'Attr',
+          combat: 'Combat',
+          skills: 'Skills',
+          inventory: 'Items',
+        },
+        sections: {
+          attributes: 'Attribute Tests',
+          saves: 'Saving Throws',
+          combat: 'Physical Attacks',
+          spells: 'Grimoire',
+          skills: 'Skills',
+          inventory: 'Items',
+        },
+        labels: {
+          ca: 'AC :value',
+          hp: 'HP :value',
+          save: ':attr Save',
+          atkMod: 'ATK +:value',
+          saveDc: 'DC :value',
+          spellLevel: '{0} Cantrip|{1,*} Level :level',
+          noAttacks: 'No attacks recorded.',
+          noSpells: 'No spells prepared.',
+          noItems: 'Backpack empty.',
+          emptySelect: 'Select a token on the map to access quick actions.',
+          genericSpell: 'Roll Generic Spell Attack',
+          useItem: 'Use',
+        },
+      },
+    },
+    audio: {
+      panel: {
+        title: 'Audio Panel',
+        manageTitle: 'Manage Audio',
+        stopAll: 'Stop All',
+        shuffle: 'Shuffle',
+        manage: 'Manage',
+        back: 'Back',
+        save: 'Save Changes',
+        volumeMusic: 'Music Volume',
+        volumeSfx: 'SFX Volume',
+      },
+      manage: {
+        playlists: 'Manage Playlists',
+        sfx: 'Manage Sound Effects',
+        newPlaylist: 'New Playlist Name',
+        addTrack: 'Track',
+        addSfx: 'Sound Effect',
+        uploadError: 'Upload error.',
+        placeholderName: 'Name',
+        placeholderUrl: 'URL',
+      },
+    },
+    navigation: {
+      scenes: {
+        activate: 'Activate',
+        edit: 'Edit',
+        delete: 'Delete',
+      },
+      map: {
+        ping: 'Ping Here',
+        move: 'Move Selection Here',
+        addToken: 'Add Token',
+      },
+    },
+    definitions: {
+      tokenMovement: {
+        label: 'Move Tokens',
+        desc: 'Move tokens they control.',
+      },
+      doorControl: {
+        label: 'Use Doors',
+        desc: 'Open/close doors and windows.',
+      },
+      drawings: {
+        label: 'Draw',
+        desc: 'Draw on the map.',
+      },
+      drawingDelete: {
+        label: 'Delete (Yours)',
+        desc: 'Delete own drawings.',
+      },
+      drawingClear: {
+        label: 'Clear All',
+        desc: 'Delete all drawings in the layer.',
+      },
+      measure: {
+        label: 'Ruler',
+        desc: 'Use measuring tool.',
+      },
+      pingMap: {
+        label: 'Map Ping',
+        desc: 'Signal locations to the group.',
+      },
+      diceRolling: {
+        label: 'Dice Rolling',
+        desc: 'Use digital dice roller.',
+      },
+      initiativeRoll: {
+        label: 'Roll Initiative',
+        desc: 'Players roll own initiative.',
+      },
+      compendiumBrowse: {
+        label: 'Access Compendium',
+        desc: 'Search monsters/spells/rules.',
+      },
+      bestiaryBrowse: {
+        label: 'Access Bestiary',
+        desc: 'View list of tokens and monsters.',
+      },
+      journalCreate: {
+        label: 'Create Notes',
+        desc: 'Create handouts/resources.',
+      },
+      sheetEdit: {
+        label: 'Edit Sheet',
+        desc: 'Modify character sheet values.',
+      },
+      tokenCreate: {
+        label: 'Create Tokens',
+        desc: 'Add new tokens to the map.',
+      },
+      tokenEdit: {
+        label: 'Edit Tokens',
+        desc: 'Change token status and appearance.',
+      },
+      tokenDelete: {
+        label: 'Delete Tokens',
+        desc: 'Remove tokens from the map.',
+      },
+      fogReveal: {
+        label: 'Reveal Fog',
+        desc: 'Manually remove fog of war.',
+      },
+      cursorAllowColorChange: {
+        label: 'Change Cursor Color',
+        desc: 'Players can change cursor color.',
+      },
+      cursorAllowShapeChange: {
+        label: 'Change Cursor Shape',
+        desc: 'Players can change cursor shape.',
+      },
+      cursorAllowNameChange: {
+        label: 'Change Cursor Name',
+        desc: 'Players can change cursor name.',
+      },
+      cursorAllowAnimationChange: {
+        label: 'Change Animation',
+        desc: 'Players can change click animation.',
+      },
+      cursorAllowAnimationColorChange: {
+        label: 'Animation Color',
+        desc: 'Players can change click animation color.',
+      },
+      chatGlobalAllowed: {
+        label: 'Global Chat',
+        desc: 'Player can send public messages in chat.',
+      },
+      chatPrivateAllowed: {
+        label: 'Private Messages',
+        desc: 'Player can send private messages to others.',
+      },
+      showRemoteViewports: {
+        label: 'See Other Players',
+        desc: 'Can see where other players are looking (rectangles).',
+      },
+    },
+    dnd: {
+      attributes: {
+        strength: {
+          name: 'Strength',
+          abbreviation: 'STR',
+        },
+        dexterity: {
+          name: 'Dexterity',
+          abbreviation: 'DEX',
+        },
+        constitution: {
+          name: 'Constitution',
+          abbreviation: 'CON',
+        },
+        intelligence: {
+          name: 'Intelligence',
+          abbreviation: 'INT',
+        },
+        wisdom: {
+          name: 'Wisdom',
+          abbreviation: 'WIS',
+        },
+        charisma: {
+          name: 'Charisma',
+          abbreviation: 'CHA',
+        },
+      },
+      sizes: {
+        tiny: {
+          name: 'Tiny',
+        },
+        small: {
+          name: 'Small',
+        },
+        medium: {
+          name: 'Medium',
+        },
+        large: {
+          name: 'Large',
+        },
+        huge: {
+          name: 'Huge',
+        },
+        gargantuan: {
+          name: 'Gargantuan',
+        },
+      },
+      creatureTypes: {
+        celestial: {
+          name: 'Celestial',
+        },
+        construct: {
+          name: 'Construct',
+        },
+        dragon: {
+          name: 'Dragon',
+        },
+        elemental: {
+          name: 'Elemental',
+        },
+        fey: {
+          name: 'Fey',
+        },
+        fiend: {
+          name: 'Fiend',
+        },
+        giant: {
+          name: 'Giant',
+        },
+        humanoid: {
+          name: 'Humanoid',
+        },
+        monstrosity: {
+          name: 'Monstrosity',
+        },
+        ooze: {
+          name: 'Ooze',
+        },
+        plant: {
+          name: 'Plant',
+        },
+        undead: {
+          name: 'Undead',
+        },
+      },
+      alignments: {
+        lawfulGood: {
+          name: 'Lawful Good',
+        },
+        neutralGood: {
+          name: 'Neutral Good',
+        },
+        chaoticGood: {
+          name: 'Chaotic Good',
+        },
+        lawfulNeutral: {
+          name: 'Lawful Neutral',
+        },
+        neutral: {
+          name: 'Neutral',
+        },
+        chaoticNeutral: {
+          name: 'Chaotic Neutral',
+        },
+        lawfulEvil: {
+          name: 'Lawful Evil',
+        },
+        neutralEvil: {
+          name: 'Neutral Evil',
+        },
+        chaoticEvil: {
+          name: 'Chaotic Evil',
+        },
+        unaligned: {
+          name: 'Unaligned',
+        },
+      },
+      schools: {
+        abjuration: {
+          name: 'Abjuration',
+        },
+        conjuration: {
+          name: 'Conjuration',
+        },
+        divination: {
+          name: 'Divination',
+        },
+        enchantment: {
+          name: 'Enchantment',
+        },
+        evocation: {
+          name: 'Evocation',
+        },
+        illusion: {
+          name: 'Illusion',
+        },
+        necromancy: {
+          name: 'Necromancy',
+        },
+        transmutation: {
+          name: 'Transmutation',
+        },
+      },
+      skills: {
+        acrobatics: {
+          name: 'Acrobatics',
+        },
+        animalHandling: {
+          name: 'Animal Handling',
+        },
+        arcana: {
+          name: 'Arcana',
+        },
+        athletics: {
+          name: 'Athletics',
+        },
+        deception: {
+          name: 'Deception',
+        },
+        history: {
+          name: 'History',
+        },
+        insight: {
+          name: 'Insight',
+        },
+        intimidation: {
+          name: 'Intimidation',
+        },
+        investigation: {
+          name: 'Investigation',
+        },
+        medicine: {
+          name: 'Medicine',
+        },
+        nature: {
+          name: 'Nature',
+        },
+        perception: {
+          name: 'Perception',
+        },
+        performance: {
+          name: 'Performance',
+        },
+        persuasion: {
+          name: 'Persuasion',
+        },
+        religion: {
+          name: 'Religion',
+        },
+        sleightOfHand: {
+          name: 'Sleight of Hand',
+        },
+        stealth: {
+          name: 'Stealth',
+        },
+        survival: {
+          name: 'Survival',
+        },
+      },
+      damageTypes: {
+        acid: {
+          name: 'Acid',
+        },
+        bludgeoning: {
+          name: 'Bludgeoning',
+        },
+        cold: {
+          name: 'Cold',
+        },
+        fire: {
+          name: 'Fire',
+        },
+        force: {
+          name: 'Force',
+        },
+        lightning: {
+          name: 'Lightning',
+        },
+        necrotic: {
+          name: 'Necrotic',
+        },
+        piercing: {
+          name: 'Piercing',
+        },
+        poison: {
+          name: 'Poison',
+        },
+        psychic: {
+          name: 'Psychic',
+        },
+        radiant: {
+          name: 'Radiant',
+        },
+        slashing: {
+          name: 'Slashing',
+        },
+        thunder: {
+          name: 'Thunder',
+        },
+      },
+      rarities: {
+        common: {
+          name: 'Common',
+        },
+        uncommon: {
+          name: 'Uncommon',
+        },
+        rare: {
+          name: 'Rare',
+        },
+        veryRare: {
+          name: 'Very Rare',
+        },
+        legendary: {
+          name: 'Legendary',
+        },
+        artifact: {
+          name: 'Artifact',
+        },
+      },
+      itemTypes: {
+        weapon: {
+          name: 'Weapon',
+        },
+        armor: {
+          name: 'Armor',
+        },
+        potion: {
+          name: 'Potion',
+        },
+        ring: {
+          name: 'Anel',
+        },
+        scroll: {
+          name: 'Scroll',
+        },
+        staff: {
+          name: 'Staff',
+        },
+        wand: {
+          name: 'Wand',
+        },
+        wondrousItem: {
+          name: 'Wondrous Item',
+        },
+      },
+      combat: {
+        meleeWeaponAttack: {
+          name: 'Melee Weapon Attack',
+        },
+        rangedWeaponAttack: {
+          name: 'Ranged Weapon Attack',
+        },
+        toHit: {
+          name: 'to hit',
+        },
+        reach: {
+          name: 'reach',
+        },
+        range: {
+          name: 'range',
+        },
+        oneTarget: {
+          name: 'one target',
+        },
+        hit: {
+          name: 'Hit',
+        },
+        damage: {
+          name: 'damage',
+        },
+        savingThrow: {
+          name: 'saving throw',
+        },
+        difficultyClass: {
+          abbreviation: 'DC',
+        },
+      },
+      rules: {
+        conditions: {
+          frightened: {
+            name: 'Frightened',
+            effects: ['Disadvantage on ability checks and attack rolls while the source of fear is within sight.', 'Cannot willingly move closer to the source of fear.'],
+            duration: 'Until the end of the next turn or removed from sight of the source.',
+          },
+          grappled: {
+            name: 'Grappled',
+            effects: ['Speed reduced to 0.', 'Ends if the grappler becomes incapacitated or if the creature is removed from range.'],
+            duration: 'Until the end of the grappler or Strength/Escape check.',
+          },
+          stunned: {
+            name: 'Stunned',
+            effects: ['Incapacitated (no actions/reactions).', 'Automatic failure on Strength and Dexterity checks.', 'Attack rolls against the creature have advantage.'],
+            duration: 'Until the end of the next turn (usually).',
+          },
+          prone: {
+            name: 'Prone',
+            effects: ['Can only crawl or spend half movement to stand up.', 'Disadvantage on attack rolls.', 'Melee attacks against the creature have advantage; ranged have disadvantage.'],
+            duration: 'Until standing up.',
+          },
+          blinded: {
+            name: 'Blinded',
+            effects: ['Automatic failure on checks that depend on sight.', 'Disadvantage on attack rolls.', 'Attack rolls against the creature have advantage.'],
+            duration: 'Varies.',
+          },
+          charmed: {
+            name: 'Charmed',
+            effects: ['Cannot attack the charmer or target them with hostile effects.', 'The charmer has advantage on Charisma checks against the creature.'],
+            duration: '1 hour or until taking damage from the charmer.',
+          },
+          poisoned: {
+            name: 'Poisoned',
+            effects: ['Disadvantage on attack rolls and ability checks.'],
+            duration: 'Varies (repeated CON save).',
+          },
+          restrained: {
+            name: 'Restrained',
+            effects: ['Speed 0.', 'Disadvantage on attack rolls and Dexterity checks.', 'Attack rolls against the creature have advantage.'],
+            duration: 'Varies.',
+          },
+          incapacitated: {
+            name: 'Incapacitated',
+            effects: ['Cannot take actions or reactions.'],
+            duration: 'Varies.',
+          },
+          unconscious: {
+            name: 'Unconscious',
+            effects: ['Incapacitated, cannot move, cannot speak, unaware.', 'Drops items and falls Prone.', 'Automatic failure on Strength and Dexterity checks.', 'Attack rolls against the creature have advantage and are critical hits if attacker is within 5 feet.'],
+            duration: 'Until healed or stabilized.',
+          },
+          invisible: {
+            name: 'Invisible',
+            effects: ['Impossible to be seen without magic/special senses.', 'Considered heavily obscured for hiding.', 'Attack rolls have advantage.', 'Attack rolls against the creature have disadvantage.'],
+            duration: 'Varies (magic).',
+          },
+          paralyzed: {
+            name: 'Paralyzed',
+            effects: ['Incapacitated and cannot move or speak.', 'Automatic failure on Strength and Dexterity checks.', 'Attack rolls against the creature have advantage and are critical hits if attacker is within 5 feet.'],
+            duration: 'Varies.',
+          },
+          petrified: {
+            name: 'Petrified',
+            effects: ['Transformed into solid substance (inanimate).', 'Incapacitated, does not age, weight x10.', 'Resistance to all damage, immune to poison/disease.', 'Automatic failure on Strength and Dexterity checks.'],
+            duration: 'Permanent until restored.',
+          },
+          deafened: {
+            name: 'Deafened',
+            effects: ['Automatic failure on checks that depend on hearing.'],
+            duration: '1 hour (typical).',
+          },
+          exhausted: {
+            name: 'Exhausted',
+            effects: ['Lvl 1: Disadvantage on ability checks.', 'Lvl 2: Speed reduced by half.', 'Lvl 3: Disadvantage on attacks and saves.', 'Lvl 4: Max HP reduced by half.', 'Lvl 5: Speed 0.', 'Lvl 6: Death.'],
+            duration: 'Long Rest reduces 1 level.',
+          },
+          burning: {
+            name: 'Burning',
+            effects: ['Takes 1d6 fire damage at the start of each turn.', 'Can spend an action to douse the flames (DC 10 Dexterity).'],
+            duration: '1 minute or until doused.',
+          },
+          bleeding: {
+            name: 'Bleeding',
+            effects: ['Takes 1d4 necrotic/piercing damage at the start of turn.', 'Any magical healing ends the condition.'],
+            duration: 'Until healed (Medicine DC 10 or Healing).',
+          },
+          dead: {
+            name: 'Dead',
+            effects: ['Character has passed away.'],
+            duration: 'Permanent.',
+          },
+          bloodied: {
+            name: 'Bloodied',
+            effects: ['Below half hit points.'],
+            duration: 'Until healed above 50%.',
+          },
+          shielded: {
+            name: 'Shielded',
+            effects: ['Has bonus to AC or magical protection.'],
+            duration: 'Varies.',
+          },
+          alert: {
+            name: 'Alert',
+            effects: ['Advantage on initiative and perception.'],
+            duration: 'Varies.',
+          },
+        },
+        weaponMasteries: {
+          cleave: {
+            name: 'Cleave',
+            desc: 'Hit a second creature within 5 feet.',
+          },
+          graze: {
+            name: 'Graze',
+            desc: 'Deal damage equal to ability mod on miss.',
+          },
+          nick: {
+            name: 'Nick',
+            desc: 'Extra attack from Light property doesn\'t cost Bonus Action.',
+          },
+          push: {
+            name: 'Push',
+            desc: 'Push creature 10 feet.',
+          },
+          sap: {
+            name: 'Sap',
+            desc: 'Disadvantage on target\'s next attack roll.',
+          },
+          slow: {
+            name: 'Slow',
+            desc: 'Reduce target\'s speed by 10 feet.',
+          },
+          topple: {
+            name: 'Topple',
+            desc: 'Target makes CON save or falls prone.',
+          },
+          vex: {
+            name: 'Vex',
+            desc: 'Advantage on next attack roll against target.',
+          },
+        },
+      },
+    },
+    drawing: {
+      toolbar: {
+        paredesDinmicas: {
+          text: 'smart walls',
+        },
+        desenhos: {
+          label: 'drawings',
+        },
+        temCertezaQue: {
+          text: 'Are you sure you want to delete',
+        },
+        todos: {
+          label: 'all',
+        },
+        destaCenaEsta: {
+          text: 'from this scene? This action is irreversible.',
+        },
+        cancelar: {
+          label: 'Cancel',
+        },
+        limparTudo: {
+          text: 'Clear All',
+        },
+        limparParedes: {
+          title: 'Clear Walls',
+        },
+        limparDesenhos: {
+          title: 'Clear Drawings',
+        },
+        tamanho: {
+          label: 'Size',
+        },
+        opacidade: {
+          label: 'Opacity',
+        },
+        smartWall: {
+          text: 'Smart Wall',
+        },
+        configuraesDaVarinha: {
+          text: 'Wand Settings',
+        },
+        tolerncia: {
+          label: 'Tolerance',
+        },
+        simplificao: {
+          label: 'Simplification',
+        },
+        resoluo: {
+          label: 'Resolution',
+        },
+        sandboxDoSmart: {
+          label: 'Smart Wall Sandbox',
+        },
+        preview: {
+          label: 'Preview',
+        },
+        desfazerLtimaParede: {
+          tooltip: 'Undo last wall',
+        },
+        desfazerLtimoTrao: {
+          tooltip: 'Undo last stroke',
+        },
+        limparTodosOs: {
+          tooltip: 'Clear ALL drawings',
+        },
       },
     },
   },

@@ -1,0 +1,177 @@
+{
+  "filePath": "src/components/vtt/DrawingToolbar.tsx",
+  "timestamp": "2026-01-10T21:23:40.336Z",
+  "componentName": "DrawingToolbar.tsx",
+  "totalFound": 26,
+  "userFacingCount": 21,
+  "strings": [
+    {
+      "original": "paredes dinâmicas",
+      "line": 51,
+      "context": "const isSmartWall = activeTool === 'smart-wall';\n        const typeLabel = isSmartWall ? 'paredes dinâmicas' : 'desenhos';\n        const action = isSmartWall ? clearAllObstacles : clearAllDrawings;",
+      "suggestedKey": "vtt.drawing.toolbar.paredesDinmicas.text",
+      "contentType": "text",
+      "confidence": "high"
+    },
+    {
+      "original": "desenhos",
+      "line": 51,
+      "context": "const isSmartWall = activeTool === 'smart-wall';\n        const typeLabel = isSmartWall ? 'paredes dinâmicas' : 'desenhos';\n        const action = isSmartWall ? clearAllObstacles : clearAllDrawings;",
+      "suggestedKey": "vtt.drawing.toolbar.desenhos.label",
+      "contentType": "label",
+      "confidence": "high"
+    },
+    {
+      "original": "Tem certeza que deseja apagar",
+      "line": 56,
+      "context": "<div className=\"space-y-4\">\n                <p className=\"text-zinc-400\">Tem certeza que deseja apagar <strong>todos</strong> os {typeLabel} desta cena? Esta ação é irreversível.</p>\n                <div className=\"flex justify-end gap-2 pt-2\">",
+      "suggestedKey": "vtt.drawing.toolbar.temCertezaQue.text",
+      "contentType": "text",
+      "confidence": "high"
+    },
+    {
+      "original": "todos",
+      "line": 56,
+      "context": "<div className=\"space-y-4\">\n                <p className=\"text-zinc-400\">Tem certeza que deseja apagar <strong>todos</strong> os {typeLabel} desta cena? Esta ação é irreversível.</p>\n                <div className=\"flex justify-end gap-2 pt-2\">",
+      "suggestedKey": "vtt.drawing.toolbar.todos.label",
+      "contentType": "label",
+      "confidence": "high"
+    },
+    {
+      "original": "desta cena? Esta ação é irreversível.",
+      "line": 56,
+      "context": "<div className=\"space-y-4\">\n                <p className=\"text-zinc-400\">Tem certeza que deseja apagar <strong>todos</strong> os {typeLabel} desta cena? Esta ação é irreversível.</p>\n                <div className=\"flex justify-end gap-2 pt-2\">",
+      "suggestedKey": "vtt.drawing.toolbar.destaCenaEsta.text",
+      "contentType": "text",
+      "confidence": "high"
+    },
+    {
+      "original": "Cancelar",
+      "line": 58,
+      "context": "<div className=\"flex justify-end gap-2 pt-2\">\n                    <Button variant=\"ghost\" onClick={closeModal}>Cancelar</Button>\n                    <Button variant=\"destructive\" onClick={() => { action(); closeModal(); }}>",
+      "suggestedKey": "vtt.drawing.toolbar.cancelar.label",
+      "contentType": "label",
+      "confidence": "high"
+    },
+    {
+      "original": "Limpar Tudo",
+      "line": 60,
+      "context": "<Button variant=\"destructive\" onClick={() => { action(); closeModal(); }}>\n                        <Trash2 className=\"w-4 h-4 mr-2\" /> Limpar Tudo\n                    </Button>",
+      "suggestedKey": "vtt.drawing.toolbar.limparTudo.text",
+      "contentType": "text",
+      "confidence": "high"
+    },
+    {
+      "original": "Limpar Paredes",
+      "line": 64,
+      "context": "</div>,\n            { title: isSmartWall ? 'Limpar Paredes' : 'Limpar Desenhos', variant: 'alert', size: 'sm' }\n        );",
+      "suggestedKey": "vtt.drawing.toolbar.limparParedes.title",
+      "contentType": "title",
+      "confidence": "high"
+    },
+    {
+      "original": "Limpar Desenhos",
+      "line": 64,
+      "context": "</div>,\n            { title: isSmartWall ? 'Limpar Paredes' : 'Limpar Desenhos', variant: 'alert', size: 'sm' }\n        );",
+      "suggestedKey": "vtt.drawing.toolbar.limparDesenhos.title",
+      "contentType": "title",
+      "confidence": "high"
+    },
+    {
+      "original": "Tamanho",
+      "line": 101,
+      "context": "<div className=\"flex items-center gap-2 text-[10px] text-zinc-400 font-bold uppercase\">\n                            <span>Tamanho</span>\n                            <span className=\"text-white\">{drawingSettings.width}px</span>",
+      "suggestedKey": "vtt.drawing.toolbar.tamanho.label",
+      "contentType": "label",
+      "confidence": "high"
+    },
+    {
+      "original": "Opacidade",
+      "line": 116,
+      "context": "<div className=\"flex items-center gap-2 text-[10px] text-zinc-400 font-bold uppercase\">\n                            <span>Opacidade</span>\n                            <span className=\"text-white\">{Math.round(drawingSettings.opacity * 100)}%</span>",
+      "suggestedKey": "vtt.drawing.toolbar.opacidade.label",
+      "contentType": "label",
+      "confidence": "high"
+    },
+    {
+      "original": "Smart Wall",
+      "line": 139,
+      "context": "<div className=\"flex flex-col\">\n                            <span className=\"text-[10px] text-zinc-400 font-bold uppercase tracking-wider leading-none\">Smart Wall</span>\n                            <span className=\"text-[9px] text-zinc-500 italic mt-0.5\">Configurações da Varinha</span>",
+      "suggestedKey": "vtt.drawing.toolbar.smartWall.text",
+      "contentType": "text",
+      "confidence": "high"
+    },
+    {
+      "original": "Configurações da Varinha",
+      "line": 140,
+      "context": "<span className=\"text-[10px] text-zinc-400 font-bold uppercase tracking-wider leading-none\">Smart Wall</span>\n                            <span className=\"text-[9px] text-zinc-500 italic mt-0.5\">Configurações da Varinha</span>\n                        </div>",
+      "suggestedKey": "vtt.drawing.toolbar.configuraesDaVarinha.text",
+      "contentType": "text",
+      "confidence": "high"
+    },
+    {
+      "original": "Tolerância",
+      "line": 148,
+      "context": "<div className=\"flex items-center justify-between text-[10px] text-zinc-400 font-bold uppercase\">\n                            <span>Tolerância</span>\n                            <span className=\"text-white font-mono\">{wandSettings.tolerance}</span>",
+      "suggestedKey": "vtt.drawing.toolbar.tolerncia.label",
+      "contentType": "label",
+      "confidence": "high"
+    },
+    {
+      "original": "Simplificação",
+      "line": 163,
+      "context": "<div className=\"flex items-center justify-between text-[10px] text-zinc-400 font-bold uppercase\">\n                            <span>Simplificação</span>\n                            <span className=\"text-white font-mono\">{wandSettings.simplification.toFixed(1)}</span>",
+      "suggestedKey": "vtt.drawing.toolbar.simplificao.label",
+      "contentType": "label",
+      "confidence": "high"
+    },
+    {
+      "original": "Resolução",
+      "line": 179,
+      "context": "<div className=\"flex items-center justify-between text-[10px] text-zinc-400 font-bold uppercase\">\n                            <span>Resolução</span>\n                            <span className=\"text-white font-mono\">{wandSettings.resolution}px</span>",
+      "suggestedKey": "vtt.drawing.toolbar.resoluo.label",
+      "contentType": "label",
+      "confidence": "high"
+    },
+    {
+      "original": "Sandbox do Smart Wall",
+      "line": 195,
+      "context": "<button\n                            onClick={() => openModal(<SmartWallPreviewModal wandSettings={wandSettings} setWandSettings={setWandSettings} />, { title: 'Sandbox do Smart Wall', size: 'lg' })}\n                            className=\"p-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-all group shadow-lg shadow-primary/5 hover:scale-110 active:scale-95 border border-primary/20\"",
+      "suggestedKey": "vtt.drawing.toolbar.sandboxDoSmart.label",
+      "contentType": "label",
+      "confidence": "high"
+    },
+    {
+      "original": "Preview",
+      "line": 200,
+      "context": "</button>\n                        <span className=\"text-[8px] font-bold text-primary uppercase tracking-tighter\">Preview</span>\n                    </div>",
+      "suggestedKey": "vtt.drawing.toolbar.preview.label",
+      "contentType": "label",
+      "confidence": "high"
+    },
+    {
+      "original": "Desfazer última parede",
+      "line": 209,
+      "context": "<div className=\"flex gap-2\">\n                <Tooltip content={activeTool === 'smart-wall' ? \"Desfazer última parede\" : \"Desfazer último traço\"}>\n                    <button",
+      "suggestedKey": "vtt.drawing.toolbar.desfazerLtimaParede.tooltip",
+      "contentType": "tooltip",
+      "confidence": "high"
+    },
+    {
+      "original": "Desfazer último traço",
+      "line": 209,
+      "context": "<div className=\"flex gap-2\">\n                <Tooltip content={activeTool === 'smart-wall' ? \"Desfazer última parede\" : \"Desfazer último traço\"}>\n                    <button",
+      "suggestedKey": "vtt.drawing.toolbar.desfazerLtimoTrao.tooltip",
+      "contentType": "tooltip",
+      "confidence": "high"
+    },
+    {
+      "original": "Limpar TODOS os desenhos",
+      "line": 219,
+      "context": "{canClearAll && (\n                    <Tooltip content=\"Limpar TODOS os desenhos\">\n                        <button",
+      "suggestedKey": "vtt.drawing.toolbar.limparTodosOs.tooltip",
+      "contentType": "tooltip",
+      "confidence": "high"
+    }
+  ]
+}
