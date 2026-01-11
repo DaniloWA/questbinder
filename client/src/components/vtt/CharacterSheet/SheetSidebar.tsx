@@ -1,5 +1,6 @@
 import React from 'react';
 import { Activity, Brain } from 'lucide-react';
+import { useTranslation } from '../../../i18n/TranslationContext';
 import { Character, Attributes } from '../../../types';
 import { OptimizedNumberInput } from '../../ui/OptimizedNumberInput';
 import { SKILLS_DATA } from '../../../data/rules';
@@ -19,11 +20,12 @@ const fmtMod = (mod: number) => (mod >= 0 ? `+${mod}` : `${mod}`);
 export const SheetSidebar: React.FC<SheetSidebarProps> = ({
   character, isEditing, canEdit, onUpdateAttribute, onUpdateSkills, onRoll
 }) => {
+  const { t } = useTranslation();
   return (
     <div className="w-full h-full overflow-y-auto custom-scrollbar p-3 space-y-4 bg-zinc-900/50">
       {/* ATTRIBUTES */}
       <div className="space-y-2">
-        <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 flex items-center gap-2"><Activity className="w-3 h-3" /> Atributos</h3>
+        <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 flex items-center gap-2"><Activity className="w-3 h-3" /> {t('vtt.character.sheet.attributes.title')}</h3>
         {(Object.keys(character.attributes) as Array<keyof Attributes>).map(attr => {
           const score = character.attributes[attr];
           const mod = calcMod(score);
@@ -60,7 +62,7 @@ export const SheetSidebar: React.FC<SheetSidebarProps> = ({
 
       {/* SKILLS */}
       <div className="space-y-1">
-        <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 flex items-center gap-2"><Brain className="w-3 h-3" /> Perícias</h3>
+        <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 flex items-center gap-2"><Brain className="w-3 h-3" /> {t('vtt.character.sheet.skills.title')}</h3>
         {SKILLS_DATA.map(skill => {
           const attr = character.attributes[skill.attr];
           const mod = calcMod(attr);

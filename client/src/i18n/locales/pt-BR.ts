@@ -1828,6 +1828,9 @@ export default {
         cantrips: {
           label: 'Truques',
         },
+        attack: {
+          label: 'Ataque',
+        },
       },
       header: {
         level: {

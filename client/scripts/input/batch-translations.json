@@ -1,74 +1,9 @@
 {
   "translations": [
     {
-      "key": "vtt.character.spells.level.text",
-      "pt": "Nível",
-      "en": "Level"
-    },
-    {
-      "key": "vtt.character.spells.cantrips.label",
-      "pt": "Truques",
-      "en": "Cantrips"
-    },
-    {
-      "key": "vtt.character.header.level.text",
-      "pt": "Nível",
-      "en": "Level"
-    },
-    {
-      "key": "vtt.character.header.editMode.tooltip",
-      "pt": "Modo Edição",
-      "en": "Edit Mode"
-    },
-    {
-      "key": "vtt.character.header.viewMode.tooltip",
-      "pt": "Modo Visualização",
-      "en": "View Mode"
-    },
-    {
-      "key": "vtt.character.features.source.placeholder",
-      "pt": "Fonte (ex: Raça, Classe)",
-      "en": "Source (e.g., Race, Class)"
-    },
-    {
-      "key": "vtt.settings.view.globalActions.title",
-      "pt": "Ações Globais",
-      "en": "Global Actions"
-    },
-    {
-      "key": "vtt.settings.view.pullPlayerView.tooltip",
-      "pt": "Puxar visão deste jogador",
-      "en": "Pull this player's view"
-    },
-    {
-      "key": "vtt.settings.view.visionRanges.description",
-      "pt": "Visualizar círculos de alcance de visão dos tokens.",
-      "en": "Display token vision range circles."
-    },
-    {
-      "key": "vtt.settings.view.permissions.hint",
-      "pt": "Para configurar visibilidade e permissões, use o menu Permissões.",
-      "en": "To configure visibility and permissions, use the Permissions menu."
-    },
-    {
-      "key": "vtt.notifications.pullView.title",
-      "pt": "Atenção",
-      "en": "Attention"
-    },
-    {
-      "key": "vtt.notifications.followMode.noTarget",
-      "pt": "PARA NINGUÉM",
-      "en": "TO NOBODY"
-    },
-    {
-      "key": "vtt.notifications.followMode.broadcasting",
-      "pt": "TRANSMITINDO VISÃO",
-      "en": "BROADCASTING VIEW"
-    },
-    {
-      "key": "vtt.combat.tracker.next.button",
-      "pt": "Próximo",
-      "en": "Next"
+      "key": "vtt.character.spells.attack.label",
+      "pt": "Ataque",
+      "en": "Attack"
     }
   ]
 }

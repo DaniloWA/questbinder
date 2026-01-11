@@ -1,5 +1,6 @@
 import React from 'react';
 import { Zap, Share2 } from 'lucide-react';
+import { useTranslation } from '../../../i18n/TranslationContext';
 import { Character } from '../../../types';
 import { OptimizedTextInput } from '../../ui/OptimizedTextInput';
 import { OptimizedNumberInput } from '../../ui/OptimizedNumberInput';
@@ -17,12 +18,13 @@ interface SpellsTabProps {
 export const SpellsTab: React.FC<SpellsTabProps> = ({
   character, isEditing, canEdit, updateField, updateFields, onShare
 }) => {
+  const { t } = useTranslation();
   return (
     <div className="p-3 md:p-5 space-y-5 pb-20">
       {/* Spell Stats Header */}
       <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-3 flex justify-between items-center">
         <div className="flex flex-col">
-          <span className="text-[9px] font-bold uppercase text-zinc-500">Atributo</span>
+          <span className="text-[9px] font-bold uppercase text-zinc-500">{t('vtt.character.spells.attribute.label')}</span>
           {isEditing ? (
             <OptimizedTextInput
               value={character.spellInfo.ability}
@@ -49,7 +51,7 @@ export const SpellsTab: React.FC<SpellsTabProps> = ({
           )}
         </div>
         <div className="flex flex-col text-right">
-          <span className="text-[9px] font-bold uppercase text-zinc-500">Ataque</span>
+          <span className="text-[9px] font-bold uppercase text-zinc-500">{t('vtt.character.spells.attack.label')}</span>
           {isEditing ? (
             <OptimizedNumberInput
               value={character.spellInfo.atkBonus}
@@ -66,11 +68,11 @@ export const SpellsTab: React.FC<SpellsTabProps> = ({
 
       {/* Spell Slots */}
       <div className="space-y-2">
-        <SheetHeader title="Espaços de Magia" icon={Zap} />
+        <SheetHeader title={t('vtt.character.spells.slots.title')} icon={Zap} />
         <div className="flex flex-wrap gap-2">
           {character.spellSlots.map(slot => (
             <div key={slot.level} className="bg-zinc-900 border border-zinc-800 rounded-lg p-2 flex flex-col items-center min-w-[60px]">
-              <span className="text-[9px] font-bold text-zinc-500 uppercase mb-1.5">Nível {slot.level}</span>
+              <span className="text-[9px] font-bold text-zinc-500 uppercase mb-1.5">{t('vtt.character.spells.level.text')} {slot.level}</span>
               <div className="flex flex-wrap justify-center gap-1">
                 {Array.from({ length: slot.total }).map((_, i) => (
                   <button
@@ -100,7 +102,7 @@ export const SpellsTab: React.FC<SpellsTabProps> = ({
           return (
             <div key={lvl} className="space-y-2">
               <div className="flex items-center gap-2 px-1">
-                <span className="text-xs font-bold text-zinc-400 uppercase">{lvl === 0 ? 'Truques' : `Nível ${lvl}`}</span>
+                <span className="text-xs font-bold text-zinc-400 uppercase">{lvl === 0 ? t('vtt.character.spells.cantrips.label') : `${t('vtt.character.spells.level.text')} ${lvl}`}</span>
                 <div className="h-px bg-zinc-800 flex-1"></div>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">

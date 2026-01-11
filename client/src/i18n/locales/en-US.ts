@@ -2397,6 +2397,9 @@ export default {
         cantrips: {
           label: 'Cantrips',
         },
+        attack: {
+          label: 'Attack',
+        },
       },
       header: {
         level: {
