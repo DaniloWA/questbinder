@@ -1,19 +1,49 @@
 {
   "translations": [
     {
-      "key": "vtt.handouts.shareModal.selectPlayers.title",
-      "pt": "Selecione com quem compartilhar:",
-      "en": "Select who to share with:"
+      "key": "vtt.keyboard.nextTurn.description",
+      "pt": "Próximo turno",
+      "en": "Next turn"
     },
     {
-      "key": "vtt.handouts.shareModal.selectAll.button",
-      "pt": "Selecionar Todos",
-      "en": "Select All"
+      "key": "vtt.keyboard.prevTurn.description",
+      "pt": "Turno anterior",
+      "en": "Previous turn"
     },
     {
-      "key": "vtt.handouts.shareModal.hideFromAll.button",
-      "pt": "Ocultar de Todos",
-      "en": "Hide from All"
+      "key": "vtt.keyboard.toggleHistory.description",
+      "pt": "Mostrar/ocultar histórico",
+      "en": "Show/hide history"
+    },
+    {
+      "key": "vtt.keyboard.toggleSuggestions.description",
+      "pt": "Mostrar/ocultar sugestões",
+      "en": "Show/hide suggestions"
+    },
+    {
+      "key": "vtt.keyboard.useShortcuts.text",
+      "pt": "Use estes atalhos para navegar rapidamente durante o combate:",
+      "en": "Use these shortcuts to navigate quickly during combat:"
+    },
+    {
+      "key": "vtt.attackZone.contextMenu.duplicate.label",
+      "pt": "Duplicar Zona",
+      "en": "Duplicate Zone"
+    },
+    {
+      "key": "vtt.attackZone.contextMenu.header",
+      "pt": "Zona de Ataque",
+      "en": "Attack Zone"
+    },
+    {
+      "key": "vtt.attackZone.contextMenu.shape.label",
+      "pt": "Forma",
+      "en": "Shape"
+    },
+    {
+      "key": "vtt.attackZone.contextMenu.damage.label",
+      "pt": "Dano",
+      "en": "Damage"
     }
   ]
 }

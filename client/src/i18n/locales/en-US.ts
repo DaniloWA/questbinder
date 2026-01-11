@@ -2851,6 +2851,27 @@ export default {
         createTrigger: {
           title: 'Create Trigger on Map',
         },
+        title: 'Resources',
+        newResource: {
+          button: 'New Resource',
+        },
+        trigger: {
+          button: 'Trigger',
+        },
+        edit: {
+          tooltip: 'Edit',
+        },
+        share: {
+          tooltip: 'Share',
+        },
+        triggerTool: {
+          notification: 'Trigger tool selected for "{name}". Draw on the map.',
+        },
+      },
+      preview: {
+        edit: {
+          button: 'Edit',
+        },
       },
     },
     smartDice: {
@@ -2862,6 +2883,65 @@ export default {
       },
       noSpells: {
         text: 'No spells prepared.',
+      },
+      freeTable: {
+        label: 'Free Table',
+      },
+      diceTable: {
+        title: 'Dice Table',
+      },
+      tab: {
+        table: {
+          label: 'Table',
+        },
+        attributes: {
+          label: 'Attrs',
+        },
+        combat: {
+          label: 'Combat',
+        },
+        skills: {
+          label: 'Skills',
+        },
+        items: {
+          label: 'Items',
+        },
+      },
+      activeCharacter: {
+        label: 'Active Character',
+      },
+      attributeTests: {
+        label: 'Attribute Tests',
+      },
+      savingThrows: {
+        label: 'Saving Throws (Resistance)',
+      },
+      physicalAttacks: {
+        label: 'Physical Attacks',
+      },
+      spellbook: {
+        label: 'Spellbook',
+      },
+      genericSpellAttack: {
+        button: 'Roll Generic Spell Attack',
+      },
+      items: {
+        label: 'Items',
+      },
+      emptyBag: {
+        text: 'Empty bag.',
+      },
+      useItem: {
+        button: 'Use',
+      },
+      selectToken: {
+        text: 'Select a token on the map to access quick actions.',
+      },
+      cantrip: {
+        label: 'Cantrip',
+      },
+      level: {
+        label: 'Level',
       },
     },
     cursor: {
@@ -2881,10 +2961,71 @@ export default {
       addLight: {
         label: 'Add Light',
       },
+      editTrigger: {
+        label: 'Edit Trigger',
+      },
+      removeTrigger: {
+        label: 'Remove Trigger',
+      },
+      editAudioZone: {
+        label: 'Edit Audio Zone',
+      },
+      removeZone: {
+        label: 'Remove Zone',
+      },
+      structureOptions: {
+        label: 'Structure Options',
+      },
+      triggerOptions: {
+        label: 'Trigger Options',
+      },
+      audioOptions: {
+        label: 'Audio Options',
+      },
+      mapOptions: {
+        label: 'Map Options',
+      },
+      toggleInvisibility: {
+        label: 'Toggle Invisibility',
+      },
+      destroyStructure: {
+        label: 'Destroy Structure',
+      },
+      pingLocation: {
+        label: 'Ping Location',
+      },
+      sharePosition: {
+        label: 'Share Position',
+      },
+      sharedLocation: {
+        message: 'Shared a location on the map.',
+      },
+      locationSent: {
+        notification: 'Location sent to chat.',
+      },
     },
     keyboard: {
       closePanel: {
         description: 'Close open panels',
+      },
+      title: 'Keyboard Shortcuts',
+      tip: {
+        text: '💡 Tip: Shortcuts only work when not typing in text fields.',
+      },
+      nextTurn: {
+        description: 'Next turn',
+      },
+      prevTurn: {
+        description: 'Previous turn',
+      },
+      toggleHistory: {
+        description: 'Show/hide history',
+      },
+      toggleSuggestions: {
+        description: 'Show/hide suggestions',
+      },
+      useShortcuts: {
+        text: 'Use these shortcuts to navigate quickly during combat:',
       },
     },
     attackZone: {
@@ -2892,6 +3033,24 @@ export default {
         delete: {
           label: 'Delete Zone',
         },
+        edit: {
+          label: 'Edit Zone',
+        },
+        duplicate: {
+          label: 'Duplicate Zone',
+        },
+        header: 'Attack Zone',
+        shape: {
+          label: 'Shape',
+        },
+        damage: {
+          label: 'Damage',
+        },
+      },
+    },
+    tokenHover: {
+      actionTooltip: {
+        text: 'Left click: Link in Chat | Right click: Remove',
       },
     },
   },

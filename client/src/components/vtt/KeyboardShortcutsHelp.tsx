@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from '../../i18n/TranslationContext';
 import { Modal } from '../ui/Modal';
 import { Keyboard } from 'lucide-react';
 
@@ -8,19 +9,20 @@ interface KeyboardShortcutsHelpProps {
 }
 
 export const KeyboardShortcutsHelp: React.FC<KeyboardShortcutsHelpProps> = ({ isOpen, onClose }) => {
+  const { t } = useTranslation();
   const shortcuts = [
-    { key: 'Space', description: 'Próximo turno' },
-    { key: 'Shift + ←', description: 'Turno anterior' },
-    { key: 'H', description: 'Mostrar/ocultar histórico' },
-    { key: 'Ctrl/Cmd + S', description: 'Mostrar/ocultar sugestões' },
-    { key: 'Esc', description: 'Fechar painéis abertos' },
+    { key: 'Space', description: t('vtt.keyboard.nextTurn.description') },
+    { key: 'Shift + ←', description: t('vtt.keyboard.prevTurn.description') },
+    { key: 'H', description: t('vtt.keyboard.toggleHistory.description') },
+    { key: 'Ctrl/Cmd + S', description: t('vtt.keyboard.toggleSuggestions.description') },
+    { key: 'Esc', description: t('vtt.keyboard.closePanel.description') },
   ];
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Atalhos de Teclado" size="sm">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('vtt.keyboard.title')} size="sm">
       <div className="space-y-3">
         <p className="text-sm text-zinc-400">
-          Use estes atalhos para navegar rapidamente durante o combate:
+          {t('vtt.keyboard.useShortcuts.text')}
         </p>
 
         <div className="space-y-2">
@@ -39,7 +41,7 @@ export const KeyboardShortcutsHelp: React.FC<KeyboardShortcutsHelpProps> = ({ is
 
         <div className="pt-3 border-t border-zinc-800">
           <p className="text-xs text-zinc-600 italic">
-            💡 Dica: Atalhos funcionam apenas quando não está digitando em campos de texto.
+            {t('vtt.keyboard.tip.text')}
           </p>
         </div>
       </div>

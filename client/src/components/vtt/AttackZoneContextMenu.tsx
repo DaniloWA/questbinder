@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { Edit3, Copy, Trash2, Eye, EyeOff } from 'lucide-react';
+import { useTranslation } from '../../i18n/TranslationContext';
 import { AttackZoneConfig } from '../../types/attackZone';
 
 interface AttackZoneContextMenuProps {
@@ -25,6 +26,7 @@ export const AttackZoneContextMenu: React.FC<AttackZoneContextMenuProps> = ({
   onDelete,
   onToggleVisibility,
 }) => {
+  const { t } = useTranslation();
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -51,7 +53,7 @@ export const AttackZoneContextMenu: React.FC<AttackZoneContextMenuProps> = ({
 
   const menuItems = [
     {
-      label: 'Editar Zona',
+      label: t('vtt.attackZone.contextMenu.edit.label'),
       icon: Edit3,
       onClick: () => {
         onEdit();
@@ -60,7 +62,7 @@ export const AttackZoneContextMenu: React.FC<AttackZoneContextMenuProps> = ({
       color: 'text-blue-400 hover:text-blue-300',
     },
     {
-      label: 'Duplicar Zona',
+      label: t('vtt.attackZone.contextMenu.duplicate.label'),
       icon: Copy,
       onClick: () => {
         onDuplicate();
@@ -69,7 +71,7 @@ export const AttackZoneContextMenu: React.FC<AttackZoneContextMenuProps> = ({
       color: 'text-cyan-400 hover:text-cyan-300',
     },
     {
-      label: 'Excluir Zona',
+      label: t('vtt.attackZone.contextMenu.delete.label'),
       icon: Trash2,
       onClick: () => {
         onDelete();
@@ -96,7 +98,7 @@ export const AttackZoneContextMenu: React.FC<AttackZoneContextMenuProps> = ({
       {/* Header */}
       <div className="px-4 py-2 border-b border-white/10">
         <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-          Zona de Ataque
+          {t('vtt.attackZone.contextMenu.header')}
         </p>
         <p className="text-sm font-semibold text-white truncate mt-0.5">
           {zone.name}
@@ -124,12 +126,12 @@ export const AttackZoneContextMenu: React.FC<AttackZoneContextMenuProps> = ({
       {/* Zone Info */}
       <div className="px-4 py-2 border-t border-white/10 text-xs text-zinc-500 space-y-1">
         <div className="flex justify-between">
-          <span>Forma:</span>
+          <span>{t('vtt.attackZone.contextMenu.shape.label')}:</span>
           <span className="text-zinc-400 font-medium capitalize">{zone.shape}</span>
         </div>
         {zone.damageFormula && (
           <div className="flex justify-between">
-            <span>Dano:</span>
+            <span>{t('vtt.attackZone.contextMenu.damage.label')}:</span>
             <span className="text-zinc-400 font-medium">{zone.damageFormula}</span>
           </div>
         )}

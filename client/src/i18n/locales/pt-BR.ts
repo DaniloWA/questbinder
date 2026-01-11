@@ -2282,6 +2282,27 @@ export default {
         createTrigger: {
           title: 'Criar Gatilho no Mapa',
         },
+        title: 'Recursos',
+        newResource: {
+          button: 'Novo Recurso',
+        },
+        trigger: {
+          button: 'Gatilho',
+        },
+        edit: {
+          tooltip: 'Editar',
+        },
+        share: {
+          tooltip: 'Compartilhar',
+        },
+        triggerTool: {
+          notification: 'Ferramenta de Gatilho selecionada para "{name}". Desenhe no mapa.',
+        },
+      },
+      preview: {
+        edit: {
+          button: 'Editar',
+        },
       },
     },
     smartDice: {
@@ -2293,6 +2314,65 @@ export default {
       },
       noSpells: {
         text: 'Nenhuma magia preparada.',
+      },
+      freeTable: {
+        label: 'Mesa Livre',
+      },
+      diceTable: {
+        title: 'Mesa de Dados',
+      },
+      tab: {
+        table: {
+          label: 'Mesa',
+        },
+        attributes: {
+          label: 'Atrib',
+        },
+        combat: {
+          label: 'Combate',
+        },
+        skills: {
+          label: 'Perícias',
+        },
+        items: {
+          label: 'Itens',
+        },
+      },
+      activeCharacter: {
+        label: 'Personagem Ativo',
+      },
+      attributeTests: {
+        label: 'Testes de Atributo',
+      },
+      savingThrows: {
+        label: 'Salvaguardas (Resistência)',
+      },
+      physicalAttacks: {
+        label: 'Ataques Físicos',
+      },
+      spellbook: {
+        label: 'Grimório',
+      },
+      genericSpellAttack: {
+        button: 'Rolar Ataque Mágico Genérico',
+      },
+      items: {
+        label: 'Itens',
+      },
+      emptyBag: {
+        text: 'Mochila vazia.',
+      },
+      useItem: {
+        button: 'Usar',
+      },
+      selectToken: {
+        text: 'Selecione um token no mapa para acessar ações rápidas.',
+      },
+      cantrip: {
+        label: 'Truque',
+      },
+      level: {
+        label: 'Nível',
       },
     },
     cursor: {
@@ -2312,10 +2392,71 @@ export default {
       addLight: {
         label: 'Adicionar Luz',
       },
+      editTrigger: {
+        label: 'Editar Gatilho',
+      },
+      removeTrigger: {
+        label: 'Remover Gatilho',
+      },
+      editAudioZone: {
+        label: 'Editar Zona de Áudio',
+      },
+      removeZone: {
+        label: 'Remover Zona',
+      },
+      structureOptions: {
+        label: 'Opções de Estrutura',
+      },
+      triggerOptions: {
+        label: 'Opções de Gatilho',
+      },
+      audioOptions: {
+        label: 'Opções de Áudio',
+      },
+      mapOptions: {
+        label: 'Opções de Mapa',
+      },
+      toggleInvisibility: {
+        label: 'Alternar Invisibilidade',
+      },
+      destroyStructure: {
+        label: 'Destruir Estrutura',
+      },
+      pingLocation: {
+        label: 'Pingar Localização',
+      },
+      sharePosition: {
+        label: 'Compartilhar Posição',
+      },
+      sharedLocation: {
+        message: 'Compartilhou uma localização no mapa.',
+      },
+      locationSent: {
+        notification: 'Localização enviada ao chat.',
+      },
     },
     keyboard: {
       closePanel: {
         description: 'Fechar painéis abertos',
+      },
+      title: 'Atalhos de Teclado',
+      tip: {
+        text: '💡 Dica: Atalhos funcionam apenas quando não está digitando em campos de texto.',
+      },
+      nextTurn: {
+        description: 'Próximo turno',
+      },
+      prevTurn: {
+        description: 'Turno anterior',
+      },
+      toggleHistory: {
+        description: 'Mostrar/ocultar histórico',
+      },
+      toggleSuggestions: {
+        description: 'Mostrar/ocultar sugestões',
+      },
+      useShortcuts: {
+        text: 'Use estes atalhos para navegar rapidamente durante o combate:',
       },
     },
     attackZone: {
@@ -2323,6 +2464,24 @@ export default {
         delete: {
           label: 'Excluir Zona',
         },
+        edit: {
+          label: 'Editar Zona',
+        },
+        duplicate: {
+          label: 'Duplicar Zona',
+        },
+        header: 'Zona de Ataque',
+        shape: {
+          label: 'Forma',
+        },
+        damage: {
+          label: 'Dano',
+        },
+      },
+    },
+    tokenHover: {
+      actionTooltip: {
+        text: 'Clique esquerdo: Linkar no Chat | Clique direito: Remover',
       },
     },
   },

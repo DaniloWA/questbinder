@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from '../../i18n/TranslationContext';
 import { useGameSession } from '../../context/GameSessionContext';
 import { Character, Attributes } from '../../types';
 import { DiceRoller, DiceRollerHandle } from './DiceRoller';
@@ -18,6 +19,7 @@ interface SmartDiceRollerProps {
 }
 
 export const SmartDiceRoller: React.FC<SmartDiceRollerProps> = ({ isOpen, onClose }) => {
+    const { t } = useTranslation();
     const { selectedTokenIds, scenes, activeSceneId, campaignCharacters, broadcastRoll, permissionHelper } = useGameSession();
     const [activeTab, setActiveTab] = useState<'manual' | 'attributes' | 'combat' | 'skills' | 'inventory'>('manual');
     const [currentCharacter, setCurrentCharacter] = useState<Character | null>(null);
@@ -68,8 +70,8 @@ export const SmartDiceRoller: React.FC<SmartDiceRollerProps> = ({ isOpen, onClos
                     <Dices className="w-6 h-6 text-zinc-600" />
                 </div>
                 <div>
-                    <div className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Mesa Livre</div>
-                    <div className="font-bold text-zinc-300 text-sm">Nenhum Herói Selecionado</div>
+                    <div className="text-xs font-bold text-zinc-500 uppercase tracking-wider">{t('vtt.smartDice.freeTable.label')}</div>
+                    <div className="font-bold text-zinc-300 text-sm">{t('vtt.smartDice.noHeroSelected.text')}</div>
                 </div>
             </div>
         );
@@ -82,7 +84,7 @@ export const SmartDiceRoller: React.FC<SmartDiceRollerProps> = ({ isOpen, onClos
                 </div>
                 <div className="min-w-0 flex-1">
                     <div className="text-[10px] font-bold text-primary uppercase tracking-wider flex items-center gap-1">
-                        <User className="w-3 h-3" /> Personagem Ativo
+                        <User className="w-3 h-3" /> {t('vtt.smartDice.activeCharacter.label')}
                     </div>
                     <div className="font-bold text-white text-base truncate">{currentCharacter.name}</div>
                     <div className="flex items-center gap-3 mt-0.5">
@@ -162,7 +164,7 @@ export const SmartDiceRoller: React.FC<SmartDiceRollerProps> = ({ isOpen, onClos
                     <div className="flex items-center gap-2 text-xs font-bold text-zinc-500 uppercase tracking-widest px-1">
                         <Sword className="w-3 h-3" /> Ataques Físicos
                     </div>
-                    {currentCharacter.attacks.length === 0 && <p className="text-zinc-600 text-xs text-center py-4 bg-zinc-900/30 rounded-lg border border-dashed border-zinc-800">Nenhum ataque registrado.</p>}
+                    {currentCharacter.attacks.length === 0 && <p className="text-zinc-600 text-xs text-center py-4 bg-zinc-900/30 rounded-lg border border-dashed border-zinc-800">{t('vtt.smartDice.noAttacks.text')}</p>}
                     {currentCharacter.attacks.map(atk => (
                         <div key={atk.id} className="bg-zinc-950 border border-zinc-800 rounded-xl p-3 hover:border-zinc-600 shadow-sm transition-all group">
                             <div className="flex justify-between items-center mb-3">
@@ -207,7 +209,7 @@ export const SmartDiceRoller: React.FC<SmartDiceRollerProps> = ({ isOpen, onClos
                         Rolar Ataque Mágico Genérico
                     </button>
 
-                    {currentCharacter.spells.length === 0 && <p className="text-zinc-600 text-xs text-center py-4 bg-zinc-900/30 rounded-lg border border-dashed border-zinc-800">Nenhuma magia preparada.</p>}
+                    {currentCharacter.spells.length === 0 && <p className="text-zinc-600 text-xs text-center py-4 bg-zinc-900/30 rounded-lg border border-dashed border-zinc-800">{t('vtt.smartDice.noSpells.text')}</p>}
 
                     <div className="grid grid-cols-1 gap-2">
                         {currentCharacter.spells.map(spell => (
@@ -313,7 +315,7 @@ export const SmartDiceRoller: React.FC<SmartDiceRollerProps> = ({ isOpen, onClos
         <DraggableWindow
             isOpen={isOpen}
             onClose={onClose}
-            title="Mesa de Dados"
+            title={t('vtt.smartDice.diceTable.title')}
             icon={<Dices className="w-4 h-4 text-primary" />}
             initialPosition={{ x: Math.max(20, window.innerWidth - 450), y: 80 }}
             initialSize={{ w: Math.min(400, window.innerWidth - 40), h: Math.min(700, window.innerHeight - 100) }}
@@ -328,11 +330,11 @@ export const SmartDiceRoller: React.FC<SmartDiceRollerProps> = ({ isOpen, onClos
                 {/* Navigation Tabs */}
                 <div className="flex border-b border-zinc-800 bg-zinc-950 shrink-0 overflow-x-auto hide-scrollbar">
                     {[
-                        { id: 'manual', icon: <Dices className="w-3.5 h-3.5" />, label: 'Mesa' },
-                        { id: 'attributes', icon: <Activity className="w-3.5 h-3.5" />, label: 'Atrib' },
-                        { id: 'combat', icon: <Sword className="w-3.5 h-3.5" />, label: 'Combate' },
-                        { id: 'skills', icon: <Brain className="w-3.5 h-3.5" />, label: 'Perícias' },
-                        { id: 'inventory', icon: <Backpack className="w-3.5 h-3.5" />, label: 'Itens' },
+                        { id: 'manual', icon: <Dices className="w-3.5 h-3.5" />, label: t('vtt.smartDice.tab.table.label') },
+                        { id: 'attributes', icon: <Activity className="w-3.5 h-3.5" />, label: t('vtt.smartDice.tab.attributes.label') },
+                        { id: 'combat', icon: <Sword className="w-3.5 h-3.5" />, label: t('vtt.smartDice.tab.combat.label') },
+                        { id: 'skills', icon: <Brain className="w-3.5 h-3.5" />, label: t('vtt.smartDice.tab.skills.label') },
+                        { id: 'inventory', icon: <Backpack className="w-3.5 h-3.5" />, label: t('vtt.smartDice.tab.items.label') },
                     ].map(tab => (
                         <button
                             key={tab.id}

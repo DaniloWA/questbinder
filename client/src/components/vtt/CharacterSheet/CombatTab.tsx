@@ -1,5 +1,6 @@
 import React from 'react';
 import { Heart, Shield, Wind, Award, Eye, Dice5, Skull, Hourglass, Moon, Sword, Crosshair, Zap, Share2 } from 'lucide-react';
+import { useTranslation } from '../../../i18n/TranslationContext';
 import { Character } from '../../../types';
 import { OptimizedNumberInput } from '../../ui/OptimizedNumberInput';
 import { OptimizedTextInput } from '../../ui/OptimizedTextInput';
@@ -38,6 +39,7 @@ const RabbitIcon = ({ className }: { className?: string; }) => <Wind className={
 export const CombatTab: React.FC<CombatTabProps> = ({
   character, derivedValues, isEditing, canEdit, updateField, updateFields, onRoll, onShare, handleRest
 }) => {
+  const { t } = useTranslation();
   return (
     <div className="p-3 md:p-5 space-y-5 pb-20 md:pb-6">
       {/* HP SECTION - OPTIMIZED */}
@@ -325,7 +327,7 @@ export const CombatTab: React.FC<CombatTabProps> = ({
               </div>
             </div>
           ))}
-          {character.attacks.length === 0 && <div className="col-span-full text-center py-6 text-zinc-600 text-xs italic border border-dashed border-zinc-800 rounded-lg">Nenhum ataque configurado.</div>}
+          {character.attacks.length === 0 && <div className="col-span-full text-center py-6 text-zinc-600 text-xs italic border border-dashed border-zinc-800 rounded-lg">{t('vtt.character.combatTab.noAttacks.text')}</div>}
         </div>
       </div>
     </div>

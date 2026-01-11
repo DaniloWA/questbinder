@@ -1,5 +1,6 @@
 import React from 'react';
 import { User, Brain, ScrollText, NotebookPen } from 'lucide-react';
+import { useTranslation } from '../../../i18n/TranslationContext';
 import { Character } from '../../../types';
 import { OptimizedTextInput } from '../../ui/OptimizedTextInput';
 import { SheetHeader } from '../../ui/SheetPrimitives';
@@ -13,6 +14,7 @@ interface BioTabProps {
 export const BioTab: React.FC<BioTabProps> = ({
   character, isEditing, updateField
 }) => {
+  const { t } = useTranslation();
   return (
     <div className="p-3 md:p-5 space-y-6 pb-20">
       {/* Appearance Grid */}
@@ -75,7 +77,7 @@ export const BioTab: React.FC<BioTabProps> = ({
             />
           ) : (
             <div className="bg-zinc-900/30 border border-zinc-800 rounded-lg p-4 text-sm text-zinc-400 leading-relaxed whitespace-pre-wrap">
-              {character.bio || 'Nenhuma biografia disponível.'}
+              {character.bio || t('vtt.character.bioTab.noBio.text')}
             </div>
           )}
         </div>
