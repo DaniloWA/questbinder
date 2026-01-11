@@ -2345,6 +2345,9 @@ export default {
         characterName: {
           placeholder: 'Character Name',
         },
+        attributes: {
+          title: 'Attributes',
+        },
       },
       tabs: {
         combat: {
@@ -2356,10 +2359,19 @@ export default {
         gmNotes: {
           label: 'GM Notes',
         },
+        features: {
+          label: 'Features',
+        },
       },
       features: {
         name: {
           placeholder: 'Feature name',
+        },
+        title: 'Features & Talents',
+      },
+      spells: {
+        attribute: {
+          label: 'Attribute',
         },
       },
     },
@@ -3232,6 +3244,12 @@ export default {
         },
         objects: {
           label: 'Objects',
+        },
+        attributeButtons: {
+          label: 'Attribute Buttons',
+        },
+        inimigosNPCs: {
+          label: 'Enemies (NPCs)',
         },
       },
     },

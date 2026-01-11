@@ -1,44 +1,34 @@
 {
   "translations": [
     {
-      "key": "vtt.tokenHover.permissions.hpBar.label",
-      "pt": "Barra de Vida",
-      "en": "HP Bar"
+      "key": "vtt.tokenHover.permissions.attributeButtons.label",
+      "pt": "Botões de Atributos",
+      "en": "Attribute Buttons"
     },
     {
-      "key": "vtt.tokenHover.permissions.resourceBar.label",
-      "pt": "Barra de Recurso",
-      "en": "Resource Bar"
+      "key": "vtt.character.sheet.attributes.title",
+      "pt": "Atributos",
+      "en": "Attributes"
     },
     {
-      "key": "vtt.tokenHover.permissions.heroesPCs.label",
-      "pt": "Heróis (PCs)",
-      "en": "Heroes (PCs)"
+      "key": "vtt.character.spells.attribute.label",
+      "pt": "Atributo",
+      "en": "Attribute"
     },
     {
-      "key": "vtt.tokenHover.permissions.enemiesNPCs.label",
+      "key": "vtt.character.features.title",
+      "pt": "Características e Talentos",
+      "en": "Features & Talents"
+    },
+    {
+      "key": "vtt.character.tabs.features.label",
+      "pt": "Características",
+      "en": "Features"
+    },
+    {
+      "key": "vtt.tokenHover.permissions.inimigosNPCs.label",
       "pt": "Inimigos (NPCs)",
       "en": "Enemies (NPCs)"
-    },
-    {
-      "key": "vtt.tokenHover.permissions.objects.label",
-      "pt": "Objetos",
-      "en": "Objects"
-    },
-    {
-      "key": "vtt.audio.panel.name.placeholder",
-      "pt": "Nome",
-      "en": "Name"
-    },
-    {
-      "key": "vtt.character.features.name.placeholder",
-      "pt": "Nome da característica",
-      "en": "Feature name"
-    },
-    {
-      "key": "vtt.character.combat.attackName.placeholder",
-      "pt": "Nome do ataque",
-      "en": "Attack name"
     }
   ]
 }
