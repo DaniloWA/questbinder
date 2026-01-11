@@ -1865,6 +1865,9 @@ export default {
         temCertezaQue: {
           text: 'Tem certeza que deseja excluir esta camada? Todos os tokens e configurações nela serão perdidos permanentemente.',
         },
+        newScene: {
+          defaultName: 'Nova Cena',
+        },
       },
     },
     attack: {
@@ -2726,6 +2729,7 @@ export default {
         },
         objects: {
           label: 'Objetos',
+          title: 'Objetos',
         },
         attributeButtons: {
           label: 'Botões de Atributos',
@@ -2734,6 +2738,29 @@ export default {
           label: 'Inimigos (NPCs)',
         },
         applyRulesHint: 'Clique em "Aplicar Regras" para salvar as alterações',
+        title: 'Visibilidade de Token Hover',
+        enabled: {
+          title: 'Token Hover Habilitado',
+          description: 'Permitir que jogadores vejam informações ao passar o mouse sobre tokens',
+        },
+        heroes: {
+          title: 'Heróis (PCs)',
+        },
+        creatures: {
+          title: 'Criaturas (NPCs)',
+        },
+        conditions: {
+          label: 'Condições',
+        },
+        stats: {
+          label: 'Estatísticas (CA/Desl/PP)',
+        },
+        attributes: {
+          label: 'Botões de Atributos',
+        },
+        states: {
+          label: 'Estados',
+        },
       },
       card: {
         spellClickTooltip: 'Clique esquerdo: Linkar no Chat | Clique direito: Remover',

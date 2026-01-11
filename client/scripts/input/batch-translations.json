@@ -1,29 +1,79 @@
 {
   "translations": [
     {
-      "key": "vtt.notifications.followMode.toAll",
-      "pt": "PARA TODOS",
-      "en": "TO ALL"
+      "key": "vtt.tokenHover.permissions.title",
+      "pt": "Visibilidade de Token Hover",
+      "en": "Token Hover Visibility"
     },
     {
-      "key": "vtt.notifications.followMode.toPlayers",
-      "pt": "PARA {count} JOGADORES",
-      "en": "TO {count} PLAYERS"
+      "key": "vtt.tokenHover.permissions.description",
+      "pt": "Controle o que os jogadores veem ao passar o mouse sobre tokens. GM sempre vê tudo.",
+      "en": "Control what players see when hovering over tokens. GM always sees everything."
     },
     {
-      "key": "vtt.notifications.followMode.toPrefix",
-      "pt": "PARA",
-      "en": "TO"
+      "key": "vtt.tokenHover.permissions.enabled.title",
+      "pt": "Token Hover Habilitado",
+      "en": "Token Hover Enabled"
     },
     {
-      "key": "vtt.map.modal.configureAudioZone.title",
-      "pt": "Configurar Zona de Áudio",
-      "en": "Configure Audio Zone"
+      "key": "vtt.tokenHover.permissions.enabled.description",
+      "pt": "Permitir que jogadores vejam informações ao passar o mouse sobre tokens",
+      "en": "Allow players to see information when hovering over tokens"
     },
     {
-      "key": "vtt.map.modal.configureTrigger.title",
-      "pt": "Configurar Gatilho",
-      "en": "Configure Trigger"
+      "key": "vtt.tokenHover.permissions.heroes.title",
+      "pt": "Heróis (PCs)",
+      "en": "Heroes (PCs)"
+    },
+    {
+      "key": "vtt.tokenHover.permissions.creatures.title",
+      "pt": "Criaturas (NPCs)",
+      "en": "Creatures (NPCs)"
+    },
+    {
+      "key": "vtt.tokenHover.permissions.objects.title",
+      "pt": "Objetos",
+      "en": "Objects"
+    },
+    {
+      "key": "vtt.tokenHover.permissions.name.label",
+      "pt": "Nome",
+      "en": "Name"
+    },
+    {
+      "key": "vtt.tokenHover.permissions.objectName.label",
+      "pt": "Nome do Objeto",
+      "en": "Object Name"
+    },
+    {
+      "key": "vtt.tokenHover.permissions.hpBar.label",
+      "pt": "Barra de Vida",
+      "en": "HP Bar"
+    },
+    {
+      "key": "vtt.tokenHover.permissions.resourceBar.label",
+      "pt": "Barra de Recurso",
+      "en": "Resource Bar"
+    },
+    {
+      "key": "vtt.tokenHover.permissions.conditions.label",
+      "pt": "Condições",
+      "en": "Conditions"
+    },
+    {
+      "key": "vtt.tokenHover.permissions.stats.label",
+      "pt": "Estatísticas (CA/Desl/PP)",
+      "en": "Stats (AC/Speed/PP)"
+    },
+    {
+      "key": "vtt.tokenHover.permissions.attributes.label",
+      "pt": "Botões de Atributos",
+      "en": "Attribute Buttons"
+    },
+    {
+      "key": "vtt.tokenHover.permissions.states.label",
+      "pt": "Estados",
+      "en": "States"
     }
   ]
 }

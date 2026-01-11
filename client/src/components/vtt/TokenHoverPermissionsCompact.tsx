@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from '../../i18n/TranslationContext';
 import { Campaign, TokenHoverPermissions } from '../../types';
 import { Eye, EyeOff, Save, Shield, User, Box } from 'lucide-react';
 import { campaignService } from '../../services/campaignService';
@@ -11,6 +12,7 @@ interface TokenHoverPermissionsCompactProps {
 }
 
 export const TokenHoverPermissionsCompact: React.FC<TokenHoverPermissionsCompactProps> = ({ campaign, permissions: externalPermissions, onChange }) => {
+  const { t } = useTranslation();
   const { show } = useNotification();
   const [permissions, setPermissions] = useState<TokenHoverPermissions>(
     externalPermissions || {
@@ -106,10 +108,10 @@ export const TokenHoverPermissionsCompact: React.FC<TokenHoverPermissionsCompact
     <div className="space-y-3">
       <div className="pb-2 border-b border-zinc-800">
         <h3 className="text-base font-bold text-white flex items-center gap-2">
-          <Eye className="w-4 h-4 text-primary" /> Visibilidade de Token Hover
+          <Eye className="w-4 h-4 text-primary" /> {t('vtt.tokenHover.permissions.title')}
         </h3>
         <p className="text-xs text-zinc-500 mt-1">
-          Controle o que os jogadores veem ao passar o mouse sobre tokens. GM sempre vê tudo.
+          {t('vtt.tokenHover.permissions.description')}
         </p>
       </div>
 
@@ -117,8 +119,8 @@ export const TokenHoverPermissionsCompact: React.FC<TokenHoverPermissionsCompact
       <div className="p-3 bg-zinc-900/50 rounded-lg border border-zinc-800">
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <h4 className="font-bold text-sm text-white">Token Hover Habilitado</h4>
-            <p className="text-xs text-zinc-500 mt-0.5">Permitir que jogadores vejam informações ao passar o mouse sobre tokens</p>
+            <h4 className="font-bold text-sm text-white">{t('vtt.tokenHover.permissions.enabled.title')}</h4>
+            <p className="text-xs text-zinc-500 mt-0.5">{t('vtt.tokenHover.permissions.enabled.description')}</p>
           </div>
           <button
             onClick={() => handleToggle('enabled')}
@@ -131,50 +133,50 @@ export const TokenHoverPermissionsCompact: React.FC<TokenHoverPermissionsCompact
 
       <div className="space-y-2.5">
         {renderCompactSection(
-          'Heróis (PCs)',
+          t('vtt.tokenHover.permissions.heroes.title'),
           <User className="w-3.5 h-3.5" />,
           'text-blue-400',
           'pc',
           [
-            { key: 'showName', label: 'Nome' },
-            { key: 'showHP', label: 'Barra de Vida' },
-            { key: 'showResource', label: 'Barra de Recurso' },
-            { key: 'showConditions', label: 'Condições' },
-            { key: 'showStats', label: 'Estatísticas (CA/Desl/PP)' },
-            { key: 'showAttributes', label: 'Botões de Atributos' },
+            { key: 'showName', label: t('vtt.tokenHover.permissions.name.label') },
+            { key: 'showHP', label: t('vtt.tokenHover.permissions.hpBar.label') },
+            { key: 'showResource', label: t('vtt.tokenHover.permissions.resourceBar.label') },
+            { key: 'showConditions', label: t('vtt.tokenHover.permissions.conditions.label') },
+            { key: 'showStats', label: t('vtt.tokenHover.permissions.stats.label') },
+            { key: 'showAttributes', label: t('vtt.tokenHover.permissions.attributes.label') },
           ]
         )}
 
         {renderCompactSection(
-          'Criaturas (NPCs)',
+          t('vtt.tokenHover.permissions.creatures.title'),
           <Shield className="w-3.5 h-3.5" />,
           'text-red-400',
           'npc',
           [
-            { key: 'showName', label: 'Nome' },
-            { key: 'showHP', label: 'Barra de Vida' },
-            { key: 'showResource', label: 'Barra de Recurso' },
-            { key: 'showConditions', label: 'Condições' },
-            { key: 'showStats', label: 'Estatísticas (CA/Desl/PP)' },
-            { key: 'showAttributes', label: 'Botões de Atributos' },
+            { key: 'showName', label: t('vtt.tokenHover.permissions.name.label') },
+            { key: 'showHP', label: t('vtt.tokenHover.permissions.hpBar.label') },
+            { key: 'showResource', label: t('vtt.tokenHover.permissions.resourceBar.label') },
+            { key: 'showConditions', label: t('vtt.tokenHover.permissions.conditions.label') },
+            { key: 'showStats', label: t('vtt.tokenHover.permissions.stats.label') },
+            { key: 'showAttributes', label: t('vtt.tokenHover.permissions.attributes.label') },
           ]
         )}
 
         {renderCompactSection(
-          'Objetos',
+          t('vtt.tokenHover.permissions.objects.title'),
           <Box className="w-3.5 h-3.5" />,
           'text-amber-400',
           'object',
           [
-            { key: 'showName', label: 'Nome do Objeto' },
-            { key: 'showConditions', label: 'Estados' },
+            { key: 'showName', label: t('vtt.tokenHover.permissions.objectName.label') },
+            { key: 'showConditions', label: t('vtt.tokenHover.permissions.states.label') },
           ]
         )}
       </div>
 
       <div className="pt-2 border-t border-zinc-800">
         <p className="text-[10px] text-zinc-600 italic text-center">
-          Clique em "Aplicar Regras" para salvar as alterações
+          {t('vtt.tokenHover.permissions.applyRulesHint')}
         </p>
       </div>
     </div>

@@ -2434,6 +2434,9 @@ export default {
         temCertezaQue: {
           text: 'Are you sure you want to delete this layer? All tokens and settings in it will be permanently lost.',
         },
+        newScene: {
+          defaultName: 'New Scene',
+        },
       },
     },
     attack: {
@@ -3295,6 +3298,7 @@ export default {
         },
         objects: {
           label: 'Objects',
+          title: 'Objects',
         },
         attributeButtons: {
           label: 'Attribute Buttons',
@@ -3303,6 +3307,29 @@ export default {
           label: 'Enemies (NPCs)',
         },
         applyRulesHint: 'Click "Apply Rules" to save changes',
+        title: 'Token Hover Visibility',
+        enabled: {
+          title: 'Token Hover Enabled',
+          description: 'Allow players to see information when hovering over tokens',
+        },
+        heroes: {
+          title: 'Heroes (PCs)',
+        },
+        creatures: {
+          title: 'Creatures (NPCs)',
+        },
+        conditions: {
+          label: 'Conditions',
+        },
+        stats: {
+          label: 'Stats (AC/Speed/PP)',
+        },
+        attributes: {
+          label: 'Attribute Buttons',
+        },
+        states: {
+          label: 'States',
+        },
       },
       card: {
         spellClickTooltip: 'Left click: Link to Chat | Right click: Remove',
