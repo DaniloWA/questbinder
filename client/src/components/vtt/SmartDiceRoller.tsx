@@ -109,7 +109,7 @@ export const SmartDiceRoller: React.FC<SmartDiceRollerProps> = ({ isOpen, onClos
             <div className="p-4 space-y-6 min-h-full bg-zinc-900/20">
                 <div className="space-y-2">
                     <div className="text-xs font-bold text-zinc-500 uppercase tracking-widest px-1 flex items-center gap-2">
-                        <Activity className="w-3 h-3" /> Testes de Atributo
+                        <Activity className="w-3 h-3" /> {t('vtt.smartDice.attributeTests.label')}
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                         {attrKeys.map((attr) => {
@@ -133,7 +133,7 @@ export const SmartDiceRoller: React.FC<SmartDiceRollerProps> = ({ isOpen, onClos
 
                 <div className="space-y-2">
                     <div className="text-xs font-bold text-zinc-500 uppercase tracking-widest px-1 flex items-center gap-2">
-                        <Shield className="w-3 h-3" /> Salvaguardas (Resistência)
+                        <Shield className="w-3 h-3" /> {t('vtt.smartDice.savingThrows.label')}
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                         {attrKeys.map((attr) => {
@@ -162,7 +162,7 @@ export const SmartDiceRoller: React.FC<SmartDiceRollerProps> = ({ isOpen, onClos
                 {/* Attacks */}
                 <div className="space-y-3">
                     <div className="flex items-center gap-2 text-xs font-bold text-zinc-500 uppercase tracking-widest px-1">
-                        <Sword className="w-3 h-3" /> Ataques Físicos
+                        <Sword className="w-3 h-3" /> {t('vtt.smartDice.physicalAttacks.label')}
                     </div>
                     {currentCharacter.attacks.length === 0 && <p className="text-zinc-600 text-xs text-center py-4 bg-zinc-900/30 rounded-lg border border-dashed border-zinc-800">{t('vtt.smartDice.noAttacks.text')}</p>}
                     {currentCharacter.attacks.map(atk => (
@@ -195,7 +195,7 @@ export const SmartDiceRoller: React.FC<SmartDiceRollerProps> = ({ isOpen, onClos
                 <div className="space-y-3">
                     <div className="flex justify-between items-center px-1">
                         <div className="flex items-center gap-2 text-xs font-bold text-zinc-500 uppercase tracking-widest">
-                            <Zap className="w-3 h-3" /> Grimório
+                            <Zap className="w-3 h-3" /> {t('vtt.smartDice.spellbook.label')}
                         </div>
                         <div className="text-[9px] bg-purple-500/10 text-purple-400 px-2 py-0.5 rounded border border-purple-500/20 font-bold">
                             CD {currentCharacter.spellInfo.saveDc} • ATK +{currentCharacter.spellInfo.atkBonus}
@@ -206,7 +206,7 @@ export const SmartDiceRoller: React.FC<SmartDiceRollerProps> = ({ isOpen, onClos
                         onClick={() => handleQuickRoll(`1d20+${currentCharacter.spellInfo.atkBonus}`, `Ataque Mágico (${currentCharacter.spellInfo.ability})`)}
                         className="w-full py-2 bg-purple-900/20 border border-purple-500/30 text-purple-300 rounded-lg text-xs font-bold hover:bg-purple-500 hover:text-white transition-all mb-2"
                     >
-                        Rolar Ataque Mágico Genérico
+                        {t('vtt.smartDice.genericSpellAttack.button')}
                     </button>
 
                     {currentCharacter.spells.length === 0 && <p className="text-zinc-600 text-xs text-center py-4 bg-zinc-900/30 rounded-lg border border-dashed border-zinc-800">{t('vtt.smartDice.noSpells.text')}</p>}
@@ -269,9 +269,9 @@ export const SmartDiceRoller: React.FC<SmartDiceRollerProps> = ({ isOpen, onClos
             <div className="p-4 space-y-4 min-h-full bg-zinc-900/20">
                 <div className="space-y-2">
                     <div className="text-xs font-bold text-zinc-500 uppercase tracking-widest px-1 flex items-center gap-2">
-                        <Backpack className="w-3 h-3" /> Itens
+                        <Backpack className="w-3 h-3" /> {t('vtt.smartDice.items.title')}
                     </div>
-                    {currentCharacter.inventory.length === 0 && <p className="text-zinc-600 text-xs text-center">Mochila vazia.</p>}
+                    {currentCharacter.inventory.length === 0 && <p className="text-zinc-600 text-xs text-center">{t('vtt.smartDice.emptyBag.text')}</p>}
                     {currentCharacter.inventory.map(item => (
                         <div key={item.id} className="flex items-center justify-between p-2 bg-zinc-900 border border-zinc-800 rounded-lg">
                             <div className="flex items-center gap-3">
@@ -282,7 +282,7 @@ export const SmartDiceRoller: React.FC<SmartDiceRollerProps> = ({ isOpen, onClos
                                 onClick={() => handleQuickRoll('1d20', `Usar Item: ${item.name}`)}
                                 className="text-[10px] font-bold uppercase text-zinc-500 hover:text-white transition-colors"
                             >
-                                Usar
+                                {t('vtt.smartDice.useItem.button')}
                             </button>
                         </div>
                     ))}
@@ -296,7 +296,7 @@ export const SmartDiceRoller: React.FC<SmartDiceRollerProps> = ({ isOpen, onClos
             <div className="w-20 h-20 rounded-full bg-zinc-900 flex items-center justify-center border border-zinc-800">
                 <User className="w-10 h-10" />
             </div>
-            <p>Selecione um token no mapa para acessar ações rápidas.</p>
+            <p>{t('vtt.smartDice.selectToken.text')}</p>
         </div>
     );
 

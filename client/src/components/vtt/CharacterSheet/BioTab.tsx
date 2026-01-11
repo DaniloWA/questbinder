@@ -19,7 +19,7 @@ export const BioTab: React.FC<BioTabProps> = ({
     <div className="p-3 md:p-5 space-y-6 pb-20">
       {/* Appearance Grid */}
       <div className="space-y-2">
-        <SheetHeader title="Aparência" icon={User} />
+        <SheetHeader title={t('vtt.character.bio.appearance.title')} icon={User} />
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {(Object.keys(character.appearance) as Array<keyof typeof character.appearance>).map(key => (
             <div key={key} className="bg-zinc-900 border border-zinc-800 rounded-lg p-2">
@@ -41,7 +41,7 @@ export const BioTab: React.FC<BioTabProps> = ({
 
       {/* Personality Traits */}
       <div className="space-y-2">
-        <SheetHeader title="Personalidade" icon={Brain} />
+        <SheetHeader title={t('vtt.character.bio.personality.title')} icon={Brain} />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {(Object.keys(character.personality) as Array<keyof typeof character.personality>).map(key => (
             <div key={key} className="bg-zinc-900 border border-zinc-800 rounded-lg p-3">
@@ -65,7 +65,7 @@ export const BioTab: React.FC<BioTabProps> = ({
       {/* Biography & Notes */}
       <div className="space-y-4">
         <div className="space-y-2">
-          <SheetHeader title="Biografia" icon={ScrollText} />
+          <SheetHeader title={t('vtt.character.bio.biography.title')} icon={ScrollText} />
           {isEditing ? (
             <OptimizedTextInput
               value={character.bio || ''}
@@ -73,7 +73,7 @@ export const BioTab: React.FC<BioTabProps> = ({
               className="w-full"
               inputClassName="bg-zinc-900 text-sm text-zinc-300 border border-zinc-800 rounded-lg p-3 min-h-[150px] focus:border-primary outline-none"
               multiline
-              placeholder="Escreva a história do seu personagem..."
+              placeholder={t('vtt.character.bio.biography.placeholder')}
             />
           ) : (
             <div className="bg-zinc-900/30 border border-zinc-800 rounded-lg p-4 text-sm text-zinc-400 leading-relaxed whitespace-pre-wrap">
@@ -83,10 +83,10 @@ export const BioTab: React.FC<BioTabProps> = ({
         </div>
 
         <div className="space-y-2">
-          <SheetHeader title="Notas & Outros" icon={NotebookPen} />
+          <SheetHeader title={t('vtt.character.bio.notesOther.title')} icon={NotebookPen} />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <span className="text-xs font-bold text-zinc-500 uppercase">Aliados & Organizações</span>
+              <span className="text-xs font-bold text-zinc-500 uppercase">{t('vtt.character.bio.alliesOrgs.label')}</span>
               {isEditing ? (
                 <OptimizedTextInput
                   value={character.alliesAndOrgs || ''}
@@ -102,7 +102,7 @@ export const BioTab: React.FC<BioTabProps> = ({
               )}
             </div>
             <div className="space-y-1">
-              <span className="text-xs font-bold text-zinc-500 uppercase">Tesouro & Itens Especiais</span>
+              <span className="text-xs font-bold text-zinc-500 uppercase">{t('vtt.character.bio.treasure.label')}</span>
               {isEditing ? (
                 <OptimizedTextInput
                   value={character.treasure || ''}

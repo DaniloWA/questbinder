@@ -2234,6 +2234,93 @@ export default {
           placeholder: 'Mastery',
         },
       },
+      stats: {
+        hitPoints: {
+          label: 'Hit Points',
+        },
+        armorClass: {
+          label: 'AC',
+        },
+        initiative: {
+          label: 'Initiative',
+        },
+        speed: {
+          label: 'Speed',
+        },
+        proficiency: {
+          label: 'Proficiency',
+        },
+        passivePerception: {
+          label: 'Passive Perc.',
+        },
+        perception: {
+          label: 'Perception',
+        },
+        inspiration: {
+          label: 'Inspiration',
+        },
+        exhaustion: {
+          label: 'Exhaustion',
+        },
+        hitDice: {
+          label: 'Hit Dice',
+        },
+        max: {
+          label: 'Max',
+        },
+        tempHP: {
+          label: 'Temporary HP',
+        },
+      },
+      actions: {
+        longRest: {
+          button: 'Long Rest',
+        },
+      },
+      combat: {
+        actionsAttacks: {
+          title: 'Actions & Attacks',
+        },
+        attackName: {
+          placeholder: 'Attack name',
+        },
+        range: {
+          placeholder: 'Range',
+        },
+        type: {
+          placeholder: 'Type',
+        },
+        mastery: {
+          placeholder: 'Mastery',
+        },
+        damage: {
+          label: 'Damage',
+        },
+      },
+      bio: {
+        appearance: {
+          title: 'Appearance',
+        },
+        personality: {
+          title: 'Personality',
+        },
+        biography: {
+          title: 'Biography',
+          placeholder: 'Write your character\'s story...',
+        },
+        notesOther: {
+          title: 'Notes & Other',
+        },
+        alliesOrgs: {
+          label: 'Allies & Organizations',
+        },
+        treasure: {
+          label: 'Treasure & Special Items',
+        },
+      },
+      exhaustion: {
+        penalty: 'on d20',
+      },
     },
     scene: {
       navigation: {
@@ -2927,6 +3014,7 @@ export default {
       },
       items: {
         label: 'Items',
+        title: 'Items',
       },
       emptyBag: {
         text: 'Empty bag.',

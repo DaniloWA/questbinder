@@ -58,10 +58,10 @@ export const CombatTab: React.FC<CombatTabProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs font-bold uppercase text-green-500">
                 <Heart className="w-4 h-4 fill-current" />
-                Pontos de Vida
+                {t('vtt.character.stats.hitPoints.label')}
               </div>
               <div className="text-xs text-zinc-500 font-mono">
-                Máx: {character.hpMax}
+                {t('vtt.character.stats.max.label')}: {character.hpMax}
               </div>
             </div>
 
@@ -78,7 +78,7 @@ export const CombatTab: React.FC<CombatTabProps> = ({
 
             {character.hpTemp > 0 && (
               <div className="text-sm text-blue-400 font-bold">
-                +{character.hpTemp} HP Temporário
+                +{character.hpTemp} {t('vtt.character.stats.tempHP.label')}
               </div>
             )}
           </div>
@@ -101,7 +101,7 @@ export const CombatTab: React.FC<CombatTabProps> = ({
                 onChange={(v) => updateField('initiative', v)}
                 min={-5}
                 max={10}
-                label="Iniciativa"
+                label={t('vtt.character.stats.initiative.label')}
                 showControls={false}
               />
               <OptimizedNumberInput
@@ -109,7 +109,7 @@ export const CombatTab: React.FC<CombatTabProps> = ({
                 onChange={(v) => updateField('speed', v)}
                 min={0}
                 max={120}
-                label="Deslocamento"
+                label={t('vtt.character.stats.speed.label')}
                 showControls={false}
               />
               <OptimizedNumberInput
@@ -117,7 +117,7 @@ export const CombatTab: React.FC<CombatTabProps> = ({
                 onChange={(v) => updateField('profBonus', v)}
                 min={2}
                 max={6}
-                label="Proficiência"
+                label={t('vtt.character.stats.proficiency.label')}
                 showControls={false}
               />
               <OptimizedNumberInput
@@ -125,29 +125,29 @@ export const CombatTab: React.FC<CombatTabProps> = ({
                 onChange={(v) => updateField('passivePerception', v)}
                 min={1}
                 max={30}
-                label="Percepção"
+                label={t('vtt.character.stats.perception.label')}
                 showControls={false}
               />
             </>
           ) : (
             <>
-              <StatBox label="CA" value={character.armorClass} icon={<Shield className="w-4 h-4" />} />
+              <StatBox label={t('vtt.character.stats.armorClass.label')} value={character.armorClass} icon={<Shield className="w-4 h-4" />} />
               <StatBox
-                label="Iniciativa"
+                label={t('vtt.character.stats.initiative.label')}
                 value={fmtMod(character.initiative)}
                 icon={<RabbitIcon className="w-4 h-4" />}
-                onClick={() => onRoll('Iniciativa', character.initiative)}
+                onClick={() => onRoll(t('vtt.character.stats.initiative.label'), character.initiative)}
                 highlight
               />
-              <StatBox label="Deslocamento" value={`${character.speed}m`} icon={<Wind className="w-4 h-4" />} />
-              <StatBox label="Proficiência" value={`+${character.profBonus}`} icon={<Award className="w-4 h-4" />} />
-              <StatBox label="Percepção Pas." value={character.passivePerception} icon={<Eye className="w-4 h-4" />} />
+              <StatBox label={t('vtt.character.stats.speed.label')} value={`${character.speed}m`} icon={<Wind className="w-4 h-4" />} />
+              <StatBox label={t('vtt.character.stats.proficiency.label')} value={`+${character.profBonus}`} icon={<Award className="w-4 h-4" />} />
+              <StatBox label={t('vtt.character.stats.passivePerception.label')} value={character.passivePerception} icon={<Eye className="w-4 h-4" />} />
             </>
           )}
 
           {/* Heroic Inspiration */}
           <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-2 flex flex-col items-center justify-center">
-            <span className="text-[9px] font-bold uppercase text-zinc-500 mb-1">Inspiração</span>
+            <span className="text-[9px] font-bold uppercase text-zinc-500 mb-1">{t('vtt.character.stats.inspiration.label')}</span>
             <button
               onClick={() => updateField('heroicInspiration', !character.heroicInspiration)}
               disabled={!canEdit}
@@ -166,11 +166,11 @@ export const CombatTab: React.FC<CombatTabProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-3 flex items-center justify-between">
           <span className="text-xs font-bold text-zinc-400 flex items-center gap-2">
-            <Skull className="w-3.5 h-3.5" /> Exaustão
+            <Skull className="w-3.5 h-3.5" /> {t('vtt.character.stats.exhaustion.label')}
           </span>
           <div className="flex items-center gap-3">
             <span className={`text-xs font-mono ${character.exhaustion > 0 ? 'text-red-400' : 'text-zinc-600'}`}>
-              -{character.exhaustion * 2} em d20
+              -{character.exhaustion * 2} {t('vtt.character.exhaustion.penalty')}
             </span>
             <Counter
               value={character.exhaustion}
@@ -184,7 +184,7 @@ export const CombatTab: React.FC<CombatTabProps> = ({
 
         <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-3 flex items-center justify-between">
           <span className="text-xs font-bold text-zinc-400 flex items-center gap-2">
-            <Hourglass className="w-3.5 h-3.5" /> Dados de Vida
+            <Hourglass className="w-3.5 h-3.5" /> {t('vtt.character.stats.hitDice.label')}
           </span>
           <div className="flex items-center gap-3">
             <span className="text-xs text-zinc-500">{character.hitDiceTotal}</span>
@@ -206,13 +206,13 @@ export const CombatTab: React.FC<CombatTabProps> = ({
           className="w-full bg-primary/10 hover:bg-primary/20 border border-primary/30 text-primary rounded-lg py-2 px-4 font-bold text-sm transition-colors flex items-center justify-center gap-2"
         >
           <Moon className="w-4 h-4" />
-          Descanso Longo
+          {t('vtt.character.actions.longRest.button')}
         </button>
       )}
 
       {/* ATTACKS LIST */}
       <div className="space-y-3">
-        <SheetHeader title="Ações & Ataques" icon={Sword} />
+        <SheetHeader title={t('vtt.character.combat.actionsAttacks.title')} icon={Sword} />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           {character.attacks.map(atk => (
             <div key={atk.id} className="bg-zinc-900 border border-zinc-700 rounded-lg p-3 hover:border-primary/50 transition-all group relative overflow-hidden">

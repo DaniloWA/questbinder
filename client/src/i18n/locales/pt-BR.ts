@@ -1665,6 +1665,93 @@ export default {
           placeholder: 'Maestria',
         },
       },
+      stats: {
+        hitPoints: {
+          label: 'Pontos de Vida',
+        },
+        armorClass: {
+          label: 'CA',
+        },
+        initiative: {
+          label: 'Iniciativa',
+        },
+        speed: {
+          label: 'Deslocamento',
+        },
+        proficiency: {
+          label: 'Proficiência',
+        },
+        passivePerception: {
+          label: 'Percepção Pas.',
+        },
+        perception: {
+          label: 'Percepção',
+        },
+        inspiration: {
+          label: 'Inspiração',
+        },
+        exhaustion: {
+          label: 'Exaustão',
+        },
+        hitDice: {
+          label: 'Dados de Vida',
+        },
+        max: {
+          label: 'Máx',
+        },
+        tempHP: {
+          label: 'HP Temporário',
+        },
+      },
+      actions: {
+        longRest: {
+          button: 'Descanso Longo',
+        },
+      },
+      combat: {
+        actionsAttacks: {
+          title: 'Ações & Ataques',
+        },
+        attackName: {
+          placeholder: 'Nome do ataque',
+        },
+        range: {
+          placeholder: 'Alcance',
+        },
+        type: {
+          placeholder: 'Tipo',
+        },
+        mastery: {
+          placeholder: 'Maestria',
+        },
+        damage: {
+          label: 'Dano',
+        },
+      },
+      bio: {
+        appearance: {
+          title: 'Aparência',
+        },
+        personality: {
+          title: 'Personalidade',
+        },
+        biography: {
+          title: 'Biografia',
+          placeholder: 'Escreva a história do seu personagem...',
+        },
+        notesOther: {
+          title: 'Notas & Outros',
+        },
+        alliesOrgs: {
+          label: 'Aliados & Organizações',
+        },
+        treasure: {
+          label: 'Tesouro & Itens Especiais',
+        },
+      },
+      exhaustion: {
+        penalty: 'em d20',
+      },
     },
     scene: {
       navigation: {
@@ -2358,6 +2445,7 @@ export default {
       },
       items: {
         label: 'Itens',
+        title: 'Itens',
       },
       emptyBag: {
         text: 'Mochila vazia.',
