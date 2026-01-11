@@ -1,14 +1,29 @@
 {
   "translations": [
     {
-      "key": "vtt.notifications.pullView.message",
-      "pt": "O Mestre puxou sua visão",
-      "en": "The GM pulled your view"
+      "key": "vtt.notifications.followMode.toAll",
+      "pt": "PARA TODOS",
+      "en": "TO ALL"
     },
     {
-      "key": "vtt.notifications.followMode.followingGM",
-      "pt": "SEGUINDO MESTRE",
-      "en": "FOLLOWING GM"
+      "key": "vtt.notifications.followMode.toPlayers",
+      "pt": "PARA {count} JOGADORES",
+      "en": "TO {count} PLAYERS"
+    },
+    {
+      "key": "vtt.notifications.followMode.toPrefix",
+      "pt": "PARA",
+      "en": "TO"
+    },
+    {
+      "key": "vtt.map.modal.configureAudioZone.title",
+      "pt": "Configurar Zona de Áudio",
+      "en": "Configure Audio Zone"
+    },
+    {
+      "key": "vtt.map.modal.configureTrigger.title",
+      "pt": "Configurar Gatilho",
+      "en": "Configure Trigger"
     }
   ]
 }

@@ -2955,6 +2955,14 @@ export default {
           title: 'Configure Trigger',
         },
       },
+      modal: {
+        configureAudioZone: {
+          title: 'Configure Audio Zone',
+        },
+        configureTrigger: {
+          title: 'Configure Trigger',
+        },
+      },
     },
     handouts: {
       formModal: {
@@ -3383,6 +3391,9 @@ export default {
         noTarget: 'TO NOBODY',
         broadcasting: 'BROADCASTING VIEW',
         followingGM: 'FOLLOWING GM',
+        toAll: 'TO ALL',
+        toPlayers: 'TO {count} PLAYERS',
+        toPrefix: 'TO',
       },
     },
     smartWall: {

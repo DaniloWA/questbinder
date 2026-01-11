@@ -19,16 +19,16 @@ export const FollowModeIndicator: React.FC = () => {
 
   const broadcastingInfo = useMemo(() => {
     if (!isBroadcasting) return '';
-    if (followMode.targets === 'all') return 'PARA TODOS';
+    if (followMode.targets === 'all') return t('vtt.notifications.followMode.toAll');
 
     const targetIds = followMode.targets as string[];
     if (targetIds.length === 0) return t('vtt.notifications.followMode.noTarget'); // Should not happen often
 
     const names = targetIds.map(id => players.find((p: User) => p.id === id)?.name || 'Unknown');
 
-    if (names.length <= 3) return `PARA ${names.join(', ')}`;
-    return `PARA ${names.length} JOGADORES`;
-  }, [isBroadcasting, followMode, players]);
+    if (names.length <= 3) return `${t('vtt.notifications.followMode.toPrefix')} ${names.join(', ')}`;
+    return t('vtt.notifications.followMode.toPlayers', { count: names.length });
+  }, [isBroadcasting, followMode, players, t]);
 
   if (!isFollowing && !isBroadcasting) return null;
 

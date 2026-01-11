@@ -2386,6 +2386,14 @@ export default {
           title: 'Configurar Gatilho',
         },
       },
+      modal: {
+        configureAudioZone: {
+          title: 'Configurar Zona de Áudio',
+        },
+        configureTrigger: {
+          title: 'Configurar Gatilho',
+        },
+      },
     },
     handouts: {
       formModal: {
@@ -2814,6 +2822,9 @@ export default {
         noTarget: 'PARA NINGUÉM',
         broadcasting: 'TRANSMITINDO VISÃO',
         followingGM: 'SEGUINDO MESTRE',
+        toAll: 'PARA TODOS',
+        toPlayers: 'PARA {count} JOGADORES',
+        toPrefix: 'PARA',
       },
     },
     smartWall: {
