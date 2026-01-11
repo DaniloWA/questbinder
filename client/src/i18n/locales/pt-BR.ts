@@ -2767,6 +2767,12 @@ export default {
         permissions: {
           hint: 'Para configurar visibilidade e permissões, use o menu Permissões.',
         },
+        pullAll: {
+          button: 'Puxar Todos',
+        },
+        pull: {
+          button: 'Puxar',
+        },
       },
     },
     spectate: {
@@ -2776,6 +2782,9 @@ export default {
         },
         allPlayers: {
           text: 'Todos os Jogadores',
+        },
+        viewingAs: {
+          text: 'Visualizando como:',
         },
       },
     },

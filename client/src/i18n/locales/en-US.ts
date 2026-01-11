@@ -3336,6 +3336,12 @@ export default {
         permissions: {
           hint: 'To configure visibility and permissions, use the Permissions menu.',
         },
+        pullAll: {
+          button: 'Pull All',
+        },
+        pull: {
+          button: 'Pull',
+        },
       },
     },
     spectate: {
@@ -3345,6 +3351,9 @@ export default {
         },
         allPlayers: {
           text: 'All Players',
+        },
+        viewingAs: {
+          text: 'Viewing as:',
         },
       },
     },

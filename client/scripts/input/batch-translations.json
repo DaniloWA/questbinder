@@ -1,9 +1,9 @@
 {
   "translations": [
     {
-      "key": "vtt.character.spells.attack.label",
-      "pt": "Ataque",
-      "en": "Attack"
+      "key": "vtt.spectate.banner.viewingAs.text",
+      "pt": "Visualizando como:",
+      "en": "Viewing as:"
     }
   ]
 }
