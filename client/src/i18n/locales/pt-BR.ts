@@ -1793,16 +1793,28 @@ export default {
         features: {
           label: 'Características',
         },
+        spells: {
+          label: 'Magias',
+        },
+        inventory: {
+          label: 'Inventário',
+        },
       },
       features: {
         name: {
           placeholder: 'Nome da característica',
         },
         title: 'Características e Talentos',
+        description: {
+          placeholder: 'Descrição...',
+        },
       },
       spells: {
         attribute: {
           label: 'Atributo',
+        },
+        slots: {
+          title: 'Espaços de Magia',
         },
       },
     },
@@ -2286,6 +2298,11 @@ export default {
         },
         compartilharSeoNo: {
           tooltip: 'Compartilhar Seção no Chat',
+        },
+      },
+      tabs: {
+        spells: {
+          label: 'Magias',
         },
       },
     },

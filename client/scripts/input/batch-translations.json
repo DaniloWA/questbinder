@@ -1,34 +1,29 @@
 {
   "translations": [
     {
-      "key": "vtt.tokenHover.permissions.attributeButtons.label",
-      "pt": "Botões de Atributos",
-      "en": "Attribute Buttons"
+      "key": "vtt.character.tabs.spells.label",
+      "pt": "Magias",
+      "en": "Spells"
     },
     {
-      "key": "vtt.character.sheet.attributes.title",
-      "pt": "Atributos",
-      "en": "Attributes"
+      "key": "vtt.character.tabs.inventory.label",
+      "pt": "Inventário",
+      "en": "Inventory"
     },
     {
-      "key": "vtt.character.spells.attribute.label",
-      "pt": "Atributo",
-      "en": "Attribute"
+      "key": "vtt.character.spells.slots.title",
+      "pt": "Espaços de Magia",
+      "en": "Spell Slots"
     },
     {
-      "key": "vtt.character.features.title",
-      "pt": "Características e Talentos",
-      "en": "Features & Talents"
+      "key": "vtt.character.features.description.placeholder",
+      "pt": "Descrição...",
+      "en": "Description..."
     },
     {
-      "key": "vtt.character.tabs.features.label",
-      "pt": "Características",
-      "en": "Features"
-    },
-    {
-      "key": "vtt.tokenHover.permissions.inimigosNPCs.label",
-      "pt": "Inimigos (NPCs)",
-      "en": "Enemies (NPCs)"
+      "key": "vtt.compendium.tabs.spells.label",
+      "pt": "Magias",
+      "en": "Spells"
     }
   ]
 }

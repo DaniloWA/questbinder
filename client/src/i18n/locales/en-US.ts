@@ -2362,16 +2362,28 @@ export default {
         features: {
           label: 'Features',
         },
+        spells: {
+          label: 'Spells',
+        },
+        inventory: {
+          label: 'Inventory',
+        },
       },
       features: {
         name: {
           placeholder: 'Feature name',
         },
         title: 'Features & Talents',
+        description: {
+          placeholder: 'Description...',
+        },
       },
       spells: {
         attribute: {
           label: 'Attribute',
+        },
+        slots: {
+          title: 'Spell Slots',
         },
       },
     },
@@ -2855,6 +2867,11 @@ export default {
         },
         compartilharSeoNo: {
           tooltip: 'Share Section in Chat',
+        },
+      },
+      tabs: {
+        spells: {
+          label: 'Spells',
         },
       },
     },
