@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, Settings } from 'lucide-react';
+import { useTranslation } from '../../../i18n/TranslationContext';
 import { Character } from '../../../types';
 import { OptimizedTextInput } from '../../ui/OptimizedTextInput';
 import { SaveIndicator } from '../../ui/SaveIndicator';
@@ -18,6 +19,7 @@ interface SheetHeaderProps {
 export const SheetHeader: React.FC<SheetHeaderProps> = ({
   character, isEditing, setIsEditing, onUpdateName, onClose, canEdit, saveStatus
 }) => {
+  const { t } = useTranslation();
   return (
     <div className="sticky top-0 z-20 bg-zinc-950 border-b border-zinc-800 p-4 flex items-center justify-between">
       <div className="flex items-center gap-3">
@@ -35,10 +37,10 @@ export const SheetHeader: React.FC<SheetHeaderProps> = ({
             disabled={!canEdit}
             className="mb-1"
             inputClassName="text-xl font-bold bg-transparent border-none px-0 py-0 focus:ring-0"
-            placeholder="Nome do Personagem"
+            placeholder={t('vtt.character.sheet.characterName.placeholder')}
           />
           <div className="text-xs text-zinc-500">
-            {character.class} Nível {character.level} • {character.species}
+            {character.class} {t('vtt.character.header.level.text')} {character.level} • {character.species}
           </div>
         </div>
       </div>
@@ -47,7 +49,7 @@ export const SheetHeader: React.FC<SheetHeaderProps> = ({
         <SaveIndicator status={saveStatus} />
 
         {canEdit && (
-          <Tooltip content={isEditing ? "Modo Visualização" : "Modo Edição"}>
+          <Tooltip content={isEditing ? t('vtt.character.header.viewMode.tooltip') : t('vtt.character.header.editMode.tooltip')}>
             <button
               onClick={() => setIsEditing(!isEditing)}
               className={`p-2 rounded-lg transition-all ${isEditing

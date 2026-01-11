@@ -1,5 +1,6 @@
 import React from 'react';
 import { Sparkles, Share2 } from 'lucide-react';
+import { useTranslation } from '../../../i18n/TranslationContext';
 import { Character } from '../../../types';
 import { OptimizedTextInput } from '../../ui/OptimizedTextInput';
 import { SheetHeader } from '../../ui/SheetPrimitives';
@@ -14,9 +15,10 @@ interface FeaturesTabProps {
 export const FeaturesTab: React.FC<FeaturesTabProps> = ({
   character, isEditing, updateFields, onShare
 }) => {
+  const { t } = useTranslation();
   return (
     <div className="p-3 md:p-5 space-y-5 pb-20">
-      <SheetHeader title="Características e Talentos" icon={Sparkles} />
+      <SheetHeader title={t('vtt.character.features.title')} icon={Sparkles} />
       <div className="space-y-2">
         {character.features.map(feat => (
           <div key={feat.id} className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-3 hover:border-zinc-700 transition-all group">
@@ -31,7 +33,7 @@ export const FeaturesTab: React.FC<FeaturesTabProps> = ({
                     }}
                     className="w-full"
                     inputClassName="bg-zinc-950 text-sm font-bold text-white border border-zinc-700 rounded px-1"
-                    placeholder="Nome da característica"
+                    placeholder={t('vtt.character.features.name.placeholder')}
                   />
                   <OptimizedTextInput
                     value={feat.source}
@@ -41,7 +43,7 @@ export const FeaturesTab: React.FC<FeaturesTabProps> = ({
                     }}
                     className="w-full"
                     inputClassName="bg-zinc-950 text-[10px] text-zinc-500 border border-zinc-700 rounded px-1"
-                    placeholder="Fonte (ex: Raça, Classe)"
+                    placeholder={t('vtt.character.features.source.placeholder')}
                   />
                 </div>
               ) : (
@@ -62,7 +64,7 @@ export const FeaturesTab: React.FC<FeaturesTabProps> = ({
                 className="w-full"
                 inputClassName="bg-zinc-950 text-xs text-zinc-400 border border-zinc-700 rounded px-1 w-full"
                 multiline
-                placeholder="Descrição..."
+                placeholder={t('vtt.character.features.description.placeholder')}
               />
             ) : (
               <p className="text-xs text-zinc-400 leading-relaxed whitespace-pre-wrap">{feat.description}</p>
