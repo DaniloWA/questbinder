@@ -1,79 +1,24 @@
 {
   "translations": [
     {
-      "key": "vtt.tokenHover.permissions.title",
-      "pt": "Visibilidade de Token Hover",
-      "en": "Token Hover Visibility"
+      "key": "vtt.combat.card.nextTurn.button",
+      "pt": "Próximo",
+      "en": "Next"
     },
     {
-      "key": "vtt.tokenHover.permissions.description",
-      "pt": "Controle o que os jogadores veem ao passar o mouse sobre tokens. GM sempre vê tudo.",
-      "en": "Control what players see when hovering over tokens. GM always sees everything."
+      "key": "vtt.combat.card.hp.label",
+      "pt": "Pontos de Vida",
+      "en": "Hit Points"
     },
     {
-      "key": "vtt.tokenHover.permissions.enabled.title",
-      "pt": "Token Hover Habilitado",
-      "en": "Token Hover Enabled"
+      "key": "vtt.combat.card.init.abbr",
+      "pt": "Init",
+      "en": "Init"
     },
     {
-      "key": "vtt.tokenHover.permissions.enabled.description",
-      "pt": "Permitir que jogadores vejam informações ao passar o mouse sobre tokens",
-      "en": "Allow players to see information when hovering over tokens"
-    },
-    {
-      "key": "vtt.tokenHover.permissions.heroes.title",
-      "pt": "Heróis (PCs)",
-      "en": "Heroes (PCs)"
-    },
-    {
-      "key": "vtt.tokenHover.permissions.creatures.title",
-      "pt": "Criaturas (NPCs)",
-      "en": "Creatures (NPCs)"
-    },
-    {
-      "key": "vtt.tokenHover.permissions.objects.title",
-      "pt": "Objetos",
-      "en": "Objects"
-    },
-    {
-      "key": "vtt.tokenHover.permissions.name.label",
-      "pt": "Nome",
-      "en": "Name"
-    },
-    {
-      "key": "vtt.tokenHover.permissions.objectName.label",
-      "pt": "Nome do Objeto",
-      "en": "Object Name"
-    },
-    {
-      "key": "vtt.tokenHover.permissions.hpBar.label",
-      "pt": "Barra de Vida",
-      "en": "HP Bar"
-    },
-    {
-      "key": "vtt.tokenHover.permissions.resourceBar.label",
-      "pt": "Barra de Recurso",
-      "en": "Resource Bar"
-    },
-    {
-      "key": "vtt.tokenHover.permissions.conditions.label",
-      "pt": "Condições",
-      "en": "Conditions"
-    },
-    {
-      "key": "vtt.tokenHover.permissions.stats.label",
-      "pt": "Estatísticas (CA/Desl/PP)",
-      "en": "Stats (AC/Speed/PP)"
-    },
-    {
-      "key": "vtt.tokenHover.permissions.attributes.label",
-      "pt": "Botões de Atributos",
-      "en": "Attribute Buttons"
-    },
-    {
-      "key": "vtt.tokenHover.permissions.states.label",
-      "pt": "Estados",
-      "en": "States"
+      "key": "vtt.combat.card.ac.abbr",
+      "pt": "CA",
+      "en": "AC"
     }
   ]
 }

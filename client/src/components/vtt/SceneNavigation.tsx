@@ -22,7 +22,7 @@ export const SceneNavigation: React.FC = () => {
     }
 
     const handleAddScene = () => {
-        const name = `Nova Cena ${scenes.length + 1}`;
+        const name = `${t('vtt.scene.navigation.newScene.defaultName')} ${scenes.length + 1}`;
         addScene(name);
     };
 

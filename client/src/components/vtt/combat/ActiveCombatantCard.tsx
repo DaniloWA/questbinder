@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from '../../../i18n/TranslationContext';
 import { Combatant, CombatCondition } from '../../../types';
 import { Heart, Shield, Zap, Skull, Swords, MoreVertical } from 'lucide-react';
 import { Tooltip } from '../../ui/Tooltip';
@@ -15,6 +16,7 @@ interface ActiveCombatantCardProps {
 export const ActiveCombatantCard: React.FC<ActiveCombatantCardProps> = ({
   combatant, isGM, onDamage, onHeal, onNextTurn
 }) => {
+  const { t } = useTranslation();
   const hpPercentage = combatant.maxHp ? (combatant.hp || 0) / combatant.maxHp * 100 : 0;
 
   const getHPColor = (p: number) => {
@@ -46,8 +48,8 @@ export const ActiveCombatantCard: React.FC<ActiveCombatantCardProps> = ({
             <div>
               <h3 className="font-bold text-lg text-white leading-tight">{combatant.name}</h3>
               <div className="flex items-center gap-2 text-xs text-zinc-400 mt-1">
-                <span className="bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-700">Init {combatant.initiative}</span>
-                {combatant.ac && <span className="bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-700 flex items-center gap-1"><Shield className="w-3 h-3" /> CA {combatant.ac}</span>}
+                <span className="bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-700">{t('vtt.combat.card.init.abbr')} {combatant.initiative}</span>
+                {combatant.ac && <span className="bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-700 flex items-center gap-1"><Shield className="w-3 h-3" /> {t('vtt.combat.card.ac.abbr')} {combatant.ac}</span>}
               </div>
             </div>
           </div>
@@ -55,7 +57,7 @@ export const ActiveCombatantCard: React.FC<ActiveCombatantCardProps> = ({
           {/* Turn Actions */}
           {isGM && (
             <Button size="sm" onClick={onNextTurn} className="shadow-lg shadow-primary/20">
-              Próximo
+              {t('vtt.combat.card.nextTurn.button')}
             </Button>
           )}
         </div>
@@ -66,7 +68,7 @@ export const ActiveCombatantCard: React.FC<ActiveCombatantCardProps> = ({
           {combatant.hp !== undefined && combatant.maxHp && (
             <div className="space-y-1">
               <div className="flex justify-between text-xs font-bold uppercase text-zinc-500">
-                <span>Pontos de Vida</span>
+                <span>{t('vtt.combat.card.hp.label')}</span>
                 <span className="text-white">{combatant.hp} / {combatant.maxHp}</span>
               </div>
               <div className="h-2 bg-zinc-950 rounded-full overflow-hidden border border-zinc-800">

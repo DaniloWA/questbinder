@@ -913,6 +913,20 @@ export default {
           text: 'Hit Points',
         },
       },
+      card: {
+        nextTurn: {
+          button: 'Next',
+        },
+        hp: {
+          label: 'Hit Points',
+        },
+        init: {
+          abbr: 'Init',
+        },
+        ac: {
+          abbr: 'AC',
+        },
+      },
     },
     chat: {
       title: 'History',

@@ -908,6 +908,20 @@ export default {
           text: 'Pontos de Vida',
         },
       },
+      card: {
+        nextTurn: {
+          button: 'Próximo',
+        },
+        hp: {
+          label: 'Pontos de Vida',
+        },
+        init: {
+          abbr: 'Init',
+        },
+        ac: {
+          abbr: 'CA',
+        },
+      },
     },
     chat: {
       title: 'Histórico',
