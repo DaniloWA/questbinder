@@ -1,194 +1,59 @@
 {
   "translations": [
     {
-      "key": "vtt.character.stats.hitPoints.label",
-      "pt": "Pontos de Vida",
-      "en": "Hit Points"
+      "key": "vtt.handouts.preview.share.button",
+      "pt": "Compartilhar",
+      "en": "Share"
     },
     {
-      "key": "vtt.character.stats.armorClass.label",
-      "pt": "CA",
-      "en": "AC"
+      "key": "vtt.handouts.shared.stopSharing.label",
+      "pt": "Parar de Compartilhar",
+      "en": "Stop Sharing"
     },
     {
-      "key": "vtt.character.stats.initiative.label",
-      "pt": "Iniciativa",
-      "en": "Initiative"
+      "key": "vtt.settings.view.stopFollowing.label",
+      "pt": "Parar de Seguir",
+      "en": "Stop Following"
     },
     {
-      "key": "vtt.character.stats.speed.label",
-      "pt": "Deslocamento",
-      "en": "Speed"
+      "key": "vtt.settings.view.followAll.label",
+      "pt": "Seguir Todos",
+      "en": "Follow All"
     },
     {
-      "key": "vtt.character.stats.proficiency.label",
-      "pt": "Proficiência",
-      "en": "Proficiency"
+      "key": "vtt.character.sheet.skills.title",
+      "pt": "Perícias",
+      "en": "Skills"
     },
     {
-      "key": "vtt.character.stats.passivePerception.label",
-      "pt": "Percepção Pas.",
-      "en": "Passive Perc."
+      "key": "vtt.tokens.hoverPermissions.conditions.label",
+      "pt": "Condições",
+      "en": "Conditions"
     },
     {
-      "key": "vtt.character.stats.perception.label",
-      "pt": "Percepção",
-      "en": "Perception"
+      "key": "vtt.character.tabs.combat.label",
+      "pt": "Combate",
+      "en": "Combat"
     },
     {
-      "key": "vtt.character.stats.inspiration.label",
-      "pt": "Inspiração",
-      "en": "Inspiration"
-    },
-    {
-      "key": "vtt.character.stats.exhaustion.label",
-      "pt": "Exaustão",
-      "en": "Exhaustion"
-    },
-    {
-      "key": "vtt.character.stats.hitDice.label",
-      "pt": "Dados de Vida",
-      "en": "Hit Dice"
-    },
-    {
-      "key": "vtt.character.stats.max.label",
-      "pt": "Máx",
-      "en": "Max"
-    },
-    {
-      "key": "vtt.character.stats.tempHP.label",
-      "pt": "HP Temporário",
-      "en": "Temporary HP"
-    },
-    {
-      "key": "vtt.character.actions.longRest.button",
-      "pt": "Descanso Longo",
-      "en": "Long Rest"
-    },
-    {
-      "key": "vtt.character.combat.actionsAttacks.title",
-      "pt": "Ações & Ataques",
-      "en": "Actions & Attacks"
-    },
-    {
-      "key": "vtt.character.bio.appearance.title",
-      "pt": "Aparência",
-      "en": "Appearance"
-    },
-    {
-      "key": "vtt.character.bio.personality.title",
-      "pt": "Personalidade",
-      "en": "Personality"
-    },
-    {
-      "key": "vtt.character.bio.biography.title",
+      "key": "vtt.character.tabs.biography.label",
       "pt": "Biografia",
       "en": "Biography"
     },
     {
-      "key": "vtt.character.bio.biography.placeholder",
-      "pt": "Escreva a história do seu personagem...",
-      "en": "Write your character's story..."
+      "key": "vtt.character.tabs.gmNotes.label",
+      "pt": "Notas GM",
+      "en": "GM Notes"
     },
     {
-      "key": "vtt.character.bio.notesOther.title",
-      "pt": "Notas & Outros",
-      "en": "Notes & Other"
+      "key": "vtt.handouts.tray.searchPlaceholder",
+      "pt": "Buscar recurso...",
+      "en": "Search resource..."
     },
     {
-      "key": "vtt.character.bio.alliesOrgs.label",
-      "pt": "Aliados & Organizações",
-      "en": "Allies & Organizations"
-    },
-    {
-      "key": "vtt.character.bio.treasure.label",
-      "pt": "Tesouro & Itens Especiais",
-      "en": "Treasure & Special Items"
-    },
-    {
-      "key": "vtt.smartDice.physicalAttacks.label",
-      "pt": "Ataques Físicos",
-      "en": "Physical Attacks"
-    },
-    {
-      "key": "vtt.smartDice.savingThrows.label",
-      "pt": "Salvaguardas (Resistência)",
-      "en": "Saving Throws (Resistance)"
-    },
-    {
-      "key": "vtt.smartDice.spellbook.label",
-      "pt": "Grimório",
-      "en": "Spellbook"
-    },
-    {
-      "key": "vtt.smartDice.genericSpellAttack.button",
-      "pt": "Rolar Ataque Mágico Genérico",
-      "en": "Roll Generic Spell Attack"
-    },
-    {
-      "key": "vtt.smartDice.items.title",
-      "pt": "Itens",
-      "en": "Items"
-    },
-    {
-      "key": "vtt.smartDice.emptyBag.text",
-      "pt": "Mochila vazia.",
-      "en": "Empty bag."
-    },
-    {
-      "key": "vtt.smartDice.useItem.button",
-      "pt": "Usar",
-      "en": "Use"
-    },
-    {
-      "key": "vtt.smartDice.attributeTests.label",
-      "pt": "Testes de Atributo",
-      "en": "Attribute Tests"
-    },
-    {
-      "key": "vtt.smartDice.selectToken.text",
-      "pt": "Selecione um token no mapa para acessar ações rápidas.",
-      "en": "Select a token on the map to access quick actions."
-    },
-    {
-      "key": "vtt.smartDice.cantrip.label",
-      "pt": "Truque",
-      "en": "Cantrip"
-    },
-    {
-      "key": "vtt.smartDice.level.label",
-      "pt": "Nível",
-      "en": "Level"
-    },
-    {
-      "key": "vtt.character.combat.attackName.placeholder",
-      "pt": "Nome do ataque",
-      "en": "Attack name"
-    },
-    {
-      "key": "vtt.character.combat.range.placeholder",
-      "pt": "Alcance",
-      "en": "Range"
-    },
-    {
-      "key": "vtt.character.combat.type.placeholder",
-      "pt": "Tipo",
-      "en": "Type"
-    },
-    {
-      "key": "vtt.character.combat.mastery.placeholder",
-      "pt": "Maestria",
-      "en": "Mastery"
-    },
-    {
-      "key": "vtt.character.combat.damage.label",
-      "pt": "Dano",
-      "en": "Damage"
-    },
-    {
-      "key": "vtt.character.exhaustion.penalty",
-      "pt": "em d20",
-      "en": "on d20"
+      "key": "vtt.handouts.tray.createTrigger.title",
+      "pt": "Criar Gatilho no Mapa",
+      "en": "Create Trigger on Map"
     }
   ]
 }

@@ -727,6 +727,11 @@ export default {
           label: 'Notes',
         },
       },
+      hoverPermissions: {
+        conditions: {
+          label: 'Conditions',
+        },
+      },
     },
     combat: {
       start: {
@@ -2321,6 +2326,22 @@ export default {
       exhaustion: {
         penalty: 'on d20',
       },
+      sheet: {
+        skills: {
+          title: 'Skills',
+        },
+      },
+      tabs: {
+        combat: {
+          label: 'Combat',
+        },
+        biography: {
+          label: 'Biography',
+        },
+        gmNotes: {
+          label: 'GM Notes',
+        },
+      },
     },
     scene: {
       navigation: {
@@ -2959,6 +2980,14 @@ export default {
         edit: {
           button: 'Edit',
         },
+        share: {
+          button: 'Share',
+        },
+      },
+      shared: {
+        stopSharing: {
+          label: 'Stop Sharing',
+        },
       },
     },
     smartDice: {
@@ -3139,6 +3168,16 @@ export default {
     tokenHover: {
       actionTooltip: {
         text: 'Left click: Link in Chat | Right click: Remove',
+      },
+    },
+    settings: {
+      view: {
+        stopFollowing: {
+          label: 'Stop Following',
+        },
+        followAll: {
+          label: 'Follow All',
+        },
       },
     },
   },

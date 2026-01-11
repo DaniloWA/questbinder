@@ -722,6 +722,11 @@ export default {
           label: 'Notas',
         },
       },
+      hoverPermissions: {
+        conditions: {
+          label: 'Condições',
+        },
+      },
     },
     combat: {
       start: {
@@ -1752,6 +1757,22 @@ export default {
       exhaustion: {
         penalty: 'em d20',
       },
+      sheet: {
+        skills: {
+          title: 'Perícias',
+        },
+      },
+      tabs: {
+        combat: {
+          label: 'Combate',
+        },
+        biography: {
+          label: 'Biografia',
+        },
+        gmNotes: {
+          label: 'Notas GM',
+        },
+      },
     },
     scene: {
       navigation: {
@@ -2390,6 +2411,14 @@ export default {
         edit: {
           button: 'Editar',
         },
+        share: {
+          button: 'Compartilhar',
+        },
+      },
+      shared: {
+        stopSharing: {
+          label: 'Parar de Compartilhar',
+        },
       },
     },
     smartDice: {
@@ -2570,6 +2599,16 @@ export default {
     tokenHover: {
       actionTooltip: {
         text: 'Clique esquerdo: Linkar no Chat | Clique direito: Remover',
+      },
+    },
+    settings: {
+      view: {
+        stopFollowing: {
+          label: 'Parar de Seguir',
+        },
+        followAll: {
+          label: 'Seguir Todos',
+        },
       },
     },
   },
