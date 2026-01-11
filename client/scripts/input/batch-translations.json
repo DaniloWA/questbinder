@@ -1,9 +1,14 @@
 {
   "translations": [
     {
-      "key": "vtt.spectate.banner.viewingAs.text",
-      "pt": "Visualizando como:",
-      "en": "Viewing as:"
+      "key": "vtt.character.combat.range.placeholder",
+      "pt": "Alcance",
+      "en": "Range"
+    },
+    {
+      "key": "vtt.character.combat.mastery.placeholder",
+      "pt": "Maestria",
+      "en": "Mastery"
     }
   ]
 }

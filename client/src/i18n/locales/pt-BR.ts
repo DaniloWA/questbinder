@@ -2726,6 +2726,9 @@ export default {
           label: 'Inimigos (NPCs)',
         },
       },
+      card: {
+        spellClickTooltip: 'Clique esquerdo: Linkar no Chat | Clique direito: Remover',
+      },
     },
     settings: {
       view: {

@@ -3295,6 +3295,9 @@ export default {
           label: 'Enemies (NPCs)',
         },
       },
+      card: {
+        spellClickTooltip: 'Left click: Link to Chat | Right click: Remove',
+      },
     },
     settings: {
       view: {
