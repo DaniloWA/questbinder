@@ -1321,6 +1321,12 @@ export default {
           genericSpell: 'Roll Generic Spell Attack',
           useItem: 'Use',
         },
+        public: {
+          tooltip: 'Public: Everyone sees',
+        },
+        private: {
+          tooltip: 'Private: Only you and the GM',
+        },
       },
     },
     audio: {
@@ -1384,6 +1390,9 @@ export default {
         },
         erroNoUpload: {
           errorMessage: 'Upload error.',
+        },
+        name: {
+          placeholder: 'Name',
         },
       },
       manage: {
@@ -2301,6 +2310,9 @@ export default {
         damage: {
           label: 'Damage',
         },
+        attackType: {
+          placeholder: 'Type',
+        },
       },
       bio: {
         appearance: {
@@ -2330,6 +2342,9 @@ export default {
         skills: {
           title: 'Skills',
         },
+        characterName: {
+          placeholder: 'Character Name',
+        },
       },
       tabs: {
         combat: {
@@ -2340,6 +2355,11 @@ export default {
         },
         gmNotes: {
           label: 'GM Notes',
+        },
+      },
+      features: {
+        name: {
+          placeholder: 'Feature name',
         },
       },
     },
@@ -2983,10 +3003,20 @@ export default {
         share: {
           button: 'Share',
         },
+        invalidVideo: {
+          text: 'Invalid video link.',
+        },
+        title: 'Preview',
       },
       shared: {
         stopSharing: {
           label: 'Stop Sharing',
+        },
+        trigger: {
+          badge: 'Trigger',
+        },
+        invalidLink: {
+          text: 'Invalid link.',
         },
       },
     },
@@ -3068,6 +3098,17 @@ export default {
         },
         save: {
           button: 'Save',
+        },
+        cancel: {
+          button: 'Cancel',
+        },
+        players: {
+          title: 'Players',
+        },
+      },
+      editor: {
+        displayName: {
+          label: 'Display Name',
         },
       },
     },
@@ -3169,6 +3210,30 @@ export default {
       actionTooltip: {
         text: 'Left click: Link in Chat | Right click: Remove',
       },
+      permissions: {
+        description: 'Control what players see when hovering over tokens. GM always sees everything.',
+        name: {
+          label: 'Name',
+        },
+        objectName: {
+          label: 'Object Name',
+        },
+        hpBar: {
+          label: 'HP Bar',
+        },
+        resourceBar: {
+          label: 'Resource Bar',
+        },
+        heroesPCs: {
+          label: 'Heroes (PCs)',
+        },
+        enemiesNPCs: {
+          label: 'Enemies (NPCs)',
+        },
+        objects: {
+          label: 'Objects',
+        },
+      },
     },
     settings: {
       view: {
@@ -3178,6 +3243,43 @@ export default {
         followAll: {
           label: 'Follow All',
         },
+        cameraControl: {
+          title: 'Camera Control',
+        },
+        controlAllPlayers: {
+          text: 'Control all players at once',
+        },
+        player: {
+          label: 'Player',
+        },
+        forceFollow: {
+          label: 'Force Follow',
+        },
+        follow: {
+          label: 'Follow',
+        },
+        obscureWalls: {
+          title: 'Obscure Walls',
+          description: 'Hide walls and obstacles in GM view for better visibility.',
+        },
+        visionRanges: {
+          title: 'Vision Ranges',
+        },
+      },
+    },
+    spectate: {
+      banner: {
+        returnToGM: {
+          button: 'Return to GM View',
+        },
+        allPlayers: {
+          text: 'All Players',
+        },
+      },
+    },
+    notifications: {
+      pullView: {
+        message: 'The GM pulled your view',
       },
     },
   },

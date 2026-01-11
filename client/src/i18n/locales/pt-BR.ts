@@ -1316,6 +1316,12 @@ export default {
           genericSpell: 'Rolar Ataque Mágico Genérico',
           useItem: 'Usar',
         },
+        public: {
+          tooltip: 'Público: Todos veem',
+        },
+        private: {
+          tooltip: 'Privado: Apenas você e o Mestre',
+        },
       },
     },
     audio: {
@@ -1379,6 +1385,9 @@ export default {
         },
         erroNoUpload: {
           errorMessage: 'Erro no upload.',
+        },
+        name: {
+          placeholder: 'Nome',
         },
       },
       manage: {
@@ -1732,6 +1741,9 @@ export default {
         damage: {
           label: 'Dano',
         },
+        attackType: {
+          placeholder: 'Tipo',
+        },
       },
       bio: {
         appearance: {
@@ -1761,6 +1773,9 @@ export default {
         skills: {
           title: 'Perícias',
         },
+        characterName: {
+          placeholder: 'Nome do Personagem',
+        },
       },
       tabs: {
         combat: {
@@ -1771,6 +1786,11 @@ export default {
         },
         gmNotes: {
           label: 'Notas GM',
+        },
+      },
+      features: {
+        name: {
+          placeholder: 'Nome da característica',
         },
       },
     },
@@ -2414,10 +2434,20 @@ export default {
         share: {
           button: 'Compartilhar',
         },
+        invalidVideo: {
+          text: 'Link de vídeo inválido.',
+        },
+        title: 'Pré-visualização',
       },
       shared: {
         stopSharing: {
           label: 'Parar de Compartilhar',
+        },
+        trigger: {
+          badge: 'Gatilho',
+        },
+        invalidLink: {
+          text: 'Link inválido.',
         },
       },
     },
@@ -2499,6 +2529,17 @@ export default {
         },
         save: {
           button: 'Salvar',
+        },
+        cancel: {
+          button: 'Cancelar',
+        },
+        players: {
+          title: 'Jogadores',
+        },
+      },
+      editor: {
+        displayName: {
+          label: 'Nome de Exibição',
         },
       },
     },
@@ -2600,6 +2641,30 @@ export default {
       actionTooltip: {
         text: 'Clique esquerdo: Linkar no Chat | Clique direito: Remover',
       },
+      permissions: {
+        description: 'Controle o que os jogadores veem ao passar o mouse sobre tokens. GM sempre vê tudo.',
+        name: {
+          label: 'Nome',
+        },
+        objectName: {
+          label: 'Nome do Objeto',
+        },
+        hpBar: {
+          label: 'Barra de Vida',
+        },
+        resourceBar: {
+          label: 'Barra de Recurso',
+        },
+        heroesPCs: {
+          label: 'Heróis (PCs)',
+        },
+        enemiesNPCs: {
+          label: 'Inimigos (NPCs)',
+        },
+        objects: {
+          label: 'Objetos',
+        },
+      },
     },
     settings: {
       view: {
@@ -2609,6 +2674,43 @@ export default {
         followAll: {
           label: 'Seguir Todos',
         },
+        cameraControl: {
+          title: 'Controle de Câmera',
+        },
+        controlAllPlayers: {
+          text: 'Controle todos os jogadores de uma vez',
+        },
+        player: {
+          label: 'Jogador',
+        },
+        forceFollow: {
+          label: 'Forçar Seguir',
+        },
+        follow: {
+          label: 'Seguir',
+        },
+        obscureWalls: {
+          title: 'Obscurecer Paredes',
+          description: 'Ocultar paredes e obstáculos na visão do Mestre para melhor visualização.',
+        },
+        visionRanges: {
+          title: 'Alcances de Visão',
+        },
+      },
+    },
+    spectate: {
+      banner: {
+        returnToGM: {
+          button: 'Voltar à Visão de Mestre',
+        },
+        allPlayers: {
+          text: 'Todos os Jogadores',
+        },
+      },
+    },
+    notifications: {
+      pullView: {
+        message: 'O Mestre puxou sua visão',
       },
     },
   },

@@ -1,59 +1,44 @@
 {
   "translations": [
     {
-      "key": "vtt.handouts.preview.share.button",
-      "pt": "Compartilhar",
-      "en": "Share"
+      "key": "vtt.tokenHover.permissions.hpBar.label",
+      "pt": "Barra de Vida",
+      "en": "HP Bar"
     },
     {
-      "key": "vtt.handouts.shared.stopSharing.label",
-      "pt": "Parar de Compartilhar",
-      "en": "Stop Sharing"
+      "key": "vtt.tokenHover.permissions.resourceBar.label",
+      "pt": "Barra de Recurso",
+      "en": "Resource Bar"
     },
     {
-      "key": "vtt.settings.view.stopFollowing.label",
-      "pt": "Parar de Seguir",
-      "en": "Stop Following"
+      "key": "vtt.tokenHover.permissions.heroesPCs.label",
+      "pt": "Heróis (PCs)",
+      "en": "Heroes (PCs)"
     },
     {
-      "key": "vtt.settings.view.followAll.label",
-      "pt": "Seguir Todos",
-      "en": "Follow All"
+      "key": "vtt.tokenHover.permissions.enemiesNPCs.label",
+      "pt": "Inimigos (NPCs)",
+      "en": "Enemies (NPCs)"
     },
     {
-      "key": "vtt.character.sheet.skills.title",
-      "pt": "Perícias",
-      "en": "Skills"
+      "key": "vtt.tokenHover.permissions.objects.label",
+      "pt": "Objetos",
+      "en": "Objects"
     },
     {
-      "key": "vtt.tokens.hoverPermissions.conditions.label",
-      "pt": "Condições",
-      "en": "Conditions"
+      "key": "vtt.audio.panel.name.placeholder",
+      "pt": "Nome",
+      "en": "Name"
     },
     {
-      "key": "vtt.character.tabs.combat.label",
-      "pt": "Combate",
-      "en": "Combat"
+      "key": "vtt.character.features.name.placeholder",
+      "pt": "Nome da característica",
+      "en": "Feature name"
     },
     {
-      "key": "vtt.character.tabs.biography.label",
-      "pt": "Biografia",
-      "en": "Biography"
-    },
-    {
-      "key": "vtt.character.tabs.gmNotes.label",
-      "pt": "Notas GM",
-      "en": "GM Notes"
-    },
-    {
-      "key": "vtt.handouts.tray.searchPlaceholder",
-      "pt": "Buscar recurso...",
-      "en": "Search resource..."
-    },
-    {
-      "key": "vtt.handouts.tray.createTrigger.title",
-      "pt": "Criar Gatilho no Mapa",
-      "en": "Create Trigger on Map"
+      "key": "vtt.character.combat.attackName.placeholder",
+      "pt": "Nome do ataque",
+      "en": "Attack name"
     }
   ]
 }
