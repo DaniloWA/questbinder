@@ -859,6 +859,9 @@ export default {
         prximoTurno: {
           label: 'Next Turn',
         },
+        next: {
+          button: 'Next',
+        },
       },
       tab: {
         nenhumAtaqueConfigurado: {
@@ -2377,6 +2380,9 @@ export default {
         description: {
           placeholder: 'Description...',
         },
+        source: {
+          placeholder: 'Source (e.g., Race, Class)',
+        },
       },
       spells: {
         attribute: {
@@ -2384,6 +2390,23 @@ export default {
         },
         slots: {
           title: 'Spell Slots',
+        },
+        level: {
+          text: 'Level',
+        },
+        cantrips: {
+          label: 'Cantrips',
+        },
+      },
+      header: {
+        level: {
+          text: 'Level',
+        },
+        editMode: {
+          tooltip: 'Edit Mode',
+        },
+        viewMode: {
+          tooltip: 'View Mode',
         },
       },
     },
@@ -3299,6 +3322,16 @@ export default {
         },
         visionRanges: {
           title: 'Vision Ranges',
+          description: 'Display token vision range circles.',
+        },
+        globalActions: {
+          title: 'Global Actions',
+        },
+        pullPlayerView: {
+          tooltip: 'Pull this player\'s view',
+        },
+        permissions: {
+          hint: 'To configure visibility and permissions, use the Permissions menu.',
         },
       },
     },
@@ -3315,6 +3348,11 @@ export default {
     notifications: {
       pullView: {
         message: 'The GM pulled your view',
+        title: 'Attention',
+      },
+      followMode: {
+        noTarget: 'TO NOBODY',
+        broadcasting: 'BROADCASTING VIEW',
       },
     },
   },

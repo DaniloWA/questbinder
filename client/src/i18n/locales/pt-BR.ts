@@ -854,6 +854,9 @@ export default {
         prximoTurno: {
           label: 'Próximo Turno',
         },
+        next: {
+          button: 'Próximo',
+        },
       },
       tab: {
         nenhumAtaqueConfigurado: {
@@ -1808,6 +1811,9 @@ export default {
         description: {
           placeholder: 'Descrição...',
         },
+        source: {
+          placeholder: 'Fonte (ex: Raça, Classe)',
+        },
       },
       spells: {
         attribute: {
@@ -1815,6 +1821,23 @@ export default {
         },
         slots: {
           title: 'Espaços de Magia',
+        },
+        level: {
+          text: 'Nível',
+        },
+        cantrips: {
+          label: 'Truques',
+        },
+      },
+      header: {
+        level: {
+          text: 'Nível',
+        },
+        editMode: {
+          tooltip: 'Modo Edição',
+        },
+        viewMode: {
+          tooltip: 'Modo Visualização',
         },
       },
     },
@@ -2730,6 +2753,16 @@ export default {
         },
         visionRanges: {
           title: 'Alcances de Visão',
+          description: 'Visualizar círculos de alcance de visão dos tokens.',
+        },
+        globalActions: {
+          title: 'Ações Globais',
+        },
+        pullPlayerView: {
+          tooltip: 'Puxar visão deste jogador',
+        },
+        permissions: {
+          hint: 'Para configurar visibilidade e permissões, use o menu Permissões.',
         },
       },
     },
@@ -2746,6 +2779,11 @@ export default {
     notifications: {
       pullView: {
         message: 'O Mestre puxou sua visão',
+        title: 'Atenção',
+      },
+      followMode: {
+        noTarget: 'PARA NINGUÉM',
+        broadcasting: 'TRANSMITINDO VISÃO',
       },
     },
   },
