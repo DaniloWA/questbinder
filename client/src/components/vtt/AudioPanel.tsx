@@ -1,3 +1,4 @@
+import { useTranslation } from '../../i18n/TranslationContext';
 
 import React, { useState, useEffect } from 'react';
 import { DraggableWindow } from '../ui/DraggableWindow';
@@ -19,6 +20,7 @@ interface AudioPanelProps {
 export const AudioPanel: React.FC<AudioPanelProps> = ({ isOpen, onClose }) => {
     const { audioSettings, updateAudioSettings } = useGameSession();
     const { show } = useNotification();
+    const { t } = useTranslation();
 
     const [musicVolume, setMusicVolume] = useState(audioService.getMusicVolume());
     const [sfxVolume, setSfxVolume] = useState(audioService.getSfxVolume());
@@ -94,7 +96,7 @@ export const AudioPanel: React.FC<AudioPanelProps> = ({ isOpen, onClose }) => {
                 setLocalSoundboard(newSfx);
             }
         } else {
-            show({ type: 'error', message: response.message || 'Erro no upload.' });
+            show({ type: 'error', message: response.message || t('vtt.audio.panel.erroNoUpload.errorMessage') });
         }
     };
 
@@ -169,7 +171,7 @@ export const AudioPanel: React.FC<AudioPanelProps> = ({ isOpen, onClose }) => {
     const renderManager = () => (
         <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
             <div>
-                <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-3">Gerenciar Playlists</h3>
+                <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-3">{t('vtt.audio.panel.gerenciarPlaylists.text')}</h3>
                 <div className="space-y-2">
                     {localPlaylists.map((p, pIndex) => (
                         <div key={p.id} className="bg-zinc-800/50 p-3 rounded-lg border border-zinc-700 space-y-2">
@@ -192,18 +194,18 @@ export const AudioPanel: React.FC<AudioPanelProps> = ({ isOpen, onClose }) => {
                                     </div>
                                 );
                             })}
-                            <Button size="sm" variant="ghost" onClick={() => { const newPlaylists = [...localPlaylists]; newPlaylists[pIndex].tracks.push({ name: 'Nova Faixa', url: '' }); setLocalPlaylists(newPlaylists); }}><Plus className="w-3 h-3 mr-1" /> Faixa</Button>
+                            <Button size="sm" variant="ghost" onClick={() => { const newPlaylists = [...localPlaylists]; newPlaylists[pIndex].tracks.push({ name: t('vtt.audio.panel.novaFaixa.label'), url: '' }); setLocalPlaylists(newPlaylists); }}><Plus className="w-3 h-3 mr-1" />{t('vtt.audio.panel.faixa.label')}</Button>
                         </div>
                     ))}
                 </div>
                 <form onSubmit={(e) => { e.preventDefault(); setLocalPlaylists([...localPlaylists, { id: Date.now().toString(), name: newPlaylistName, tracks: [] }]); setNewPlaylistName(''); }} className="flex gap-2 mt-3">
-                    <SheetInput variant="box" placeholder="Nome da Nova Playlist" value={newPlaylistName} onChange={e => setNewPlaylistName(e.target.value)} />
+                    <SheetInput variant="box" placeholder={t('vtt.audio.panel.nomeDaNova.placeholder')} value={newPlaylistName} onChange={e => setNewPlaylistName(e.target.value)} />
                     <Button type="submit"><Plus className="w-4 h-4" /></Button>
                 </form>
             </div>
             <div className="h-px bg-zinc-700 my-4" />
             <div>
-                <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-3">Gerenciar Efeitos Sonoros</h3>
+                <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-3">{t('vtt.audio.panel.gerenciarEfeitosSonoros.text')}</h3>
                 <div className="space-y-2">
                     {localSoundboard.map((sfx, sfxIndex) => {
                         const uploadKey = `sfx-${sfxIndex}-`;
@@ -221,7 +223,7 @@ export const AudioPanel: React.FC<AudioPanelProps> = ({ isOpen, onClose }) => {
                         );
                     })}
                 </div>
-                <Button size="sm" variant="outline" className="mt-3" onClick={() => setLocalSoundboard([...localSoundboard, { id: Date.now().toString(), name: 'Novo Efeito', url: '' }])}><Plus className="w-3 h-3 mr-1" /> Efeito Sonoro</Button>
+                <Button size="sm" variant="outline" className="mt-3" onClick={() => setLocalSoundboard([...localSoundboard, { id: Date.now().toString(), name: t('vtt.audio.panel.novoEfeito.label'), url: '' }])}><Plus className="w-3 h-3 mr-1" />{t('vtt.audio.panel.efeitoSonoro.text')}</Button>
             </div>
         </div>
     );
@@ -230,15 +232,15 @@ export const AudioPanel: React.FC<AudioPanelProps> = ({ isOpen, onClose }) => {
         <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
             <div>
                 <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Playlists</h3>
-                    <button onClick={handleStopMusic} className="flex items-center gap-1 text-xs text-red-400/80 hover:text-red-400 font-bold transition-colors"><PowerOff className="w-3 h-3" /> Parar Tudo</button>
+                    <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">{t('vtt.audio.panel.playlists.label')}</h3>
+                    <button onClick={handleStopMusic} className="flex items-center gap-1 text-xs text-red-400/80 hover:text-red-400 font-bold transition-colors"><PowerOff className="w-3 h-3" />{t('vtt.audio.panel.pararTudo.text')}</button>
                 </div>
                 <div className="space-y-3">
                     {audioSettings.playlists.map(playlist => (
                         <div key={playlist.id} className="bg-zinc-800/50 border border-zinc-800 rounded-lg p-3">
                             <div className="flex justify-between items-center mb-2">
                                 <p className="text-sm font-bold text-zinc-300">{playlist.name}</p>
-                                <button onClick={() => handleShufflePlay(playlist.id)} className="flex items-center gap-1.5 text-xs bg-zinc-900/50 border border-zinc-700 rounded-full px-2 py-1 text-zinc-400 hover:text-white hover:border-primary/50 transition-colors"><Shuffle className="w-3 h-3" /> Aleatório</button>
+                                <button onClick={() => handleShufflePlay(playlist.id)} className="flex items-center gap-1.5 text-xs bg-zinc-900/50 border border-zinc-700 rounded-full px-2 py-1 text-zinc-400 hover:text-white hover:border-primary/50 transition-colors"><Shuffle className="w-3 h-3" />{t('vtt.audio.panel.aleatrio.label')}</button>
                             </div>
                             <div className="space-y-2">
                                 {playlist.tracks.map(track => {
@@ -263,7 +265,7 @@ export const AudioPanel: React.FC<AudioPanelProps> = ({ isOpen, onClose }) => {
                 </div>
             </div>
             <div>
-                <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">Efeitos Sonoros</h3>
+                <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">{t('vtt.audio.panel.efeitosSonoros.text')}</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {audioSettings.soundboard.map(sfx => {
                         const isSfxLooping = loopingSfxUrls.has(sfx.url);
@@ -275,15 +277,15 @@ export const AudioPanel: React.FC<AudioPanelProps> = ({ isOpen, onClose }) => {
     );
 
     return (
-        <DraggableWindow isOpen={isOpen} onClose={onClose} title={isManaging ? "Gerenciar Áudio" : "Painel de Áudio"} icon={<Music className="w-4 h-4" />} initialSize={{ w: Math.min(420, window.innerWidth - 40), h: Math.min(600, window.innerHeight - 100) }} initialPosition={{ x: Math.max(20, window.innerWidth - 460), y: 80 }}>
+        <DraggableWindow isOpen={isOpen} onClose={onClose} title={isManaging ? t('vtt.audio.panel.gerenciarUdio.title') : t('vtt.audio.panel.painelDeUdio.title')} icon={<Music className="w-4 h-4" />} initialSize={{ w: Math.min(420, window.innerWidth - 40), h: Math.min(600, window.innerHeight - 100) }} initialPosition={{ x: Math.max(20, window.innerWidth - 460), y: 80 }}>
             <div className="flex flex-col h-full text-white bg-zinc-900/50">
                 <div className="p-4 bg-zinc-950/30 border-b border-zinc-800 space-y-3">
                     <div className="flex items-center gap-3"><Music className="w-4 h-4 text-zinc-500" /><input type="range" min="0" max="1" step="0.05" value={musicVolume} onChange={handleMusicVolumeChange} className="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-primary" /><span className="text-xs font-mono w-10 text-right">{Math.round(musicVolume * 100)}%</span></div>
                     <div className="flex items-center gap-3"><Volume2 className="w-4 h-4 text-zinc-500" /><input type="range" min="0" max="1" step="0.05" value={sfxVolume} onChange={handleSfxVolumeChange} className="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-primary" /><span className="text-xs font-mono w-10 text-right">{Math.round(sfxVolume * 100)}%</span></div>
                 </div>
                 <div className="shrink-0 bg-zinc-900/50 border-b border-zinc-800 flex items-center justify-between px-4 py-2">
-                    {isManaging ? <Button size="sm" variant="ghost" onClick={() => setIsManaging(false)}><ArrowLeft className="w-4 h-4 mr-2" /> Voltar</Button> : <Button size="sm" variant="ghost" onClick={() => setIsManaging(true)}><Settings className="w-4 h-4 mr-2" /> Gerenciar</Button>}
-                    {isManaging && <Button size="sm" onClick={handleSaveChanges}><Save className="w-4 h-4 mr-2" /> Salvar Alterações</Button>}
+                    {isManaging ? <Button size="sm" variant="ghost" onClick={() => setIsManaging(false)}><ArrowLeft className="w-4 h-4 mr-2" />{t('vtt.audio.panel.voltar.label')}</Button> : <Button size="sm" variant="ghost" onClick={() => setIsManaging(true)}><Settings className="w-4 h-4 mr-2" />{t('vtt.audio.panel.gerenciar.label')}</Button>}
+                    {isManaging && <Button size="sm" onClick={handleSaveChanges}><Save className="w-4 h-4 mr-2" />{t('vtt.audio.panel.salvarAlteraes.text')}</Button>}
                 </div>
                 {isManaging ? renderManager() : renderPlayer()}
             </div>

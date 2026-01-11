@@ -1,3 +1,4 @@
+import { useTranslation } from '../../i18n/TranslationContext';
 import React, { useState, useEffect } from 'react';
 import { useGameSession } from '../../context/GameSessionContext';
 import { Modal } from '../ui/Modal';
@@ -16,6 +17,7 @@ interface CombatInitiativeRollerProps {
 }
 
 export const CombatInitiativeRoller: React.FC<CombatInitiativeRollerProps> = ({ isOpen, onClose }) => {
+  const { t } = useTranslation();
   const { activeScene, startCombat, isGM } = useGameSession();
 
   const [selectedTokens, setSelectedTokens] = useState<Set<string>>(new Set());
@@ -81,7 +83,7 @@ export const CombatInitiativeRoller: React.FC<CombatInitiativeRollerProps> = ({ 
   const handleStartCombat = () => {
     if (selectedTokensList.length === 0) return;
 
-    console.log('[CombatInitiativeRoller] Starting combat with', selectedTokensList.length, 'combatants');
+    console.log('[CombatInitiativeRoller] Starting combat with', selectedTokensList.length, t('vtt.combat.initiativeroller.combatants.label'));
 
     const combatants: Combatant[] = selectedTokensList.map(token => ({
       id: token.id,
@@ -119,7 +121,7 @@ export const CombatInitiativeRoller: React.FC<CombatInitiativeRollerProps> = ({ 
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Iniciar Combate"
+      title={t('vtt.combat.initiativeroller.iniciarCombate.title')}
       size="lg"
     >
       <div className="space-y-4">
@@ -128,41 +130,37 @@ export const CombatInitiativeRoller: React.FC<CombatInitiativeRollerProps> = ({ 
           <div className="flex items-center gap-4 text-sm">
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-blue-400" />
-              <span className="text-zinc-400">PCs:</span>
+              <span className="text-zinc-400">{t('vtt.combat.initiativeroller.pcs.label')}</span>
               <span className="font-bold text-white">{pcCount}</span>
             </div>
             <div className="flex items-center gap-2">
               <Swords className="w-4 h-4 text-red-400" />
-              <span className="text-zinc-400">NPCs:</span>
+              <span className="text-zinc-400">{t('vtt.combat.initiativeroller.npcs.label')}</span>
               <span className="font-bold text-white">{npcCount}</span>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <Tooltip content="Rolar Todos os NPCs">
+            <Tooltip content={t('vtt.combat.initiativeroller.rolarTodosOs.tooltip')}>
               <Button
                 size="sm"
                 variant="outline"
                 onClick={rollAllNPCs}
                 disabled={npcCount === 0}
               >
-                <Dice6 className="w-4 h-4 mr-2" />
-                NPCs
-              </Button>
+                <Dice6 className="w-4 h-4 mr-2" />{t('vtt.combat.initiativeroller.npcs.label')}</Button>
             </Tooltip>
 
-            <Tooltip content="Rolar Todos">
+            <Tooltip content={t('vtt.combat.initiativeroller.rolarTodos.tooltip')}>
               <Button
                 size="sm"
                 onClick={rollAll}
                 disabled={selectedTokensList.length === 0}
               >
-                <Zap className="w-4 h-4 mr-2" />
-                Todos
-              </Button>
+                <Zap className="w-4 h-4 mr-2" />{t('vtt.combat.initiativeroller.todos.label')}</Button>
             </Tooltip>
 
-            <Tooltip content="Configurações">
+            <Tooltip content={t('vtt.combat.initiativeroller.configuraes.tooltip')}>
               <button
                 type="button"
                 onClick={(e) => {
@@ -180,7 +178,7 @@ export const CombatInitiativeRoller: React.FC<CombatInitiativeRollerProps> = ({ 
         {/* Settings Panel */}
         {showSettings && (
           <div className="p-4 bg-zinc-900/30 rounded-lg border border-zinc-800 space-y-3">
-            <h4 className="text-sm font-bold text-zinc-300 mb-3">Configurações do Combate</h4>
+            <h4 className="text-sm font-bold text-zinc-300 mb-3">{t('vtt.combat.initiativeroller.configuraesDoCombate.text')}</h4>
 
             <div className="grid grid-cols-2 gap-3">
               <label className="flex items-center gap-2 text-sm cursor-pointer">
@@ -190,7 +188,7 @@ export const CombatInitiativeRoller: React.FC<CombatInitiativeRollerProps> = ({ 
                   onChange={(e) => setSettings({ ...settings, autoRollInitiative: e.target.checked })}
                   className="rounded border-zinc-700 bg-zinc-900 text-primary focus:ring-primary"
                 />
-                <span className="text-zinc-300">Auto-rolar iniciativa</span>
+                <span className="text-zinc-300">{t('vtt.combat.initiativeroller.autorolarIniciativa.text')}</span>
               </label>
 
               <label className="flex items-center gap-2 text-sm cursor-pointer">
@@ -220,7 +218,7 @@ export const CombatInitiativeRoller: React.FC<CombatInitiativeRollerProps> = ({ 
                   onChange={(e) => setSettings({ ...settings, trackConcentration: e.target.checked })}
                   className="rounded border-zinc-700 bg-zinc-900 text-primary focus:ring-primary"
                 />
-                <span className="text-zinc-300">Rastrear concentração</span>
+                <span className="text-zinc-300">{t('vtt.combat.initiativeroller.rastrearConcentrao.text')}</span>
               </label>
 
               <label className="flex items-center gap-2 text-sm cursor-pointer">
@@ -230,7 +228,7 @@ export const CombatInitiativeRoller: React.FC<CombatInitiativeRollerProps> = ({ 
                   onChange={(e) => setSettings({ ...settings, enableTurnTimer: e.target.checked })}
                   className="rounded border-zinc-700 bg-zinc-900 text-primary focus:ring-primary"
                 />
-                <span className="text-zinc-300">Timer de turno</span>
+                <span className="text-zinc-300">{t('vtt.combat.initiativeroller.timerDeTurno.text')}</span>
               </label>
 
               <label className="flex items-center gap-2 text-sm cursor-pointer">
@@ -240,7 +238,7 @@ export const CombatInitiativeRoller: React.FC<CombatInitiativeRollerProps> = ({ 
                   onChange={(e) => setSettings({ ...settings, enableSuggestions: e.target.checked })}
                   className="rounded border-zinc-700 bg-zinc-900 text-primary focus:ring-primary"
                 />
-                <span className="text-zinc-300">Sugestões inteligentes</span>
+                <span className="text-zinc-300">{t('vtt.combat.initiativeroller.sugestesInteligentes.text')}</span>
               </label>
             </div>
 
@@ -253,7 +251,7 @@ export const CombatInitiativeRoller: React.FC<CombatInitiativeRollerProps> = ({ 
                   className="rounded border-zinc-700 bg-zinc-900 text-yellow-500 focus:ring-yellow-500"
                 />
                 <AlertTriangle className="w-4 h-4 text-yellow-500" />
-                <span className="text-zinc-300 font-bold">Rodada Surpresa</span>
+                <span className="text-zinc-300 font-bold">{t('vtt.combat.initiativeroller.rodadaSurpresa.text')}</span>
               </label>
             </div>
           </div>
@@ -262,22 +260,18 @@ export const CombatInitiativeRoller: React.FC<CombatInitiativeRollerProps> = ({ 
         {/* Token Selection */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <h4 className="text-sm font-bold text-zinc-400 uppercase">Participantes</h4>
+            <h4 className="text-sm font-bold text-zinc-400 uppercase">{t('vtt.combat.initiativeroller.participantes.label')}</h4>
             <div className="flex gap-2">
               <Button
                 size="sm"
                 variant="ghost"
                 onClick={() => setSelectedTokens(new Set(availableTokens.map(t => t.id)))}
-              >
-                Selecionar Todos
-              </Button>
+              >{t('vtt.combat.initiativeroller.selecionarTodos.text')}</Button>
               <Button
                 size="sm"
                 variant="ghost"
                 onClick={() => setSelectedTokens(new Set())}
-              >
-                Limpar
-              </Button>
+              >{t('vtt.combat.initiativeroller.limpar.label')}</Button>
             </div>
           </div>
 
@@ -323,16 +317,16 @@ export const CombatInitiativeRoller: React.FC<CombatInitiativeRollerProps> = ({ 
                         </span>
                       )}
                       {!token.isVisibleToPlayers && token.type === 'npc' && (
-                        <Tooltip content="Invisível para jogadores">
+                        <Tooltip content={t('vtt.combat.initiativeroller.invisvelParaJogadores.tooltip')}>
                           <EyeOff className="w-3 h-3 text-zinc-600" />
                         </Tooltip>
                       )}
                     </div>
                     <div className="flex items-center gap-2 text-xs text-zinc-500">
                       {token.bars?.bar1?.max && (
-                        <span>HP: {token.bars.bar1.value}/{token.bars.bar1.max}</span>
+                        <span>{t('vtt.combat.initiativeroller.hp.label')}{token.bars.bar1.value}/{token.bars.bar1.max}</span>
                       )}
-                      {token.stats?.ac && <span>• CA: {token.stats.ac}</span>}
+                      {token.stats?.ac && <span>{t('vtt.combat.initiativeroller.ca.label')}{token.stats.ac}</span>}
                     </div>
                   </div>
 
@@ -353,7 +347,7 @@ export const CombatInitiativeRoller: React.FC<CombatInitiativeRollerProps> = ({ 
                         placeholder="Init"
                         className="w-16 bg-zinc-950 border border-zinc-700 rounded px-2 py-1 text-sm text-center outline-none focus:ring-1 focus:ring-primary"
                       />
-                      <Tooltip content="Rolar Iniciativa">
+                      <Tooltip content={t('vtt.combat.initiativeroller.rolarIniciativa.tooltip')}>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -376,7 +370,7 @@ export const CombatInitiativeRoller: React.FC<CombatInitiativeRollerProps> = ({ 
             {availableTokens.length === 0 && (
               <div className="text-center py-8 text-zinc-600">
                 <Swords className="w-12 h-12 mx-auto mb-2 opacity-20" />
-                <p className="text-sm">Nenhum token disponível no mapa.</p>
+                <p className="text-sm">{t('vtt.combat.initiativeroller.nenhumTokenDisponvel.text')}</p>
               </div>
             )}
           </div>
@@ -384,17 +378,14 @@ export const CombatInitiativeRoller: React.FC<CombatInitiativeRollerProps> = ({ 
 
         {/* Actions */}
         <div className="flex justify-between items-center pt-4 border-t border-zinc-800">
-          <Button variant="ghost" onClick={onClose}>
-            Cancelar
-          </Button>
+          <Button variant="ghost" onClick={onClose}>{t('vtt.combat.initiativeroller.cancelar.label')}</Button>
 
           <Button
             onClick={handleStartCombat}
             disabled={selectedTokensList.length === 0}
             className="shadow-lg shadow-primary/20"
           >
-            <Play className="w-4 h-4 mr-2" />
-            Iniciar Combate ({selectedTokensList.length})
+            <Play className="w-4 h-4 mr-2" />{t('vtt.combat.initiativeroller.iniciarCombate.text')}{selectedTokensList.length})
           </Button>
         </div>
       </div>

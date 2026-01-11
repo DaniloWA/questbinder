@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '../../i18n/TranslationContext';
 import { Handout } from '../../types';
 import { useGameSession } from '../../context/GameSessionContext';
 import { Button } from '../ui/Button';
@@ -11,6 +12,7 @@ interface HandoutShareModalProps {
 }
 
 export const HandoutShareModal: React.FC<HandoutShareModalProps> = ({ handout, onClose }) => {
+  const { t } = useTranslation();
   // FIX: Get `campaign` from context to access `ownerId`.
   const { players, shareHandout, isGM, campaign } = useGameSession();
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
@@ -61,10 +63,10 @@ export const HandoutShareModal: React.FC<HandoutShareModalProps> = ({ handout, o
     <Modal isOpen={!!handout} onClose={onClose} title={`Compartilhar: ${handout.name}`} size="md">
       <div className="space-y-6">
         <div>
-          <h3 className="text-sm font-bold text-muted-foreground mb-3">Selecione com quem compartilhar:</h3>
+          <h3 className="text-sm font-bold text-muted-foreground mb-3">{t('vtt.handouts.shareModal.selectPlayers.title')}</h3>
           <div className="max-h-64 overflow-y-auto space-y-2 custom-scrollbar pr-2 -mr-2 bg-muted/20 p-2 rounded-lg border border-border">
             {actualPlayers.length === 0 ? (
-              <p className="text-sm text-muted-foreground italic text-center p-4">Nenhum jogador na sessão.</p>
+              <p className="text-sm text-muted-foreground italic text-center p-4">{t('vtt.handouts.shareModal.noPlayers.text')}</p>
             ) : (
               actualPlayers.map(player => (
                 <div
@@ -81,17 +83,17 @@ export const HandoutShareModal: React.FC<HandoutShareModalProps> = ({ handout, o
               ))
             )}
           </div>
-          {actualPlayers.length > 0 && <Button variant="link" size="sm" onClick={handleSelectAll} className="mt-2">Selecionar Todos</Button>}
+          {actualPlayers.length > 0 && <Button variant="link" size="sm" onClick={handleSelectAll} className="mt-2">{t('vtt.handouts.shareModal.selectAll.button')}</Button>}
         </div>
 
         <div className="flex justify-between items-center gap-3 pt-4 border-t border-border">
           <Button variant="destructive" onClick={handleUnshare} disabled={isSharing}>
-            <EyeOff className="w-4 h-4 mr-2" /> Ocultar de Todos
+            <EyeOff className="w-4 h-4 mr-2" /> {t('vtt.handouts.shareModal.hideFromAll.button')}
           </Button>
           <div className="flex gap-3">
-            <Button variant="ghost" onClick={onClose} disabled={isSharing}>Cancelar</Button>
+            <Button variant="ghost" onClick={onClose} disabled={isSharing}>{t('common.actions.cancel.label')}</Button>
             <Button onClick={handleShare} disabled={isSharing}>
-              <Share2 className="w-4 h-4 mr-2" /> {isSharing ? 'Salvando...' : 'Salvar Compartilhamento'}
+              <Share2 className="w-4 h-4 mr-2" /> {isSharing ? t('vtt.handouts.shareModal.sharing.text') : t('vtt.handouts.shareModal.saveSharing.button')}
             </Button>
           </div>
         </div>

@@ -760,6 +760,151 @@ export default {
         initiative: 'Init',
         rollInitiative: 'Roll Initiative',
       },
+      initiativeroller: {
+        iniciarCombate: {
+          text: 'Start Combat (',
+          title: 'Start Combat',
+        },
+        cancelar: {
+          label: 'Cancel',
+        },
+        nenhumTokenDisponvel: {
+          text: 'No tokens available on the map.',
+        },
+        rolarIniciativa: {
+          tooltip: 'Roll Initiative',
+        },
+        ca: {
+          label: '• AC:',
+        },
+        hp: {
+          label: 'HP:',
+        },
+        invisvelParaJogadores: {
+          tooltip: 'Invisible to players',
+        },
+        limpar: {
+          label: 'Clear',
+        },
+        selecionarTodos: {
+          text: 'Select All',
+        },
+        participantes: {
+          label: 'Participants',
+        },
+        rodadaSurpresa: {
+          text: 'Surprise Round',
+        },
+        sugestesInteligentes: {
+          text: 'Smart suggestions',
+        },
+        timerDeTurno: {
+          text: 'Turn timer',
+        },
+        rastrearConcentrao: {
+          text: 'Track concentration',
+        },
+        autorolarIniciativa: {
+          text: 'Auto-roll initiative',
+        },
+        configuraesDoCombate: {
+          text: 'Combat Settings',
+        },
+        configuraes: {
+          tooltip: 'Settings',
+        },
+        todos: {
+          label: 'All',
+        },
+        rolarTodos: {
+          tooltip: 'Roll All',
+        },
+        npcs: {
+          label: 'NPCs',
+        },
+        rolarTodosOs: {
+          tooltip: 'Roll All NPCs',
+        },
+        pcs: {
+          label: 'PCs:',
+        },
+        npc: {
+          label: 'npc',
+        },
+        combatants: {
+          label: 'combatants',
+        },
+      },
+      tracker: {
+        nenhumCombateAtivo: {
+          text: 'No active combat.',
+        },
+        inicieUmCombate: {
+          text: 'Start a combat through the Game Master toolbar.',
+        },
+        ordemDeTurno: {
+          text: 'Turn Order',
+        },
+        rodada: {
+          text: 'Round',
+        },
+        iniciativa: {
+          text: 'Initiative: ',
+        },
+        prximoTurno: {
+          label: 'Next Turn',
+        },
+      },
+      tab: {
+        nenhumAtaqueConfigurado: {
+          text: 'No attacks configured.',
+        },
+        alcance: {
+          placeholder: 'Range',
+        },
+        nomeDoAtaque: {
+          placeholder: 'Attack name',
+        },
+        aesAtaques: {
+          title: 'Actions & Attacks',
+        },
+        descansoLongo: {
+          text: 'Long Rest',
+        },
+        dadosDeVida: {
+          text: 'Hit Dice',
+        },
+        exausto: {
+          label: 'Exhaustion',
+        },
+        inspirao: {
+          label: 'Inspiration',
+        },
+        percepoPas: {
+          label: 'Passive Perception',
+        },
+        proficincia: {
+          label: 'Proficiency',
+        },
+        deslocamento: {
+          label: 'Movement',
+        },
+        iniciativa: {
+          label: 'Initiative',
+        },
+        percepo: {
+          label: 'Perception',
+        },
+        hpTemporrio: {
+          text: 'Temporary HP',
+        },
+        mx: {
+          label: 'Max:',
+        },
+        pontosDeVida: {
+          text: 'Hit Points',
+        },
+      },
     },
     chat: {
       title: 'History',
@@ -1184,6 +1329,57 @@ export default {
         save: 'Save Changes',
         volumeMusic: 'Music Volume',
         volumeSfx: 'SFX Volume',
+        salvarAlteraes: {
+          text: 'Save Changes',
+        },
+        gerenciar: {
+          label: 'Manage',
+        },
+        voltar: {
+          label: 'Back',
+        },
+        painelDeUdio: {
+          title: 'Audio Panel',
+        },
+        gerenciarUdio: {
+          title: 'Manage Audio',
+        },
+        efeitosSonoros: {
+          text: 'Sound Effects',
+        },
+        aleatrio: {
+          label: 'Random',
+        },
+        pararTudo: {
+          text: 'Stop All',
+        },
+        playlists: {
+          label: 'Playlists',
+        },
+        efeitoSonoro: {
+          text: 'Sound Effect',
+        },
+        novoEfeito: {
+          label: 'New Effect',
+        },
+        gerenciarEfeitosSonoros: {
+          text: 'Manage Sound Effects',
+        },
+        nomeDaNova: {
+          placeholder: 'New Playlist Name',
+        },
+        faixa: {
+          label: 'Track',
+        },
+        novaFaixa: {
+          label: 'New Track',
+        },
+        gerenciarPlaylists: {
+          text: 'Manage Playlists',
+        },
+        erroNoUpload: {
+          errorMessage: 'Upload error.',
+        },
       },
       manage: {
         playlists: 'Manage Playlists',
@@ -2020,6 +2216,24 @@ export default {
           label: 'Attributes',
         },
       },
+      combatTab: {
+        noAttacks: {
+          text: 'No attacks configured.',
+        },
+      },
+      bioTab: {
+        noBio: {
+          text: 'No biography available.',
+        },
+      },
+      sheetViewer: {
+        type: {
+          placeholder: 'Type',
+        },
+        mastery: {
+          placeholder: 'Mastery',
+        },
+      },
     },
     scene: {
       navigation: {
@@ -2041,6 +2255,642 @@ export default {
         },
         temCertezaQue: {
           text: 'Are you sure you want to delete this layer? All tokens and settings in it will be permanently lost.',
+        },
+      },
+    },
+    attack: {
+      zoneconfigmodal: {
+        salvarConfigurao: {
+          text: 'Save Configuration',
+        },
+        cancelar: {
+          label: 'Cancel',
+        },
+        ex15: {
+          placeholder: 'Ex: 15',
+        },
+        exDex: {
+          placeholder: 'Ex: DEX',
+        },
+        savingThrow: {
+          text: 'Saving Throw',
+        },
+        exFire: {
+          placeholder: 'Ex: Fire',
+        },
+        tipoDeDano: {
+          text: 'Damage Type',
+        },
+        ex8d6: {
+          placeholder: 'Ex: 8d6',
+        },
+        frmulaDeDano: {
+          text: 'Damage Formula',
+        },
+        efeitosOpcional: {
+          text: 'Effects (Optional)',
+        },
+        corDoHighlight: {
+          text: 'Highlight Color',
+        },
+        destacarTokens: {
+          text: 'Highlight Tokens',
+        },
+        corDaBorda: {
+          text: 'Border Color',
+        },
+        corDaZona: {
+          text: 'Zone Color',
+        },
+        alvos: {
+          label: 'Targets',
+        },
+        usaClculoDe: {
+          text: 'Uses vision calculation to determine area',
+        },
+        respeitarLinhaDe: {
+          text: 'Respect Line of Sight',
+        },
+        tipoDePropagao: {
+          text: 'Propagation Type',
+        },
+        nguloGraus: {
+          text: 'Angle (Degrees)',
+        },
+        larguraQuadrados: {
+          text: 'Width (Squares)',
+        },
+        comprimentoQuadrados: {
+          text: 'Length (Squares)',
+        },
+        raioQuadrados: {
+          text: 'Radius (Squares)',
+        },
+        forma: {
+          label: 'Shape',
+        },
+        descrioDaZona: {
+          placeholder: 'Attack zone description...',
+        },
+        descrioOpcional: {
+          text: 'Description (Optional)',
+        },
+        exBolaDe: {
+          placeholder: 'Ex: Fireball',
+        },
+        nomeDaZona: {
+          text: 'Zone Name',
+        },
+        objetos: {
+          label: 'Objects',
+        },
+        objects: {
+          label: 'objects',
+        },
+        inimigos: {
+          label: 'Enemies',
+        },
+        enemies: {
+          label: 'enemies',
+        },
+        aliados: {
+          label: 'Allies',
+        },
+        allies: {
+          label: 'allies',
+        },
+        todos: {
+          label: 'All',
+        },
+        contornaObstculos: {
+          text: 'Wraps around obstacles',
+        },
+        espalhamento: {
+          label: 'Spreading',
+        },
+        spreading: {
+          label: 'spreading',
+        },
+        atravessaTudo: {
+          text: 'Passes through everything',
+        },
+        penetrante: {
+          label: 'Penetrating',
+        },
+        penetrating: {
+          label: 'penetrating',
+        },
+        paraEmParedes: {
+          text: 'Stops at walls and obstacles',
+        },
+        bloqueado: {
+          label: 'Blocked',
+        },
+        retngulo: {
+          label: 'Rectangle',
+        },
+        rectangle: {
+          label: 'rectangle',
+        },
+        quadrado: {
+          label: 'Square',
+        },
+        linha: {
+          label: 'Line',
+        },
+        line: {
+          label: 'Line',
+        },
+        cone: {
+          label: 'Cone',
+        },
+        crculo: {
+          label: 'Circle',
+        },
+        configurarZonaDe: {
+          title: 'Configure Attack Zone',
+        },
+        novaZona: {
+          text: 'New Zone',
+        },
+        mostrarContornoNos: {
+          text: 'Show outline on targets',
+        },
+      },
+      zonepanel: {
+        fechar: {
+          label: 'Close',
+        },
+        noMapaPara: {
+          text: 'on the map to place the zone',
+        },
+        clique: {
+          label: 'Click',
+        },
+        remover: {
+          title: 'Remove',
+        },
+        visibilidade: {
+          title: 'Toggle visibility',
+        },
+        duplicar: {
+          title: 'Duplicate',
+        },
+        editar: {
+          title: 'Edit',
+        },
+        nenhumaZonaAtiva: {
+          text: 'No active zones',
+        },
+        zonas: {
+          label: 'zones',
+        },
+        zona: {
+          label: 'zone',
+        },
+        zonasAtivas: {
+          text: 'Active Zones',
+        },
+        configureManualmente: {
+          text: 'Manually configure all properties',
+        },
+        criarZonaCustomizada: {
+          text: 'Create Custom Zone',
+        },
+        nenhumaZonaEncontrada: {
+          text: 'No zones found.',
+        },
+        nvel: {
+          label: 'Level ',
+        },
+        buscarZonas: {
+          placeholder: 'Search zones...',
+        },
+        zonasDeAtaque: {
+          text: 'Attack Zones',
+        },
+        ambiente: {
+          label: 'Environmental',
+        },
+        armas: {
+          label: 'Weapons',
+        },
+        habilidades: {
+          label: 'Abilities',
+        },
+        todos: {
+          label: 'All',
+        },
+        magias: {
+          label: 'Spells',
+        },
+      },
+    },
+    compendium: {
+      window: {
+        oMestreBloqueou: {
+          text: 'The Game Master has blocked access to the Compendium.',
+        },
+        acessoRestrito: {
+          text: 'Restricted Access',
+        },
+        busquePorMonstros: {
+          text: 'Search for monsters, spells, items, and rules.',
+        },
+        selecioneUmItem: {
+          text: 'Select an item to read.',
+        },
+        erroAoCarregar: {
+          text: 'Error loading data.',
+        },
+        consultandoOrculosDe: {
+          text: 'Consulting translation oracles...',
+        },
+        decifrandoRunasAntigas: {
+          text: 'DECIPHERING ANCIENT RUNES...',
+        },
+        fechar: {
+          label: 'Close',
+        },
+        carregarMais: {
+          text: 'Load More',
+        },
+        carregando: {
+          label: 'Loading...',
+        },
+        nenhumFavoritoSalvo: {
+          text: 'No favorites saved.',
+        },
+        nadaEncontrado: {
+          text: 'No results found.',
+        },
+        invocandoSabedoria: {
+          text: 'Invoking wisdom...',
+        },
+        search: {
+          placeholder: 'Search...',
+        },
+        buscar: {
+          placeholder: 'Search...',
+          label: 'Search',
+        },
+        favoritos: {
+          label: 'Favorites',
+        },
+        regras: {
+          label: 'Rules',
+        },
+        tesouros: {
+          label: 'Treasures',
+        },
+        bestirio: {
+          label: 'Bestiary',
+        },
+        grimrioDoConhecimento: {
+          title: 'Compendium of Knowledge',
+        },
+        compartilharRegra: {
+          title: 'Share Rule',
+        },
+        textoCompleto: {
+          text: 'Full Text',
+        },
+        magicitems: {
+          label: 'magicitems',
+        },
+        linkCard: {
+          text: 'Link Card',
+        },
+        requiresAttunement: {
+          text: 'Requires Attunement',
+        },
+        requerSintonizao: {
+          text: 'Requires Attunement',
+        },
+        atHigherLevels: {
+          text: 'At Higher Levels',
+        },
+        emNveisSuperiores: {
+          text: 'At Higher Levels',
+        },
+        components: {
+          label: 'Components:',
+        },
+        componentes: {
+          label: 'Components:',
+        },
+        duration: {
+          label: 'Duration:',
+        },
+        durao: {
+          label: 'Duration:',
+        },
+        range: {
+          label: 'Range:',
+        },
+        alcance: {
+          label: 'Range:',
+        },
+        castingTime: {
+          label: 'Casting Time:',
+        },
+        tempo: {
+          label: 'Time:',
+        },
+        invocarToken: {
+          text: 'Summon Token',
+        },
+        gargantuan: {
+          label: 'Gargantuan',
+        },
+        huge: {
+          label: 'Huge',
+        },
+        tiny: {
+          label: 'Tiny',
+        },
+        aesLendrias: {
+          label: '### Legendary Actions',
+          title: 'Legendary Actions',
+        },
+        aes: {
+          label: '### Actions',
+          title: 'Actions',
+        },
+        escalada: {
+          label: 'climb',
+        },
+        natao: {
+          label: 'swim',
+        },
+        voo: {
+          label: 'fly',
+        },
+        monsters: {
+          label: 'monsters',
+        },
+        legendaryActions: {
+          title: 'Legendary Actions',
+        },
+        actions: {
+          title: 'Actions',
+        },
+        specialAbilities: {
+          title: 'Special Abilities',
+        },
+        habilidadesEspeciais: {
+          title: 'Special Abilities',
+        },
+        charisma: {
+          label: 'charisma',
+        },
+        wisdom: {
+          label: 'wisdom',
+        },
+        intelligence: {
+          label: 'intelligence',
+        },
+        constitution: {
+          label: 'constitution',
+        },
+        dexterity: {
+          label: 'dexterity',
+        },
+        strength: {
+          label: 'strength',
+        },
+        cha: {
+          label: 'CHA',
+        },
+        wis: {
+          label: 'WIS',
+        },
+        int: {
+          label: 'INT',
+        },
+        con: {
+          label: 'CON',
+        },
+        dex: {
+          label: 'DEX',
+        },
+        str: {
+          label: 'STR',
+        },
+        walk: {
+          label: 'Walk',
+        },
+        cho: {
+          label: 'Floor',
+        },
+        speed: {
+          label: 'Speed',
+        },
+        deslocamento: {
+          label: 'Movement',
+        },
+        aesn: {
+          label: '### Actions\\n',
+        },
+        compartilharFichaInteira: {
+          tooltip: 'Share Full Sheet',
+        },
+        enviadoAoChat: {
+          successMessage: 'Sent to chat.',
+        },
+        salvoNosFavoritos: {
+          successMessage: 'Saved to favorites!',
+        },
+        removidoDosFavoritos: {
+          text: 'Removed from favorites.',
+        },
+        failedToLoad: {
+          errorMessage: 'Failed to load deep link',
+        },
+        itemNoEncontrado: {
+          text: 'Item not found.',
+        },
+        favorites: {
+          label: 'favorites',
+        },
+        compartilharSeoNo: {
+          tooltip: 'Share Section in Chat',
+        },
+      },
+    },
+    map: {
+      modals: {
+        audioZone: {
+          zoneMusic: {
+            label: 'Zone Music',
+          },
+          noMusic: {
+            label: 'No Music',
+          },
+          customUrl: {
+            label: 'Custom URL / Upload',
+          },
+          selectTrack: {
+            placeholder: 'Select a track...',
+          },
+          pasteUrl: {
+            placeholder: 'Paste URL or upload...',
+          },
+          saveZone: {
+            button: 'Save Zone',
+          },
+          saveChanges: {
+            button: 'Save Changes',
+          },
+          deleteZone: {
+            button: 'Delete Zone',
+          },
+          volume: {
+            label: 'Volume',
+          },
+          radius: {
+            label: 'Effect Radius (Falloff)',
+          },
+        },
+        triggerZone: {
+          selectResource: {
+            label: 'Resource to Open',
+            placeholder: 'Select a Resource...',
+            hint: 'Select the resource...',
+          },
+          description: {
+            text: 'When a player enters this area, this resource will automatically open on their screen.',
+          },
+          saveTrigger: {
+            button: 'Save Trigger',
+          },
+        },
+        configureAudioZone: {
+          title: 'Configure Audio Zone',
+        },
+        configureTrigger: {
+          title: 'Configure Trigger',
+        },
+      },
+    },
+    handouts: {
+      formModal: {
+        chooseTemplate: {
+          title: 'Choose a Template',
+          subtitle: 'Start with a ready structure or a blank page.',
+        },
+        title: {
+          label: 'Title',
+          placeholder: 'Ex: Letter from the King...',
+        },
+        theme: {
+          label: 'Theme',
+          standard: 'Standard (Dark)',
+          parchment: 'Parchment',
+          terminal: 'Terminal',
+          arcane: 'Arcane',
+        },
+        type: {
+          text: 'Text',
+          image: 'Image',
+          video: 'Video',
+        },
+        content: {
+          placeholder: 'Write here using Markdown...',
+        },
+        urlOrUpload: {
+          text: 'Enter the URL or upload.',
+        },
+        imageInvalid: {
+          text: 'Invalid or empty image URL.',
+        },
+        videoInvalid: {
+          text: 'Invalid or empty YouTube URL.',
+        },
+        changeTemplate: {
+          button: 'Change Template',
+        },
+        saveChanges: {
+          button: 'Save Changes',
+        },
+        createResource: {
+          button: 'Create Resource',
+        },
+        uploadError: {
+          text: 'Upload error.',
+        },
+      },
+      shareModal: {
+        sharing: {
+          text: 'Saving...',
+        },
+        saveSharing: {
+          button: 'Save Sharing',
+        },
+        noPlayers: {
+          text: 'No players in session.',
+        },
+        selectPlayers: {
+          title: 'Select who to share with:',
+        },
+        selectAll: {
+          button: 'Select All',
+        },
+        hideFromAll: {
+          button: 'Hide from All',
+        },
+      },
+      tray: {
+        searchPlaceholder: 'Search resource...',
+        noResults: {
+          text: 'No results.',
+        },
+        noResources: {
+          text: 'No resources created.',
+        },
+        createTrigger: {
+          title: 'Create Trigger on Map',
+        },
+      },
+    },
+    smartDice: {
+      noHeroSelected: {
+        text: 'No Hero Selected',
+      },
+      noAttacks: {
+        text: 'No attacks registered.',
+      },
+      noSpells: {
+        text: 'No spells prepared.',
+      },
+    },
+    cursor: {
+      settingsModal: {
+        noPlayers: {
+          text: 'No players.',
+        },
+        save: {
+          button: 'Save',
+        },
+      },
+    },
+    mapContext: {
+      addToken: {
+        label: 'Add Token',
+      },
+      addLight: {
+        label: 'Add Light',
+      },
+    },
+    keyboard: {
+      closePanel: {
+        description: 'Close open panels',
+      },
+    },
+    attackZone: {
+      contextMenu: {
+        delete: {
+          label: 'Delete Zone',
         },
       },
     },

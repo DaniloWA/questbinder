@@ -1,3 +1,4 @@
+import { useTranslation } from '../../i18n/TranslationContext';
 import React from 'react';
 import { useGameSession } from '../../context/GameSessionContext';
 import { Swords, ChevronRight, ShieldAlert, Heart, Skull } from 'lucide-react';
@@ -5,14 +6,15 @@ import { Tooltip } from '../ui/Tooltip';
 import { Button } from '../ui/Button';
 
 export const CombatTracker: React.FC = () => {
+    const { t } = useTranslation();
     const { combat, isGM, nextTurn, updateCombatant } = useGameSession();
 
     if (!combat || !combat.isActive) {
         return (
             <div className="flex flex-col items-center justify-center h-full text-center p-4 text-zinc-500">
                 <ShieldAlert className="w-12 h-12 mb-4" />
-                <h3 className="font-bold text-zinc-300">Nenhum combate ativo.</h3>
-                <p className="text-sm">Inicie um combate pela barra de ferramentas do mestre.</p>
+                <h3 className="font-bold text-zinc-300">{t('vtt.combat.tracker.nenhumCombateAtivo.text')}</h3>
+                <p className="text-sm">{t('vtt.combat.tracker.inicieUmCombate.text')}</p>
             </div>
         );
     }
@@ -25,10 +27,10 @@ export const CombatTracker: React.FC = () => {
             <div className="p-3 border-b border-zinc-800 flex justify-between items-center">
                 <h3 className="font-bold text-lg flex items-center gap-2">
                     <Swords className="w-5 h-5 text-red-400" />
-                    <span>Ordem de Turno</span>
+                    <span>{t('vtt.combat.tracker.ordemDeTurno.text')}</span>
                 </h3>
                 <div className="text-center">
-                    <span className="text-xs uppercase text-zinc-400">Rodada</span>
+                    <span className="text-xs uppercase text-zinc-400">{t('vtt.combat.tracker.rodada.label')}</span>
                     <p className="font-bold text-xl">{combat.round}</p>
                 </div>
             </div>
@@ -56,19 +58,19 @@ export const CombatTracker: React.FC = () => {
                         {/* Info */}
                         <div className="flex-1 min-w-0">
                             <p className="font-bold truncate text-white">{c.name}</p>
-                            <p className="text-xs text-zinc-400">Iniciativa: {c.initiative}</p>
+                            <p className="text-xs text-zinc-400">{t('vtt.combat.tracker.iniciativa.label')}{c.initiative}</p>
                         </div>
-                        
+
                         {/* HP */}
                         <div className="flex items-center gap-2">
-                           <Heart className="w-4 h-4 text-red-500" />
-                           <input 
-                              type="number"
-                              value={c.hp ?? ''}
-                              onChange={(e) => updateCombatant(c.id, { hp: parseInt(e.target.value) || 0 })}
-                              className="w-12 bg-zinc-900 border border-zinc-700 rounded text-center text-sm p-1 outline-none focus:ring-1 focus:ring-primary"
-                              disabled={!isGM}
-                           />
+                            <Heart className="w-4 h-4 text-red-500" />
+                            <input
+                                type="number"
+                                value={c.hp ?? ''}
+                                onChange={(e) => updateCombatant(c.id, { hp: parseInt(e.target.value) || 0 })}
+                                className="w-12 bg-zinc-900 border border-zinc-700 rounded text-center text-sm p-1 outline-none focus:ring-1 focus:ring-primary"
+                                disabled={!isGM}
+                            />
                         </div>
 
                     </div>
@@ -78,9 +80,7 @@ export const CombatTracker: React.FC = () => {
             {/* GM Controls */}
             {isGM && (
                 <div className="p-3 border-t border-zinc-800 bg-zinc-900">
-                    <Button onClick={nextTurn} fullWidth className="shadow-lg shadow-primary/20">
-                        Próximo Turno
-                        <ChevronRight className="w-4 h-4 ml-2" />
+                    <Button onClick={nextTurn} fullWidth className="shadow-lg shadow-primary/20">{t('vtt.combat.tracker.prximoTurno.text')}<ChevronRight className="w-4 h-4 ml-2" />
                     </Button>
                 </div>
             )}

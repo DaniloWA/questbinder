@@ -1,3 +1,4 @@
+import { useTranslation } from '../../i18n/TranslationContext';
 // components/vtt/AttackZonePanel.tsx
 
 import React, { useState } from 'react';
@@ -44,17 +45,18 @@ export const AttackZonePanel: React.FC<AttackZonePanelProps> = ({
   onDuplicateZone,
   onEditZone,
 }) => {
+  const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   if (!isOpen) return null;
 
   const categories = [
-    { id: 'all', label: 'Todos', icon: Target },
-    { id: 'spell', label: 'Magias', icon: Flame },
-    { id: 'ability', label: 'Habilidades', icon: Zap },
-    { id: 'weapon', label: 'Armas', icon: Target },
-    { id: 'environmental', label: 'Ambiente', icon: Wind },
+    { id: 'all', label: t('vtt.attack.zonepanel.todos.label'), icon: Target },
+    { id: 'spell', label: t('vtt.attack.zonepanel.magias.label'), icon: Flame },
+    { id: 'ability', label: t('vtt.attack.zonepanel.habilidades.label'), icon: Zap },
+    { id: 'weapon', label: t('vtt.attack.zonepanel.armas.label'), icon: Target },
+    { id: 'environmental', label: t('vtt.attack.zonepanel.ambiente.label'), icon: Wind },
   ];
 
   const filteredTemplates = ATTACK_ZONE_PRESETS.filter(template => {
@@ -92,7 +94,7 @@ export const AttackZonePanel: React.FC<AttackZonePanelProps> = ({
         <div className="flex items-center justify-between p-3 sm:p-4 border-b border-zinc-700">
           <div className="flex items-center gap-2 sm:gap-3">
             <Target className="w-5 h-5 sm:w-6 sm:h-6 text-red-400" />
-            <h2 className="text-lg sm:text-xl font-bold text-white">Zonas de Ataque</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-white">{t('vtt.attack.zonepanel.zonasDeAtaque.text')}</h2>
           </div>
           <button
             onClick={onClose}
@@ -109,7 +111,7 @@ export const AttackZonePanel: React.FC<AttackZonePanelProps> = ({
             <div className="p-4 border-b border-zinc-700">
               <input
                 type="text"
-                placeholder="Buscar zonas..."
+                placeholder={t('vtt.attack.zonepanel.buscarZonas.placeholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500"
@@ -157,8 +159,7 @@ export const AttackZonePanel: React.FC<AttackZonePanelProps> = ({
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-semibold text-white">{template.name}</h3>
                           {template.spellLevel && (
-                            <span className="px-2 py-0.5 bg-purple-500/20 text-purple-300 text-xs rounded">
-                              Nível {template.spellLevel}
+                            <span className="px-2 py-0.5 bg-purple-500/20 text-purple-300 text-xs rounded">{t('vtt.attack.zonepanel.nvel.label')}{template.spellLevel}
                             </span>
                           )}
                         </div>
@@ -192,7 +193,7 @@ export const AttackZonePanel: React.FC<AttackZonePanelProps> = ({
               {filteredTemplates.length === 0 && (
                 <div className="text-center py-12 text-zinc-500">
                   <Target className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>Nenhuma zona encontrada</p>
+                  <p>{t('vtt.attack.zonepanel.nenhumaZonaEncontrada.text')}</p>
                 </div>
               )}
 
@@ -202,8 +203,8 @@ export const AttackZonePanel: React.FC<AttackZonePanelProps> = ({
                 className="w-full p-4 bg-zinc-800 hover:bg-zinc-750 border-2 border-dashed border-zinc-700 hover:border-red-500 rounded-lg transition-all text-center"
               >
                 <Settings className="w-6 h-6 mx-auto mb-2 text-zinc-400" />
-                <p className="font-semibold text-white">Criar Zona Customizada</p>
-                <p className="text-sm text-zinc-400 mt-1">Configure manualmente</p>
+                <p className="font-semibold text-white">{t('vtt.attack.zonepanel.criarZonaCustomizada.text')}</p>
+                <p className="text-sm text-zinc-400 mt-1">{t('vtt.attack.zonepanel.configureManualmente.text')}</p>
               </button>
             </div>
           </div>
@@ -211,9 +212,9 @@ export const AttackZonePanel: React.FC<AttackZonePanelProps> = ({
           {/* Active Zones Panel */}
           <div className="md:w-1/3 flex flex-col max-h-[30vh] md:max-h-none">
             <div className="p-4 border-b border-zinc-700">
-              <h3 className="font-semibold text-white">Zonas Ativas</h3>
+              <h3 className="font-semibold text-white">{t('vtt.attack.zonepanel.zonasAtivas.text')}</h3>
               <p className="text-sm text-zinc-400 mt-1">
-                {activeZones.length} {activeZones.length === 1 ? 'zona' : 'zonas'}
+                {activeZones.length} {activeZones.length === 1 ? t('vtt.attack.zonepanel.zona.label') : t('vtt.attack.zonepanel.zonas.label')}
               </p>
             </div>
 
@@ -221,7 +222,7 @@ export const AttackZonePanel: React.FC<AttackZonePanelProps> = ({
               {activeZones.length === 0 ? (
                 <div className="text-center py-12 text-zinc-500">
                   <Eye className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p className="text-sm">Nenhuma zona ativa</p>
+                  <p className="text-sm">{t('vtt.attack.zonepanel.nenhumaZonaAtiva.text')}</p>
                 </div>
               ) : (
                 activeZones.map((zone) => {
@@ -252,7 +253,7 @@ export const AttackZonePanel: React.FC<AttackZonePanelProps> = ({
                         <button
                           onClick={() => onEditZone(zone.id)}
                           className="flex-1 p-1.5 bg-zinc-900 hover:bg-zinc-700 rounded text-xs text-zinc-400 hover:text-white transition-colors"
-                          title="Editar"
+                          title={t('vtt.attack.zonepanel.editar.title')}
                         >
                           <Settings className="w-3 h-3 mx-auto" />
                         </button>
@@ -260,7 +261,7 @@ export const AttackZonePanel: React.FC<AttackZonePanelProps> = ({
                         <button
                           onClick={() => onDuplicateZone(zone.id)}
                           className="flex-1 p-1.5 bg-zinc-900 hover:bg-zinc-700 rounded text-xs text-zinc-400 hover:text-white transition-colors"
-                          title="Duplicar"
+                          title={t('vtt.attack.zonepanel.duplicar.title')}
                         >
                           <Copy className="w-3 h-3 mx-auto" />
                         </button>
@@ -268,7 +269,7 @@ export const AttackZonePanel: React.FC<AttackZonePanelProps> = ({
                         <button
                           onClick={() => onToggleZoneVisibility(zone.id)}
                           className="flex-1 p-1.5 bg-zinc-900 hover:bg-zinc-700 rounded text-xs text-zinc-400 hover:text-white transition-colors"
-                          title="Visibilidade"
+                          title={t('vtt.attack.zonepanel.visibilidade.title')}
                         >
                           <Eye className="w-3 h-3 mx-auto" />
                         </button>
@@ -276,7 +277,7 @@ export const AttackZonePanel: React.FC<AttackZonePanelProps> = ({
                         <button
                           onClick={() => onRemoveZone(zone.id)}
                           className="flex-1 p-1.5 bg-zinc-900 hover:bg-red-500/20 rounded text-xs text-zinc-400 hover:text-red-400 transition-colors"
-                          title="Remover"
+                          title={t('vtt.attack.zonepanel.remover.title')}
                         >
                           <Trash2 className="w-3 h-3 mx-auto" />
                         </button>
@@ -293,15 +294,12 @@ export const AttackZonePanel: React.FC<AttackZonePanelProps> = ({
         <div className="p-4 border-t border-zinc-700 bg-zinc-900/50">
           <div className="flex items-center justify-between text-sm">
             <div className="text-zinc-400">
-              <kbd className="px-2 py-1 bg-zinc-800 rounded text-xs">Clique</kbd>
-              {' '}no mapa para posicionar
-            </div>
+              <kbd className="px-2 py-1 bg-zinc-800 rounded text-xs">{t('vtt.attack.zonepanel.clique.label')}</kbd>
+              {' '}{t('vtt.attack.zonepanel.noMapaPara.text')}</div>
             <button
               onClick={onClose}
               className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition-colors"
-            >
-              Fechar
-            </button>
+            >{t('vtt.attack.zonepanel.fechar.label')}</button>
           </div>
         </div>
       </div>

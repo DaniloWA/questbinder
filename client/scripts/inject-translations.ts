@@ -110,13 +110,21 @@ function serializeObject(obj: any, indent: number = 0): string {
     const safeKey = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key) ? key : `'${key}'`;
 
     if (typeof value === 'string') {
-      // Escape single quotes and wrap in single quotes
-      const escaped = value.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      // Escape single quotes, backslashes and newlines
+      const escaped = value
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/\n/g, '\\n')
+        .replace(/\r/g, '\\r');
       return `${spaces}  ${safeKey}: '${escaped}',`;
     } else if (Array.isArray(value)) {
       const arrayContent = value.map(v => {
         if (typeof v === 'string') {
-          const escaped = v.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+          const escaped = v
+            .replace(/\\/g, '\\\\')
+            .replace(/'/g, "\\'")
+            .replace(/\n/g, '\\n')
+            .replace(/\r/g, '\\r');
           return `'${escaped}'`;
         }
         return JSON.stringify(v);

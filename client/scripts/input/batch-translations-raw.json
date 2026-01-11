@@ -1,29 +1,44 @@
 {
   "translations": [
     {
-      "key": "vtt.v.tttoolbar.drawings.label",
-      "en": "drawings",
-      "pt": "drawings"
+      "key": "vtt.attack.zoneconfigmodal.objects.label",
+      "en": "objects",
+      "pt": "objects"
     },
     {
-      "key": "vtt.v.tttoolbar.measure.label",
-      "en": "measure",
-      "pt": "measure"
+      "key": "vtt.attack.zoneconfigmodal.enemies.label",
+      "en": "enemies",
+      "pt": "enemies"
     },
     {
-      "key": "vtt.v.tttoolbar.group.label",
-      "en": "group",
-      "pt": "group"
+      "key": "vtt.attack.zoneconfigmodal.allies.label",
+      "en": "allies",
+      "pt": "allies"
     },
     {
-      "key": "vtt.v.tttoolbar.action.label",
-      "en": "action",
-      "pt": "action"
+      "key": "vtt.attack.zoneconfigmodal.spreading.label",
+      "en": "spreading",
+      "pt": "spreading"
     },
     {
-      "key": "vtt.v.tttoolbar.ontouchstart.label",
-      "en": "ontouchstart",
-      "pt": "ontouchstart"
+      "key": "vtt.attack.zoneconfigmodal.penetrating.label",
+      "en": "penetrating",
+      "pt": "penetrating"
+    },
+    {
+      "key": "vtt.attack.zoneconfigmodal.rectangle.label",
+      "en": "rectangle",
+      "pt": "rectangle"
+    },
+    {
+      "key": "vtt.attack.zoneconfigmodal.line.label",
+      "en": "line",
+      "pt": "line"
+    },
+    {
+      "key": "vtt.attack.zoneconfigmodal.cone.label",
+      "en": "cone",
+      "pt": "cone"
     }
   ]
 }

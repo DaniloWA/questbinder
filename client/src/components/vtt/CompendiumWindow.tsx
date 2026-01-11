@@ -1,3 +1,4 @@
+import { useTranslation } from '../../i18n/TranslationContext';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { DraggableWindow } from '../ui/DraggableWindow';
@@ -92,6 +93,7 @@ const CompendiumSection: React.FC<{
     icon?: React.ReactNode;
     className?: string;
 }> = ({ title, children, defaultOpen = true, onShare, icon, className = '' }) => {
+    const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(defaultOpen);
 
     return (
@@ -106,7 +108,7 @@ const CompendiumSection: React.FC<{
                     <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
                 </div>
                 {onShare && (
-                    <Tooltip content="Compartilhar Seção no Chat">
+                    <Tooltip content={t('vtt.compendium.window.compartilharSeoNo.tooltip')}>
                         <button
                             onClick={(e) => { e.stopPropagation(); onShare(); }}
                             className="p-1.5 text-zinc-500 hover:text-white hover:bg-zinc-700/50 rounded transition-colors"
@@ -126,6 +128,7 @@ const CompendiumSection: React.FC<{
 };
 
 export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onClose }) => {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<CompendiumCategory | 'favorites'>('monsters');
     const [searchQuery, setSearchQuery] = useState('');
     const [results, setResults] = useState<any[]>([]);
@@ -155,7 +158,7 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
         if (stored) {
             try {
                 setFavorites(JSON.parse(stored));
-            } catch (e) { console.error("Failed to load favorites", e); }
+            } catch (e) { console.error(t('vtt.compendium.window.failedToLoad.errorMessage'), e); }
         }
     }, []);
 
@@ -189,11 +192,11 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
                     if (targetItem) {
                         setSelectedItem(targetItem);
                     } else {
-                        show({ type: 'warning', message: 'Item não encontrado.' });
+                        show({ type: 'warning', message: t('vtt.compendium.window.itemNoEncontrado.text') });
                     }
 
                 } catch (e) {
-                    console.error("Failed to load deep link", e);
+                    console.error(t('vtt.compendium.window.failedToLoad.errorMessage'), e);
                 }
                 setIsLoading(false);
             }
@@ -211,11 +214,11 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
         let newFavs;
         if (isFav) {
             newFavs = favorites.filter(f => f.slug !== slug);
-            show({ type: 'info', message: 'Removido dos favoritos.' });
+            show({ type: 'info', message: t('vtt.compendium.window.removidoDosFavoritos.text') });
         } else {
             // @ts-ignore
             newFavs = [...favorites, { slug, name: item.name, category, data: item }];
-            show({ type: 'success', message: 'Salvo nos favoritos!' });
+            show({ type: 'success', message: t('vtt.compendium.window.salvoNosFavoritos.successMessage') });
         }
         setFavorites(newFavs);
         localStorage.setItem('questbinder_favorites', JSON.stringify(newFavs));
@@ -316,7 +319,7 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
             undefined,
             linkMetadata
         );
-        show({ type: 'success', message: 'Enviado ao chat.' });
+        show({ type: 'success', message: t('vtt.compendium.window.enviadoAoChat.successMessage') });
     };
 
     const renderMarkdown = (text: string) => {
@@ -338,13 +341,13 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
                     <p className="text-sm italic text-zinc-400 capitalize mt-1">{m.size} {m.type}, {m.alignment}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Tooltip content="Compartilhar Ficha Inteira">
+                    <Tooltip content={t('vtt.compendium.window.compartilharFichaInteira.tooltip')}>
                         <button
                             onClick={() => {
                                 let fullContent = `**${m.name}**\n*${m.size} ${m.type}, ${m.alignment}*\n\n`;
                                 fullContent += `**CA** ${m.armor_class} | **PV** ${m.hit_points} | **Desl.** ${distTr(m.speed.walk)}\n\n`;
                                 fullContent += `**STR** ${m.strength} | **DEX** ${m.dexterity} | **CON** ${m.constitution} | **INT** ${m.intelligence} | **WIS** ${m.wisdom} | **CHA** ${m.charisma}\n\n`;
-                                if (m.actions) fullContent += `### Ações\n` + m.actions.map(a => `**${a.name}.** ${a.desc}`).join('\n\n');
+                                if (m.actions) fullContent += t('vtt.compendium.window.aesn.label') + m.actions.map(a => `**${a.name}.** ${a.desc}`).join('\n\n');
                                 handleShareRich(m.name, fullContent, m.slug, 'monsters');
                             }}
                             className="p-2 text-zinc-500 hover:text-primary transition-colors"
@@ -381,18 +384,18 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
             </div>
 
             <div className="text-xs text-zinc-400 flex gap-2 flex-wrap">
-                <strong className="text-zinc-500 uppercase">{language === 'pt' ? 'Deslocamento' : 'Speed'}:</strong>
+                <strong className="text-zinc-500 uppercase">{language === 'pt' ? t('vtt.compendium.window.deslocamento.label') : t('vtt.compendium.window.speed.label')}:</strong>
                 {Object.entries(m.speed).map(([mode, val]) => (
                     <span key={mode} className="bg-zinc-900 px-1.5 rounded border border-zinc-800">
-                        {mode === 'walk' ? (language === 'pt' ? 'Chão' : 'Walk') : mode} {distTr(val).replace('m', 'm').replace(' ft.', 'ft')}
+                        {mode === 'walk' ? (language === 'pt' ? t('vtt.compendium.window.cho.label') : t('vtt.compendium.window.walk.label')) : mode} {distTr(val).replace('m', 'm').replace(' ft.', 'ft')}
                     </span>
                 ))}
             </div>
 
             {/* ATTRIBUTES GRID */}
             <div className="grid grid-cols-6 gap-1 text-center text-xs mb-4 bg-zinc-900/50 p-2 rounded mt-2 border border-zinc-800">
-                {['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'].map(stat => {
-                    const key = { STR: 'strength', DEX: 'dexterity', CON: 'constitution', INT: 'intelligence', WIS: 'wisdom', CHA: 'charisma' }[stat] as keyof ApiMonster;
+                {[t('vtt.compendium.window.str.label'), t('vtt.compendium.window.dex.label'), t('vtt.compendium.window.con.label'), t('vtt.compendium.window.int.label'), t('vtt.compendium.window.wis.label'), t('vtt.compendium.window.cha.label')].map(stat => {
+                    const key = { STR: t('vtt.compendium.window.strength.label'), DEX: t('vtt.compendium.window.dexterity.label'), CON: t('vtt.compendium.window.constitution.label'), INT: t('vtt.compendium.window.intelligence.label'), WIS: t('vtt.compendium.window.wisdom.label'), CHA: t('vtt.compendium.window.charisma.label') }[stat] as keyof ApiMonster;
                     const val = m[key] as number;
                     const mod = Math.floor((val - 10) / 2);
                     return (
@@ -406,7 +409,7 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
 
             {/* SPECIAL ABILITIES - Collapsible */}
             {m.special_abilities && m.special_abilities.length > 0 && (
-                <CompendiumSection title={language === 'pt' ? 'Habilidades Especiais' : 'Special Abilities'} className="mb-4" icon={<Star className="w-4 h-4 text-amber-500" />}>
+                <CompendiumSection title={language === 'pt' ? t('vtt.compendium.window.habilidadesEspeciais.title') : t('vtt.compendium.window.specialAbilities.title')} className="mb-4" icon={<Star className="w-4 h-4 text-amber-500" />}>
                     <div className="space-y-4 text-sm text-zinc-300">
                         {m.special_abilities.map((a, i) => (
                             <div key={i} className="bg-zinc-950/30 p-3 rounded border border-zinc-800/50 group">
@@ -424,7 +427,7 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
             {/* ACTIONS - Collapsible */}
             {m.actions && (
                 <CompendiumSection
-                    title={language === 'pt' ? 'Ações' : 'Actions'}
+                    title={language === 'pt' ? t('vtt.compendium.window.aes.title') : t('vtt.compendium.window.actions.title')}
                     className="mb-4"
                     icon={<Skull className="w-4 h-4 text-red-500" />}
                     onShare={() => {
@@ -449,7 +452,7 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
             {/* LEGENDARY ACTIONS - Collapsible */}
             {m.legendary_actions && (
                 <CompendiumSection
-                    title={language === 'pt' ? 'Ações Lendárias' : 'Legendary Actions'}
+                    title={language === 'pt' ? t('vtt.compendium.window.aesLendrias.title') : t('vtt.compendium.window.legendaryActions.title')}
                     icon={<RotateCw className="w-4 h-4 text-purple-500" />}
                     defaultOpen={false}
                 >
@@ -482,7 +485,7 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
                         // We need a string for the sheet "9m, voo 18m"
                         const speedStr = Object.entries(m.speed).map(([k, v]) => {
                             const valM = Math.round(v * 0.3 * 10) / 10;
-                            const label = k === 'walk' ? '' : (language === 'pt' ? (k === 'fly' ? 'voo' : k === 'swim' ? 'natação' : k === 'climb' ? 'escalada' : k) : k) + ' ';
+                            const label = k === 'walk' ? '' : (language === 'pt' ? (k === 'fly' ? t('vtt.compendium.window.voo.label') : k === 'swim' ? t('vtt.compendium.window.natao.label') : k === 'climb' ? t('vtt.compendium.window.escalada.label') : k) : k) + ' ';
                             return `${label}${valM}m`;
                         }).join(', ');
 
@@ -505,11 +508,11 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
                         const notesParts = [];
                         if (m.special_abilities) notesParts.push(...m.special_abilities.map(a => `**${a.name}.** ${a.desc}`));
                         if (m.actions) {
-                            notesParts.push('### Ações');
+                            notesParts.push(t('vtt.compendium.window.aes.label'));
                             notesParts.push(...m.actions.map(a => `**${a.name}.** ${a.desc}`));
                         }
                         if (m.legendary_actions) {
-                            notesParts.push('### Ações Lendárias');
+                            notesParts.push(t('vtt.compendium.window.aesLendrias.label'));
                             notesParts.push(...m.legendary_actions.map(a => `**${a.name}.** ${a.desc}`));
                         }
 
@@ -553,7 +556,7 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
                             stats: tokenStats // Populate stats!
                         });
                         sendChatMessage(`Invocou **${m.name}** do Compêndio.`, 'system');
-                    }} className="shadow-lg shadow-primary/20">Invocar Token</Button>
+                    }} className="shadow-lg shadow-primary/20">{t('vtt.compendium.window.invocarToken.text')}</Button>
                 </div>
             )}
         </div>
@@ -576,10 +579,10 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
                 </button>
             </div>
             <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-zinc-300 bg-zinc-900/50 p-3 rounded border border-zinc-800">
-                <div><strong className="text-zinc-500 uppercase text-[10px]">{language === 'pt' ? 'Tempo:' : 'Casting Time:'}</strong> <span className="block">{s.casting_time}</span></div>
-                <div><strong className="text-zinc-500 uppercase text-[10px]">{language === 'pt' ? 'Alcance:' : 'Range:'}</strong> <span className="block">{s.range}</span></div>
-                <div><strong className="text-zinc-500 uppercase text-[10px]">{language === 'pt' ? 'Duração:' : 'Duration:'}</strong> <span className="block">{s.duration}</span></div>
-                <div><strong className="text-zinc-500 uppercase text-[10px]">{language === 'pt' ? 'Componentes:' : 'Components:'}</strong> <span className="block">{s.components}</span></div>
+                <div><strong className="text-zinc-500 uppercase text-[10px]">{language === 'pt' ? t('vtt.compendium.window.tempo.label') : t('vtt.compendium.window.castingTime.label')}</strong> <span className="block">{s.casting_time}</span></div>
+                <div><strong className="text-zinc-500 uppercase text-[10px]">{language === 'pt' ? t('vtt.compendium.window.alcance.label') : t('vtt.compendium.window.range.label')}</strong> <span className="block">{s.range}</span></div>
+                <div><strong className="text-zinc-500 uppercase text-[10px]">{language === 'pt' ? t('vtt.compendium.window.durao.label') : t('vtt.compendium.window.duration.label')}</strong> <span className="block">{s.duration}</span></div>
+                <div><strong className="text-zinc-500 uppercase text-[10px]">{language === 'pt' ? t('vtt.compendium.window.componentes.label') : t('vtt.compendium.window.components.label')}</strong> <span className="block">{s.components}</span></div>
             </div>
 
             <div className="mt-4">
@@ -588,17 +591,15 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
 
             {s.higher_level && (
                 <div className="mt-4 p-3 bg-purple-900/10 border border-purple-500/20 rounded">
-                    <strong className="text-purple-300 block text-xs uppercase mb-1">{language === 'pt' ? 'Em Níveis Superiores' : 'At Higher Levels'}</strong>
+                    <strong className="text-purple-300 block text-xs uppercase mb-1">{language === 'pt' ? t('vtt.compendium.window.emNveisSuperiores.text') : t('vtt.compendium.window.atHigherLevels.text')}</strong>
                     <p className="text-sm text-zinc-300">{s.higher_level}</p>
                 </div>
             )}
             <div className="grid grid-cols-2 gap-3 pt-4 mt-4 border-t border-zinc-800">
                 <Button variant="outline" fullWidth onClick={() => sendChatMessage(`Compartilhou a magia **${s.name}**`, 'message', undefined, { type: 'spell', label: s.name, data: { ...s, level: s.level_int }, compendiumSlug: s.slug, compendiumCategory: 'spells' })}>
-                    <ExternalLink className="w-4 h-4 mr-2" /> Link Card
-                </Button>
+                    <ExternalLink className="w-4 h-4 mr-2" />{t('vtt.compendium.window.linkCard.text')}</Button>
                 <Button variant="ghost" fullWidth onClick={() => handleShareRich(s.name, s.desc, s.slug, 'spells')}>
-                    <MessageSquare className="w-4 h-4 mr-2" /> Texto Completo
-                </Button>
+                    <MessageSquare className="w-4 h-4 mr-2" />{t('vtt.compendium.window.textoCompleto.text')}</Button>
             </div>
         </div>
     );
@@ -621,7 +622,7 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
             </div>
             {i.requires_attunement && (
                 <div className="bg-amber-900/20 text-amber-200 px-3 py-1.5 rounded text-xs font-bold border border-amber-700/30 inline-block">
-                    {language === 'pt' ? 'Requer Sintonização' : 'Requires Attunement'}
+                    {language === 'pt' ? t('vtt.compendium.window.requerSintonizao.text') : t('vtt.compendium.window.requiresAttunement.text')}
                 </div>
             )}
             <div className="mt-4">
@@ -629,11 +630,9 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
             </div>
             <div className="grid grid-cols-2 gap-3 pt-4 mt-4 border-t border-zinc-800">
                 <Button variant="outline" fullWidth onClick={() => sendChatMessage(`Compartilhou o item **${i.name}**`, 'message', undefined, { type: 'item', label: i.name, data: { name: i.name, qty: 1, description: i.desc }, compendiumSlug: i.slug, compendiumCategory: 'magicitems' })}>
-                    <ExternalLink className="w-4 h-4 mr-2" /> Link Card
-                </Button>
+                    <ExternalLink className="w-4 h-4 mr-2" />{t('vtt.compendium.window.linkCard.text')}</Button>
                 <Button variant="ghost" fullWidth onClick={() => handleShareRich(i.name, i.desc, i.slug, 'magicitems')}>
-                    <MessageSquare className="w-4 h-4 mr-2" /> Texto Completo
-                </Button>
+                    <MessageSquare className="w-4 h-4 mr-2" />{t('vtt.compendium.window.textoCompleto.text')}</Button>
             </div>
         </div>
     );
@@ -643,7 +642,7 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
             <div className="flex justify-between items-start border-b border-zinc-700 pb-2">
                 <h2 className="text-3xl font-fantasy text-zinc-200">{r.name}</h2>
                 <div className="flex items-center gap-2">
-                    <button onClick={() => handleShareRich(r.name, r.desc, r.slug, 'sections')} className="p-2 text-zinc-500 hover:text-primary transition-colors" title="Compartilhar Regra">
+                    <button onClick={() => handleShareRich(r.name, r.desc, r.slug, 'sections')} className="p-2 text-zinc-500 hover:text-primary transition-colors" title={t('vtt.compendium.window.compartilharRegra.title')}>
                         <MessageSquare className="w-5 h-5" />
                     </button>
                     <button
@@ -668,7 +667,7 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
         <DraggableWindow
             isOpen={isOpen}
             onClose={onClose}
-            title="Grimório do Conhecimento"
+            title={t('vtt.compendium.window.grimrioDoConhecimento.title')}
             icon={<Book className="w-4 h-4 text-primary" />}
             initialSize={{ w: 900, h: 650 }}
             initialPosition={{ x: 50, y: 50 }}
@@ -680,10 +679,10 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
                     {/* SIDEBAR - CATEGORIES */}
                     <div className="w-16 md:w-48 border-r border-zinc-800 bg-zinc-900 flex flex-col shrink-0">
                         {[
-                            { id: 'monsters', label: 'Bestiário', icon: <Skull className="w-5 h-5" /> },
+                            { id: 'monsters', label: t('vtt.compendium.window.bestirio.label'), icon: <Skull className="w-5 h-5" /> },
                             { id: 'spells', label: 'Magias', icon: <Zap className="w-5 h-5" /> },
-                            { id: 'magicitems', label: 'Tesouros', icon: <Backpack className="w-5 h-5" /> },
-                            { id: 'sections', label: 'Regras', icon: <Scale className="w-5 h-5" /> },
+                            { id: 'magicitems', label: t('vtt.compendium.window.tesouros.label'), icon: <Backpack className="w-5 h-5" /> },
+                            { id: 'sections', label: t('vtt.compendium.window.regras.label'), icon: <Scale className="w-5 h-5" /> },
                         ].map(cat => (
                             <button
                                 key={cat.id}
@@ -702,7 +701,7 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
                             className={`flex items-center gap-3 p-4 transition-all hover:bg-zinc-800 ${activeTab === 'favorites' ? 'bg-yellow-500/10 border-r-2 border-yellow-500 text-yellow-100' : 'text-zinc-500'}`}
                         >
                             <Bookmark className={`w-5 h-5 ${activeTab === 'favorites' ? 'fill-yellow-500 text-yellow-500' : ''}`} />
-                            <span className="hidden md:inline font-bold text-sm">Favoritos</span>
+                            <span className="hidden md:inline font-bold text-sm">{t('vtt.compendium.window.favoritos.label')}</span>
                         </button>
                     </div>
 
@@ -711,7 +710,7 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
                         <div className="p-3 border-b border-zinc-800 space-y-3">
                             <div className="flex items-center justify-between">
                                 <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
-                                    {activeTab === 'favorites' ? `Salvos (${favorites.length})` : 'Buscar'}
+                                    {activeTab === 'favorites' ? `Salvos (${favorites.length})` : t('vtt.compendium.window.buscar.label')}
                                 </span>
                                 {/* LANGUAGE TOGGLE */}
                                 <div className="flex bg-zinc-950 rounded-lg border border-zinc-800 p-0.5">
@@ -723,17 +722,17 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
                                 <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                                 <input
                                     className="w-full bg-zinc-950 border border-zinc-800 rounded-lg pl-8 pr-2 py-2 text-sm text-white focus:border-primary outline-none"
-                                    placeholder={language === 'pt' ? "Buscar..." : "Search..."}
+                                    placeholder={language === 'pt' ? t('vtt.compendium.window.buscar.placeholder') : t('vtt.compendium.window.search.placeholder')}
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
                             </div>
                         </div>
                         <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
-                            {isLoading && results.length === 0 && <div className="text-center p-4 text-zinc-500 text-sm">Invocando sabedoria...</div>}
+                            {isLoading && results.length === 0 && <div className="text-center p-4 text-zinc-500 text-sm">{t('vtt.compendium.window.invocandoSabedoria.text')}</div>}
                             {activeTab === 'favorites' && results.length === 0 && !isLoading && (
                                 <div className="text-center p-8 text-zinc-500 text-sm italic">
-                                    {searchQuery ? "Nada encontrado." : "Nenhum favorito salvo."}
+                                    {searchQuery ? t('vtt.compendium.window.nadaEncontrado.text') : t('vtt.compendium.window.nenhumFavoritoSalvo.text')}
                                 </div>
                             )}
                             {results.map((item, idx) => {
@@ -767,7 +766,7 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
                             })}
                             {hasNext && activeTab !== 'favorites' && (
                                 <Button variant="ghost" size="sm" fullWidth onClick={handleLoadMore} disabled={isLoading}>
-                                    {isLoading ? 'Carregando...' : 'Carregar Mais'}
+                                    {isLoading ? t('vtt.compendium.window.carregando.label') : t('vtt.compendium.window.carregarMais.text')}
                                 </Button>
                             )}
                         </div>
@@ -777,7 +776,7 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
                     <div className={`flex-1 bg-zinc-950 p-6 overflow-y-auto custom-scrollbar relative ${selectedItem ? 'flex' : 'hidden lg:flex'} flex-col`}>
                         {selectedItem ? (
                             <>
-                                <button onClick={() => { setSelectedItem(null); setDisplayItem(null); }} className="lg:hidden absolute top-4 right-4 text-zinc-500 hover:text-white">Fechar</button>
+                                <button onClick={() => { setSelectedItem(null); setDisplayItem(null); }} className="lg:hidden absolute top-4 right-4 text-zinc-500 hover:text-white">{t('vtt.compendium.window.fechar.label')}</button>
 
                                 {isTranslating ? (
                                     <div className="flex flex-col items-center justify-center h-full text-primary animate-pulse gap-3">
@@ -785,8 +784,8 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
                                             <Loader2 className="w-12 h-12 animate-spin" />
                                             <RotateCw className="w-6 h-6 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-reverse-spin opacity-50" />
                                         </div>
-                                        <p className="text-sm font-fantasy tracking-widest">DECIFRANDO RUNAS ANTIGAS...</p>
-                                        <p className="text-xs text-zinc-500">Consultando oráculos de tradução...</p>
+                                        <p className="text-sm font-fantasy tracking-widest">{t('vtt.compendium.window.decifrandoRunasAntigas.text')}</p>
+                                        <p className="text-xs text-zinc-500">{t('vtt.compendium.window.consultandoOrculosDe.text')}</p>
                                     </div>
                                 ) : displayItem ? (
                                     <div className="max-w-3xl mx-auto w-full">
@@ -796,16 +795,14 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
                                         {activeTab === 'sections' || (activeTab === 'favorites' && (selectedItem as any).parent) ? renderRuleDetail(displayItem as ApiSection) : null}
                                     </div>
                                 ) : (
-                                    <div className="flex items-center justify-center h-full text-red-400">
-                                        Erro ao carregar dados.
-                                    </div>
+                                    <div className="flex items-center justify-center h-full text-red-400">{t('vtt.compendium.window.erroAoCarregar.text')}</div>
                                 )}
                             </>
                         ) : (
                             <div className="flex flex-col items-center justify-center h-full text-zinc-700">
                                 <Book className="w-24 h-24 mb-6 opacity-10" />
-                                <p className="text-xl font-fantasy opacity-50">Selecione um item para ler.</p>
-                                <p className="text-sm text-zinc-600 mt-2">Busque por monstros, magias, itens e regras.</p>
+                                <p className="text-xl font-fantasy opacity-50">{t('vtt.compendium.window.selecioneUmItem.text')}</p>
+                                <p className="text-sm text-zinc-600 mt-2">{t('vtt.compendium.window.busquePorMonstros.text')}</p>
                             </div>
                         )}
                     </div>
@@ -814,8 +811,8 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
             ) : (
                 <div className="flex flex-col items-center justify-center h-full text-zinc-500">
                     <Lock className="w-16 h-16 mb-4 opacity-20" />
-                    <h3 className="text-lg font-bold text-zinc-300">Acesso Restrito</h3>
-                    <p className="text-sm">O Mestre bloqueou o acesso ao Grimório.</p>
+                    <h3 className="text-lg font-bold text-zinc-300">{t('vtt.compendium.window.acessoRestrito.text')}</h3>
+                    <p className="text-sm">{t('vtt.compendium.window.oMestreBloqueou.text')}</p>
                 </div>
             )}
         </DraggableWindow>

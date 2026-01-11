@@ -1,3 +1,4 @@
+import { useTranslation } from '../../i18n/TranslationContext';
 // components/vtt/AttackZoneConfigModal.tsx
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -12,16 +13,15 @@ interface AttackZoneConfigModalProps {
   title?: string;
 }
 
-const DEFAULT_CONFIG: Partial<AttackZoneConfig> = {
-  name: 'Nova Zona',
-  shape: 'circle',
+const DEFAULT_CONFIG_BASE: Partial<AttackZoneConfig> = {
+  shape: 'circle' as AttackZoneShape,
   radius: 3,
   length: 5,
   width: 2,
   angle: 53,
-  propagation: 'blocked',
+  propagation: 'blocked' as AttackZonePropagation,
   respectsVision: true,
-  targeting: 'all',
+  targeting: 'all' as AttackZoneTargeting,
   color: 'rgba(255, 0, 0, 0.3)',
   opacity: 0.3,
   borderColor: 'rgba(255, 0, 0, 0.8)',
@@ -74,12 +74,21 @@ export const AttackZoneConfigModal: React.FC<AttackZoneConfigModalProps> = ({
   onClose,
   onSave,
   initialConfig = {},
-  title = 'Configurar Zona de Ataque',
+  title,
 }) => {
+  const { t } = useTranslation();
+
+  const DEFAULT_CONFIG = {
+    ...DEFAULT_CONFIG_BASE,
+    name: t('vtt.attack.zoneconfigmodal.novaZona.text'),
+  };
+
   const [config, setConfig] = useState<Partial<AttackZoneConfig>>({
     ...DEFAULT_CONFIG,
     ...initialConfig,
   });
+
+  const displayTitle = title || t('vtt.attack.zoneconfigmodal.configurarZonaDe.title');
 
   // Track if modal was previously open to detect open/close transitions
   const wasOpenRef = useRef(false);
@@ -109,24 +118,24 @@ export const AttackZoneConfigModal: React.FC<AttackZoneConfigModalProps> = ({
   };
 
   const shapes: { value: AttackZoneShape; label: string; icon: any; }[] = [
-    { value: 'circle', label: 'Círculo', icon: Circle },
-    { value: 'cone', label: 'Cone', icon: Triangle },
-    { value: 'line', label: 'Linha', icon: Minus },
-    { value: 'square', label: 'Quadrado', icon: Square },
-    { value: 'rectangle', label: 'Retângulo', icon: Maximize2 },
+    { value: 'circle', label: t('vtt.attack.zoneconfigmodal.crculo.label'), icon: Circle },
+    { value: 'cone', label: t('vtt.attack.zoneconfigmodal.cone.label'), icon: Triangle },
+    { value: 'line', label: t('vtt.attack.zoneconfigmodal.line.label'), icon: Minus },
+    { value: 'square', label: t('vtt.attack.zoneconfigmodal.quadrado.label'), icon: Square },
+    { value: 'rectangle', label: t('vtt.attack.zoneconfigmodal.retngulo.label'), icon: Maximize2 },
   ];
 
   const propagations: { value: AttackZonePropagation; label: string; description: string; }[] = [
-    { value: 'blocked', label: 'Bloqueado', description: 'Para em paredes' },
-    { value: 'penetrating', label: 'Penetrante', description: 'Atravessa tudo' },
-    { value: 'spreading', label: 'Espalhamento', description: 'Contorna obstáculos' },
+    { value: 'blocked', label: t('vtt.attack.zoneconfigmodal.bloqueado.label'), description: t('vtt.attack.zoneconfigmodal.paraEmParedes.text') },
+    { value: 'penetrating', label: t('vtt.attack.zoneconfigmodal.penetrante.label'), description: t('vtt.attack.zoneconfigmodal.atravessaTudo.text') },
+    { value: 'spreading', label: t('vtt.attack.zoneconfigmodal.espalhamento.label'), description: t('vtt.attack.zoneconfigmodal.contornaObstculos.text') },
   ];
 
   const targetings: { value: AttackZoneTargeting; label: string; icon: any; }[] = [
-    { value: 'all', label: 'Todos', icon: Target },
-    { value: 'allies', label: 'Aliados', icon: Target },
-    { value: 'enemies', label: 'Inimigos', icon: Target },
-    { value: 'objects', label: 'Objetos', icon: Target },
+    { value: 'all', label: t('vtt.attack.zoneconfigmodal.todos.label'), icon: Target },
+    { value: 'allies', label: t('vtt.attack.zoneconfigmodal.aliados.label'), icon: Target },
+    { value: 'enemies', label: t('vtt.attack.zoneconfigmodal.inimigos.label'), icon: Target },
+    { value: 'objects', label: t('vtt.attack.zoneconfigmodal.objetos.label'), icon: Target },
   ];
 
   return (
@@ -134,7 +143,7 @@ export const AttackZoneConfigModal: React.FC<AttackZoneConfigModalProps> = ({
       <div className="bg-zinc-900 border border-zinc-700 rounded-lg shadow-2xl w-[600px] max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-zinc-900 border-b border-zinc-700 p-4 flex items-center justify-between z-10">
-          <h2 className="text-xl font-bold text-white">{title}</h2>
+          <h2 className="text-xl font-bold text-white">{displayTitle}</h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
@@ -146,37 +155,31 @@ export const AttackZoneConfigModal: React.FC<AttackZoneConfigModalProps> = ({
         <div className="p-6 space-y-6">
           {/* Nome */}
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
-              Nome da Zona
-            </label>
+            <label className="block text-sm font-medium text-zinc-300 mb-2">{t('vtt.attack.zoneconfigmodal.nomeDaZona.text')}</label>
             <input
               type="text"
               value={config.name || ''}
               onChange={(e) => updateConfig({ name: e.target.value })}
               className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
-              placeholder="Ex: Bola de Fogo"
+              placeholder={t('vtt.attack.zoneconfigmodal.exBolaDe.placeholder')}
             />
           </div>
 
           {/* Descrição */}
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
-              Descrição (Opcional)
-            </label>
+            <label className="block text-sm font-medium text-zinc-300 mb-2">{t('vtt.attack.zoneconfigmodal.descrioOpcional.text')}</label>
             <textarea
               value={config.description || ''}
               onChange={(e) => updateConfig({ description: e.target.value })}
               className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
               rows={2}
-              placeholder="Descrição da zona..."
+              placeholder={t('vtt.attack.zoneconfigmodal.descrioDaZona.placeholder')}
             />
           </div>
 
           {/* Forma */}
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
-              Forma
-            </label>
+            <label className="block text-sm font-medium text-zinc-300 mb-2">{t('vtt.attack.zoneconfigmodal.forma.label')}</label>
             <div className="grid grid-cols-3 gap-2">
               {shapes.map(({ value, label, icon: Icon }) => (
                 <button
@@ -198,9 +201,7 @@ export const AttackZoneConfigModal: React.FC<AttackZoneConfigModalProps> = ({
           <div className="grid grid-cols-2 gap-4">
             {(config.shape === 'circle' || config.shape === 'square') && (
               <div>
-                <label className="block text-sm font-medium text-zinc-300 mb-2">
-                  Raio (quadrados)
-                </label>
+                <label className="block text-sm font-medium text-zinc-300 mb-2">{t('vtt.attack.zoneconfigmodal.raioQuadrados.text')}</label>
                 <input
                   type="number"
                   min="1"
@@ -215,9 +216,7 @@ export const AttackZoneConfigModal: React.FC<AttackZoneConfigModalProps> = ({
             {(config.shape === 'cone' || config.shape === 'line' || config.shape === 'rectangle') && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-zinc-300 mb-2">
-                    Comprimento (quadrados)
-                  </label>
+                  <label className="block text-sm font-medium text-zinc-300 mb-2">{t('vtt.attack.zoneconfigmodal.comprimentoQuadrados.text')}</label>
                   <input
                     type="number"
                     min="1"
@@ -229,9 +228,7 @@ export const AttackZoneConfigModal: React.FC<AttackZoneConfigModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-zinc-300 mb-2">
-                    Largura (quadrados)
-                  </label>
+                  <label className="block text-sm font-medium text-zinc-300 mb-2">{t('vtt.attack.zoneconfigmodal.larguraQuadrados.text')}</label>
                   <input
                     type="number"
                     min="1"
@@ -246,9 +243,7 @@ export const AttackZoneConfigModal: React.FC<AttackZoneConfigModalProps> = ({
 
             {config.shape === 'cone' && (
               <div>
-                <label className="block text-sm font-medium text-zinc-300 mb-2">
-                  Ângulo (graus)
-                </label>
+                <label className="block text-sm font-medium text-zinc-300 mb-2">{t('vtt.attack.zoneconfigmodal.nguloGraus.text')}</label>
                 <input
                   type="number"
                   min="15"
@@ -263,9 +258,7 @@ export const AttackZoneConfigModal: React.FC<AttackZoneConfigModalProps> = ({
 
           {/* Propagação */}
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
-              Tipo de Propagação
-            </label>
+            <label className="block text-sm font-medium text-zinc-300 mb-2">{t('vtt.attack.zoneconfigmodal.tipoDePropagao.text')}</label>
             <div className="space-y-2">
               {propagations.map(({ value, label, description }) => (
                 <button
@@ -286,10 +279,8 @@ export const AttackZoneConfigModal: React.FC<AttackZoneConfigModalProps> = ({
           {/* Respeita Visão */}
           <div className="flex items-center justify-between p-3 bg-zinc-800 rounded-lg">
             <div>
-              <div className="font-medium text-white">Respeitar Linha de Visão</div>
-              <div className="text-xs text-zinc-400 mt-0.5">
-                Usa cálculo de visibilidade para determinar área
-              </div>
+              <div className="font-medium text-white">{t('vtt.attack.zoneconfigmodal.respeitarLinhaDe.text')}</div>
+              <div className="text-xs text-zinc-400 mt-0.5">{t('vtt.attack.zoneconfigmodal.usaClculoDe.text')}</div>
             </div>
             <button
               onClick={() => updateConfig({ respectsVision: !config.respectsVision })}
@@ -305,9 +296,7 @@ export const AttackZoneConfigModal: React.FC<AttackZoneConfigModalProps> = ({
 
           {/* Targeting */}
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
-              Alvos
-            </label>
+            <label className="block text-sm font-medium text-zinc-300 mb-2">{t('vtt.attack.zoneconfigmodal.alvos.label')}</label>
             <div className="grid grid-cols-2 gap-2">
               {targetings.map(({ value, label, icon: Icon }) => (
                 <button
@@ -328,9 +317,7 @@ export const AttackZoneConfigModal: React.FC<AttackZoneConfigModalProps> = ({
           {/* Cores */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">
-                Cor da Zona
-              </label>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">{t('vtt.attack.zoneconfigmodal.corDaZona.text')}</label>
               <div className="flex gap-2">
                 <input
                   type="color"
@@ -361,9 +348,7 @@ export const AttackZoneConfigModal: React.FC<AttackZoneConfigModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">
-                Cor da Borda
-              </label>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">{t('vtt.attack.zoneconfigmodal.corDaBorda.text')}</label>
               <input
                 type="color"
                 value={rgbaToHex(config.borderColor)}
@@ -379,8 +364,8 @@ export const AttackZoneConfigModal: React.FC<AttackZoneConfigModalProps> = ({
           <div className="grid grid-cols-2 gap-4 items-end">
             <div className="flex items-center justify-between p-3 bg-zinc-800 rounded-lg">
               <div>
-                <div className="font-medium text-white text-sm">Destacar Tokens</div>
-                <div className="text-xs text-zinc-400">Mostrar contorno nos alvos</div>
+                <div className="font-medium text-white text-sm">{t('vtt.attack.zoneconfigmodal.destacarTokens.text')}</div>
+                <div className="text-xs text-zinc-400">{t('vtt.attack.zoneconfigmodal.mostrarContornoNos.text')}</div>
               </div>
               <button
                 onClick={() => updateConfig({ showAffectedTokens: !config.showAffectedTokens })}
@@ -395,9 +380,7 @@ export const AttackZoneConfigModal: React.FC<AttackZoneConfigModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">
-                Cor do Highlight
-              </label>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">{t('vtt.attack.zoneconfigmodal.corDoHighlight.text')}</label>
               <input
                 type="color"
                 value={rgbaToHex(config.affectedTokenColor)}
@@ -411,39 +394,39 @@ export const AttackZoneConfigModal: React.FC<AttackZoneConfigModalProps> = ({
 
           {/* Dano e Efeitos (Opcional) */}
           <div className="border-t border-zinc-700 pt-4">
-            <h3 className="text-sm font-medium text-zinc-300 mb-3">Efeitos (Opcional)</h3>
+            <h3 className="text-sm font-medium text-zinc-300 mb-3">{t('vtt.attack.zoneconfigmodal.efeitosOpcional.text')}</h3>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-zinc-400 mb-1">Fórmula de Dano</label>
+                <label className="block text-xs text-zinc-400 mb-1">{t('vtt.attack.zoneconfigmodal.frmulaDeDano.text')}</label>
                 <input
                   type="text"
                   value={config.damageFormula || ''}
                   onChange={(e) => updateConfig({ damageFormula: e.target.value })}
                   className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-                  placeholder="Ex: 8d6"
+                  placeholder={t('vtt.attack.zoneconfigmodal.ex8d6.placeholder')}
                 />
               </div>
 
               <div>
-                <label className="block text-xs text-zinc-400 mb-1">Tipo de Dano</label>
+                <label className="block text-xs text-zinc-400 mb-1">{t('vtt.attack.zoneconfigmodal.tipoDeDano.text')}</label>
                 <input
                   type="text"
                   value={config.damageType || ''}
                   onChange={(e) => updateConfig({ damageType: e.target.value })}
                   className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-                  placeholder="Ex: fire"
+                  placeholder={t('vtt.attack.zoneconfigmodal.exFire.placeholder')}
                 />
               </div>
 
               <div>
-                <label className="block text-xs text-zinc-400 mb-1">Saving Throw</label>
+                <label className="block text-xs text-zinc-400 mb-1">{t('vtt.attack.zoneconfigmodal.savingThrow.text')}</label>
                 <input
                   type="text"
                   value={config.saveType || ''}
                   onChange={(e) => updateConfig({ saveType: e.target.value })}
                   className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-                  placeholder="Ex: dex"
+                  placeholder={t('vtt.attack.zoneconfigmodal.exDex.placeholder')}
                 />
               </div>
 
@@ -456,7 +439,7 @@ export const AttackZoneConfigModal: React.FC<AttackZoneConfigModalProps> = ({
                   value={config.saveDC || ''}
                   onChange={(e) => updateConfig({ saveDC: parseInt(e.target.value) })}
                   className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-                  placeholder="Ex: 15"
+                  placeholder={t('vtt.attack.zoneconfigmodal.ex15.placeholder')}
                 />
               </div>
             </div>
@@ -468,15 +451,11 @@ export const AttackZoneConfigModal: React.FC<AttackZoneConfigModalProps> = ({
           <button
             onClick={onClose}
             className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition-colors"
-          >
-            Cancelar
-          </button>
+          >{t('vtt.attack.zoneconfigmodal.cancelar.label')}</button>
           <button
             onClick={handleSave}
             className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors font-medium"
-          >
-            Salvar Configuração
-          </button>
+          >{t('vtt.attack.zoneconfigmodal.salvarConfigurao.text')}</button>
         </div>
       </div>
     </div>

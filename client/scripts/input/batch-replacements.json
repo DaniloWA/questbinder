@@ -1,55 +1,85 @@
 {
-  "filePath": "src/components/vtt/VTTToolbar.tsx",
+  "filePath": "src/components/vtt/AttackZoneConfigModal.tsx",
   "strings": [
     {
-      "original": "drawings",
-      "line": 347,
-      "context": "icon: <Brush />,\r\n                hidden: !permissionHelper.canAsGMOr('drawings'),\r\n                children: [",
-      "suggestedKey": "vtt.v.tttoolbar.drawings.label",
+      "original": "objects",
+      "line": 138,
+      "context": "{ value: 'enemies', label: t('vtt.attack.zoneconfigmodal.inimigos.label'), icon: Target },\r\n    { value: 'objects', label: t('vtt.attack.zoneconfigmodal.objetos.label'), icon: Target },\r\n  ];",
+      "suggestedKey": "vtt.attack.zoneconfigmodal.objects.label",
       "contentType": "label",
       "confidence": "high",
-      "start": 15763,
-      "end": 15773
+      "start": 5000,
+      "end": 5009
     },
     {
-      "original": "measure",
-      "line": 341,
-      "context": "{ id: 'select', type: 'tool', label: t('vtt.tools.toolbar.selectTool.button.label'), icon: <MousePointer2 />, shortcut: 'V' },\r\n            { id: 'measure-path', type: 'tool', label: t('vtt.tools.toolbar.rulerTool.button.label'), icon: <Ruler />, shortcut: 'M', hidden: !permissionHelper.canAsGMOr('measure') },\r\n            {",
-      "suggestedKey": "vtt.v.tttoolbar.measure.label",
+      "original": "enemies",
+      "line": 137,
+      "context": "{ value: 'allies', label: t('vtt.attack.zoneconfigmodal.aliados.label'), icon: Target },\r\n    { value: 'enemies', label: t('vtt.attack.zoneconfigmodal.inimigos.label'), icon: Target },\r\n    { value: 'objects', label: t('vtt.attack.zoneconfigmodal.objetos.label'), icon: Target },",
+      "suggestedKey": "vtt.attack.zoneconfigmodal.enemies.label",
       "contentType": "label",
       "confidence": "high",
-      "start": 15509,
-      "end": 15518
+      "start": 4904,
+      "end": 4913
     },
     {
-      "original": "group",
-      "line": 33,
-      "context": "id: string;\r\n    type: 'tool' | 'action' | 'group';\r\n    label: string;",
-      "suggestedKey": "vtt.v.tttoolbar.group.label",
+      "original": "allies",
+      "line": 136,
+      "context": "{ value: 'all', label: t('vtt.attack.zoneconfigmodal.todos.label'), icon: Target },\r\n    { value: 'allies', label: t('vtt.attack.zoneconfigmodal.aliados.label'), icon: Target },\r\n    { value: 'enemies', label: t('vtt.attack.zoneconfigmodal.inimigos.label'), icon: Target },",
+      "suggestedKey": "vtt.attack.zoneconfigmodal.allies.label",
       "contentType": "label",
       "confidence": "high",
-      "start": 1417,
-      "end": 1424
+      "start": 4810,
+      "end": 4818
     },
     {
-      "original": "action",
-      "line": 33,
-      "context": "id: string;\r\n    type: 'tool' | 'action' | 'group';\r\n    label: string;",
-      "suggestedKey": "vtt.v.tttoolbar.action.label",
+      "original": "spreading",
+      "line": 131,
+      "context": "{ value: 'penetrating', label: t('vtt.attack.zoneconfigmodal.penetrante.label'), description: t('vtt.attack.zoneconfigmodal.atravessaTudo.text') },\r\n    { value: 'spreading', label: t('vtt.attack.zoneconfigmodal.espalhamento.label'), description: t('vtt.attack.zoneconfigmodal.contornaObstculos.text') },\r\n  ];",
+      "suggestedKey": "vtt.attack.zoneconfigmodal.spreading.label",
       "contentType": "label",
       "confidence": "high",
-      "start": 1406,
-      "end": 1414
+      "start": 4471,
+      "end": 4482
     },
     {
-      "original": "ontouchstart",
-      "line": 23,
-      "context": "useEffect(() => {\r\n        const check = () => setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window);\r\n        check();",
-      "suggestedKey": "vtt.v.tttoolbar.ontouchstart.label",
+      "original": "penetrating",
+      "line": 130,
+      "context": "{ value: 'blocked', label: t('vtt.attack.zoneconfigmodal.bloqueado.label'), description: t('vtt.attack.zoneconfigmodal.paraEmParedes.text') },\r\n    { value: 'penetrating', label: t('vtt.attack.zoneconfigmodal.penetrante.label'), description: t('vtt.attack.zoneconfigmodal.atravessaTudo.text') },\r\n    { value: 'spreading', label: t('vtt.attack.zoneconfigmodal.espalhamento.label'), description: t('vtt.attack.zoneconfigmodal.contornaObstculos.text') },",
+      "suggestedKey": "vtt.attack.zoneconfigmodal.penetrating.label",
       "contentType": "label",
       "confidence": "high",
-      "start": 1127,
-      "end": 1141
+      "start": 4318,
+      "end": 4331
+    },
+    {
+      "original": "rectangle",
+      "line": 125,
+      "context": "{ value: 'square', label: t('vtt.attack.zoneconfigmodal.quadrado.label'), icon: Square },\r\n    { value: 'rectangle', label: t('vtt.attack.zoneconfigmodal.retngulo.label'), icon: Maximize2 },\r\n  ];",
+      "suggestedKey": "vtt.attack.zoneconfigmodal.rectangle.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 3962,
+      "end": 3973
+    },
+    {
+      "original": "line",
+      "line": 123,
+      "context": "{ value: 'cone', label: t('vtt.attack.zoneconfigmodal.cone.label'), icon: Triangle },\r\n    { value: 'line', label: t('vtt.attack.zoneconfigmodal.line.label'), icon: Minus },\r\n    { value: 'square', label: t('vtt.attack.zoneconfigmodal.quadrado.label'), icon: Square },",
+      "suggestedKey": "vtt.attack.zoneconfigmodal.line.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 3779,
+      "end": 3785
+    },
+    {
+      "original": "cone",
+      "line": 122,
+      "context": "{ value: 'circle', label: t('vtt.attack.zoneconfigmodal.crculo.label'), icon: Circle },\r\n    { value: 'cone', label: t('vtt.attack.zoneconfigmodal.cone.label'), icon: Triangle },\r\n    { value: 'line', label: t('vtt.attack.zoneconfigmodal.line.label'), icon: Minus },",
+      "suggestedKey": "vtt.attack.zoneconfigmodal.cone.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 3688,
+      "end": 3694
     }
   ]
 }
