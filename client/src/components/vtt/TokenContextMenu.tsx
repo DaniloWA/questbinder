@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from '../../i18n/TranslationContext';
 import { createPortal } from 'react-dom';
 import { Token, Condition } from '../../types';
 import { Edit, Trash2, Eye, EyeOff, Copy, Layers, ChevronRight, ScrollText, Share2 } from 'lucide-react';
@@ -6,7 +7,6 @@ import { useGameSession } from '../../context/GameSessionContext';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
 import { STATUS_RULES } from '../../data/rules';
-import { useTranslation } from '../../i18n/TranslationContext';
 
 interface TokenContextMenuProps {
     x: number;
@@ -25,6 +25,7 @@ export const TokenContextMenu: React.FC<TokenContextMenuProps> = ({
     x, y, token, onClose, onEdit, onDuplicate, onDelete, onToggleVisibility, onToggleCondition, onOpenSheet
 }) => {
     const { t, hasKey } = useTranslation();
+    const { permissions, campaign } = useGameSession();
     const { scenes, activeSceneId, moveTokenToScene, isGM, sendChatMessage, permissionHelper } = useGameSession();
     const { user } = useAuth();
     const { show } = useNotification();

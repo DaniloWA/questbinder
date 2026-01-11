@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useTranslation } from '../../i18n/TranslationContext';
 import { useGameSession } from '../../context/GameSessionContext';
 import { useAuth } from '../../context/AuthContext';
 import { Modal } from '../ui/Modal';
@@ -15,6 +16,7 @@ interface CursorSettingsModalProps {
 export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen, onClose }) => {
   const { cursorSettings, setCursorSettings, permissions, isGM, players, updatePermissions, campaign } = useGameSession();
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   // Self-editing values
   const [selfValues, setSelfValues] = useState<CursorEditorValues>({
@@ -188,20 +190,20 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Cursores" size={isGM ? 'lg' : 'md'}>
+    <Modal isOpen={isOpen} onClose={onClose} title={t('vtt.cursor.settings.title')} size={isGM ? 'lg' : 'md'}>
       <div className={`flex flex-col md:flex-row gap-0 md:gap-4 ${isGM ? 'md:h-[420px]' : ''}`}>
 
         {/* Mobile: Player Dropdown (GM only) */}
         {isGM && (
           <div className="md:hidden mb-3 pb-3 border-b border-zinc-800">
-            <label className="text-[10px] font-bold text-zinc-500 uppercase mb-1 block">Editando</label>
+            <label className="text-[10px] font-bold text-zinc-500 uppercase mb-1 block">{t('vtt.cursor.settings.editingLabel')}</label>
             <div className="relative">
               <select
                 value={selectedPlayerId || ''}
                 onChange={(e) => setSelectedPlayerId(e.target.value || null)}
                 className="w-full appearance-none bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white pr-8 focus:border-primary outline-none"
               >
-                <option value="">Meu Cursor</option>
+                <option value="">{t('vtt.cursor.settings.myCursor')}</option>
                 {nonGMPlayers.map(p => (
                   <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
@@ -222,10 +224,10 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
                 }`}
             >
               <UserIcon className="w-4 h-4" />
-              <span>Meu Cursor</span>
+              <span>{t('vtt.cursor.settings.myCursor')}</span>
             </button>
 
-            <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5 px-2">Jogadores</div>
+            <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5 px-2">{t('vtt.cursor.settings.playersLabel')}</div>
 
             <div className="flex-1 overflow-y-auto space-y-0.5">
               {nonGMPlayers.map(p => {
@@ -246,7 +248,7 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
                 );
               })}
               {nonGMPlayers.length === 0 && (
-                <p className="text-[10px] text-zinc-600 italic px-2">Nenhum jogador.</p>
+                <p className="text-[10px] text-zinc-600 italic px-2">{t('vtt.cursor.settings.noPlayers')}</p>
               )}
             </div>
           </div>
@@ -262,7 +264,7 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
               canEdit={selfCanEdit}
               overrides={selfOverrides}
               isVisible={selectedPlayerId === null}
-              userName={user?.name || 'Nome'}
+              userName={user?.name || t('vtt.cursor.settings.defaultName')}
               isGMMode={false}
             />
           )}
@@ -273,11 +275,11 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
               <div className="flex items-center justify-between pb-1.5 border-b border-zinc-800 shrink-0">
                 <div>
                   <h3 className="text-xs font-bold text-white">{selectedPlayer.name}</h3>
-                  <p className="text-[9px] text-zinc-500">Definir override</p>
+                  <p className="text-[9px] text-zinc-500">{t('vtt.cursor.settings.setOverride')}</p>
                 </div>
                 {Object.keys(currentOverride).length > 0 && (
                   <Button variant="ghost" size="sm" onClick={clearOverride} className="text-amber-400 text-[10px] h-6 px-2">
-                    <RefreshCw className="w-3 h-3 mr-1" /> Limpar
+                    <RefreshCw className="w-3 h-3 mr-1" /> {t('vtt.cursor.settings.clearOverride')}
                   </Button>
                 )}
               </div>
@@ -299,8 +301,8 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
 
       {/* Footer */}
       <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-4 border-t border-zinc-800 mt-4">
-        <Button variant="ghost" onClick={onClose} className="w-full sm:w-auto">Cancelar</Button>
-        <Button onClick={handleSaveAll} className="w-full sm:w-auto">Salvar</Button>
+        <Button variant="ghost" onClick={onClose} className="w-full sm:w-auto">{t('common.actions.cancel.label')}</Button>
+        <Button onClick={handleSaveAll} className="w-full sm:w-auto">{t('common.actions.save.label')}</Button>
       </div>
     </Modal>
   );

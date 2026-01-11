@@ -1,0 +1,19 @@
+{
+  "translations": [
+    {
+      "key": "vtt.gameSession.notification.zoneCreated",
+      "en": "Attack zone created!",
+      "pt": "Zona de ataque criada!"
+    },
+    {
+      "key": "vtt.gameSession.status.live",
+      "en": "LIVE",
+      "pt": "AO VIVO"
+    },
+    {
+      "key": "vtt.gameSession.status.offline",
+      "en": "OFFLINE",
+      "pt": "OFFLINE"
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { GameSessionProvider, useGameSession } from '../context/GameSessionContext';
+import { useTranslation } from '../i18n/TranslationContext';
 import { useNavigation } from '../context/NavigationContext';
 import { useModal } from '../context/ModalContext';
 import { Token, TokenTemplate, VTTTool, Character, Condition, Handout } from '../types';
@@ -79,12 +80,13 @@ const TokenLibrary: React.FC<{
     onDeleteTemplate: (id: string) => void;
     onClose: () => void;
 }> = ({ templates, onUseTemplate, onDeleteTemplate, onClose }) => {
+    const { t } = useTranslation();
     return (
         <div className="h-full flex flex-col bg-zinc-950/95 backdrop-blur-md border-r border-white/10 shadow-2xl">
             <div className="p-4 border-b border-white/10 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-zinc-100">
                     <BookOpen className="w-5 h-5 text-primary" />
-                    <h3 className="font-bold font-fantasy tracking-wide">Bestiário</h3>
+                    <h3 className="font-bold font-fantasy tracking-wide">{t('vtt.gameSession.library.title')}</h3>
                 </div>
                 <button onClick={onClose} className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-white transition-colors">
                     <X className="w-5 h-5" />
@@ -94,8 +96,8 @@ const TokenLibrary: React.FC<{
                 {templates.length === 0 ? (
                     <div className="flex flex-col items-center justify-center text-center py-12 text-zinc-600">
                         <BookOpen className="w-12 h-12 mb-3 opacity-20" />
-                        <p className="text-sm italic text-zinc-600">Grimório vazio.</p>
-                        <p className="text-xs mt-2 max-w-[150px]">Crie um token no mapa e salve-o como modelo para vê-lo aqui.</p>
+                        <p className="text-sm italic text-zinc-600">{t('vtt.gameSession.library.emptyTitle')}</p>
+                        <p className="text-xs mt-2 max-w-[150px]">{t('vtt.gameSession.library.emptyDesc')}</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 gap-3">
@@ -118,7 +120,7 @@ const TokenLibrary: React.FC<{
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="font-bold text-sm truncate text-zinc-200 group-hover:text-primary transition-colors">{tpl.name}</p>
-                                    <p className="text-[10px] text-zinc-500 uppercase tracking-wider">{tpl.visionRange > 0 ? `${tpl.visionRange}m Visão` : 'Cego'}</p>
+                                    <p className="text-[10px] text-zinc-500 uppercase tracking-wider">{tpl.visionRange > 0 ? t('vtt.gameSession.library.vision', { range: tpl.visionRange }) : t('vtt.gameSession.library.blind')}</p>
                                 </div>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); onDeleteTemplate(tpl.id); }}
@@ -138,6 +140,7 @@ const TokenLibrary: React.FC<{
 };
 
 const GameSessionUI: React.FC = () => {
+    const { t } = useTranslation();
     const session = useGameSession();
     const { user: currentUser } = useAuth();
     const { navigateTo, params } = useNavigation();
@@ -211,17 +214,17 @@ const GameSessionUI: React.FC = () => {
         if (!session.isGM) {
             if (token === 'new') {
                 if (!session.permissionHelper.can('tokenCreate')) {
-                    show({ type: 'warning', message: 'Você não tem permissão para criar tokens.' });
+                    show({ type: 'warning', message: t('vtt.gameSession.error.noTokenCreatePerm') });
                     return;
                 }
             } else {
                 const isOwner = token.ownerId === currentUser?.id || token.controlledBy?.includes(currentUser?.id || '');
                 if (!isOwner) {
-                    show({ type: 'warning', message: 'Você não controla este token.' });
+                    show({ type: 'warning', message: t('vtt.gameSession.error.notController') });
                     return;
                 }
                 if (!session.permissionHelper.can('tokenEdit')) {
-                    show({ type: 'warning', message: 'Edição de tokens bloqueada.' });
+                    show({ type: 'warning', message: t('vtt.gameSession.error.tokenEditBlocked') });
                     return;
                 }
             }
@@ -246,7 +249,7 @@ const GameSessionUI: React.FC = () => {
                 onSaveTemplate={session.saveTemplate}
                 onCancel={closeModal}
             />,
-            { title: token === 'new' ? 'Invocar Criatura' : 'Editar Criatura', size: 'xl' }
+            { title: token === 'new' ? t('vtt.gameSession.modal.token.create') : t('vtt.gameSession.modal.token.edit'), size: 'xl' }
         );
     };
 
@@ -260,7 +263,7 @@ const GameSessionUI: React.FC = () => {
     // ... (Duplicate, Template, ContextMenu handlers unchanged) ...
     const handleDuplicateToken = (token: Token) => {
         if (!session.isGM && !session.permissionHelper.can('tokenCreate')) {
-            show({ type: 'warning', message: 'Criação de tokens bloqueada.' });
+            show({ type: 'warning', message: t('vtt.gameSession.error.tokenCreateBlocked') });
             return;
         }
         let offset = 1;
@@ -270,7 +273,7 @@ const GameSessionUI: React.FC = () => {
 
     const handleUseTemplate = (tpl: TokenTemplate) => {
         if (!session.isGM && !session.permissionHelper.can('tokenCreate')) {
-            show({ type: 'warning', message: 'Criação de tokens bloqueada.' });
+            show({ type: 'warning', message: t('vtt.gameSession.error.tokenCreateBlocked') });
             return;
         }
         if (!session.activeScene) return;
@@ -330,19 +333,19 @@ const GameSessionUI: React.FC = () => {
             await session.updateHandout(editingHandout.id, data);
         }
         setEditingHandout(null);
-        show({ type: 'success', message: 'Recurso salvo.' });
+        show({ type: 'success', message: t('vtt.gameSession.notification.handoutSaved') });
     };
 
     const handleDeleteHandout = (handout: Handout) => {
         openModal(
             <>
-                <p>Tem certeza que deseja excluir "<strong>{handout.name}</strong>"?</p>
+                <p>{t('vtt.gameSession.modal.handout.deleteConfirm', { name: handout.name })}</p>
                 <div className="flex justify-end gap-2 mt-4">
-                    <Button variant="ghost" onClick={closeModal}>Cancelar</Button>
-                    <Button variant="destructive" onClick={async () => { await session.deleteHandout(handout.id); closeModal(); }}>Excluir</Button>
+                    <Button variant="ghost" onClick={closeModal}>{t('common.cancel')}</Button>
+                    <Button variant="destructive" onClick={async () => { await session.deleteHandout(handout.id); closeModal(); }}>{t('common.delete')}</Button>
                 </div>
             </>,
-            { title: 'Excluir Recurso', variant: 'alert' }
+            { title: t('vtt.gameSession.modal.handout.deleteTitle'), variant: 'alert' }
         );
     };
 
@@ -388,14 +391,14 @@ const GameSessionUI: React.FC = () => {
         const centerY = Math.floor((-session.viewport.y + window.innerHeight / 2) / session.viewport.zoom);
         attackZones.duplicateZone(zoneId, { x: centerX, y: centerY });
         setAttackZoneContextMenu(null);
-        show({ type: 'success', message: 'Zona duplicada!' });
+        show({ type: 'success', message: t('vtt.gameSession.notification.zoneDuplicated') });
     };
 
     const handleDeleteAttackZone = () => {
         if (attackZoneContextMenu) {
             attackZones.removeZone(attackZoneContextMenu.zoneId);
             setAttackZoneContextMenu(null);
-            show({ type: 'success', message: 'Zona removida!' });
+            show({ type: 'success', message: t('vtt.gameSession.notification.zoneRemoved') });
         }
     };
 
@@ -406,14 +409,14 @@ const GameSessionUI: React.FC = () => {
                     <div className="absolute -inset-8 bg-primary/20 blur-3xl rounded-full animate-pulse"></div>
                     <Sparkles className="w-16 h-16 text-primary animate-bounce relative z-10" />
                 </div>
-                <h1 className="text-2xl font-bold font-fantasy tracking-widest mt-8 animate-pulse text-transparent bg-clip-text bg-gradient-to-r from-primary to-white">SINCRONIZANDO PLANOS...</h1>
-                <p className="text-zinc-500 mt-2 font-mono text-xs">{session.campaign?.name || 'Carregando...'}</p>
+                <h1 className="text-2xl font-bold font-fantasy tracking-widest mt-8 animate-pulse text-transparent bg-clip-text bg-gradient-to-r from-primary to-white">{t('vtt.gameSession.loading.sync')}</h1>
+                <p className="text-zinc-500 mt-2 font-mono text-xs">{session.campaign?.name || t('vtt.gameSession.loading.default')}</p>
             </div>
         );
     }
 
     if (!session.campaign) {
-        return <div className="min-h-screen bg-zinc-950 text-red-400 flex items-center justify-center">Falha ao carregar campanha.</div>;
+        return <div className="min-h-screen bg-zinc-950 text-red-400 flex items-center justify-center">{t('vtt.gameSession.error.loadCampaign')}</div>;
     }
 
     const editingTriggerZone = editingTriggerZoneId ? session.activeScene?.triggerZones?.find(z => z.id === editingTriggerZoneId) : null;
@@ -426,8 +429,8 @@ const GameSessionUI: React.FC = () => {
             {!session.isConnected && (
                 <div className="absolute top-0 left-0 right-0 z-[9999] bg-red-600/90 backdrop-blur text-white py-2 px-4 flex items-center justify-center gap-3 shadow-2xl animate-in slide-in-from-top-full duration-500">
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    <span className="font-bold tracking-wide">CONEXÃO PERDIDA. TENTANDO RECONECTAR...</span>
-                    <span className="text-xs opacity-80 hidden sm:inline">(Suas ações serão salvas e enviadas assim que a conexão voltar)</span>
+                    <span className="font-bold tracking-wide">{t('vtt.gameSession.connection.lost')}</span>
+                    <span className="text-xs opacity-80 hidden sm:inline">{t('vtt.gameSession.connection.lostSub')}</span>
                 </div>
             )}
 
@@ -522,8 +525,8 @@ const GameSessionUI: React.FC = () => {
                             <div className="flex items-center gap-2 mt-1">
                                 <div className={`w-1.5 h-1.5 rounded-full ${session.isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
                                 <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider flex items-center gap-1">
-                                    {session.activeScene?.name || 'Carregando...'}
-                                    {session.isConnected ? <span className="text-green-600/80 ml-1 hidden sm:inline">LIVE</span> : <span className="text-red-600/80 ml-1 hidden sm:inline">OFFLINE</span>}
+                                    {session.activeScene?.name || t('vtt.gameSession.loading.default')}
+                                    {session.isConnected ? <span className="text-green-600/80 ml-1 hidden sm:inline">{t('vtt.gameSession.status.live')}</span> : <span className="text-red-600/80 ml-1 hidden sm:inline">{t('vtt.gameSession.status.offline')}</span>}
                                 </span>
                             </div>
                         </div>
@@ -541,22 +544,22 @@ const GameSessionUI: React.FC = () => {
                         <div className="pointer-events-auto absolute left-1/2 -translate-x-1/2 top-6 bg-red-950/90 backdrop-blur-md border border-red-500/30 text-red-100 px-6 py-2 rounded-full shadow-2xl flex items-center gap-3 animate-in slide-in-from-top-4">
                             <Swords className="w-4 h-4 text-red-400 animate-pulse" />
                             <div className="flex gap-4 text-sm font-bold font-fantasy tracking-wide">
-                                <span>COMBATE</span>
+                                <span>{t('vtt.gameSession.combat.label')}</span>
                                 <span className="w-px h-4 bg-red-500/30"></span>
-                                <span>RODADA {session.combat.round}</span>
+                                <span>{t('vtt.gameSession.combat.round', { round: session.combat.round })}</span>
                             </div>
                         </div>
                     )}
 
                     <div className="pointer-events-auto flex items-center gap-3">
                         <div className="flex gap-2 bg-zinc-950/80 backdrop-blur-md border border-white/10 rounded-2xl p-1.5 shadow-xl">
-                            <Tooltip content={session.isConnected ? 'Conectado ao Servidor' : 'Desconectado'}>
+                            <Tooltip content={session.isConnected ? t('vtt.gameSession.status.connected') : t('vtt.gameSession.status.disconnected')}>
                                 <div className={`p-2.5 rounded-xl transition-all ${session.isConnected ? 'text-green-500' : 'text-red-500'}`}>
                                     {session.isConnected ? <Wifi className="w-5 h-5" /> : <WifiOff className="w-5 h-5" />}
                                 </div>
                             </Tooltip>
                             <div className="w-px h-6 bg-white/10 self-center mx-1"></div>
-                            <Tooltip content="Grupo & Combate">
+                            <Tooltip content={t('vtt.gameSession.toolbar.groupCombat')}>
                                 <button onClick={session.toggleRightSidebar} className={`p-2.5 rounded-xl transition-all duration-200 ${session.ui.isRightSidebarOpen ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-zinc-400 hover:text-white hover:bg-white/10'}`}>
                                     <Swords className="w-5 h-5" />
                                 </button>
@@ -721,9 +724,9 @@ const GameSessionUI: React.FC = () => {
                         });
                         attackZones.addZone(zone);
                         setIsAttackZoneConfigOpen(false);
-                        show({ type: 'success', message: 'Zona de ataque criada!' });
+                        show({ type: 'success', message: t('vtt.gameSession.notification.zoneCreated') });
                     }}
-                    title="Criar Zona de Ataque Customizada"
+                    title={t('vtt.gameSession.modal.attackZone.createCustom')}
                 />
             )}
 
@@ -792,13 +795,13 @@ const GameSessionUI: React.FC = () => {
                 />
             )}
 
-            {!!editingHandout && <Modal isOpen={!!editingHandout} onClose={() => setEditingHandout(null)} title={editingHandout === 'new' ? 'Novo Recurso' : 'Editar Recurso'} size="xl"><HandoutFormModal handout={editingHandout === 'new' ? undefined : editingHandout} onSave={handleSaveHandout} onClose={() => setEditingHandout(null)} /></Modal>}
+            {!!editingHandout && <Modal isOpen={!!editingHandout} onClose={() => setEditingHandout(null)} title={editingHandout === 'new' ? t('vtt.gameSession.modal.handout.new') : t('vtt.gameSession.modal.handout.edit')} size="xl"><HandoutFormModal handout={editingHandout === 'new' ? undefined : editingHandout} onSave={handleSaveHandout} onClose={() => setEditingHandout(null)} /></Modal>}
             {previewingHandout && <HandoutPreviewModal handout={previewingHandout} onClose={() => setPreviewingHandout(null)} onEdit={(h) => { setPreviewingHandout(null); setEditingHandout(h); }} onShare={(h) => { setPreviewingHandout(null); setSharingHandout(h); }} />}
             {sharingHandout && <HandoutShareModal handout={sharingHandout} onClose={() => setSharingHandout(null)} />}
 
             {/* Trigger Zone Edit Modal */}
             {!!editingTriggerZone && (
-                <Modal isOpen={!!editingTriggerZone} onClose={() => setEditingTriggerZoneId(null)} title="Editar Gatilho" size="sm">
+                <Modal isOpen={!!editingTriggerZone} onClose={() => setEditingTriggerZoneId(null)} title={t('vtt.gameSession.modal.triggerZone.edit')} size="sm">
                     <TriggerZoneConfigModalContent
                         handouts={session.handouts}
                         onSave={(handoutId) => {
@@ -815,7 +818,7 @@ const GameSessionUI: React.FC = () => {
 
             {/* Audio Zone Edit Modal */}
             {!!editingAudioZone && (
-                <Modal isOpen={!!editingAudioZone} onClose={() => setEditingAudioZoneId(null)} title="Editar Zona de Áudio" size="lg">
+                <Modal isOpen={!!editingAudioZone} onClose={() => setEditingAudioZoneId(null)} title={t('vtt.gameSession.modal.audioZone.edit')} size="lg">
                     <AudioZoneEditModalContent
                         zone={editingAudioZone}
                         audioSettings={session.audioSettings}
@@ -856,10 +859,10 @@ const GameSessionUI: React.FC = () => {
                         onSave={(updates) => {
                             attackZones.updateZone(editingAttackZoneId, updates);
                             setEditingAttackZoneId(null);
-                            show({ type: 'success', message: 'Zona atualizada!' });
+                            show({ type: 'success', message: t('vtt.gameSession.notification.zoneUpdated') });
                         }}
                         initialConfig={zone}
-                        title="Editar Zona de Ataque"
+                        title={t('vtt.gameSession.modal.attackZone.edit')}
                     />
                 ) : null;
             })()}
@@ -882,7 +885,7 @@ const GameSessionUI: React.FC = () => {
                 <Modal
                     isOpen={isViewSettingsOpen}
                     onClose={() => setIsViewSettingsOpen(false)}
-                    title="Configurações de Visualização"
+                    title={t('vtt.settings.view.title')}
                     size="lg"
                     transparent
                 >

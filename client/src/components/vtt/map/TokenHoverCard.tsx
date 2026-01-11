@@ -414,7 +414,8 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
                         <div className="px-2 py-1 mb-1 text-[9px] font-bold uppercase text-zinc-500">{t('vtt.tokens.editModal.hover.addCondition')}</div>
                         {Object.entries(STATUS_RULES).map(([key, rule]) => {
                           if (token.conditions?.includes(key as Condition)) return null;
-                          const name = hasKey(`dnd.rules.conditions.${key}.name`) ? t(`dnd.rules.conditions.${key}.name`) : rule.name;
+                          const isUnknown = !STATUS_RULES[key]; // Check if the rule is unknown
+                          const name = isUnknown ? rule.name : t(rule.name); // Use t() for known rules, fallback for unknown
                           return (
                             <button
                               key={key}

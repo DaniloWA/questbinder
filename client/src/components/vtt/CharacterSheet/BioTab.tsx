@@ -52,7 +52,7 @@ export const BioTab: React.FC<BioTabProps> = ({
                   onChange={(val) => updateField('personality', { ...character.personality, [key]: val })}
                   className="w-full"
                   inputClassName="bg-zinc-950/50 text-xs text-zinc-300 border border-zinc-800 rounded p-2 min-h-[80px] focus:border-primary outline-none resize-none"
-                  multiline
+                  type="textarea"
                 />
               ) : (
                 <p className="text-xs text-zinc-400 italic leading-relaxed">{character.personality[key] || '...'}</p>
@@ -72,7 +72,7 @@ export const BioTab: React.FC<BioTabProps> = ({
               onChange={(val) => updateField('bio', val)}
               className="w-full"
               inputClassName="bg-zinc-900 text-sm text-zinc-300 border border-zinc-800 rounded-lg p-3 min-h-[150px] focus:border-primary outline-none"
-              multiline
+              type="textarea"
               placeholder={t('vtt.character.bio.biography.placeholder')}
             />
           ) : (
@@ -93,7 +93,7 @@ export const BioTab: React.FC<BioTabProps> = ({
                   onChange={(val) => updateField('alliesAndOrgs', val)}
                   className="w-full"
                   inputClassName="bg-zinc-900 text-xs text-zinc-300 border border-zinc-800 rounded p-2 min-h-[100px] focus:border-primary outline-none"
-                  multiline
+                  type="textarea"
                 />
               ) : (
                 <div className="bg-zinc-900/30 border border-zinc-800 rounded p-2 text-xs text-zinc-400 min-h-[60px] whitespace-pre-wrap">
@@ -109,7 +109,7 @@ export const BioTab: React.FC<BioTabProps> = ({
                   onChange={(val) => updateField('treasure', val)}
                   className="w-full"
                   inputClassName="bg-zinc-900 text-xs text-zinc-300 border border-zinc-800 rounded p-2 min-h-[100px] focus:border-primary outline-none"
-                  multiline
+                  type="textarea"
                 />
               ) : (
                 <div className="bg-zinc-900/30 border border-zinc-800 rounded p-2 text-xs text-zinc-400 min-h-[60px] whitespace-pre-wrap">

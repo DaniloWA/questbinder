@@ -17,166 +17,166 @@ export interface AuraTemplate {
 export const AURA_TEMPLATES: AuraTemplate[] = [
   // --- OFFENSIVE ---
   {
-    name: "Aura of Corrosive Ash",
+    name: "rules.aura.corrosiveAsh.name",
     category: "offensive",
     radius: 3,
     color: "#4ade80", // Green-400
     shape: "circle",
     targets: "enemies",
-    trigger: "Início do turno",
-    description: "1d6 ácido por turno. Criaturas afetadas têm -2m de movimento.",
-    effects: [{ name: "Cinzas Corrosivas", description: "1d6 Ácido / -2m Movimento", modifiers: { speed: -2 } }]
+    trigger: "rules.aura.corrosiveAsh.trigger",
+    description: "rules.aura.corrosiveAsh.desc",
+    effects: [{ name: "rules.aura.corrosiveAsh.effectName", description: "rules.aura.corrosiveAsh.effectDesc", modifiers: { speed: -2 } }]
   },
   {
-    name: "Deep Terror Aura",
+    name: "rules.aura.deepTerror.name",
     category: "offensive",
     radius: 6,
     color: "#7f1d1d", // Red-900
     shape: "circle",
     targets: "enemies",
-    trigger: "Entrada ou Início do turno",
-    description: "Teste de Sabedoria (CD 8+Prof+Attr). Falha: Amedrontado por 1 turno.",
-    effects: [{ name: "Terror Profundo", description: "Save WIS ou Amedrontado", conditions: ['frightened'] }]
+    trigger: "rules.aura.deepTerror.trigger",
+    description: "rules.aura.deepTerror.desc",
+    effects: [{ name: "rules.aura.deepTerror.effectName", description: "rules.aura.deepTerror.effectDesc", conditions: ['frightened'] }]
   },
 
   // --- DEFENSIVE ---
   {
-    name: "Ethereal Guardian Aura",
+    name: "rules.aura.etherealGuardian.name",
     category: "defensive",
     radius: 3,
     color: "#60a5fa", // Blue-400
     shape: "circle",
     targets: "allies",
-    trigger: "Constante",
-    description: "+1 CA para aliados. Primeiro ataque contra cada aliado tem desvantagem (1/rodada).",
-    effects: [{ name: "Guardião Etéreo", description: "+1 CA / Desvantagem no 1º ataque recebido", modifiers: { ac: 1 } }]
+    trigger: "rules.aura.etherealGuardian.trigger",
+    description: "rules.aura.etherealGuardian.desc",
+    effects: [{ name: "rules.aura.etherealGuardian.effectName", description: "rules.aura.etherealGuardian.effectDesc", modifiers: { ac: 1 } }]
   },
   {
-    name: "Elemental Resistance Aura",
+    name: "rules.aura.elementalResistance.name",
     category: "defensive",
     radius: 9,
     color: "#f472b6", // Pink-400
     shape: "circle",
     targets: "allies",
-    trigger: "Constante",
-    description: "Resistência a um elemento escolhido (Fogo, Frio, Ácido, etc).",
-    effects: [{ name: "Resistência Elemental", description: "Resistência ao elemento escolhido" }]
+    trigger: "rules.aura.etherealGuardian.trigger", // Constant
+    description: "rules.aura.elementalResistance.desc",
+    effects: [{ name: "rules.aura.elementalResistance.effectName", description: "rules.aura.elementalResistance.effectDesc" }]
   },
   {
-    name: "Aura of Protection",
+    name: "rules.aura.protection.name",
     category: "defensive",
     radius: 3,
     color: "#fbbf24", // Amber
     shape: "circle",
     targets: "allies",
-    trigger: "Constante",
-    description: "Aliados adicionam modificador de Carisma aos testes de resistência.",
-    effects: [{ name: "Proteção (Carisma)", description: "+CHA em Saves" }]
+    trigger: "rules.aura.etherealGuardian.trigger",
+    description: "rules.aura.protection.desc",
+    effects: [{ name: "rules.aura.protection.effectName", description: "rules.aura.protection.effectDesc" }]
   },
   {
-    name: "Aura of Courage",
+    name: "rules.aura.courage.name",
     category: "defensive",
     radius: 3,
     color: "#f59e0b", // Amber-600
     shape: "circle",
     targets: "allies",
-    trigger: "Constante",
-    description: "Aliados não podem ser amedrontados.",
-    effects: [{ name: "Coragem", description: "Imune a Medo" }]
+    trigger: "rules.aura.etherealGuardian.trigger",
+    description: "rules.aura.courage.desc",
+    effects: [{ name: "rules.aura.courage.effectName", description: "rules.aura.courage.effectDesc" }]
   },
 
   // --- SUPPORT ---
   {
-    name: "Strategist's Aura",
+    name: "rules.aura.strategist.name",
     category: "support",
     radius: 6,
     color: "#3b82f6", // Blue-500
     shape: "circle",
     targets: "allies",
-    trigger: "Constante",
-    description: "Aliados ganham +1 em testes de ataque.",
-    effects: [{ name: "Estrategista", description: "+1 Ataque" }]
+    trigger: "rules.aura.etherealGuardian.trigger",
+    description: "rules.aura.strategist.desc",
+    effects: [{ name: "rules.aura.strategist.effectName", description: "rules.aura.strategist.effectDesc" }]
   },
   {
-    name: "Arcane Focus Aura",
+    name: "rules.aura.arcaneFocus.name",
     category: "support",
     radius: 6,
     color: "#8b5cf6", // Violet-500
     shape: "circle",
     targets: "allies",
-    trigger: "Constante",
-    description: "Aliados têm vantagem em testes de concentração.",
-    effects: [{ name: "Foco Arcano", description: "Vantagem em Concentração" }]
+    trigger: "rules.aura.etherealGuardian.trigger",
+    description: "rules.aura.arcaneFocus.desc",
+    effects: [{ name: "rules.aura.arcaneFocus.effectName", description: "rules.aura.arcaneFocus.effectDesc" }]
   },
   {
-    name: "Aura of Vitality",
+    name: "rules.aura.vitality.name",
     category: "support",
     radius: 9,
     color: "#34d399", // Emerald
     shape: "circle",
     targets: "allies",
-    trigger: "Ação Bônus",
-    description: "Cura 2d6 por ação em um alvo dentro da área.",
-    effects: [{ name: "Vitalidade", description: "Pode ser curado (2d6)" }]
+    trigger: "rules.aura.vitality.trigger",
+    description: "rules.aura.vitality.desc",
+    effects: [{ name: "rules.aura.vitality.effectName", description: "rules.aura.vitality.effectDesc" }]
   },
 
   // --- CONTROL ---
   {
-    name: "Temporal Slow Aura",
+    name: "rules.aura.temporalSlow.name",
     category: "control",
     radius: 3,
     color: "#64748b", // Slate-500
     shape: "circle",
     targets: "enemies",
-    trigger: "Entrada",
-    description: "Criaturas têm -3m de movimento e não podem fazer Reações.",
-    effects: [{ name: "Lentidão Temporal", description: "-3m Movimento / Sem Reações", modifiers: { speed: -3 } }]
+    trigger: "rules.aura.temporalSlow.trigger",
+    description: "rules.aura.temporalSlow.desc",
+    effects: [{ name: "rules.aura.temporalSlow.effectName", description: "rules.aura.temporalSlow.effectDesc", modifiers: { speed: -3 } }]
   },
   {
-    name: "Wind Gust Aura",
+    name: "rules.aura.windGust.name",
     category: "control",
     radius: 3,
     color: "#a1a1aa", // Zinc-400
     shape: "circle",
     targets: "enemies",
-    trigger: "Entrada",
-    description: "Criaturas que entram fazem teste de Força ou são empurradas 1,5m.",
-    effects: [{ name: "Pancada de Vento", description: "Save STR ou Empurrão 1.5m" }]
+    trigger: "rules.aura.temporalSlow.trigger",
+    description: "rules.aura.windGust.desc",
+    effects: [{ name: "rules.aura.windGust.effectName", description: "rules.aura.windGust.effectDesc" }]
   },
   {
-    name: "Spirit Guardians",
+    name: "rules.aura.spiritGuardians.name",
     category: "control",
     radius: 4.5,
     color: "#f472b6", // Pink
     shape: "circle",
     targets: "enemies",
-    trigger: "Entrada ou Início do turno",
-    description: "Dano contínuo e redução de movimento para inimigos.",
-    effects: [{ name: "Guardiões Espirituais", description: "Dano / Movimento Reduzido", modifiers: { speed: -0.5 } }]
+    trigger: "rules.aura.deepTerror.trigger",
+    description: "rules.aura.spiritGuardians.desc",
+    effects: [{ name: "rules.aura.spiritGuardians.effectName", description: "rules.aura.spiritGuardians.effectDesc", modifiers: { speed: -0.5 } }]
   },
 
   // --- MONSTER / OTHER ---
   {
-    name: "Fear Aura",
+    name: "rules.aura.fear.name",
     category: "control",
     radius: 6,
     color: "#7f1d1d", // Red-900
     shape: "circle",
     targets: "enemies",
-    trigger: "Entrada ou Início do turno",
-    description: "Criaturas devem passar teste ou ficam amedrontadas.",
-    effects: [{ name: "Medo", description: "Teste de Sabedoria ou Amedrontado", conditions: ['frightened'] }]
+    trigger: "rules.aura.deepTerror.trigger",
+    description: "rules.aura.fear.desc",
+    effects: [{ name: "rules.aura.fear.effectName", description: "rules.aura.fear.effectDesc", conditions: ['frightened'] }]
   },
   {
-    name: "Fire Aura",
+    name: "rules.aura.fire.name",
     category: "offensive",
     radius: 1.5,
     color: "#ef4444", // Red
     shape: "circle",
     targets: "all",
-    trigger: "Entrada ou Início do turno",
-    description: "Dano de fogo ao aproximar ou iniciar turno.",
-    effects: [{ name: "Fogo", description: "Dano de Fogo" }]
+    trigger: "rules.aura.deepTerror.trigger",
+    description: "rules.aura.fire.desc",
+    effects: [{ name: "rules.aura.fire.effectName", description: "rules.aura.fire.effectDesc" }]
   }
 ];
 

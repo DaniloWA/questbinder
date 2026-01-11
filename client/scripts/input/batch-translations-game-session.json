@@ -1,0 +1,179 @@
+{
+  "translations": [
+    {
+      "key": "vtt.gameSession.library.emptyTitle",
+      "en": "Empty Grimoire",
+      "pt": "Grimório vazio."
+    },
+    {
+      "key": "vtt.gameSession.library.emptyDesc",
+      "en": "Create a token on the map and save it as a template to see it here.",
+      "pt": "Crie um token no mapa e salve-o como modelo para vê-lo aqui."
+    },
+    {
+      "key": "vtt.gameSession.modal.token.create",
+      "en": "Summon Creature",
+      "pt": "Invocar Criatura"
+    },
+    {
+      "key": "vtt.gameSession.modal.token.edit",
+      "en": "Edit Creature",
+      "pt": "Editar Criatura"
+    },
+    {
+      "key": "vtt.gameSession.error.noTokenCreatePerm",
+      "en": "You don't have permission to create tokens.",
+      "pt": "Você não tem permissão para criar tokens."
+    },
+    {
+      "key": "vtt.gameSession.error.notController",
+      "en": "You do not control this token.",
+      "pt": "Você não controla este token."
+    },
+    {
+      "key": "vtt.gameSession.error.tokenEditBlocked",
+      "en": "Token editing blocked.",
+      "pt": "Edição de tokens bloqueada."
+    },
+    {
+      "key": "vtt.gameSession.error.tokenCreateBlocked",
+      "en": "Token creation blocked.",
+      "pt": "Criação de tokens bloqueada."
+    },
+    {
+      "key": "vtt.gameSession.notification.handoutSaved",
+      "en": "Resource saved.",
+      "pt": "Recurso salvo."
+    },
+    {
+      "key": "vtt.gameSession.modal.handout.deleteConfirm",
+      "en": "Are you sure you want to delete \"{{name}}\"?",
+      "pt": "Tem certeza que deseja excluir \"{{name}}\"?"
+    },
+    {
+      "key": "vtt.gameSession.modal.handout.deleteTitle",
+      "en": "Delete Resource",
+      "pt": "Excluir Recurso"
+    },
+    {
+      "key": "vtt.gameSession.notification.zoneDuplicated",
+      "en": "Zone duplicated!",
+      "pt": "Zona duplicada!"
+    },
+    {
+      "key": "vtt.gameSession.notification.zoneRemoved",
+      "en": "Zone removed!",
+      "pt": "Zona removida!"
+    },
+    {
+      "key": "vtt.gameSession.notification.zoneUpdated",
+      "en": "Zone updated!",
+      "pt": "Zona atualizada!"
+    },
+    {
+      "key": "vtt.gameSession.loading.sync",
+      "en": "SYNCHRONIZING PLANES...",
+      "pt": "SINCRONIZANDO PLANOS..."
+    },
+    {
+      "key": "vtt.gameSession.loading.default",
+      "en": "Loading...",
+      "pt": "Carregando..."
+    },
+    {
+      "key": "vtt.gameSession.error.loadCampaign",
+      "en": "Failed to load campaign.",
+      "pt": "Falha ao carregar campanha."
+    },
+    {
+      "key": "vtt.gameSession.connection.lost",
+      "en": "CONNECTION LOST. ATTEMPTING TO RECONNECT...",
+      "pt": "CONEXÃO PERDIDA. TENTANDO RECONECTAR..."
+    },
+    {
+      "key": "vtt.gameSession.connection.lostSub",
+      "en": "(Your actions will be saved and sent as soon as the connection returns)",
+      "pt": "(Suas ações serão salvas e enviadas assim que a conexão voltar)"
+    },
+    {
+      "key": "vtt.gameSession.status.connected",
+      "en": "Connected to Server",
+      "pt": "Conectado ao Servidor"
+    },
+    {
+      "key": "vtt.gameSession.status.disconnected",
+      "en": "Disconnected",
+      "pt": "Desconectado"
+    },
+    {
+      "key": "vtt.gameSession.toolbar.groupCombat",
+      "en": "Party & Combat",
+      "pt": "Grupo & Combate"
+    },
+    {
+      "key": "vtt.gameSession.modal.attackZone.createCustom",
+      "en": "Create Custom Attack Zone",
+      "pt": "Criar Zona de Ataque Customizada"
+    },
+    {
+      "key": "vtt.gameSession.modal.handout.new",
+      "en": "New Resource",
+      "pt": "Novo Recurso"
+    },
+    {
+      "key": "vtt.gameSession.modal.handout.edit",
+      "en": "Edit Resource",
+      "pt": "Editar Recurso"
+    },
+    {
+      "key": "vtt.gameSession.modal.triggerZone.edit",
+      "en": "Edit Trigger",
+      "pt": "Editar Gatilho"
+    },
+    {
+      "key": "vtt.gameSession.modal.audioZone.edit",
+      "en": "Edit Audio Zone",
+      "pt": "Editar Zona de Áudio"
+    },
+    {
+      "key": "vtt.gameSession.modal.attackZone.edit",
+      "en": "Edit Attack Zone",
+      "pt": "Editar Zona de Ataque"
+    },
+    {
+      "key": "vtt.gameSession.combat.label",
+      "en": "COMBAT",
+      "pt": "COMBATE"
+    },
+    {
+      "key": "vtt.gameSession.combat.round",
+      "en": "ROUND {{round}}",
+      "pt": "RODADA {{round}}"
+    },
+    {
+      "key": "vtt.gameSession.library.title",
+      "en": "Bestiary",
+      "pt": "Bestiário"
+    },
+    {
+      "key": "vtt.gameSession.library.vision",
+      "en": "{{range}}m Vision",
+      "pt": "{{range}}m Visão"
+    },
+    {
+      "key": "vtt.gameSession.library.blind",
+      "en": "Blind",
+      "pt": "Cego"
+    },
+    {
+      "key": "vtt.settings.view.cameraControl.title",
+      "en": "Camera Control",
+      "pt": "Controle de Câmera"
+    },
+    {
+      "key": "vtt.settings.view.general.tab",
+      "en": "Settings",
+      "pt": "Configurações"
+    }
+  ]
+}

@@ -100,6 +100,23 @@ export default {
       minutes: '{1} :count minuto|[2,*] :count minutos',
       hours: '{1} :count hora|[2,*] :count horas',
     },
+    duration: 'Duração',
+    shareTooltip: 'Compartilhar',
+    hero: 'Herói',
+    creature: 'Criatura',
+    passivePerception: 'Percepção Passiva',
+    visible: 'Visível',
+    hidden: 'Oculto',
+    hp: 'PV',
+    resource: 'Recurso',
+    unknownEffect: 'Efeito Desconhecido',
+    activeEffects: 'Efeitos Ativos',
+    acModifier: 'Mod CA',
+    ac: 'CA',
+    speedModifier: 'Mod Desl.',
+    speed: 'Deslocamento',
+    sheet: 'Ficha',
+    cancel: 'Cancelar',
   },
   vtt: {
     tools: {
@@ -392,6 +409,9 @@ export default {
         },
         popoutWindow: {
           title: 'Sidebar do QuestBinder',
+        },
+        languageToggle: {
+          tooltip: 'Alterar Idioma',
         },
       },
     },
@@ -847,15 +867,88 @@ export default {
         },
         rodada: {
           text: 'Rodada',
+          label: 'Rodada',
         },
         iniciativa: {
           text: 'Iniciativa: ',
+          label: 'Iniciativa',
         },
         prximoTurno: {
           label: 'Próximo Turno',
+          text: 'Próximo Turno',
         },
         next: {
           button: 'Próximo',
+        },
+        emptyState: {
+          title: 'Sem Combate',
+          message: 'Nenhum combate ativo. Inicie um para rastrear a iniciativa.',
+        },
+        header: {
+          title: 'Rastreador de Combate',
+        },
+        turnTimer: {
+          tooltip: 'Cronômetro do Turno',
+        },
+        roundCounter: {
+          label: 'Rodada',
+        },
+        historyButton: {
+          tooltip: 'Histórico',
+        },
+        settingsButton: {
+          tooltip: 'Configurações',
+        },
+        shortcutsButton: {
+          tooltip: 'Atalhos',
+        },
+        settingsPanel: {
+          title: 'Configurações do Rastreador',
+          autoRollInit: {
+            label: 'Rolar Iniciativa Automaticamente',
+          },
+          showInit: {
+            label: 'Mostrar Iniciativa',
+          },
+          showEnemyHP: {
+            label: 'Mostrar PV do Inimigo',
+          },
+          concentration: {
+            label: 'Rastrear Concentração',
+          },
+          turnTimer: {
+            label: 'Cronômetro de Turno',
+          },
+          aiSuggestions: {
+            label: 'Sugestões de IA',
+          },
+        },
+        historyPanel: {
+          title: 'Histórico de Combate',
+          emptyState: {
+            message: 'Nenhum histórico disponível.',
+          },
+        },
+        turnOrder: {
+          title: 'Ordem do Turno',
+          damagePlaceholder: 'Dano',
+          healPlaceholder: 'Cura',
+          removeFromCombat: {
+            confirmPrompt: 'Remover do combate?',
+            label: 'Remover',
+          },
+        },
+        controls: {
+          prevTurn: {
+            tooltip: 'Turno Anterior',
+          },
+          nextTurn: {
+            label: 'Próximo Turno',
+          },
+          endCombat: {
+            confirmPrompt: 'Encerrar combate?',
+            label: 'Encerrar Combate',
+          },
         },
       },
       tab: {
@@ -2621,6 +2714,80 @@ export default {
         displayName: {
           label: 'Nome de Exibição',
         },
+        tabs: {
+          general: 'Geral',
+          animations: 'Animações',
+          ping: 'Ping',
+        },
+        general: {
+          shape: {
+            label: 'Formato',
+          },
+          name: {
+            label: 'Nome de Exibição',
+          },
+          color: {
+            label: 'Cor Principal',
+          },
+        },
+        overrides: {
+          gmSet: 'Definido pelo GM',
+          locked: 'Bloqueado',
+        },
+        preview: {
+          left: 'Esquerdo',
+          right: 'Direito',
+          ping: 'Visualização do Ping',
+        },
+        animations: {
+          style: {
+            label: 'Estilo da Animação',
+          },
+          leftColor: {
+            label: 'Cor Esquerdo',
+          },
+          rightColor: {
+            label: 'Cor Direito',
+          },
+        },
+        ping: {
+          style: {
+            label: 'Estilo do Ping',
+          },
+          color: {
+            label: 'Cor do Ping',
+          },
+        },
+      },
+      settings: {
+        title: 'Cursores',
+        editingLabel: 'Editando',
+        myCursor: 'Meu Cursor',
+        playersLabel: 'JOGADORES',
+        noPlayers: 'Nenhum jogador.',
+        setOverride: 'Definir override',
+        clearOverride: 'Limpar',
+        defaultName: 'Nome',
+      },
+      animations: {
+        ripple: 'Ondas',
+        burst: 'Explosão',
+        sparkle: 'Brilho',
+        pulse: 'Pulso',
+        vortex: 'Vórtice',
+        shard: 'Fragmento',
+        ring: 'Anéis',
+        echo: 'Eco',
+        orb: 'Orbe',
+      },
+      pings: {
+        radar: 'Radar',
+        beacon: 'Farol',
+        sonar: 'Sonar',
+        target: 'Alvo',
+        flare: 'Flare',
+        diamond: 'Diamante',
+        cross: 'Cruz',
       },
     },
     mapContext: {
@@ -2839,6 +3006,7 @@ export default {
           title: 'Opacidade do Grid',
           description: 'Ajuste a intensidade das linhas da grade.',
         },
+        title: 'Configurações de Visualização',
       },
     },
     spectate: {
@@ -2872,6 +3040,82 @@ export default {
       preview: {
         clickInstruction: 'Clique na imagem abaixo para simular onde você clicaria no mapa. O contorno vermelho mostra como a parede será gerada.',
         clickToTest: 'Clique para testar',
+        title: 'Modo de Visualização (Sandbox)',
+        description: 'Clique na imagem abaixo para simular onde você clicaria no mapa. O contorno vermelho mostra como a parede será gerada.',
+        loading: 'Carregando imagem de teste...',
+        tolerance: 'TOLERÂNCIA',
+        simplification: 'SIMPLIFICAÇÃO',
+        resolution: 'RESOLUÇÃO',
+        tip: {
+          label: 'Dica:',
+          text: 'Use tolerância baixa para cores muito específicas e alta para áreas maiores. A resolução afeta a precisão e o desempenho.',
+        },
+      },
+    },
+    gameSession: {
+      library: {
+        emptyTitle: 'Grimório vazio.',
+        emptyDesc: 'Crie um token no mapa e salve-o como modelo para vê-lo aqui.',
+        title: 'Bestiário',
+        vision: '{{range}}m Visão',
+        blind: 'Cego',
+      },
+      modal: {
+        token: {
+          create: 'Invocar Criatura',
+          edit: 'Editar Criatura',
+        },
+        handout: {
+          deleteConfirm: 'Tem certeza que deseja excluir "{{name}}"?',
+          deleteTitle: 'Excluir Recurso',
+          new: 'Novo Recurso',
+          edit: 'Editar Recurso',
+        },
+        attackZone: {
+          createCustom: 'Criar Zona de Ataque Customizada',
+          edit: 'Editar Zona de Ataque',
+        },
+        triggerZone: {
+          edit: 'Editar Gatilho',
+        },
+        audioZone: {
+          edit: 'Editar Zona de Áudio',
+        },
+      },
+      error: {
+        noTokenCreatePerm: 'Você não tem permissão para criar tokens.',
+        notController: 'Você não controla este token.',
+        tokenEditBlocked: 'Edição de tokens bloqueada.',
+        tokenCreateBlocked: 'Criação de tokens bloqueada.',
+        loadCampaign: 'Falha ao carregar campanha.',
+      },
+      notification: {
+        handoutSaved: 'Recurso salvo.',
+        zoneDuplicated: 'Zona duplicada!',
+        zoneRemoved: 'Zona removida!',
+        zoneUpdated: 'Zona atualizada!',
+        zoneCreated: 'Zona de ataque criada!',
+      },
+      loading: {
+        sync: 'SINCRONIZANDO PLANOS...',
+        default: 'Carregando...',
+      },
+      connection: {
+        lost: 'CONEXÃO PERDIDA. TENTANDO RECONECTAR...',
+        lostSub: '(Suas ações serão salvas e enviadas assim que a conexão voltar)',
+      },
+      status: {
+        connected: 'Conectado ao Servidor',
+        disconnected: 'Desconectado',
+        live: 'AO VIVO',
+        offline: 'OFFLINE',
+      },
+      toolbar: {
+        groupCombat: 'Grupo & Combate',
+      },
+      combat: {
+        label: 'COMBATE',
+        round: 'RODADA {{round}}',
       },
     },
   },
@@ -3340,6 +3584,271 @@ export default {
           name: 'Vex',
           desc: 'Vantagem na próxima jogada de ataque contra o alvo.',
         },
+      },
+    },
+  },
+  rules: {
+    status: {
+      frightened: {
+        name: 'Amedrontado',
+        effect: {
+          '0': 'Desvantagem em testes de habilidade e jogadas de ataque enquanto a fonte do medo estiver à vista.',
+          '1': 'Não pode se aproximar voluntariamente da fonte do medo.',
+        },
+        duration: 'Até o fim do próximo turno ou removido da visão da fonte.',
+      },
+      grappled: {
+        name: 'Agarrado',
+        effect: {
+          '0': 'Deslocamento reduzido a 0.',
+          '1': 'Termina se o agarrador ficar incapacitado ou se a criatura for removida do alcance.',
+        },
+        duration: 'Até o fim do agarrador ou teste de Força/Fuga.',
+      },
+      stunned: {
+        name: 'Atordoado',
+        effect: {
+          '0': 'Incapacitado (sem ações/reações).',
+          '1': 'Falha automática em testes de Força e Destreza.',
+          '2': 'Jogadas de ataque contra a criatura têm vantagem.',
+        },
+        duration: 'Até o fim do próximo turno (geralmente).',
+      },
+      prone: {
+        name: 'Caído',
+        effect: {
+          '0': 'Só pode rastejar ou gastar metade do movimento para levantar.',
+          '1': 'Desvantagem em suas jogadas de ataque.',
+          '2': 'Ataques corpo a corpo contra a criatura têm vantagem; à distância têm desvantagem.',
+        },
+        duration: 'Até se levantar.',
+      },
+      blinded: {
+        name: 'Cego',
+        effect: {
+          '0': 'Falha automática em testes que dependam de visão.',
+          '1': 'Suas jogadas de ataque têm desvantagem.',
+          '2': 'Ataques contra a criatura têm vantagem.',
+        },
+        duration: 'Varia.',
+      },
+      charmed: {
+        name: 'Enfeitiçado',
+        effect: {
+          '0': 'Não pode atacar o enfeitiçador nem mirar nele efeitos hostis.',
+          '1': 'O enfeitiçador tem vantagem em testes de Carisma contra a criatura.',
+        },
+        duration: '1 hora ou até sofrer dano do enfeitiçador.',
+      },
+      poisoned: {
+        name: 'Envenenado',
+        effect: {
+          '0': 'Desvantagem em jogadas de ataque e testes de habilidade.',
+        },
+        duration: 'Varia (TS CON repetido).',
+      },
+      restrained: {
+        name: 'Impedido',
+        effect: {
+          '0': 'Deslocamento 0.',
+          '1': 'Desvantagem em jogadas de ataque e testes de Destreza.',
+          '2': 'Ataques contra a criatura têm vantagem.',
+        },
+        duration: 'Varia.',
+      },
+      incapacitated: {
+        name: 'Incapacitado',
+        effect: {
+          '0': 'Não pode realizar ações nem reações.',
+        },
+      },
+      unconscious: {
+        name: 'Inconsciente',
+        effect: {
+          '0': 'Incapacitado, não se move, não fala, sem consciência.',
+          '1': 'Solta itens e fica Caído.',
+          '2': 'Falha automática em testes de Força e Destreza.',
+          '3': 'Ataques contra a criatura têm vantagem e são críticos se atacante estiver a 1,5m.',
+        },
+        duration: 'Até ser curado ou estabilizado.',
+      },
+      invisible: {
+        name: 'Invisível',
+        effect: {
+          '0': 'Impossível de ser visto sem magia/sentidos especiais.',
+          '1': 'Considerado muito obscurecido para esconder-se.',
+          '2': 'Suas jogadas de ataque têm vantagem.',
+          '3': 'Ataques contra a criatura têm desvantagem.',
+        },
+      },
+      paralyzed: {
+        name: 'Paralisado',
+        effect: {
+          '0': 'Incapacitado e não pode se mover nem falar.',
+          '1': 'Falha automática em testes de Força e Destreza.',
+          '2': 'Ataques contra a criatura têm vantagem e são críticos se atacante estiver a 1,5m.',
+        },
+      },
+      petrified: {
+        name: 'Petrificado',
+        effect: {
+          '0': 'Transformado em substância sólida (inanimado).',
+          '1': 'Incapacitado, não envelhece, peso x10.',
+          '2': 'Resistência a todo dano, imune a veneno/doença.',
+        },
+        duration: 'Permanente até restaurado.',
+      },
+      deafened: {
+        name: 'Surdo',
+        effect: {
+          '0': 'Falha automática em testes que dependam de audição.',
+        },
+        duration: '1 hora (típico).',
+      },
+      exhausted: {
+        name: 'Exausto',
+        effect: {
+          '0': 'Nvl 1: Desvantagem em testes de habilidade.',
+          '1': 'Nvl 2: Deslocamento reduzido à metade.',
+          '2': 'Nvl 3: Desvantagem em ataques e testes de resistência.',
+          '3': 'Nvl 4: PV Máximo reduzido à metade.',
+          '4': 'Nvl 5: Deslocamento 0.',
+          '5': 'Nvl 6: Morte.',
+        },
+        duration: 'Descanso Longo reduz 1 nível.',
+      },
+      burning: {
+        name: 'Queimando',
+        effect: {
+          '0': 'Sofre 1d6 de dano de fogo no início de cada turno.',
+          '1': 'Pode gastar uma ação para apagar as chamas (CD 10 Destreza).',
+        },
+        duration: '1 minuto ou até apagado.',
+      },
+      bleeding: {
+        name: 'Sangrando',
+        effect: {
+          '0': 'Sofre 1d4 de dano necrótico/perfurante no início do turno.',
+          '1': 'Qualquer cura mágica encerra a condição.',
+        },
+        duration: 'Até curado (Medicina CD 10 ou Cura).',
+      },
+      dead: {
+        name: 'Morto',
+        effect: {
+          '0': 'Personagem faleceu.',
+        },
+        duration: 'Permanente.',
+      },
+      bloodied: {
+        name: 'Ferido (Bloodied)',
+        effect: {
+          '0': 'Abaixo da metade dos pontos de vida.',
+        },
+        duration: 'Até ser curado acima de 50%.',
+      },
+      shielded: {
+        name: 'Protegido',
+        effect: {
+          '0': 'Possui bônus na CA ou proteção mágica.',
+        },
+      },
+      alert: {
+        name: 'Alerta',
+        effect: {
+          '0': 'Vantagem em iniciativa e percepção.',
+        },
+      },
+    },
+    aura: {
+      corrosiveAsh: {
+        name: 'Aura of Corrosive Ash',
+        trigger: 'Início do turno',
+        desc: '1d6 ácido por turno. Criaturas afetadas têm -2m de movimento.',
+        effectName: 'Cinzas Corrosivas',
+        effectDesc: '1d6 Ácido / -2m Movimento',
+      },
+      deepTerror: {
+        name: 'Deep Terror Aura',
+        trigger: 'Entrada ou Início do turno',
+        desc: 'Teste de Sabedoria (CD 8+Prof+Attr). Falha: Amedrontado por 1 turno.',
+        effectName: 'Terror Profundo',
+        effectDesc: 'Save WIS ou Amedrontado',
+      },
+      etherealGuardian: {
+        name: 'Ethereal Guardian Aura',
+        trigger: 'Constante',
+        desc: '+1 CA para aliados. Primeiro ataque contra cada aliado tem desvantagem (1/rodada).',
+        effectName: 'Guardião Etéreo',
+        effectDesc: '+1 CA / Desvantagem no 1º ataque recebido',
+      },
+      elementalResistance: {
+        name: 'Elemental Resistance Aura',
+        desc: 'Resistência a um elemento escolhido (Fogo, Frio, Ácido, etc).',
+        effectName: 'Resistência Elemental',
+        effectDesc: 'Resistência ao elemento escolhido',
+      },
+      protection: {
+        name: 'Aura of Protection',
+        desc: 'Aliados adicionam modificador de Carisma aos testes de resistência.',
+        effectName: 'Proteção (Carisma)',
+        effectDesc: '+CHA em Saves',
+      },
+      courage: {
+        name: 'Aura of Courage',
+        desc: 'Aliados não podem ser amedrontados.',
+        effectName: 'Coragem',
+        effectDesc: 'Imune a Medo',
+      },
+      strategist: {
+        name: 'Strategist\'s Aura',
+        desc: 'Aliados ganham +1 em testes de ataque.',
+        effectName: 'Estrategista',
+        effectDesc: '+1 Ataque',
+      },
+      arcaneFocus: {
+        name: 'Arcane Focus Aura',
+        desc: 'Aliados têm vantagem em testes de concentração.',
+        effectName: 'Foco Arcano',
+        effectDesc: 'Vantagem em Concentração',
+      },
+      vitality: {
+        name: 'Aura of Vitality',
+        trigger: 'Ação Bônus',
+        desc: 'Cura 2d6 por ação em um alvo dentro da área.',
+        effectName: 'Vitalidade',
+        effectDesc: 'Pode ser curado (2d6)',
+      },
+      temporalSlow: {
+        name: 'Temporal Slow Aura',
+        trigger: 'Entrada',
+        desc: 'Criaturas têm -3m de movimento e não podem fazer Reações.',
+        effectName: 'Lentidão Temporal',
+        effectDesc: '-3m Movimento / Sem Reações',
+      },
+      windGust: {
+        name: 'Wind Gust Aura',
+        desc: 'Criaturas que entram fazem teste de Força ou são empurradas 1,5m.',
+        effectName: 'Pancada de Vento',
+        effectDesc: 'Save STR ou Empurrão 1.5m',
+      },
+      spiritGuardians: {
+        name: 'Spirit Guardians',
+        desc: 'Dano contínuo e redução de movimento para inimigos.',
+        effectName: 'Guardiões Espirituais',
+        effectDesc: 'Dano / Movimento Reduzido',
+      },
+      fear: {
+        name: 'Fear Aura',
+        desc: 'Criaturas devem passar teste ou ficam amedrontadas.',
+        effectName: 'Medo',
+        effectDesc: 'Teste de Sabedoria ou Amedrontado',
+      },
+      fire: {
+        name: 'Fire Aura',
+        desc: 'Dano de fogo ao aproximar ou iniciar turno.',
+        effectName: 'Fogo',
+        effectDesc: 'Dano de Fogo',
       },
     },
   },

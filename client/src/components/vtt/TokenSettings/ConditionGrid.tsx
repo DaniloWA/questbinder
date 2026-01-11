@@ -1,10 +1,10 @@
 import React from 'react';
+import { useTranslation } from '../../../i18n/TranslationContext';
 import { Condition } from '../../../types';
 import { Activity } from 'lucide-react';
 import { STATUS_RULES } from '../../../data/rules';
 import { CONDITION_ICONS } from './tokenModalUtils';
 import { Tooltip } from '../../ui/Tooltip';
-import { useTranslation } from '../../../i18n/TranslationContext';
 
 interface ConditionGridProps {
   conditions: Condition[];
@@ -19,12 +19,12 @@ export const ConditionGrid: React.FC<ConditionGridProps> = ({
 }) => {
   const { t, hasKey } = useTranslation();
 
-  const toggleCondition = (key: string) => {
-    const isActive = conditions.includes(key as Condition);
+  const toggleCondition = (conditionId: string) => {
+    const isActive = conditions.includes(conditionId as Condition);
     if (isActive) {
-      onChange(conditions.filter(c => c !== key));
+      onChange(conditions.filter(c => c !== conditionId));
     } else {
-      onChange([...conditions, key as Condition]);
+      onChange([...conditions, conditionId as Condition]);
     }
   };
 

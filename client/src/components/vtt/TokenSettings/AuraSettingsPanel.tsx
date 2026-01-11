@@ -497,7 +497,7 @@ export const AuraSettingsPanel: React.FC<AuraSettingsPanelProps> = ({ auras, onC
                               }}
                               className={`px-2 py-1.5 text-[10px] rounded border text-center truncate ${isActive ? 'bg-primary/20 border-primary text-primary' : 'bg-zinc-900 border-zinc-800 text-zinc-500 hover:bg-zinc-800'}`}
                             >
-                              {STATUS_RULES[cond].name}
+                              {t(STATUS_RULES[cond].name)}
                             </button>
                           );
                         })}

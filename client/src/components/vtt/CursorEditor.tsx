@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Crown, Lock, CircleDot, Activity, Stars, Target, Disc, Sun, Podcast, Radio, Zap, Wind, Triangle } from 'lucide-react';
+import { useTranslation } from '../../i18n/TranslationContext';
 import { Input } from '../ui/Input';
 import { ColorPicker } from '../ui/ColorPicker';
 import { CURSOR_SHAPES, getCursorShape, CursorShape } from './constants/cursorShapes';
@@ -289,6 +290,7 @@ export const CursorEditor: React.FC<CursorEditorProps> = ({
   userName = 'Nome',
   isGMMode = false,
 }) => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'general' | 'animations' | 'ping'>('general');
 
   // Default empty overrides to proper type for TS
@@ -331,19 +333,19 @@ export const CursorEditor: React.FC<CursorEditorProps> = ({
           onClick={() => setActiveTab('general')}
           className={`flex-1 text-[10px] py-1 rounded transition-all ${activeTab === 'general' ? 'bg-zinc-700 text-white shadow font-bold' : 'text-zinc-500 hover:text-zinc-300'}`}
         >
-          Geral
+          {t('vtt.cursor.editor.tabs.general')}
         </button>
         <button
           onClick={() => setActiveTab('animations')}
           className={`flex-1 text-[10px] py-1 rounded transition-all ${activeTab === 'animations' ? 'bg-zinc-700 text-white shadow font-bold' : 'text-zinc-500 hover:text-zinc-300'}`}
         >
-          Animações
+          {t('vtt.cursor.editor.tabs.animations')}
         </button>
         <button
           onClick={() => setActiveTab('ping')}
           className={`flex-1 text-[10px] py-1 rounded transition-all ${activeTab === 'ping' ? 'bg-zinc-700 text-white shadow font-bold' : 'text-zinc-500 hover:text-zinc-300'}`}
         >
-          Ping
+          {t('vtt.cursor.editor.tabs.ping')}
         </button>
       </div>
 
@@ -355,9 +357,9 @@ export const CursorEditor: React.FC<CursorEditorProps> = ({
             {/* Shape Selection */}
             <div className={!canEdit.shape ? 'opacity-60' : ''}>
               <label className="text-[10px] font-medium text-muted-foreground mb-1 block flex items-center gap-1">
-                Formato
-                {!isGMMode && overrides.shape && <><Crown className="w-3 h-3 text-amber-500" /><span className="text-amber-500">Definido pelo GM</span></>}
-                {!isGMMode && !canEdit.shape && !overrides.shape && <><Lock className="w-3 h-3 text-red-400" /><span className="text-red-400">Bloqueado</span></>}
+                {t('vtt.cursor.editor.general.shape.label')}
+                {!isGMMode && overrides.shape && <><Crown className="w-3 h-3 text-amber-500" /><span className="text-amber-500">{t('vtt.cursor.editor.overrides.gmSet')}</span></>}
+                {!isGMMode && !canEdit.shape && !overrides.shape && <><Lock className="w-3 h-3 text-red-400" /><span className="text-red-400">{t('vtt.cursor.editor.overrides.locked')}</span></>}
               </label>
               <div className="grid grid-cols-6 sm:grid-cols-9 gap-0.5 justify-items-center">
                 {CURSOR_SHAPES.map(s => (
@@ -376,9 +378,9 @@ export const CursorEditor: React.FC<CursorEditorProps> = ({
             {/* Name Input */}
             <div className={!canEdit.name ? 'opacity-60' : ''}>
               <label className="text-[10px] font-medium text-muted-foreground mb-0.5 block flex items-center gap-1">
-                Nome de Exibição
-                {!isGMMode && overrides.name && <><Crown className="w-3 h-3 text-amber-500" /><span className="text-amber-500">Definido pelo GM</span></>}
-                {!isGMMode && !canEdit.name && !overrides.name && <><Lock className="w-3 h-3 text-red-400" /><span className="text-red-400">Bloqueado</span></>}
+                {t('vtt.cursor.editor.general.name.label')}
+                {!isGMMode && overrides.name && <><Crown className="w-3 h-3 text-amber-500" /><span className="text-amber-500">{t('vtt.cursor.editor.overrides.gmSet')}</span></>}
+                {!isGMMode && !canEdit.name && !overrides.name && <><Lock className="w-3 h-3 text-red-400" /><span className="text-red-400">{t('vtt.cursor.editor.overrides.locked')}</span></>}
               </label>
               <Input
                 value={values.name}
@@ -393,9 +395,9 @@ export const CursorEditor: React.FC<CursorEditorProps> = ({
             {/* Color Selection */}
             <div className={!canEdit.color ? 'opacity-60' : ''}>
               <label className="text-[10px] font-medium text-muted-foreground mb-1 block flex items-center gap-1">
-                Cor Principal
-                {!isGMMode && overrides.color && <><Crown className="w-3 h-3 text-amber-500" /><span className="text-amber-500">Definido pelo GM</span></>}
-                {!isGMMode && !canEdit.color && !overrides.color && <><Lock className="w-3 h-3 text-red-400" /><span className="text-red-400">Bloqueado</span></>}
+                {t('vtt.cursor.editor.general.color.label')}
+                {!isGMMode && overrides.color && <><Crown className="w-3 h-3 text-amber-500" /><span className="text-amber-500">{t('vtt.cursor.editor.overrides.gmSet')}</span></>}
+                {!isGMMode && !canEdit.color && !overrides.color && <><Lock className="w-3 h-3 text-red-400" /><span className="text-red-400">{t('vtt.cursor.editor.overrides.locked')}</span></>}
               </label>
               <div className="grid grid-cols-4 sm:grid-cols-6 gap-1">
                 {PRESET_COLORS.map(c => (
@@ -426,11 +428,11 @@ export const CursorEditor: React.FC<CursorEditorProps> = ({
               <div className="flex gap-8 items-center">
                 <div className="flex flex-col items-center gap-1">
                   <AnimationPreview style={values.clickAnimation} color={values.clickColorLeft} size={80} isVisible={isVisible && activeTab === 'animations'} />
-                  <span className="text-[9px] text-zinc-500">Esquerdo</span>
+                  <span className="text-[9px] text-zinc-500">{t('vtt.cursor.editor.preview.left')}</span>
                 </div>
                 <div className="flex flex-col items-center gap-1">
                   <AnimationPreview style={values.clickAnimation} color={values.clickColorRight} size={80} isVisible={isVisible && activeTab === 'animations'} />
-                  <span className="text-[9px] text-zinc-500">Direito</span>
+                  <span className="text-[9px] text-zinc-500">{t('vtt.cursor.editor.preview.right')}</span>
                 </div>
               </div>
             </div>
@@ -438,20 +440,20 @@ export const CursorEditor: React.FC<CursorEditorProps> = ({
             {/* Animation Style */}
             <div className={!canEdit.animation ? 'opacity-60' : ''}>
               <label className="text-[10px] font-medium text-muted-foreground mb-1 block flex items-center gap-1">
-                Estilo da Animação
-                {!isGMMode && overrides.animation && <><Crown className="w-3 h-3 text-amber-500" /><span className="text-amber-500">Definido pelo GM</span></>}
+                {t('vtt.cursor.editor.animations.style.label')}
+                {!isGMMode && overrides.animation && <><Crown className="w-3 h-3 text-amber-500" /><span className="text-amber-500">{t('vtt.cursor.editor.overrides.gmSet')}</span></>}
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-1">
                 {[
-                  { id: 'ripple', label: 'Ondas', icon: CircleDot },
-                  { id: 'burst', label: 'Explosão', icon: Activity },
-                  { id: 'sparkle', label: 'Brilho', icon: Stars },
-                  { id: 'pulse', label: 'Pulso', icon: Target },
-                  { id: 'vortex', label: 'Vórtice', icon: Disc },
-                  { id: 'shard', label: 'Fragmento', icon: Sun },
-                  { id: 'ring', label: 'Anéis', icon: Podcast },
-                  { id: 'echo', label: 'Eco', icon: Radio },
-                  { id: 'orb', label: 'Orbe', icon: Zap },
+                  { id: 'ripple', label: t('vtt.cursor.animations.ripple'), icon: CircleDot },
+                  { id: 'burst', label: t('vtt.cursor.animations.burst'), icon: Activity },
+                  { id: 'sparkle', label: t('vtt.cursor.animations.sparkle'), icon: Stars },
+                  { id: 'pulse', label: t('vtt.cursor.animations.pulse'), icon: Target },
+                  { id: 'vortex', label: t('vtt.cursor.animations.vortex'), icon: Disc },
+                  { id: 'shard', label: t('vtt.cursor.animations.shard'), icon: Sun },
+                  { id: 'ring', label: t('vtt.cursor.animations.ring'), icon: Podcast },
+                  { id: 'echo', label: t('vtt.cursor.animations.echo'), icon: Radio },
+                  { id: 'orb', label: t('vtt.cursor.animations.orb'), icon: Zap },
                 ].map(a => (
                   <button
                     key={a.id}
@@ -469,7 +471,7 @@ export const CursorEditor: React.FC<CursorEditorProps> = ({
             {/* Click Colors */}
             <div className="grid grid-cols-2 gap-2">
               <div className={!canEdit.leftColor ? 'opacity-60' : ''}>
-                <label className="text-[10px] font-medium text-muted-foreground mb-1 block">Cor Esquerdo</label>
+                <label className="text-[10px] font-medium text-muted-foreground mb-1 block">{t('vtt.cursor.editor.animations.leftColor.label')}</label>
                 <div className="grid grid-cols-4 sm:grid-cols-6 gap-0.5">
                   {PRESET_COLORS.map(c => (
                     <button
@@ -483,7 +485,7 @@ export const CursorEditor: React.FC<CursorEditorProps> = ({
                 </div>
               </div>
               <div className={!canEdit.rightColor ? 'opacity-60' : ''}>
-                <label className="text-[10px] font-medium text-muted-foreground mb-1 block">Cor Direito</label>
+                <label className="text-[10px] font-medium text-muted-foreground mb-1 block">{t('vtt.cursor.editor.animations.rightColor.label')}</label>
                 <div className="grid grid-cols-4 sm:grid-cols-6 gap-0.5">
                   {PRESET_COLORS.map(c => (
                     <button
@@ -508,27 +510,27 @@ export const CursorEditor: React.FC<CursorEditorProps> = ({
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-zinc-800/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
               <div className="flex flex-col items-center gap-1">
                 <AnimationPreview style={values.pingAnimation} color={values.pingColor} size={100} isVisible={isVisible && activeTab === 'ping'} />
-                <span className="text-[9px] text-zinc-500">Visualização do Ping</span>
+                <span className="text-[9px] text-zinc-500">{t('vtt.cursor.editor.preview.ping')}</span>
               </div>
             </div>
 
             {/* Ping Animation Style */}
             <div className={!canEdit.pingAnimation ? 'opacity-60' : ''}>
               <label className="text-[10px] font-medium text-muted-foreground mb-1 block flex items-center gap-1">
-                Estilo do Ping
-                {!isGMMode && overrides.pingAnimation && <><Crown className="w-3 h-3 text-amber-500" /><span className="text-amber-500">Definido pelo GM</span></>}
+                {t('vtt.cursor.editor.ping.style.label')}
+                {!isGMMode && overrides.pingAnimation && <><Crown className="w-3 h-3 text-amber-500" /><span className="text-amber-500">{t('vtt.cursor.editor.overrides.gmSet')}</span></>}
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-1">
                 {[
-                  { id: 'radar', label: 'Radar', icon: Radio },
-                  { id: 'beacon', label: 'Farol', icon: Zap },
-                  { id: 'sonar', label: 'Sonar', icon: Podcast },
-                  { id: 'pulse', label: 'Pulso', icon: Activity },
-                  { id: 'target', label: 'Alvo', icon: Target },
-                  { id: 'ripple', label: 'Ondas', icon: CircleDot },
-                  { id: 'flare', label: 'Flare', icon: Sun },
-                  { id: 'diamond', label: 'Diamante', icon: Triangle },
-                  { id: 'cross', label: 'Cruz', icon: Wind },
+                  { id: 'radar', label: t('vtt.cursor.pings.radar'), icon: Radio },
+                  { id: 'beacon', label: t('vtt.cursor.pings.beacon'), icon: Zap },
+                  { id: 'sonar', label: t('vtt.cursor.pings.sonar'), icon: Podcast },
+                  { id: 'pulse', label: t('vtt.cursor.animations.pulse'), icon: Activity },
+                  { id: 'target', label: t('vtt.cursor.pings.target'), icon: Target },
+                  { id: 'ripple', label: t('vtt.cursor.animations.ripple'), icon: CircleDot },
+                  { id: 'flare', label: t('vtt.cursor.pings.flare'), icon: Sun },
+                  { id: 'diamond', label: t('vtt.cursor.pings.diamond'), icon: Triangle },
+                  { id: 'cross', label: t('vtt.cursor.pings.cross'), icon: Wind },
                 ].map(a => (
                   <button
                     key={a.id}
@@ -546,8 +548,8 @@ export const CursorEditor: React.FC<CursorEditorProps> = ({
             {/* Ping Color */}
             <div className={!canEdit.pingColor ? 'opacity-60' : ''}>
               <label className="text-[10px] font-medium text-muted-foreground mb-1 block flex items-center gap-1">
-                Cor do Ping
-                {!isGMMode && overrides.pingColor && <><Crown className="w-3 h-3 text-amber-500" /><span className="text-amber-500">Definido pelo GM</span></>}
+                {t('vtt.cursor.editor.ping.color.label')}
+                {!isGMMode && overrides.pingColor && <><Crown className="w-3 h-3 text-amber-500" /><span className="text-amber-500">{t('vtt.cursor.editor.overrides.gmSet')}</span></>}
               </label>
               <div className="grid grid-cols-4 sm:grid-cols-6 gap-1">
                 {PRESET_COLORS.map(c => (

@@ -4,7 +4,7 @@ import { useGameSession } from '../../context/GameSessionContext';
 import { CombatTrackerEnhanced } from './CombatTrackerEnhanced';
 import { GameLog, ChatViewMode } from './GameLog';
 import { PartyList } from './PartyList';
-import { Users, Activity, Swords, X, ArrowLeftFromLine, ExternalLink, ArrowRightToLine } from 'lucide-react';
+import { Users, Activity, Swords, X, ArrowLeftFromLine, ExternalLink, ArrowRightToLine, Languages } from 'lucide-react';
 import { Tooltip } from '../ui/Tooltip';
 import { PopoutWindow } from '../ui/PopoutWindow';
 import { useNotification } from '../../context/NotificationContext';
@@ -20,9 +20,15 @@ const SidebarContent: React.FC<{
   isPoppedOut?: boolean;
 }> = ({ activeTab, setActiveTab, onClose, onPopout, onDock, isPoppedOut }) => {
   const { chatMessages } = useGameSession();
-  const { t } = useTranslation();
+  const { t, locale, changeLocale, availableLocales } = useTranslation();
   // Chat view mode inside the sidebar is always 'sidebar' or 'fullscreen', actually inside the small container it behaves like sidebar
   const [chatMode, setChatMode] = useState<ChatViewMode>('sidebar');
+
+  const handleToggleLanguage = () => {
+    const currentIndex = availableLocales.indexOf(locale);
+    const nextIndex = (currentIndex + 1) % availableLocales.length;
+    changeLocale(availableLocales[nextIndex]);
+  };
 
   return (
     <div className="h-full flex flex-col bg-zinc-950/95 backdrop-blur-md border-l border-white/10 shadow-2xl w-full">
@@ -59,6 +65,16 @@ const SidebarContent: React.FC<{
         </div>
 
         <div className="flex gap-1">
+          {/* Language Toggle */}
+          <Tooltip content={`${t('vtt.session.sidebar.languageToggle.tooltip')} (${locale})`}>
+            <button
+              onClick={handleToggleLanguage}
+              className="p-2 hover:bg-white/10 rounded-lg text-zinc-400 hover:text-white transition-colors"
+            >
+              <Languages className="w-4 h-4" />
+            </button>
+          </Tooltip>
+
           {/* Pop-out / Dock Buttons */}
           {!isPoppedOut && onPopout && (
             <Tooltip content={t('vtt.session.sidebar.popoutButton.tooltip')}>

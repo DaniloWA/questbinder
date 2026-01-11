@@ -100,6 +100,23 @@ export default {
       minutes: '{1} :count minute|[2,*] :count minutes',
       hours: '{1} :count hour|[2,*] :count hours',
     },
+    duration: 'Duration',
+    shareTooltip: 'Share',
+    hero: 'Hero',
+    creature: 'Creature',
+    passivePerception: 'Passive Perception',
+    visible: 'Visible',
+    hidden: 'Hidden',
+    hp: 'HP',
+    resource: 'Resource',
+    unknownEffect: 'Unknown Effect',
+    activeEffects: 'Active Effects',
+    acModifier: 'AC Mod',
+    ac: 'AC',
+    speedModifier: 'Speed Mod',
+    speed: 'Speed',
+    sheet: 'Sheet',
+    cancel: 'Cancel',
   },
   vtt: {
     tools: {
@@ -392,6 +409,9 @@ export default {
         },
         popoutWindow: {
           title: 'QuestBinder Sidebar',
+        },
+        languageToggle: {
+          tooltip: 'Change Language',
         },
       },
     },
@@ -852,15 +872,88 @@ export default {
         },
         rodada: {
           text: 'Round',
+          label: 'Round',
         },
         iniciativa: {
           text: 'Initiative: ',
+          label: 'Initiative',
         },
         prximoTurno: {
           label: 'Next Turn',
+          text: 'Next Turn',
         },
         next: {
           button: 'Next',
+        },
+        emptyState: {
+          title: 'No Combat',
+          message: 'No active combat. Start one to track initiative.',
+        },
+        header: {
+          title: 'Combat Tracker',
+        },
+        turnTimer: {
+          tooltip: 'Turn Timer',
+        },
+        roundCounter: {
+          label: 'Round',
+        },
+        historyButton: {
+          tooltip: 'History',
+        },
+        settingsButton: {
+          tooltip: 'Settings',
+        },
+        shortcutsButton: {
+          tooltip: 'Shortcuts',
+        },
+        settingsPanel: {
+          title: 'Tracker Settings',
+          autoRollInit: {
+            label: 'Auto-roll Initiative',
+          },
+          showInit: {
+            label: 'Show Initiative',
+          },
+          showEnemyHP: {
+            label: 'Show Enemy HP',
+          },
+          concentration: {
+            label: 'Concentration Tracking',
+          },
+          turnTimer: {
+            label: 'Turn Timer',
+          },
+          aiSuggestions: {
+            label: 'AI Suggestions',
+          },
+        },
+        historyPanel: {
+          title: 'Combat History',
+          emptyState: {
+            message: 'No history available.',
+          },
+        },
+        turnOrder: {
+          title: 'Turn Order',
+          damagePlaceholder: 'Dmg',
+          healPlaceholder: 'Heal',
+          removeFromCombat: {
+            confirmPrompt: 'Remove from combat?',
+            label: 'Remove',
+          },
+        },
+        controls: {
+          prevTurn: {
+            tooltip: 'Previous Turn',
+          },
+          nextTurn: {
+            label: 'Next Turn',
+          },
+          endCombat: {
+            confirmPrompt: 'End combat?',
+            label: 'End Combat',
+          },
         },
       },
       tab: {
@@ -3190,6 +3283,80 @@ export default {
         displayName: {
           label: 'Display Name',
         },
+        tabs: {
+          general: 'General',
+          animations: 'Animations',
+          ping: 'Ping',
+        },
+        general: {
+          shape: {
+            label: 'Shape',
+          },
+          name: {
+            label: 'Display Name',
+          },
+          color: {
+            label: 'Main Color',
+          },
+        },
+        overrides: {
+          gmSet: 'Set by GM',
+          locked: 'Locked',
+        },
+        preview: {
+          left: 'Left',
+          right: 'Right',
+          ping: 'Ping Preview',
+        },
+        animations: {
+          style: {
+            label: 'Animation Style',
+          },
+          leftColor: {
+            label: 'Left Color',
+          },
+          rightColor: {
+            label: 'Right Color',
+          },
+        },
+        ping: {
+          style: {
+            label: 'Ping Style',
+          },
+          color: {
+            label: 'Ping Color',
+          },
+        },
+      },
+      settings: {
+        title: 'Cursors',
+        editingLabel: 'Editing',
+        myCursor: 'My Cursor',
+        playersLabel: 'PLAYERS',
+        noPlayers: 'No players.',
+        setOverride: 'Set override',
+        clearOverride: 'Clear',
+        defaultName: 'Name',
+      },
+      animations: {
+        ripple: 'Ripple',
+        burst: 'Burst',
+        sparkle: 'Sparkle',
+        pulse: 'Pulse',
+        vortex: 'Vortex',
+        shard: 'Shard',
+        ring: 'Ring',
+        echo: 'Echo',
+        orb: 'Orb',
+      },
+      pings: {
+        radar: 'Radar',
+        beacon: 'Beacon',
+        sonar: 'Sonar',
+        target: 'Target',
+        flare: 'Flare',
+        diamond: 'Diamond',
+        cross: 'Cross',
       },
     },
     mapContext: {
@@ -3408,6 +3575,7 @@ export default {
           title: 'Grid Opacity',
           description: 'Adjust the intensity of grid lines.',
         },
+        title: 'View Settings',
       },
     },
     spectate: {
@@ -3441,6 +3609,347 @@ export default {
       preview: {
         clickInstruction: 'Click on the image below to simulate where you would click on the map. The red outline shows how the wall will be generated.',
         clickToTest: 'Click to test',
+        title: 'Preview Mode (Sandbox)',
+        description: 'Click on the image below to simulate where you would click on the map. The red outline shows how the wall will be generated.',
+        loading: 'Loading test image...',
+        tolerance: 'TOLERANCE',
+        simplification: 'SIMPLIFICATION',
+        resolution: 'RESOLUTION',
+        tip: {
+          label: 'Tip:',
+          text: 'Use low tolerance for very specific colors and high for larger areas. Resolution affects precision and performance.',
+        },
+      },
+    },
+    gameSession: {
+      library: {
+        emptyTitle: 'Empty Grimoire',
+        emptyDesc: 'Create a token on the map and save it as a template to see it here.',
+        title: 'Bestiary',
+        vision: '{{range}}m Vision',
+        blind: 'Blind',
+      },
+      modal: {
+        token: {
+          create: 'Summon Creature',
+          edit: 'Edit Creature',
+        },
+        handout: {
+          deleteConfirm: 'Are you sure you want to delete "{{name}}"?',
+          deleteTitle: 'Delete Resource',
+          new: 'New Resource',
+          edit: 'Edit Resource',
+        },
+        attackZone: {
+          createCustom: 'Create Custom Attack Zone',
+          edit: 'Edit Attack Zone',
+        },
+        triggerZone: {
+          edit: 'Edit Trigger',
+        },
+        audioZone: {
+          edit: 'Edit Audio Zone',
+        },
+      },
+      error: {
+        noTokenCreatePerm: 'You don\'t have permission to create tokens.',
+        notController: 'You do not control this token.',
+        tokenEditBlocked: 'Token editing blocked.',
+        tokenCreateBlocked: 'Token creation blocked.',
+        loadCampaign: 'Failed to load campaign.',
+      },
+      notification: {
+        handoutSaved: 'Resource saved.',
+        zoneDuplicated: 'Zone duplicated!',
+        zoneRemoved: 'Zone removed!',
+        zoneUpdated: 'Zone updated!',
+        zoneCreated: 'Attack zone created!',
+      },
+      loading: {
+        sync: 'SYNCHRONIZING PLANES...',
+        default: 'Loading...',
+      },
+      connection: {
+        lost: 'CONNECTION LOST. ATTEMPTING TO RECONNECT...',
+        lostSub: '(Your actions will be saved and sent as soon as the connection returns)',
+      },
+      status: {
+        connected: 'Connected to Server',
+        disconnected: 'Disconnected',
+        live: 'LIVE',
+        offline: 'OFFLINE',
+      },
+      toolbar: {
+        groupCombat: 'Party & Combat',
+      },
+      combat: {
+        label: 'COMBAT',
+        round: 'ROUND {{round}}',
+      },
+    },
+  },
+  rules: {
+    status: {
+      frightened: {
+        name: 'Frightened',
+        effect: {
+          '0': 'Disadvantage on ability checks and attack rolls while the source of fear is within line of sight.',
+          '1': 'Cannot willingly move closer to the source of fear.',
+        },
+        duration: 'Until the end of next turn or removed from sight of source.',
+      },
+      grappled: {
+        name: 'Grappled',
+        effect: {
+          '0': 'Speed becomes 0.',
+          '1': 'Ends if the grappler is incapacitated or if the creature is removed from reach.',
+        },
+        duration: 'Until grappler ends it or Strength/Escape check.',
+      },
+      stunned: {
+        name: 'Stunned',
+        effect: {
+          '0': 'Incapacitated (no actions/reactions).',
+          '1': 'Automatically fails Strength and Dexterity saves.',
+          '2': 'Attack rolls against the creature have advantage.',
+        },
+        duration: 'Until the end of next turn (usually).',
+      },
+      prone: {
+        name: 'Prone',
+        effect: {
+          '0': 'Can only crawl or spend half movement to stand up.',
+          '1': 'Disadvantage on attack rolls.',
+          '2': 'Melee attacks against have advantage; ranged have disadvantage.',
+        },
+        duration: 'Until standing up.',
+      },
+      blinded: {
+        name: 'Blinded',
+        effect: {
+          '0': 'Automatically fails checks that rely on sight.',
+          '1': 'Attack rolls have disadvantage.',
+          '2': 'Attack rolls against have advantage.',
+        },
+        duration: 'Varies.',
+      },
+      charmed: {
+        name: 'Charmed',
+        effect: {
+          '0': 'Cannot attack the charmer or target them with harmful abilities.',
+          '1': 'The charmer has advantage on Ability checks to interact socially.',
+        },
+        duration: '1 hour or until harmed by charmer.',
+      },
+      poisoned: {
+        name: 'Poisoned',
+        effect: {
+          '0': 'Disadvantage on attack rolls and ability checks.',
+        },
+        duration: 'Varies (CON Save).',
+      },
+      restrained: {
+        name: 'Restrained',
+        effect: {
+          '0': 'Speed 0.',
+          '1': 'Disadvantage on attack rolls and Dexterity saves.',
+          '2': 'Attack rolls against have advantage.',
+        },
+        duration: 'Varies.',
+      },
+      incapacitated: {
+        name: 'Incapacitated',
+        effect: {
+          '0': 'Cannot take actions or reactions.',
+        },
+      },
+      unconscious: {
+        name: 'Unconscious',
+        effect: {
+          '0': 'Incapacitated, can\'t move or speak, unaware.',
+          '1': 'Drops items and falls Prone.',
+          '2': 'Automatically fails Strength and Dexterity saves.',
+          '3': 'Attack rolls against have advantage and are critical hits if within 5ft.',
+        },
+        duration: 'Until healed or stabilized.',
+      },
+      invisible: {
+        name: 'Invisible',
+        effect: {
+          '0': 'Impossible to be seen without magic/special senses.',
+          '1': 'Considered heavily obscured for hiding.',
+          '2': 'Attack rolls have advantage.',
+          '3': 'Attack rolls against have disadvantage.',
+        },
+      },
+      paralyzed: {
+        name: 'Paralyzed',
+        effect: {
+          '0': 'Incapacitated and can\'t move or speak.',
+          '1': 'Automatically fails Strength and Dexterity saves.',
+          '2': 'Attack rolls against have advantage and are critical hits if within 5ft.',
+        },
+      },
+      petrified: {
+        name: 'Petrified',
+        effect: {
+          '0': 'Transformed into solid substance (inanimate).',
+          '1': 'Incapacitated, doesn\'t age, weight x10.',
+          '2': 'Resistance to all damage, immune to poison/disease.',
+        },
+        duration: 'Permanent until restored.',
+      },
+      deafened: {
+        name: 'Deafened',
+        effect: {
+          '0': 'Automatically fails checks that rely on hearing.',
+        },
+        duration: '1 hour (typical).',
+      },
+      exhausted: {
+        name: 'Exhausted',
+        effect: {
+          '0': 'Lvl 1: Disadvantage on ability checks.',
+          '1': 'Lvl 2: Speed halved.',
+          '2': 'Lvl 3: Disadvantage on attack rolls and saving throws.',
+          '3': 'Lvl 4: Hit point maximum halved.',
+          '4': 'Lvl 5: Speed 0.',
+          '5': 'Lvl 6: Death.',
+        },
+        duration: 'Long Rest reduces 1 level.',
+      },
+      burning: {
+        name: 'Burning',
+        effect: {
+          '0': 'Takes 1d6 fire damage at the start of each turn.',
+          '1': 'Can spend an action to douse the fire (DC 10 Dexterity).',
+        },
+        duration: '1 minute or until doused.',
+      },
+      bleeding: {
+        name: 'Bleeding',
+        effect: {
+          '0': 'Takes 1d4 necrotic/piercing damage at the start of turn.',
+          '1': 'Any magical healing ends the condition.',
+        },
+        duration: 'Until healed (Medicine DC 10 or Healing).',
+      },
+      dead: {
+        name: 'Dead',
+        effect: {
+          '0': 'Character has died.',
+        },
+        duration: 'Permanent.',
+      },
+      bloodied: {
+        name: 'Bloodied',
+        effect: {
+          '0': 'Below half hit points.',
+        },
+        duration: 'Until healed above 50%.',
+      },
+      shielded: {
+        name: 'Shielded',
+        effect: {
+          '0': 'Has AC bonus or magical protection.',
+        },
+      },
+      alert: {
+        name: 'Alert',
+        effect: {
+          '0': 'Advantage on initiative and perception.',
+        },
+      },
+    },
+    aura: {
+      corrosiveAsh: {
+        name: 'Aura of Corrosive Ash',
+        trigger: 'Start of turn',
+        desc: '1d6 acid per turn. Affected creatures have -2m movement.',
+        effectName: 'Corrosive Ash',
+        effectDesc: '1d6 Acid / -2m Movement',
+      },
+      deepTerror: {
+        name: 'Deep Terror Aura',
+        trigger: 'Enters or Start of turn',
+        desc: 'Wisdom Save (DC 8+Prof+Attr). Fail: Frightened for 1 turn.',
+        effectName: 'Deep Terror',
+        effectDesc: 'Save WIS or Frightened',
+      },
+      etherealGuardian: {
+        name: 'Ethereal Guardian Aura',
+        trigger: 'Constant',
+        desc: '+1 AC for allies. First attack against each ally has disadvantage (1/round).',
+        effectName: 'Ethereal Guardian',
+        effectDesc: '+1 AC / Disadvantage on 1st attack received',
+      },
+      elementalResistance: {
+        name: 'Elemental Resistance Aura',
+        desc: 'Resistance to a chosen element (Fire, Cold, Acid, etc).',
+        effectName: 'Elemental Resistance',
+        effectDesc: 'Resistance to chosen element',
+      },
+      protection: {
+        name: 'Aura of Protection',
+        desc: 'Allies add Charisma modifier to saving throws.',
+        effectName: 'Protection (Charisma)',
+        effectDesc: '+CHA on Saves',
+      },
+      courage: {
+        name: 'Aura of Courage',
+        desc: 'Allies cannot be frightened.',
+        effectName: 'Courage',
+        effectDesc: 'Immune to Fear',
+      },
+      strategist: {
+        name: 'Strategist\'s Aura',
+        desc: 'Allies gain +1 on attack rolls.',
+        effectName: 'Strategist',
+        effectDesc: '+1 Attack',
+      },
+      arcaneFocus: {
+        name: 'Arcane Focus Aura',
+        desc: 'Allies have advantage on concentration checks.',
+        effectName: 'Arcane Focus',
+        effectDesc: 'Advantage on Concentration',
+      },
+      vitality: {
+        name: 'Aura of Vitality',
+        trigger: 'Bonus Action',
+        desc: 'Heal 2d6 per action on a target within range.',
+        effectName: 'Vitality',
+        effectDesc: 'Can be healed (2d6)',
+      },
+      temporalSlow: {
+        name: 'Temporal Slow Aura',
+        trigger: 'Enters',
+        desc: 'Creatures have -3m speed and cannot take Reactions.',
+        effectName: 'Temporal Slow',
+        effectDesc: '-3m Movement / No Reactions',
+      },
+      windGust: {
+        name: 'Wind Gust Aura',
+        desc: 'Creatures entering make Strength save or are pushed 1.5m.',
+        effectName: 'Wind Gust',
+        effectDesc: 'Save STR or Push 1.5m',
+      },
+      spiritGuardians: {
+        name: 'Spirit Guardians',
+        desc: 'Continuous damage and speed reduction for enemies.',
+        effectName: 'Spirit Guardians',
+        effectDesc: 'Damage / Speed Reduced',
+      },
+      fear: {
+        name: 'Fear Aura',
+        desc: 'Creatures must pass save or become frightened.',
+        effectName: 'Fear',
+        effectDesc: 'Wisdom Save or Frightened',
+      },
+      fire: {
+        name: 'Fire Aura',
+        desc: 'Fire damage when approaching or starting turn.',
+        effectName: 'Fire',
+        effectDesc: 'Fire Damage',
       },
     },
   },

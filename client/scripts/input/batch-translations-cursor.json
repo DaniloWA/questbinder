@@ -1,0 +1,174 @@
+{
+  "translations": [
+    {
+      "key": "vtt.cursor.editor.tabs.general",
+      "en": "General",
+      "pt": "Geral"
+    },
+    {
+      "key": "vtt.cursor.editor.tabs.animations",
+      "en": "Animations",
+      "pt": "Animações"
+    },
+    {
+      "key": "vtt.cursor.editor.tabs.ping",
+      "en": "Ping",
+      "pt": "Ping"
+    },
+    {
+      "key": "vtt.cursor.editor.general.shape.label",
+      "en": "Shape",
+      "pt": "Formato"
+    },
+    {
+      "key": "vtt.cursor.editor.general.name.label",
+      "en": "Display Name",
+      "pt": "Nome de Exibição"
+    },
+    {
+      "key": "vtt.cursor.editor.general.color.label",
+      "en": "Main Color",
+      "pt": "Cor Principal"
+    },
+    {
+      "key": "vtt.cursor.editor.overrides.gmSet",
+      "en": "Set by GM",
+      "pt": "Definido pelo GM"
+    },
+    {
+      "key": "vtt.cursor.editor.overrides.locked",
+      "en": "Locked",
+      "pt": "Bloqueado"
+    },
+    {
+      "key": "vtt.cursor.editor.preview.left",
+      "en": "Left",
+      "pt": "Esquerdo"
+    },
+    {
+      "key": "vtt.cursor.editor.preview.right",
+      "en": "Right",
+      "pt": "Direito"
+    },
+    {
+      "key": "vtt.cursor.editor.animations.style.label",
+      "en": "Animation Style",
+      "pt": "Estilo da Animação"
+    },
+    {
+      "key": "vtt.cursor.editor.animations.leftColor.label",
+      "en": "Left Color",
+      "pt": "Cor Esquerdo"
+    },
+    {
+      "key": "vtt.cursor.editor.animations.rightColor.label",
+      "en": "Right Color",
+      "pt": "Cor Direito"
+    },
+    {
+      "key": "vtt.cursor.editor.preview.ping",
+      "en": "Ping Preview",
+      "pt": "Visualização do Ping"
+    },
+    {
+      "key": "vtt.cursor.editor.ping.style.label",
+      "en": "Ping Style",
+      "pt": "Estilo do Ping"
+    },
+    {
+      "key": "vtt.cursor.editor.ping.color.label",
+      "en": "Ping Color",
+      "pt": "Cor do Ping"
+    },
+    {
+      "key": "vtt.cursor.animations.ripple",
+      "en": "Ripple",
+      "pt": "Ondas"
+    },
+    {
+      "key": "vtt.cursor.animations.burst",
+      "en": "Burst",
+      "pt": "Explosão"
+    },
+    {
+      "key": "vtt.cursor.animations.sparkle",
+      "en": "Sparkle",
+      "pt": "Brilho"
+    },
+    {
+      "key": "vtt.cursor.animations.pulse",
+      "en": "Pulse",
+      "pt": "Pulso"
+    },
+    {
+      "key": "vtt.cursor.animations.vortex",
+      "en": "Vortex",
+      "pt": "Vórtice"
+    },
+    {
+      "key": "vtt.cursor.animations.shard",
+      "en": "Shard",
+      "pt": "Fragmento"
+    },
+    {
+      "key": "vtt.cursor.animations.ring",
+      "en": "Ring",
+      "pt": "Anéis"
+    },
+    {
+      "key": "vtt.cursor.animations.echo",
+      "en": "Echo",
+      "pt": "Eco"
+    },
+    {
+      "key": "vtt.cursor.animations.orb",
+      "en": "Orb",
+      "pt": "Orbe"
+    },
+    {
+      "key": "vtt.cursor.pings.radar",
+      "en": "Radar",
+      "pt": "Radar"
+    },
+    {
+      "key": "vtt.cursor.pings.beacon",
+      "en": "Beacon",
+      "pt": "Farol"
+    },
+    {
+      "key": "vtt.cursor.pings.sonar",
+      "en": "Sonar",
+      "pt": "Sonar"
+    },
+    {
+      "key": "vtt.cursor.pings.target",
+      "en": "Target",
+      "pt": "Alvo"
+    },
+    {
+      "key": "vtt.cursor.pings.flare",
+      "en": "Flare",
+      "pt": "Flare"
+    },
+    {
+      "key": "vtt.cursor.pings.diamond",
+      "en": "Diamond",
+      "pt": "Diamante"
+    },
+    {
+      "key": "vtt.cursor.pings.cross",
+      "en": "Cross",
+      "pt": "Cruz"
+    },
+    {
+      "key": "vtt.cursor.settings.defaultName",
+      "en": "Name",
+      "pt": "Nome"
+    },
+    {
+      "key": "vtt.settings.view.title",
+      "en": "View Settings",
+      "pt": "Configurações de Visualização"
+    }
+  ]
+}

@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { getContourFromPoint } from '../../utils/imageProcessing';
 import { Sparkles, MousePointer2, RefreshCw } from 'lucide-react';
 import { WandSettings } from '../../context/gameSession/types';
+import { useTranslation } from '../../i18n/TranslationContext';
 
 const SAMPLE_MAP_URL = 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&q=80&w=800';
 
@@ -11,6 +12,7 @@ interface SmartWallPreviewModalProps {
 }
 
 export const SmartWallPreviewModal: React.FC<SmartWallPreviewModalProps> = ({ wandSettings: globalWandSettings, setWandSettings }) => {
+  const { t } = useTranslation();
   const [wandSettings, setLocalWandSettings] = useState(globalWandSettings);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -114,8 +116,8 @@ export const SmartWallPreviewModal: React.FC<SmartWallPreviewModalProps> = ({ wa
           <Sparkles className="w-5 h-5 text-primary" />
         </div>
         <div className="space-y-1">
-          <h3 className="text-sm font-bold text-zinc-100 uppercase tracking-tight">Modo de Visualização (Sandbox)</h3>
-          <p className="text-xs text-zinc-400">Clique na imagem abaixo para simular onde você clicaria no mapa. O contorno vermelho mostra como a parede será gerada.</p>
+          <h3 className="text-sm font-bold text-zinc-100 uppercase tracking-tight">{t('vtt.smartWall.preview.title')}</h3>
+          <p className="text-xs text-zinc-400">{t('vtt.smartWall.preview.description')}</p>
         </div>
       </div>
 
@@ -126,7 +128,7 @@ export const SmartWallPreviewModal: React.FC<SmartWallPreviewModalProps> = ({ wa
         {isLoading ? (
           <div className="absolute inset-0 flex items-center justify-center gap-3">
             <RefreshCw className="w-5 h-5 text-zinc-600 animate-spin" />
-            <span className="text-zinc-500 text-sm italic">Carregando imagem de teste...</span>
+            <span className="text-zinc-500 text-sm italic">{t('vtt.smartWall.preview.loading')}</span>
           </div>
         ) : (
           <canvas
@@ -138,13 +140,13 @@ export const SmartWallPreviewModal: React.FC<SmartWallPreviewModalProps> = ({ wa
 
         <div className="absolute top-4 right-4 p-2 bg-black/60 backdrop-blur-md rounded-lg border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 pointer-events-none">
           <MousePointer2 className="w-3 h-3 text-primary" />
-          <span className="text-[10px] text-zinc-300 font-medium lowercase">Clique para testar</span>
+          <span className="text-[10px] text-zinc-300 font-medium lowercase">{t('vtt.smartWall.preview.clickToTest')}</span>
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
         <div className="space-y-2">
-          <label className="text-[10px] font-bold text-zinc-500 uppercase">Tolerância</label>
+          <label className="text-[10px] font-bold text-zinc-500 uppercase">{t('vtt.smartWall.preview.tolerance')}</label>
           <div className="flex items-center gap-3">
             <input
               type="range"
@@ -159,7 +161,7 @@ export const SmartWallPreviewModal: React.FC<SmartWallPreviewModalProps> = ({ wa
         </div>
 
         <div className="space-y-2">
-          <label className="text-[10px] font-bold text-zinc-500 uppercase">Simplificação</label>
+          <label className="text-[10px] font-bold text-zinc-500 uppercase">{t('vtt.smartWall.preview.simplification')}</label>
           <div className="flex items-center gap-3">
             <input
               type="range"
@@ -175,7 +177,7 @@ export const SmartWallPreviewModal: React.FC<SmartWallPreviewModalProps> = ({ wa
         </div>
 
         <div className="space-y-2">
-          <label className="text-[10px] font-bold text-zinc-500 uppercase">Resolução</label>
+          <label className="text-[10px] font-bold text-zinc-500 uppercase">{t('vtt.smartWall.preview.resolution')}</label>
           <div className="flex items-center gap-3">
             <input
               type="range"
@@ -192,7 +194,7 @@ export const SmartWallPreviewModal: React.FC<SmartWallPreviewModalProps> = ({ wa
       </div>
 
       <div className="mt-2 text-[11px] text-zinc-500 leading-relaxed border-t border-zinc-800 pt-4 italic">
-        <span className="text-primary font-bold not-italic">Dica:</span> Use tolerância baixa para cores muito específicas e alta para áreas maiores. A resolução afeta a precisão e o desempenho.
+        <span className="text-primary font-bold not-italic">{t('vtt.smartWall.preview.tip.label')}</span> {t('vtt.smartWall.preview.tip.text')}
       </div>
     </div>
   );

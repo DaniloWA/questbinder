@@ -1,0 +1,7 @@
+
+❌ Found 1 potential missing translations in 1 files:
+
+📄 client\src\views\GameSessionView.tsx
+   L345: "common.delete" 🔴 Missing in: EN, PT
+
+Note: Some errors might be false positives if keys are constructed dynamically (e.g. `rules.${type}.name`).

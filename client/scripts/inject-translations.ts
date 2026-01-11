@@ -40,7 +40,19 @@ if (!fs.existsSync(absoluteInputPath)) {
 const input: TranslationsInput = JSON.parse(fs.readFileSync(absoluteInputPath, 'utf-8'));
 
 // Paths to locale files
-const localesDir = path.join(process.cwd(), 'src', 'i18n', 'locales');
+// Paths to locale files
+const cwd = process.cwd();
+let localesDir = path.join(cwd, 'src', 'i18n', 'locales');
+
+if (!fs.existsSync(localesDir)) {
+  localesDir = path.join(cwd, 'client', 'src', 'i18n', 'locales');
+}
+
+if (!fs.existsSync(localesDir)) {
+  console.error(`Cannot find locales directory. Checked:\n  ${path.join(cwd, 'src', 'i18n', 'locales')}\n  ${path.join(cwd, 'client', 'src', 'i18n', 'locales')}`);
+  process.exit(1);
+}
+
 const enUsPath = path.join(localesDir, 'en-US.ts');
 const ptBrPath = path.join(localesDir, 'pt-BR.ts');
 
