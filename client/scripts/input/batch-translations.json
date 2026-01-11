@@ -1,29 +1,14 @@
 {
   "translations": [
     {
-      "key": "vtt.settings.view.general.tab",
-      "pt": "Geral",
-      "en": "General"
+      "key": "vtt.notifications.pullView.message",
+      "pt": "O Mestre puxou sua visão",
+      "en": "The GM pulled your view"
     },
     {
-      "key": "vtt.settings.view.following.label",
-      "pt": "Seguindo",
-      "en": "Following"
-    },
-    {
-      "key": "vtt.settings.view.ghostWalls.title",
-      "pt": "Paredes Fantasmas (GM)",
-      "en": "Ghost Walls (GM)"
-    },
-    {
-      "key": "vtt.settings.view.gridOpacity.title",
-      "pt": "Opacidade do Grid",
-      "en": "Grid Opacity"
-    },
-    {
-      "key": "vtt.settings.view.gridOpacity.description",
-      "pt": "Ajuste a intensidade das linhas da grade.",
-      "en": "Adjust the intensity of grid lines."
+      "key": "vtt.notifications.followMode.followingGM",
+      "pt": "SEGUINDO MESTRE",
+      "en": "FOLLOWING GM"
     }
   ]
 }

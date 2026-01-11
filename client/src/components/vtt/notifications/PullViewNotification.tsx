@@ -1,11 +1,13 @@
 import React from 'react';
 import { Eye } from 'lucide-react';
+import { useTranslation } from '../../../i18n/TranslationContext';
 
 interface PullViewNotificationProps {
   show: boolean;
 }
 
 export const PullViewNotification: React.FC<PullViewNotificationProps> = ({ show }) => {
+  const { t } = useTranslation();
   if (!show) return null;
 
   return (
@@ -15,8 +17,8 @@ export const PullViewNotification: React.FC<PullViewNotificationProps> = ({ show
           <Eye className="w-8 h-8" />
         </div>
         <div className="flex flex-col">
-          <h2 className="text-xl font-bold uppercase tracking-wider">Atenção</h2>
-          <p className="text-lg font-medium opacity-90">O Mestre puxou sua visão</p>
+          <h2 className="text-xl font-bold uppercase tracking-wider">{t('vtt.notifications.pullView.title')}</h2>
+          <p className="text-lg font-medium opacity-90">{t('vtt.notifications.pullView.message')}</p>
         </div>
       </div>
     </div>

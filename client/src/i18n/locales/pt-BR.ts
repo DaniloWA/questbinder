@@ -2813,6 +2813,7 @@ export default {
       followMode: {
         noTarget: 'PARA NINGUÉM',
         broadcasting: 'TRANSMITINDO VISÃO',
+        followingGM: 'SEGUINDO MESTRE',
       },
     },
     smartWall: {

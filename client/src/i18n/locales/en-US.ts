@@ -3382,6 +3382,7 @@ export default {
       followMode: {
         noTarget: 'TO NOBODY',
         broadcasting: 'BROADCASTING VIEW',
+        followingGM: 'FOLLOWING GM',
       },
     },
     smartWall: {

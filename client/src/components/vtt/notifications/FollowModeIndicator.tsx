@@ -1,9 +1,11 @@
 import React, { useMemo } from 'react';
+import { useTranslation } from '../../../i18n/TranslationContext';
 import { useGameSession } from '../../../context/GameSessionContext';
 import { Eye, Radio } from 'lucide-react';
 import { User } from '../../../types';
 
 export const FollowModeIndicator: React.FC = () => {
+  const { t } = useTranslation();
   const { followMode, players, user, permissionHelper } = useGameSession();
   const isGM = permissionHelper.isGameMaster();
 
@@ -20,7 +22,7 @@ export const FollowModeIndicator: React.FC = () => {
     if (followMode.targets === 'all') return 'PARA TODOS';
 
     const targetIds = followMode.targets as string[];
-    if (targetIds.length === 0) return 'PARA NINGUÉM'; // Should not happen often
+    if (targetIds.length === 0) return t('vtt.notifications.followMode.noTarget'); // Should not happen often
 
     const names = targetIds.map(id => players.find((p: User) => p.id === id)?.name || 'Unknown');
 
@@ -44,14 +46,14 @@ export const FollowModeIndicator: React.FC = () => {
       {isFollowing && (
         <>
           <Eye className="w-4 h-4 animate-pulse" />
-          <span>SEGUINDO MESTRE</span>
+          <span>{t('vtt.notifications.followMode.followingGM')}</span>
         </>
       )}
 
       {isBroadcasting && (
         <>
           <Radio className="w-4 h-4 animate-pulse" />
-          <span>TRANSMITINDO VISÃO: <span className="opacity-90 font-normal">{broadcastingInfo}</span></span>
+          <span>{t('vtt.notifications.followMode.broadcasting')}: <span className="opacity-90 font-normal">{broadcastingInfo}</span></span>
         </>
       )}
     </div>
