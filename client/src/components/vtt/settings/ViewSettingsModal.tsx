@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from '../../../i18n/TranslationContext';
 import { useGameSession } from '../../../context/GameSessionContext';
 import { useModal } from '../../../context/ModalContext';
 import {
@@ -9,6 +10,7 @@ import { User } from '../../../types';
 import { Switch } from '../../ui/Switch'; // Assuming generic Switch exists, or standard input
 
 export const ViewSettingsModal: React.FC = () => {
+  const { t } = useTranslation();
   const {
     players,
     permissions,
@@ -84,13 +86,13 @@ export const ViewSettingsModal: React.FC = () => {
           onClick={() => setActiveTab('camera')}
           className={`flex-1 py-3 text-sm font-medium flex items-center justify-center gap-2 transition-colors ${activeTab === 'camera' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-200'}`}
         >
-          <Magnet className="w-4 h-4" /> Controle de Câmera
+          <Magnet className="w-4 h-4" /> {t('vtt.settings.view.cameraControl.title')}
         </button>
         <button
           onClick={() => setActiveTab('settings')}
           className={`flex-1 py-3 text-sm font-medium flex items-center justify-center gap-2 transition-colors ${activeTab === 'settings' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-200'}`}
         >
-          <Settings className="w-4 h-4" /> Geral
+          <Settings className="w-4 h-4" /> {t('vtt.settings.view.general.tab')}
         </button>
       </div>
 
@@ -102,30 +104,30 @@ export const ViewSettingsModal: React.FC = () => {
           <div className="space-y-4">
             <div className="bg-zinc-900/50 rounded-lg p-4 border border-zinc-800 flex justify-between items-center">
               <div>
-                <h3 className="font-medium text-white">Ações Globais</h3>
-                <p className="text-xs text-zinc-500">Controle todos os jogadores de uma vez</p>
+                <h3 className="font-medium text-white">{t('vtt.settings.view.globalActions.title')}</h3>
+                <p className="text-xs text-zinc-500">{t('vtt.settings.view.controlAllPlayers.text')}</p>
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => pullView('all', viewport.x, viewport.y, viewport.zoom)}
                   className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-md text-xs font-medium flex gap-2 items-center transition-colors"
                 >
-                  <Users className="w-4 h-4" /> Puxar Todos
+                  <Users className="w-4 h-4" /> {t('vtt.settings.view.pullAll.button')}
                 </button>
                 <button
                   onClick={() => toggleFollowMode(!followMode.active, 'all')}
                   className={`px-3 py-2 rounded-md text-xs font-medium flex gap-2 items-center transition-colors ${followMode.active && followMode.targets === 'all' ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-primary hover:bg-primary/90 text-white'}`}
                 >
-                  <Magnet className="w-4 h-4" /> {followMode.active && followMode.targets === 'all' ? 'Parar de Seguir' : 'Seguir Todos'}
+                  <Magnet className="w-4 h-4" /> {followMode.active && followMode.targets === 'all' ? t('vtt.settings.view.stopFollowing.label') : t('vtt.settings.view.followAll.label')}
                 </button>
               </div>
             </div>
 
             <div className="space-y-2">
               <div className="grid grid-cols-[1fr_100px_100px] gap-4 px-4 py-2 text-xs font-bold text-zinc-500 uppercase tracking-wider">
-                <span>Jogador</span>
-                <span className="text-center">Puxar</span>
-                <span className="text-center">Forçar Seguir</span>
+                <span>{t('vtt.settings.view.player.label')}</span>
+                <span className="text-center">{t('vtt.settings.view.pull.button')}</span>
+                <span className="text-center">{t('vtt.settings.view.forceFollow.label')}</span>
               </div>
 
               {players.map((player: User) => {
@@ -141,10 +143,10 @@ export const ViewSettingsModal: React.FC = () => {
                       <button
                         onClick={() => pullView(player.id, viewport.x, viewport.y, viewport.zoom)}
                         className="p-2 hover:bg-zinc-800 rounded-md group transition-colors flex items-center gap-2 text-xs font-medium text-zinc-400 hover:text-white"
-                        title="Puxar visão deste jogador"
+                        title={t('vtt.settings.view.pullPlayerView.tooltip')}
                       >
                         <ScanEye className="w-4 h-4" />
-                        <span className='hidden sm:inline'>Puxar</span>
+                        <span className='hidden sm:inline'>{t('vtt.settings.view.pull.button')}</span>
                       </button>
                     </div>
 
@@ -155,10 +157,10 @@ export const ViewSettingsModal: React.FC = () => {
                       >
                         {following ? (
                           <>
-                            <Magnet className="w-3 h-3" /> Seguindo
+                            <Magnet className="w-3 h-3" /> {t('vtt.settings.view.following.label')}
                           </>
                         ) : (
-                          'Seguir'
+                          t('vtt.settings.view.follow.label')
                         )}
                       </button>
                     </div>
@@ -181,8 +183,8 @@ export const ViewSettingsModal: React.FC = () => {
                   <EyeOff className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="font-medium text-sm text-zinc-200">Paredes Fantasmas (GM)</p>
-                  <p className="text-xs text-zinc-500">Ocultar paredes e obstáculos na visão do Mestre para melhor visualização.</p>
+                  <p className="font-medium text-sm text-zinc-200">{t('vtt.settings.view.ghostWalls.title')}</p>
+                  <p className="text-xs text-zinc-500">{t('vtt.settings.view.obscureWalls.description')}</p>
                 </div>
               </div>
               <Switch checked={ui.gmHideObstacles} />
@@ -197,8 +199,8 @@ export const ViewSettingsModal: React.FC = () => {
                   <ScanEye className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="font-medium text-sm text-zinc-200">Alcances de Visão</p>
-                  <p className="text-xs text-zinc-500">Visualizar círculos de alcance de visão dos tokens.</p>
+                  <p className="font-medium text-sm text-zinc-200">{t('vtt.settings.view.visionRanges.title')}</p>
+                  <p className="text-xs text-zinc-500">{t('vtt.settings.view.visionRanges.description')}</p>
                 </div>
               </div>
               <Switch checked={ui.showVisionRanges} />
@@ -210,8 +212,8 @@ export const ViewSettingsModal: React.FC = () => {
                   <Grid className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="font-medium text-sm text-zinc-200">Opacidade do Grid</p>
-                  <p className="text-xs text-zinc-500">Ajuste a intensidade das linhas da grade.</p>
+                  <p className="font-medium text-sm text-zinc-200">{t('vtt.settings.view.gridOpacity.title')}</p>
+                  <p className="text-xs text-zinc-500">{t('vtt.settings.view.gridOpacity.description')}</p>
                 </div>
               </div>
               <div className="w-32">
@@ -224,7 +226,7 @@ export const ViewSettingsModal: React.FC = () => {
 
       <div className="p-4 border-t border-zinc-800 flex justify-between items-center bg-zinc-900/30">
         <p className="text-xs text-zinc-500">
-          Para configurar visibilidade e permissões, use o menu <span className="text-primary font-bold">Permissões</span>.
+          {t('vtt.settings.view.permissions.hint')}
         </p>
       </div>
     </div>

@@ -3346,6 +3346,19 @@ export default {
         pull: {
           button: 'Pull',
         },
+        general: {
+          tab: 'General',
+        },
+        following: {
+          label: 'Following',
+        },
+        ghostWalls: {
+          title: 'Ghost Walls (GM)',
+        },
+        gridOpacity: {
+          title: 'Grid Opacity',
+          description: 'Adjust the intensity of grid lines.',
+        },
       },
     },
     spectate: {

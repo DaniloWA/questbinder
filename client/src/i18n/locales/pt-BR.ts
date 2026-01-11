@@ -2777,6 +2777,19 @@ export default {
         pull: {
           button: 'Puxar',
         },
+        general: {
+          tab: 'Geral',
+        },
+        following: {
+          label: 'Seguindo',
+        },
+        ghostWalls: {
+          title: 'Paredes Fantasmas (GM)',
+        },
+        gridOpacity: {
+          title: 'Opacidade do Grid',
+          description: 'Ajuste a intensidade das linhas da grade.',
+        },
       },
     },
     spectate: {

@@ -1,19 +1,29 @@
 {
   "translations": [
     {
-      "key": "vtt.tokenHover.permissions.applyRulesHint",
-      "pt": "Clique em \"Aplicar Regras\" para salvar as alterações",
-      "en": "Click \"Apply Rules\" to save changes"
+      "key": "vtt.settings.view.general.tab",
+      "pt": "Geral",
+      "en": "General"
     },
     {
-      "key": "vtt.smartWall.preview.clickInstruction",
-      "pt": "Clique na imagem abaixo para simular onde você clicaria no mapa. O contorno vermelho mostra como a parede será gerada.",
-      "en": "Click on the image below to simulate where you would click on the map. The red outline shows how the wall will be generated."
+      "key": "vtt.settings.view.following.label",
+      "pt": "Seguindo",
+      "en": "Following"
     },
     {
-      "key": "vtt.smartWall.preview.clickToTest",
-      "pt": "Clique para testar",
-      "en": "Click to test"
+      "key": "vtt.settings.view.ghostWalls.title",
+      "pt": "Paredes Fantasmas (GM)",
+      "en": "Ghost Walls (GM)"
+    },
+    {
+      "key": "vtt.settings.view.gridOpacity.title",
+      "pt": "Opacidade do Grid",
+      "en": "Grid Opacity"
+    },
+    {
+      "key": "vtt.settings.view.gridOpacity.description",
+      "pt": "Ajuste a intensidade das linhas da grade.",
+      "en": "Adjust the intensity of grid lines."
     }
   ]
 }
