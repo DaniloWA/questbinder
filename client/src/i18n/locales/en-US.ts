@@ -3294,6 +3294,7 @@ export default {
         inimigosNPCs: {
           label: 'Enemies (NPCs)',
         },
+        applyRulesHint: 'Click "Apply Rules" to save changes',
       },
       card: {
         spellClickTooltip: 'Left click: Link to Chat | Right click: Remove',
@@ -3368,6 +3369,12 @@ export default {
       followMode: {
         noTarget: 'TO NOBODY',
         broadcasting: 'BROADCASTING VIEW',
+      },
+    },
+    smartWall: {
+      preview: {
+        clickInstruction: 'Click on the image below to simulate where you would click on the map. The red outline shows how the wall will be generated.',
+        clickToTest: 'Click to test',
       },
     },
   },

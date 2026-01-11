@@ -2725,6 +2725,7 @@ export default {
         inimigosNPCs: {
           label: 'Inimigos (NPCs)',
         },
+        applyRulesHint: 'Clique em "Aplicar Regras" para salvar as alterações',
       },
       card: {
         spellClickTooltip: 'Clique esquerdo: Linkar no Chat | Clique direito: Remover',
@@ -2799,6 +2800,12 @@ export default {
       followMode: {
         noTarget: 'PARA NINGUÉM',
         broadcasting: 'TRANSMITINDO VISÃO',
+      },
+    },
+    smartWall: {
+      preview: {
+        clickInstruction: 'Clique na imagem abaixo para simular onde você clicaria no mapa. O contorno vermelho mostra como a parede será gerada.',
+        clickToTest: 'Clique para testar',
       },
     },
   },

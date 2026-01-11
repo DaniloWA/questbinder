@@ -1,14 +1,19 @@
 {
   "translations": [
     {
-      "key": "vtt.character.combat.range.placeholder",
-      "pt": "Alcance",
-      "en": "Range"
+      "key": "vtt.tokenHover.permissions.applyRulesHint",
+      "pt": "Clique em \"Aplicar Regras\" para salvar as alterações",
+      "en": "Click \"Apply Rules\" to save changes"
     },
     {
-      "key": "vtt.character.combat.mastery.placeholder",
-      "pt": "Maestria",
-      "en": "Mastery"
+      "key": "vtt.smartWall.preview.clickInstruction",
+      "pt": "Clique na imagem abaixo para simular onde você clicaria no mapa. O contorno vermelho mostra como a parede será gerada.",
+      "en": "Click on the image below to simulate where you would click on the map. The red outline shows how the wall will be generated."
+    },
+    {
+      "key": "vtt.smartWall.preview.clickToTest",
+      "pt": "Clique para testar",
+      "en": "Click to test"
     }
   ]
 }
