@@ -3962,4 +3962,115 @@ export default {
       },
     },
   },
+  dnd: {
+    rules: {
+      conditions: {
+        frightened: {
+          name: 'Frightened',
+          effects: ['Disadvantage on ability checks and attack rolls while the source of fear is within line of sight.', 'The creature can’t willingly move closer to the source of its fear.'],
+          duration: 'Until the end of next turn or removed from sight.',
+        },
+        grappled: {
+          name: 'Grappled',
+          effects: ['Speed becomes 0, and it can\'t benefit from any bonus to its speed.', 'The condition ends if the grappler is incapacitated (see the condition).'],
+          duration: 'Until escape.'
+        },
+        stunned: {
+          name: 'Stunned',
+          effects: ['Incapacitated (can\'t take actions or reactions).', 'Automatically fails Strength and Dexterity saving throws.', 'Attack rolls against the creature have advantage.'],
+          duration: 'Until the end of next turn (typically).'
+        },
+        prone: {
+          name: 'Prone',
+          effects: ['Can only crawl or spend half speed to stand up.', 'Disadvantage on attack rolls.', 'Attack rolls against the creature have advantage if within 5 feet, otherwise disadvantage.'],
+          duration: 'Until standing up.'
+        },
+        blinded: {
+          name: 'Blinded',
+          effects: ['Automatically fails ability checks that require sight.', 'Attack rolls against the creature have advantage.', 'Attack rolls by the creature have disadvantage.'],
+          duration: 'Varies.'
+        },
+        charmed: {
+          name: 'Charmed',
+          effects: ['Can\'t attack the charmer or target the charmer with harmful abilities.', 'The charmer has advantage on ability checks to interact socially with the creature.'],
+          duration: '1 hour or until harmed by charmer.'
+        },
+        poisoned: {
+          name: 'Poisoned',
+          effects: ['Disadvantage on attack rolls and ability checks.'],
+          duration: 'Varies (repeat CON save).'
+        },
+        restrained: {
+          name: 'Restrained',
+          effects: ['Speed becomes 0.', 'Disadvantage on attack rolls and Dexterity saving throws.', 'Attack rolls against the creature have advantage.'],
+          duration: 'Varies.'
+        },
+        incapacitated: {
+          name: 'Incapacitated',
+          effects: ['Can\'t take actions or reactions.'],
+          duration: 'Varies.'
+        },
+        unconscious: {
+          name: 'Unconscious',
+          effects: ['Incapacitated, can\'t move or speak, unaware of surroundings.', 'Drops whatever it\'s holding and falls prone.', 'Automatically fails Strength and Dexterity saving throws.', 'Attack rolls against the creature have advantage and are critical hits if attacker is within 5 feet.'],
+          duration: 'Until healed or stabilized.'
+        },
+        invisible: {
+          name: 'Invisible',
+          effects: ['Impossible to see without magic or special sense.', 'Heavily obscured for the purpose of hiding.', 'Attack rolls by the creature have advantage.', 'Attack rolls against the creature have disadvantage.'],
+          duration: 'Varies (magic).'
+        },
+        paralyzed: {
+          name: 'Paralyzed',
+          effects: ['Incapacitated and can\'t move or speak.', 'Automatically fails Strength and Dexterity saving throws.', 'Attack rolls against the creature have advantage and are critical hits if attacker is within 5 feet.'],
+          duration: 'Varies.'
+        },
+        petrified: {
+          name: 'Petrified',
+          effects: ['Transformed onto a solid inanimate substance.', 'Incapacitated, unaware, stops aging, weight x10.', 'Resistance to all damage, immune to poison/disease.', 'Automatically fails Strength and Dexterity saving throws.'],
+          duration: 'Permanent until restored.'
+        },
+        deafened: {
+          name: 'Deafened',
+          effects: ['Automatically fails ability checks that require hearing.'],
+          duration: '1 hour (typically).'
+        },
+        exhausted: {
+          name: 'Exhausted',
+          effects: ['Lvl 1: Disadvantage on ability checks.', 'Lvl 2: Speed halved.', 'Lvl 3: Disadvantage on attack rolls and saving throws.', 'Lvl 4: Hit point maximum halved.', 'Lvl 5: Speed reduced to 0.', 'Lvl 6: Death.'],
+          duration: 'Long Rest reduces 1 level.'
+        },
+        burning: {
+          name: 'Burning',
+          effects: ['Takes 1d6 fire damage at the start of each turn.', 'Can use an action to douse the fire (DC 10 Dexterity check).'],
+          duration: '1 minute or until doused.'
+        },
+        bleeding: {
+          name: 'Bleeding',
+          effects: ['Takes 1d4 necrotic/piercing damage at the start of each turn.', 'Any magical healing ends the condition.'],
+          duration: 'Until healed (Medicine DC 10 or Healing).'
+        },
+        dead: {
+          name: 'Dead',
+          effects: ['Character has died.'],
+          duration: 'Permanent.'
+        },
+        bloodied: {
+          name: 'Bloodied',
+          effects: ['Below half hit points.'],
+          duration: 'Until healed above 50%.'
+        },
+        shielded: {
+          name: 'Shielded',
+          effects: ['Has AC bonus or magical protection.'],
+          duration: 'Varies.'
+        },
+        alert: {
+          name: 'Alert',
+          effects: ['Advantage on initiative and perception.'],
+          duration: 'Varies.'
+        }
+      }
+    }
+  },
 } as const;

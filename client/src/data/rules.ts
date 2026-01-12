@@ -68,192 +68,192 @@ export const STATUS_RULES: Record<string, StatusDefinition> = {
     // Oficiais
     'frightened': {
         id: 'frightened',
-        name: 'rules.status.frightened.name',
+        name: 'dnd.rules.conditions.frightened.name',
         effects: [
-            'rules.status.frightened.effect.0',
-            'rules.status.frightened.effect.1'
+            'dnd.rules.conditions.frightened.effects.0',
+            'dnd.rules.conditions.frightened.effects.1'
         ],
-        duration: 'rules.status.frightened.duration'
+        duration: 'dnd.rules.conditions.frightened.duration'
     },
     'grappled': {
         id: 'grappled',
-        name: 'rules.status.grappled.name',
+        name: 'dnd.rules.conditions.grappled.name',
         effects: [
-            'rules.status.grappled.effect.0',
-            'rules.status.grappled.effect.1'
+            'dnd.rules.conditions.grappled.effects.0',
+            'dnd.rules.conditions.grappled.effects.1'
         ],
-        duration: 'rules.status.grappled.duration'
+        duration: 'dnd.rules.conditions.grappled.duration'
     },
     'stunned': {
         id: 'stunned',
-        name: 'rules.status.stunned.name',
+        name: 'dnd.rules.conditions.stunned.name',
         effects: [
-            'rules.status.stunned.effect.0',
-            'rules.status.stunned.effect.1',
-            'rules.status.stunned.effect.2'
+            'dnd.rules.conditions.stunned.effects.0',
+            'dnd.rules.conditions.stunned.effects.1',
+            'dnd.rules.conditions.stunned.effects.2'
         ],
-        duration: 'rules.status.stunned.duration'
+        duration: 'dnd.rules.conditions.stunned.duration'
     },
     'prone': {
         id: 'prone',
-        name: 'rules.status.prone.name',
+        name: 'dnd.rules.conditions.prone.name',
         effects: [
-            'rules.status.prone.effect.0',
-            'rules.status.prone.effect.1',
-            'rules.status.prone.effect.2'
+            'dnd.rules.conditions.prone.effects.0',
+            'dnd.rules.conditions.prone.effects.1',
+            'dnd.rules.conditions.prone.effects.2'
         ],
-        duration: 'rules.status.prone.duration'
+        duration: 'dnd.rules.conditions.prone.duration'
     },
     'blinded': {
         id: 'blinded',
-        name: 'rules.status.blinded.name',
+        name: 'dnd.rules.conditions.blinded.name',
         effects: [
-            'rules.status.blinded.effect.0',
-            'rules.status.blinded.effect.1',
-            'rules.status.blinded.effect.2'
+            'dnd.rules.conditions.blinded.effects.0',
+            'dnd.rules.conditions.blinded.effects.1',
+            'dnd.rules.conditions.blinded.effects.2'
         ],
-        duration: 'rules.status.blinded.duration'
+        duration: 'dnd.rules.conditions.blinded.duration'
     },
     'charmed': {
         id: 'charmed',
-        name: 'rules.status.charmed.name',
+        name: 'dnd.rules.conditions.charmed.name',
         effects: [
-            'rules.status.charmed.effect.0',
-            'rules.status.charmed.effect.1'
+            'dnd.rules.conditions.charmed.effects.0',
+            'dnd.rules.conditions.charmed.effects.1'
         ],
-        duration: 'rules.status.charmed.duration'
+        duration: 'dnd.rules.conditions.charmed.duration'
     },
     'poisoned': {
         id: 'poisoned',
-        name: 'rules.status.poisoned.name',
+        name: 'dnd.rules.conditions.poisoned.name',
         effects: [
-            'rules.status.poisoned.effect.0'
+            'dnd.rules.conditions.poisoned.effects.0'
         ],
-        duration: 'rules.status.poisoned.duration'
+        duration: 'dnd.rules.conditions.poisoned.duration'
     },
     'restrained': {
         id: 'restrained',
-        name: 'rules.status.restrained.name',
+        name: 'dnd.rules.conditions.restrained.name',
         effects: [
-            'rules.status.restrained.effect.0',
-            'rules.status.restrained.effect.1',
-            'rules.status.restrained.effect.2'
+            'dnd.rules.conditions.restrained.effects.0',
+            'dnd.rules.conditions.restrained.effects.1',
+            'dnd.rules.conditions.restrained.effects.2'
         ],
-        duration: 'rules.status.restrained.duration'
+        duration: 'dnd.rules.conditions.restrained.duration'
     },
     'incapacitated': {
         id: 'incapacitated',
-        name: 'rules.status.incapacitated.name',
+        name: 'dnd.rules.conditions.incapacitated.name',
         effects: [
-            'rules.status.incapacitated.effect.0'
+            'dnd.rules.conditions.incapacitated.effects.0'
         ],
-        duration: 'rules.status.paralyzed.duration' // Reusing varied duration from paralyzed or just empty
+        duration: 'dnd.rules.conditions.paralyzed.duration' // Reusing varied duration from paralyzed or just empty
     },
     'unconscious': {
         id: 'unconscious',
-        name: 'rules.status.unconscious.name',
+        name: 'dnd.rules.conditions.unconscious.name',
         effects: [
-            'rules.status.unconscious.effect.0',
-            'rules.status.unconscious.effect.1',
-            'rules.status.unconscious.effect.2',
-            'rules.status.unconscious.effect.3'
+            'dnd.rules.conditions.unconscious.effects.0',
+            'dnd.rules.conditions.unconscious.effects.1',
+            'dnd.rules.conditions.unconscious.effects.2',
+            'dnd.rules.conditions.unconscious.effects.3'
         ],
-        duration: 'rules.status.unconscious.duration'
+        duration: 'dnd.rules.conditions.unconscious.duration'
     },
     'invisible': {
         id: 'invisible',
-        name: 'rules.status.invisible.name',
+        name: 'dnd.rules.conditions.invisible.name',
         effects: [
-            'rules.status.invisible.effect.0',
-            'rules.status.invisible.effect.1',
-            'rules.status.invisible.effect.2',
-            'rules.status.invisible.effect.3'
+            'dnd.rules.conditions.invisible.effects.0',
+            'dnd.rules.conditions.invisible.effects.1',
+            'dnd.rules.conditions.invisible.effects.2',
+            'dnd.rules.conditions.invisible.effects.3'
         ],
-        duration: 'rules.status.paralyzed.duration' // Varies
+        duration: 'dnd.rules.conditions.paralyzed.duration' // Varies
     },
     'paralyzed': {
         id: 'paralyzed',
-        name: 'rules.status.paralyzed.name',
+        name: 'dnd.rules.conditions.paralyzed.name',
         effects: [
-            'rules.status.paralyzed.effect.0',
-            'rules.status.paralyzed.effect.1',
-            'rules.status.paralyzed.effect.2'
+            'dnd.rules.conditions.paralyzed.effects.0',
+            'dnd.rules.conditions.paralyzed.effects.1',
+            'dnd.rules.conditions.paralyzed.effects.2'
         ],
-        duration: 'rules.status.paralyzed.duration' // Varies
+        duration: 'dnd.rules.conditions.paralyzed.duration' // Varies
     },
     'petrified': {
         id: 'petrified',
-        name: 'rules.status.petrified.name',
+        name: 'dnd.rules.conditions.petrified.name',
         effects: [
-            'rules.status.petrified.effect.0',
-            'rules.status.petrified.effect.1',
-            'rules.status.petrified.effect.2'
+            'dnd.rules.conditions.petrified.effects.0',
+            'dnd.rules.conditions.petrified.effects.1',
+            'dnd.rules.conditions.petrified.effects.2'
         ],
-        duration: 'rules.status.petrified.duration'
+        duration: 'dnd.rules.conditions.petrified.duration'
     },
     'deafened': {
         id: 'deafened',
-        name: 'rules.status.deafened.name',
+        name: 'dnd.rules.conditions.deafened.name',
         effects: [
-            'rules.status.deafened.effect.0'
+            'dnd.rules.conditions.deafened.effects.0'
         ],
-        duration: 'rules.status.deafened.duration'
+        duration: 'dnd.rules.conditions.deafened.duration'
     },
     // Especiais / Homebrew Comuns
     'exhausted': {
         id: 'exhausted',
-        name: 'rules.status.exhausted.name',
+        name: 'dnd.rules.conditions.exhausted.name',
         effects: [
-            'rules.status.exhausted.effect.0',
-            'rules.status.exhausted.effect.1',
-            'rules.status.exhausted.effect.2',
-            'rules.status.exhausted.effect.3',
-            'rules.status.exhausted.effect.4',
-            'rules.status.exhausted.effect.5'
+            'dnd.rules.conditions.exhausted.effects.0',
+            'dnd.rules.conditions.exhausted.effects.1',
+            'dnd.rules.conditions.exhausted.effects.2',
+            'dnd.rules.conditions.exhausted.effects.3',
+            'dnd.rules.conditions.exhausted.effects.4',
+            'dnd.rules.conditions.exhausted.effects.5'
         ],
-        duration: 'rules.status.exhausted.duration'
+        duration: 'dnd.rules.conditions.exhausted.duration'
     },
     'burning': {
         id: 'burning',
-        name: 'rules.status.burning.name',
+        name: 'dnd.rules.conditions.burning.name',
         effects: [
-            'rules.status.burning.effect.0',
-            'rules.status.burning.effect.1'
+            'dnd.rules.conditions.burning.effects.0',
+            'dnd.rules.conditions.burning.effects.1'
         ],
-        duration: 'rules.status.burning.duration'
+        duration: 'dnd.rules.conditions.burning.duration'
     },
     'bleeding': {
         id: 'bleeding',
-        name: 'rules.status.bleeding.name',
+        name: 'dnd.rules.conditions.bleeding.name',
         effects: [
-            'rules.status.bleeding.effect.0',
-            'rules.status.bleeding.effect.1'
+            'dnd.rules.conditions.bleeding.effects.0',
+            'dnd.rules.conditions.bleeding.effects.1'
         ],
-        duration: 'rules.status.bleeding.duration'
+        duration: 'dnd.rules.conditions.bleeding.duration'
     },
     'dead': {
         id: 'dead',
-        name: 'rules.status.dead.name',
-        effects: ['rules.status.dead.effect.0'],
-        duration: 'rules.status.dead.duration'
+        name: 'dnd.rules.conditions.dead.name',
+        effects: ['dnd.rules.conditions.dead.effects.0'],
+        duration: 'dnd.rules.conditions.dead.duration'
     },
     'bloodied': {
         id: 'bloodied',
-        name: 'rules.status.bloodied.name',
-        effects: ['rules.status.bloodied.effect.0'],
-        duration: 'rules.status.bloodied.duration'
+        name: 'dnd.rules.conditions.bloodied.name',
+        effects: ['dnd.rules.conditions.bloodied.effects.0'],
+        duration: 'dnd.rules.conditions.bloodied.duration'
     },
     'shielded': {
         id: 'shielded',
-        name: 'rules.status.shielded.name',
-        effects: ['rules.status.shielded.effect.0'],
-        duration: 'rules.status.paralyzed.duration' // Varies
+        name: 'dnd.rules.conditions.shielded.name',
+        effects: ['dnd.rules.conditions.shielded.effects.0'],
+        duration: 'dnd.rules.conditions.paralyzed.duration' // Varies
     },
     'alert': {
         id: 'alert',
-        name: 'rules.status.alert.name',
-        effects: ['rules.status.alert.effect.0'],
-        duration: 'rules.status.paralyzed.duration' // Varies
+        name: 'dnd.rules.conditions.alert.name',
+        effects: ['dnd.rules.conditions.alert.effects.0'],
+        duration: 'dnd.rules.conditions.paralyzed.duration' // Varies
     }
 };
 
