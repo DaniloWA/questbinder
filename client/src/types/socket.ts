@@ -146,6 +146,9 @@ export interface CursorMovePayload {
   velocityX?: number;    // Movement velocity hint (pixels/ms)
   velocityY?: number;
   isClicking?: boolean;  // Mouse button pressed (for click feedback)
+  activeTool?: string;
+  isContexting?: boolean;
+  isChatting?: boolean;
   // New Trail/Status Fields
   healthStatus?: 'healthy' | 'bloodied' | 'unconscious'; // For Blood Trail
   trailAnimation?: 'line' | 'water' | 'fire' | 'particles' | 'dice' | 'rainbow' | 'smoke' | 'electric';
@@ -299,6 +302,12 @@ export interface CursorClickPayload {
   style?: 'ripple' | 'burst' | 'sparkle' | 'pulse' | 'vortex' | 'shard' | 'ring' | 'echo' | 'orb';
 }
 
+export interface CursorPressingPayload {
+  userId?: string;  // Added by server
+  pressing: boolean;
+  timestamp?: number;
+}
+
 // --- EVENT MAP (Strict Typing) ---
 
 export interface SocketEventMap {
@@ -330,6 +339,7 @@ export interface SocketEventMap {
   'campaign:permissionsUpdated': CampaignPermissionsUpdatedPayload;
   'cursor:move': CursorMovePayload;
   'cursor:click': CursorClickPayload;
+  'cursor:pressing': CursorPressingPayload;
   'viewport:update': ViewportUpdatePayload;
   'gm:pull_view': GMPullViewPayload;
   'gm:force_view': GMForceViewPayload;

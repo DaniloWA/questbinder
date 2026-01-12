@@ -22,6 +22,7 @@ interface UseMapInteractionProps extends MapCanvasProps {
   setCurrentFogRect: (r: { x: number, y: number, w: number, h: number; } | null) => void;
   hoveredTokenId: string | null;
   setHoveredTokenId: (id: string | null) => void;
+  setIsTokenDragging: (b: boolean) => void;
   setHoveredObstacleId: (id: string | null) => void;
   calculatedPath: { x: number, y: number; }[];
   setCalculatedPath: (path: { x: number, y: number; }[]) => void;
@@ -51,7 +52,7 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
     addAudioZones, setDrawingTriggerZone, addTriggerZones, removeTriggerZone, setDraftPolyPoints, selectToken, clearSelection,
     emitTokenDrag, emitCursorMove, drawingLightZone, drawingAudioZone, drawingTriggerZone, attackZoneResults, onAttackZoneContextMenu,
     onUpdateAttackZone, mouseWorldPos, setMouseWorldPos, dragState, isPanning, setIsPanning, fogRectStart, setFogRectStart,
-    currentFogRect, setCurrentFogRect, hoveredTokenId, setHoveredTokenId, setHoveredObstacleId, setCalculatedPath,
+    currentFogRect, setCurrentFogRect, hoveredTokenId, setHoveredTokenId, setIsTokenDragging, setHoveredObstacleId, setCalculatedPath,
     draggedAttackZone, setDraggedAttackZone, liveDrawingPointsRef, isDrawingRef, lastCursorEmit, lastMousePos,
     hoverOpenTimerRef, hoverCloseTimerRef, imageCache, currentUser, wandSettings,
     // Attack Zone Placement Mode
@@ -63,6 +64,9 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
     rulerSettings, permissionHelper, setCursorClickState
   } = useGameSession();
   const { openModal, closeModal } = useModal();
+
+  // Timer for delayed "pressing" state (distinguish click vs hold)
+  const pressingTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isDrawingTool = ['draw-wall', 'draw-door', 'draw-window', 'fog-poly', 'fog-rect', 'measure-path', 'eraser', 'draw-light-rect', 'draw-light-poly', 'draw-audio-rect', 'draw-audio-poly', 'eraser-audio', 'draw-trigger-rect', 'draw-trigger-poly', 'eraser-trigger', 'brush', 'eraser-drawing', 'smart-wall'].includes(activeTool);
 
@@ -368,13 +372,24 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
     const clickedAttackZone = findAttackZoneAt(worldPos.x, worldPos.y);
 
     // Notify usage of click for remote cursor feedback
-    setCursorClickState(true);
+    // Logic: Only trigger "pressing" (shrink effect) if held for 200ms
+    // This avoids visual noise on quick clicks
+    if (pressingTimerRef.current) clearTimeout(pressingTimerRef.current);
+    pressingTimerRef.current = setTimeout(() => {
+      setCursorClickState(true);
+    }, 200);
 
     if (e.button === 1 || (e.button === 0 && (e.metaKey || e.ctrlKey))) { setIsPanning(true); return; }
 
     if (e.button === 2) {
       e.stopPropagation();
-      if (dragState.current.isDragging) { dragState.current.isDragging = false; dragState.current.token = null; setCalculatedPath([]); return; }
+      if (dragState.current.isDragging) {
+        dragState.current.isDragging = false;
+        setIsTokenDragging(false);
+        dragState.current.token = null;
+        setCalculatedPath([]);
+        return;
+      }
       if (draggedAttackZone) { setDraggedAttackZone(null); return; }
 
       if (isGM) {
@@ -524,6 +539,7 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
             return;
           }
           dragState.current.isDragging = true;
+          setIsTokenDragging(true);
           dragState.current.token = clickedToken;
           dragState.current.dragStartX = pos.x;
           dragState.current.dragStartY = pos.y;
@@ -547,29 +563,18 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
   };
 
   const handleMouseUp = (e: React.MouseEvent) => {
-    if (isPanning) { setIsPanning(false); return; }
-    // Remote cursor click release
+    // Remote cursor click release logic - ALWAYS execute first
+    if (pressingTimerRef.current) {
+      clearTimeout(pressingTimerRef.current);
+      pressingTimerRef.current = null;
+    }
     setCursorClickState(false);
+
+    if (isPanning) { setIsPanning(false); return; }
 
     if (draggedAttackZone) { setDraggedAttackZone(null); return; }
 
-    if (dragState.current.isDragging && dragState.current.token) {
-      const token = dragState.current.token;
-      const path = props.calculatedPath || []; // Use prop because it's state
-      const finalPos = path.length > 0 ? path[path.length - 1] : { x: token.x, y: token.y };
-      moveToken(token.id, finalPos.x, finalPos.y);
-      if (dragState.current.draggedGroup.length > 0) {
-        const dx = finalPos.x - token.x;
-        const dy = finalPos.y - token.y;
-        const groupMoves = dragState.current.draggedGroup.filter(g => g.id !== token.id).map(g => ({ id: g.id, x: g.startGridX + dx, y: g.startGridY + dy }));
-        if (groupMoves.length > 0 && moveTokens) { moveTokens(groupMoves); }
-      }
-      dragState.current.isDragging = false;
-      dragState.current.token = null;
-      setCalculatedPath([]);
-      return;
-    }
-
+    // Commit Fog Rect
     if (activeTool === 'fog-rect' && fogRectStart && currentFogRect) {
       const x = currentFogRect.w < 0 ? currentFogRect.x + currentFogRect.w : currentFogRect.x;
       const y = currentFogRect.h < 0 ? currentFogRect.y + currentFogRect.h : currentFogRect.y;
@@ -581,6 +586,7 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
       return;
     }
 
+    // Commit Light/Audio/Trigger Rect
     if ((activeTool === 'draw-light-rect' || activeTool === 'draw-audio-rect' || activeTool === 'draw-trigger-rect') && currentFogRect) {
       const x = currentFogRect.w < 0 ? currentFogRect.x + currentFogRect.w : currentFogRect.x;
       const y = currentFogRect.h < 0 ? currentFogRect.y + currentFogRect.h : currentFogRect.y;
@@ -594,11 +600,12 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
       return;
     }
 
+    // Commit Brush/Freehand
     if (activeTool === 'brush' || activeTool === 'freehand-wall') {
       isDrawingRef.current = false;
       if (liveDrawingPointsRef.current.length > 1) {
         if (activeTool === 'brush') {
-          addDrawing({ id: Math.random().toString(), userId: currentUser?.id || '', points: liveDrawingPointsRef.current, ...drawingSettings });
+          addDrawing({ id: Math.random().toString(), userId: currentUser?.id || '', points: [...liveDrawingPointsRef.current], ...drawingSettings });
         } else {
           addObstacles([{ type: 'wall', points: [...liveDrawingPointsRef.current], blocksVision: true, blocksMovement: true, open: true }]);
         }
@@ -606,9 +613,11 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
       liveDrawingPointsRef.current = [];
     }
 
+    // Commit Drag-Draw Obstacle (Door/Window)
     if (drawingObstacle) {
       const p1 = drawingObstacle.p1;
-      const p2 = screenToWorld(e.clientX - canvasRef.current!.getBoundingClientRect().left, e.clientY - canvasRef.current!.getBoundingClientRect().top);
+      const pos = getMousePos(e);
+      const p2 = screenToWorld(pos.x, pos.y);
       const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
       if (dist > 10 / viewport.zoom) {
         addObstacles([{ type: drawingObstacle.type as 'door' | 'window', p1, p2, blocksVision: drawingObstacle.type === 'door', blocksMovement: true, hidden: false }]);
@@ -616,6 +625,24 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
       setDrawingObstacle(null); setActiveTool('select');
       return;
     }
+
+    if (dragState.current.isDragging && dragState.current.token) {
+      const token = dragState.current.token;
+      const path = props.calculatedPath || []; // Use prop because it's state
+      const finalPos = path.length > 0 ? path[path.length - 1] : { x: token.x, y: token.y };
+      moveToken(token.id, finalPos.x, finalPos.y);
+      if (dragState.current.draggedGroup.length > 0) {
+        const dx = finalPos.x - token.x;
+        const dy = finalPos.y - token.y;
+        const groupMoves = dragState.current.draggedGroup.filter(g => g.id !== token.id).map(g => ({ id: g.id, x: g.startGridX + dx, y: g.startGridY + dy }));
+        if (groupMoves.length > 0 && moveTokens) { moveTokens(groupMoves); }
+      }
+    }
+    dragState.current.isDragging = false;
+    setIsTokenDragging(false);
+    dragState.current.token = null;
+    setCalculatedPath([]);
+    return;
   };
 
   const handleDoubleLeftClick = (e: React.MouseEvent) => {
@@ -655,6 +682,14 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
       hoverCloseTimerRef.current = setTimeout(() => { setHoveredTokenId(null); hoverCloseTimerRef.current = null; }, 300);
     }
     if (hoverOpenTimerRef.current) clearTimeout(hoverOpenTimerRef.current);
+
+    // Clear pressing timer and force Depress
+    if (pressingTimerRef.current) {
+      clearTimeout(pressingTimerRef.current);
+      pressingTimerRef.current = null;
+    }
+    setCursorClickState(false);
+
     isDrawingRef.current = false;
   };
 

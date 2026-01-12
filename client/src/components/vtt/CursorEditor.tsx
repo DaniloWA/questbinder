@@ -256,6 +256,8 @@ export interface CursorEditorValues {
   showMyTrail: boolean;
   useAppCursor: boolean;
   explosionOnCollision: boolean;
+  showToolActivity: boolean;
+  showStatusActivity: boolean;
 }
 
 export interface CursorEditorPermissions {
@@ -687,6 +689,34 @@ export const CursorEditor: React.FC<CursorEditorProps> = ({
                 className={`w-8 h-4 rounded-full relative transition-colors cursor-pointer ${values.explosionOnCollision ? 'bg-primary' : 'bg-zinc-700'}`}
               >
                 <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${values.explosionOnCollision ? 'left-4.5' : 'left-0.5'}`} />
+              </div>
+            </div>
+
+            {/* Show Tool Activity */}
+            <div className="flex items-center justify-between p-2 bg-zinc-900 rounded border border-zinc-800">
+              <div className="flex flex-col">
+                <span className="text-[11px] text-zinc-300">{t('vtt.cursor.editor.options.showToolActivity')}</span>
+                <span className="text-[9px] text-zinc-500">{t('vtt.cursor.editor.options.showToolActivityDesc')}</span>
+              </div>
+              <div
+                onClick={() => onChange('showToolActivity', String(!values.showToolActivity))}
+                className={`w-8 h-4 rounded-full relative transition-colors cursor-pointer ${values.showToolActivity ? 'bg-primary' : 'bg-zinc-700'}`}
+              >
+                <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${values.showToolActivity ? 'left-4.5' : 'left-0.5'}`} />
+              </div>
+            </div>
+
+            {/* Show Status Activity */}
+            <div className="flex items-center justify-between p-2 bg-zinc-900 rounded border border-zinc-800">
+              <div className="flex flex-col">
+                <span className="text-[11px] text-zinc-300">{t('vtt.cursor.editor.options.showStatusActivity')}</span>
+                <span className="text-[9px] text-zinc-500">{t('vtt.cursor.editor.options.showStatusActivityDesc')}</span>
+              </div>
+              <div
+                onClick={() => onChange('showStatusActivity', String(!values.showStatusActivity))}
+                className={`w-8 h-4 rounded-full relative transition-colors cursor-pointer ${values.showStatusActivity ? 'bg-primary' : 'bg-zinc-700'}`}
+              >
+                <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${values.showStatusActivity ? 'left-4.5' : 'left-0.5'}`} />
               </div>
             </div>
           </div>

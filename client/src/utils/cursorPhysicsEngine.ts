@@ -82,6 +82,9 @@ export interface CursorState {
 
   // New Fields
   healthStatus?: 'healthy' | 'bloodied' | 'unconscious';
+  activeTool?: string; // New: Tool being used (ruler, fog, etc.)
+  isContexting?: boolean; // New: Is context menu open?
+  isChatting?: boolean; // New: Is user typing in chat?
   trailAnimation?: string;
   trailColor?: string;
   trailEnabled?: boolean;
@@ -97,6 +100,9 @@ export interface CursorUpdatePayload {
   velocityY?: number;
   isClicking?: boolean;
   healthStatus?: 'healthy' | 'bloodied' | 'unconscious';
+  activeTool?: string;
+  isContexting?: boolean;
+  isChatting?: boolean;
   trailAnimation?: string;
   trailColor?: string;
   trailEnabled?: boolean;
@@ -270,6 +276,9 @@ export class CursorPhysicsEngine {
 
     // Update new fields
     if (update.healthStatus) state.healthStatus = update.healthStatus;
+    if (update.activeTool) state.activeTool = update.activeTool; // New
+    if (update.isContexting !== undefined) state.isContexting = update.isContexting; // New
+    if (update.isChatting !== undefined) state.isChatting = update.isChatting; // New
     if (update.trailAnimation) state.trailAnimation = update.trailAnimation;
     if (update.trailColor) state.trailColor = update.trailColor;
     if (update.trailEnabled !== undefined) state.trailEnabled = update.trailEnabled;
@@ -384,6 +393,9 @@ export class CursorPhysicsEngine {
     isClicking: boolean;
     correctionApplied: boolean;
     healthStatus?: 'healthy' | 'bloodied' | 'unconscious';
+    activeTool?: string;
+    isContexting?: boolean;
+    isChatting?: boolean;
     trailConfig: {
       enabled?: boolean;
       animation?: string;
@@ -405,6 +417,9 @@ export class CursorPhysicsEngine {
       isClicking: state.isClicking,
       correctionApplied: state.correctionApplied,
       healthStatus: state.healthStatus,
+      activeTool: state.activeTool, // New
+      isContexting: state.isContexting, // New
+      isChatting: state.isChatting, // New
       trailConfig: {
         enabled: state.trailEnabled,
         animation: state.trailAnimation,
@@ -514,6 +529,9 @@ export const createCursorUpdateFromPayload = (payload: {
     velocityY: payload.velocityY,
     isClicking: payload.isClicking,
     healthStatus: payload.healthStatus,
+    activeTool: payload.activeTool,
+    isContexting: payload.isContexting,
+    isChatting: payload.isChatting,
     trailAnimation: payload.trailAnimation,
     trailColor: payload.trailColor,
     trailEnabled: payload.trailEnabled,

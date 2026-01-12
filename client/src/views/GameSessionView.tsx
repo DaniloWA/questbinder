@@ -196,7 +196,7 @@ const GameSessionUI: React.FC = () => {
     const { isOpen: isGlobalModalOpen } = useModal();
     const isAnyModalOpen = isGlobalModalOpen || isSettingsOpen || isCursorSettingsOpen || isPermissionsOpen
         || isHandoutTrayOpen || isCompendiumOpen || isAttackZonePanelOpen || isAttackZoneConfigOpen
-        || isViewSettingsOpen || !!tokenContextMenu || !!mapContextMenu || !!attackZoneContextMenu
+        || isViewSettingsOpen // Context Menus excluded from rendering pause: || !!tokenContextMenu || !!mapContextMenu || !!attackZoneContextMenu
         || !!viewingCharacterId || !!editingHandout || !!previewingHandout || !!sharingHandout
         || !!editingTriggerZoneId || !!editingAudioZoneId || !!editingAttackZoneId || isInitiativeRollerOpen;
 
@@ -290,13 +290,14 @@ const GameSessionUI: React.FC = () => {
     };
 
     const handleTokenContextMenu = (e: React.MouseEvent, tokenId: string) => {
-        if (!tokenId) { setTokenContextMenu(null); return; }
+        if (!tokenId) { setTokenContextMenu(null); session.setCursorContextState(false); return; }
         const token = session.activeScene?.tokens.find(t => t.id === tokenId);
         if (token) {
             const isOwner = token.ownerId === currentUser?.id || token.controlledBy?.includes(currentUser?.id || '');
             if (isGM || isOwner) {
                 setMapContextMenu(null);
                 setTokenContextMenu({ x: e.clientX, y: e.clientY, token });
+                session.setCursorContextState(true);
             }
         }
     };
@@ -304,6 +305,7 @@ const GameSessionUI: React.FC = () => {
     const handleMapContextMenu = (e: React.MouseEvent, worldX: number, worldY: number, obstacleId?: string, triggerZoneId?: string, audioZoneId?: string) => {
         setTokenContextMenu(null);
         setMapContextMenu({ x: e.clientX, y: e.clientY, worldX, worldY, obstacleId, triggerZoneId, audioZoneId });
+        session.setCursorContextState(true);
     };
 
     const handleToggleObstacleVisibility = () => {
@@ -451,6 +453,7 @@ const GameSessionUI: React.FC = () => {
                     previewPlayerId={session.previewPlayerId}
                     currentUser={currentUser}
                     activeTool={session.activeTool}
+                    isChatting={session.isChatting}
                     movementPath={session.movementPath}
                     pings={session.pings}
                     drawingObstacle={session.drawingObstacle}
@@ -489,6 +492,7 @@ const GameSessionUI: React.FC = () => {
                     emitCursorMove={session.emitCursorMove}
                     remoteCursors={session.remoteCursors}
                     remoteViewports={session.remoteViewports}
+                    players={session.players}
 
                     drawingTriggerZone={session.drawingTriggerZone}
                     setDrawingTriggerZone={session.setDrawingTriggerZone}
@@ -512,6 +516,7 @@ const GameSessionUI: React.FC = () => {
                     onCancelAttackZonePlacement={attackZones.cancelPreview}
                     // PERFORMANCE: Throttle render when modal is open
                     isModalOpen={isAnyModalOpen}
+                    isContexting={!!tokenContextMenu || !!mapContextMenu || !!attackZoneContextMenu}
                 />
             </div>
 
@@ -753,7 +758,7 @@ const GameSessionUI: React.FC = () => {
             )}
 
             {tokenContextMenu && (
-                <TokenContextMenu x={tokenContextMenu.x} y={tokenContextMenu.y} token={tokenContextMenu.token} onClose={() => setTokenContextMenu(null)} onEdit={() => handleOpenTokenModal(tokenContextMenu.token)} onDuplicate={() => handleDuplicateToken(tokenContextMenu.token)} onDelete={() => session.removeToken(tokenContextMenu.token.id)} onToggleVisibility={() => session.updateToken(tokenContextMenu.token.id, { isVisibleToPlayers: !tokenContextMenu.token.isVisibleToPlayers })} onToggleCondition={(condition) => handleToggleTokenCondition(tokenContextMenu.token, condition)} onOpenSheet={() => handleOpenSheet(tokenContextMenu.token)} />
+                <TokenContextMenu x={tokenContextMenu.x} y={tokenContextMenu.y} token={tokenContextMenu.token} onClose={() => { setTokenContextMenu(null); session.setCursorContextState(false); }} onEdit={() => handleOpenTokenModal(tokenContextMenu.token)} onDuplicate={() => handleDuplicateToken(tokenContextMenu.token)} onDelete={() => session.removeToken(tokenContextMenu.token.id)} onToggleVisibility={() => session.updateToken(tokenContextMenu.token.id, { isVisibleToPlayers: !tokenContextMenu.token.isVisibleToPlayers })} onToggleCondition={(condition) => handleToggleTokenCondition(tokenContextMenu.token, condition)} onOpenSheet={() => handleOpenSheet(tokenContextMenu.token)} />
             )}
 
             {isSettingsOpen && session.activeScene && (
@@ -779,7 +784,7 @@ const GameSessionUI: React.FC = () => {
                     obstacleId={mapContextMenu.obstacleId}
                     triggerZoneId={mapContextMenu.triggerZoneId}
                     audioZoneId={mapContextMenu.audioZoneId}
-                    onClose={() => setMapContextMenu(null)}
+                    onClose={() => { setMapContextMenu(null); session.setCursorContextState(false); }}
                     onAddToken={() => {
                         const gridSize = session.activeScene?.grid.size || 70;
                         handleOpenTokenModal('new', { x: Math.floor(mapContextMenu.worldX / gridSize), y: Math.floor(mapContextMenu.worldY / gridSize) });

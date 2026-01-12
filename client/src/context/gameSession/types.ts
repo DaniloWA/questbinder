@@ -93,6 +93,8 @@ export interface GameSessionState {
     showMyTrail?: boolean;
     useAppCursor?: boolean;
     explosionOnCollision?: boolean;
+    showToolActivity?: boolean;
+    showStatusActivity?: boolean;
   };
   permissions: SessionPermissions;
   audioSettings: { playlists: Playlist[], soundboard: SoundEffect[]; };
@@ -252,6 +254,8 @@ export interface GameSessionContextType extends GameSessionState {
     showMyTrail?: boolean;
     useAppCursor?: boolean;
     explosionOnCollision?: boolean;
+    showToolActivity?: boolean;
+    showStatusActivity?: boolean;
   }) => void;
 
   toggleGMViewMode: () => void;
@@ -281,6 +285,9 @@ export interface GameSessionContextType extends GameSessionState {
   emitTokenDrag: (id: string, x: number, y: number, path: { x: number, y: number; }[]) => void;
   emitCursorMove: (x: number, y: number) => void;
   setCursorClickState: (clicking: boolean) => void; // For remote click feedback
+  setCursorContextState: (isOpen: boolean) => void; // For remote gesture feedback
+  setCursorChatState: (isChatting: boolean) => void; // For remote gesture feedback
+  isChatting: boolean;
   pullView: (targetId: string | 'all', x: number, y: number, zoom: number) => void;
   toggleFollowMode: (active: boolean, targets?: string[] | 'all') => void;
 

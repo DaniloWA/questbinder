@@ -109,6 +109,23 @@ export const registerCursorHandlers = (socket, client, utils) => {
   });
 
   /**
+   * cursor:pressing - Unthrottled click state for visual feedback
+   * Transmits mouse down/up state immediately without throttle
+   */
+  socket.on('cursor:pressing', (payload) => {
+    if (!client.campaignId || !client.userId) return;
+
+    const { pressing } = payload;
+
+    // Immediate broadcast (no throttle for visual feedback)
+    socket.to(client.campaignId).emit('cursor:pressing', {
+      userId: client.userId,
+      pressing: !!pressing,
+      timestamp: Date.now(),
+    });
+  });
+
+  /**
    * Clean up on disconnect
    */
   socket.on('disconnect', () => {

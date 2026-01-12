@@ -13,8 +13,9 @@ import { getContrastColor } from '../../../../utils/colors';
 import { getCursorShape } from '../../constants/cursorShapes';
 import { renderCursorToImage } from '../../../../utils/cursorRenderer';
 import { useLayerCache, drawCachedGrid } from './useLayerCache';
+import { getToolIcon } from '../../../../constants/toolIcons';
 // Advanced animation engine imports
-import { CursorPhysicsEngine } from '../../../../utils/cursorPhysicsEngine';
+import { CursorPhysicsEngine, createCursorUpdateFromPayload } from '../../../../utils/cursorPhysicsEngine';
 import { getGlobalFrameTimer } from '../../../../utils/animationEngine';
 
 interface UseMapRendererProps extends MapCanvasProps {
@@ -35,6 +36,7 @@ interface UseMapRendererProps extends MapCanvasProps {
   visionTokens: Token[];
   imageCache: { [src: string]: HTMLImageElement; };
   currentUser: User | null;
+  players?: User[];
   remoteViewports?: Record<string, { x: number, y: number, zoom: number, w: number, h: number; }>;
   clickAnimationsRef?: React.MutableRefObject<{ x: number, y: number, color: string, style?: 'ripple' | 'burst' | 'sparkle' | 'pulse' | 'vortex' | 'shard' | 'ring' | 'echo' | 'orb', startTime: number; }[]>;
   // PERFORMANCE: Ref for immediate viewport during pan/zoom (avoids state re-render)
@@ -50,7 +52,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
     animatingTokens, animationsRef, setAnimatingTokens, mouseWorldPos, dragState, hoveredObstacleId, calculatedPath,
     draggedAttackZone, liveDrawingPointsRef, isDrawingRef, currentFogRect, hoveredTokenId, visionTokens, imageCache,
     drawingLightZone, drawingAudioZone, drawingTriggerZone, attackZoneResults, previewZoneResult,
-    campaignCharacters = [], currentUser, remoteViewports
+    campaignCharacters = [], currentUser, remoteViewports, players
   } = props;
 
   const { ui, drawingSettings, rulerSettings } = useGameSession();
@@ -67,7 +69,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
   const frameTimer = React.useRef(getGlobalFrameTimer());
 
   // Track last processed cursor positions to avoid re-processing same data every frame
-  const lastProcessedCursorsRef = React.useRef<Record<string, { x: number; y: number; }>>({});
+  const lastProcessedCursorsRef = React.useRef<Record<string, { x: number; y: number; isClicking?: boolean; }>>({});
 
   // Track cursor collisions and explosions
   const cursorCollisionsRef = React.useRef<Map<string, number>>(new Map());
@@ -97,6 +99,28 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
     tokenPositions: '' as string,
     viewportZoom: 0,
   });
+
+
+  // Sync React state cursors with Physics Engine
+  useEffect(() => {
+    if (!remoteCursors) return;
+    Object.values(remoteCursors).forEach((cursor) => {
+      // Bridge: Pass socket payload from React state to Physics Engine
+      // This ensures the engine has data to interpolate and render
+      const { userId, update } = createCursorUpdateFromPayload(cursor);
+      cursorEngine.processServerUpdate(userId, update);
+    });
+
+    // Clean up stale cursors (optional, but good for keeping engine clean)
+    // We can check if any cursor in engine is NOT in remoteCursors
+    const engineIds = cursorEngine.getCursorIds();
+    engineIds.forEach(id => {
+      if (!remoteCursors[id] && id !== currentUser?.id) {
+        cursorEngine.removeCursor(id);
+      }
+    });
+
+  }, [remoteCursors, cursorEngine, currentUser?.id]);
 
 
   useEffect(() => {
@@ -385,7 +409,12 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
           ctx.globalAlpha = 0.6;
           drawToken(ctx, visualToken, gridSize, false, z, imageCache, true);
           ctx.globalAlpha = 1.0;
-          drawLabel(ctx, `Arrastando...`, drag.x * gridSize + (ghostToken.size * gridSize) / 2, drag.y * gridSize - 20 / z, z, drag.color || '#fbbf24');
+
+          // Resolve User Name
+          const draggingUser = props.players?.find(u => u.id === uid);
+          const labelText = draggingUser ? draggingUser.name : 'Unknown';
+
+          drawLabel(ctx, labelText, drag.x * gridSize + (ghostToken.size * gridSize) / 2, drag.y * gridSize - 20 / z, z, drag.color || '#fbbf24');
         }
       });
 
@@ -1107,7 +1136,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
           lastProcessed.x !== cursor.x ||
           lastProcessed.y !== cursor.y;
 
-        if (positionChanged) {
+        if (positionChanged || cursor.isClicking !== lastProcessed?.isClicking) {
           // Process server update through physics engine (handles prediction + latency)
           cursorEngine.processServerUpdate(cursor.userId, {
             x: cursor.x,
@@ -1115,6 +1144,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
             timestamp: cursor.timestamp,
             velocityX: cursor.velocityX,
             velocityY: cursor.velocityY,
+            isClicking: cursor.isClicking, // For shrink effect
             // Pass new fields to engine
             healthStatus: cursor.healthStatus,
             trailAnimation: cursor.trailAnimation,
@@ -1122,7 +1152,11 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
             trailEnabled: cursor.trailEnabled,
             trailCustomImage: cursor.trailCustomImage,
           });
-          lastProcessedCursorsRef.current[cursor.userId] = { x: cursor.x, y: cursor.y };
+          lastProcessedCursorsRef.current[cursor.userId] = {
+            x: cursor.x,
+            y: cursor.y,
+            isClicking: cursor.isClicking
+          };
         }
 
         // ALWAYS tick physics simulation each frame (spring interpolation)
@@ -1334,6 +1368,78 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
           stretchScaleX,
           stretchScaleY
         );
+
+        // --- GESTURE & TOOL OVERLAYS ---
+        // Context Menu Indicator (Gear/Menu icon)
+        if (renderData.isContexting) {
+          ctx.save();
+          ctx.translate(renderData.position.x + 15 / z, renderData.position.y - 15 / z);
+          ctx.scale(1 / z, 1 / z);
+          ctx.fillStyle = '#ffffff';
+          ctx.shadowColor = '#000000';
+          ctx.shadowBlur = 4;
+          // Draw simple gear/menu shape
+          ctx.beginPath();
+          ctx.arc(0, 0, 8, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#333333';
+          ctx.beginPath();
+          ctx.arc(0, 0, 8, 0, Math.PI * 2);
+          ctx.stroke();
+          // 3 dots
+          ctx.fillStyle = '#000000';
+          ctx.beginPath();
+          ctx.arc(-4, 0, 1.5, 0, Math.PI * 2);
+          ctx.arc(0, 0, 1.5, 0, Math.PI * 2);
+          ctx.arc(4, 0, 1.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        // Active Tool Indicator
+        const activeTool = renderData.activeTool;
+        if (activeTool && activeTool !== 'select' && activeTool !== 'pan' && activeTool !== 'combat') {
+          ctx.save();
+          ctx.translate(renderData.position.x + 15 / z, renderData.position.y + 15 / z);
+          ctx.scale(1 / z, 1 / z);
+
+          const iconChar = getToolIcon(activeTool);
+          if (iconChar && iconChar !== '🔧') { // Don't show default wrench if not recognized or generic
+            ctx.font = '20px sans-serif';
+            ctx.shadowColor = 'black';
+            ctx.shadowBlur = 3;
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(iconChar, 0, 0);
+          }
+          else if (activeTool === 'wand') { // Explicit fallback for wand if not in toolIcons (it is, but just safe)
+            ctx.font = '20px sans-serif';
+            ctx.fillText('✨', 0, 0);
+          }
+          ctx.restore();
+        }
+
+        // Status Indicator (Chat or Combat)
+        // Priority: Chat > Combat
+        // Position: Top-Left (mirroring CustomCursor)
+        if (renderData.isChatting || activeTool === 'combat') {
+          ctx.save();
+          ctx.translate(renderData.position.x - 15 / z, renderData.position.y - 15 / z);
+          ctx.scale(1 / z, 1 / z);
+
+          const statusIcon = renderData.isChatting ? '💬' : '⚔️';
+
+          ctx.font = '16px sans-serif';
+          ctx.shadowColor = 'black';
+          ctx.shadowBlur = 3;
+          ctx.fillStyle = 'white';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(statusIcon, 0, 0);
+
+          ctx.restore();
+        }
       });
 
       // Local cursor is now handled by CustomCursor DOM component

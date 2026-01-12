@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { getCursorShape } from './constants/cursorShapes';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { getToolIcon } from '../../constants/toolIcons';
 
 interface CustomCursorProps {
   shapeId: string;
@@ -11,6 +12,10 @@ interface CustomCursorProps {
   trailAnimation?: string;
   trailColor?: string;
   trailLength?: number;
+  healthStatus?: 'healthy' | 'bloodied' | 'unconscious';
+  activeTool?: string;
+  isContexting?: boolean;
+  isChatting?: boolean;
 }
 
 /**
@@ -29,6 +34,10 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
   trailAnimation = 'line',
   trailColor,
   trailLength = 20,
+  healthStatus = 'healthy',
+  activeTool,
+  isContexting,
+  isChatting,
 }) => {
   const cursorRef = useRef<HTMLDivElement>(null);
   const trailCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -131,6 +140,15 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
         if (ctx) {
           const now = performance.now();
 
+          // Determine effective animation and max age based on health
+          let effectiveAnimation = trailAnimation;
+          let effectiveMaxAge = TRAIL_MAX_AGE;
+
+          if (healthStatus === 'bloodied' || healthStatus === 'unconscious') {
+            effectiveAnimation = 'blood';
+            effectiveMaxAge = healthStatus === 'unconscious' ? 1000 : 800; // Match remote logic
+          }
+
           // Add point to trail history if moving
           if (velocity > 2 && now - lastTrailTime.current > 16) { // ~60fps
             trailHistory.current.push({
@@ -153,7 +171,7 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
           // Render trail based on animation type
           const history = trailHistory.current;
 
-          if (trailAnimation === 'line' && history.length > 2) {
+          if (effectiveAnimation === 'line' && history.length > 2) {
             // Smooth Line (matching remote cursor)
             ctx.beginPath();
             ctx.moveTo(history[0].x, history[0].y);
@@ -176,14 +194,14 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
             ctx.strokeStyle = adjustAlpha(effectiveTrailColor, 0.8);
             ctx.stroke();
 
-          } else if (trailAnimation === 'particles' || trailAnimation === 'sparkles' || trailAnimation === 'smoke' || trailAnimation === 'electric') {
+          } else if (effectiveAnimation === 'particles' || effectiveAnimation === 'sparkles' || effectiveAnimation === 'smoke' || effectiveAnimation === 'electric') {
             // Particle-based trails
             for (let i = 0; i < history.length; i++) {
               const trail = history[i];
               const age = now - trail.time;
-              if (age > TRAIL_MAX_AGE) continue;
+              if (age > effectiveMaxAge) continue;
 
-              const progress = age / TRAIL_MAX_AGE;
+              const progress = age / effectiveMaxAge;
               const alpha = 1 - progress;
               const size = (4 + (i * 0.2)) * (1 - progress * 0.5);
 
@@ -191,7 +209,7 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
               ctx.translate(trail.x, trail.y);
               ctx.globalAlpha = alpha * 0.6;
 
-              if (trailAnimation === 'sparkles') {
+              if (effectiveAnimation === 'sparkles') {
                 // Star shape
                 ctx.fillStyle = effectiveTrailColor;
                 const rot = progress * Math.PI;
@@ -203,7 +221,7 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
                 }
                 ctx.closePath();
                 ctx.fill();
-              } else if (trailAnimation === 'smoke') {
+              } else if (effectiveAnimation === 'smoke') {
                 // Smoky circles
                 const driftY = -age * 0.05;
                 ctx.translate(0, driftY);
@@ -211,7 +229,7 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
                 ctx.arc(0, 0, size * 2, 0, Math.PI * 2);
                 ctx.fillStyle = '#666666';
                 ctx.fill();
-              } else if (trailAnimation === 'electric') {
+              } else if (effectiveAnimation === 'electric') {
                 // Jittery lines
                 const jitterX = (Math.random() - 0.5) * 10;
                 const jitterY = (Math.random() - 0.5) * 10;
@@ -232,14 +250,14 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
 
               ctx.restore();
             }
-          } else if (trailAnimation === 'dice') {
+          } else if (effectiveAnimation === 'dice') {
             // Dice trail
             for (let i = 0; i < history.length; i++) {
               const trail = history[i];
               const age = now - trail.time;
-              if (age > TRAIL_MAX_AGE * 1.5) continue;
+              if (age > effectiveMaxAge * 1.5) continue;
 
-              const progress = age / (TRAIL_MAX_AGE * 1.5);
+              const progress = age / (effectiveMaxAge * 1.5);
               const alpha = 1 - Math.pow(progress, 3);
               const val = Math.floor((trail.time % 20)) + 1;
               const size = 16;
@@ -273,10 +291,36 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
 
               ctx.restore();
             }
+          } else if (effectiveAnimation === 'blood') {
+            // Blood drops
+            for (let i = 0; i < history.length; i++) {
+              const trail = history[i];
+              const age = now - trail.time;
+              const maxAge = effectiveMaxAge * 2; // Stays longer
+              if (age > maxAge) continue;
+
+              const progress = age / maxAge;
+              const alpha = 1 - Math.pow(progress, 0.5); // Fade slow
+
+              // Consistent Random Logic
+              const rand = (trail.time % 100) / 100;
+              const size = (3 + (rand * 4));
+
+              ctx.save();
+              ctx.translate(trail.x, trail.y);
+
+              ctx.globalAlpha = alpha * 0.8;
+              ctx.fillStyle = '#8a0b0b'; // Deep red
+
+              ctx.beginPath();
+              ctx.arc(0, 0, size, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.restore();
+            }
           }
 
           // Cleanup old trail points
-          trailHistory.current = history.filter(t => now - t.time < TRAIL_MAX_AGE * 2);
+          trailHistory.current = history.filter(t => now - t.time < effectiveMaxAge * 2);
         }
       }
 
@@ -348,6 +392,28 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
             filter: isClicking ? 'drop-shadow(0 0 8px rgba(255,255,255,0.8))' : 'none',
           }}
         />
+
+        {/* Status Indicator (Chat or Combat) */}
+        {/* Priority: Chat > Combat */}
+        {(isChatting || activeTool === 'combat') && (
+          <div className="absolute -top-4 -left-4 text-sm filter drop-shadow-md z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
+            {isChatting ? '💬' : '⚔️'}
+          </div>
+        )}
+
+        {/* Context Menu Indicator */}
+        {isContexting && (
+          <div className="absolute -top-4 -right-4 bg-white rounded-full w-5 h-5 flex items-center justify-center shadow-sm border border-zinc-200 z-50 animate-in fade-in zoom-in duration-200">
+            <span className="text-[10px] font-bold text-zinc-800 leading-none pb-1">•••</span>
+          </div>
+        )}
+
+        {/* Active Tool Indicator */}
+        {activeTool && activeTool !== 'select' && activeTool !== 'pan' && activeTool !== 'combat' && (
+          <div className="absolute -bottom-4 -right-4 text-lg filter drop-shadow-md z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+            {getToolIcon(activeTool)}
+          </div>
+        )}
       </div>
     </>
   );

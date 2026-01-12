@@ -41,6 +41,8 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
     showMyTrail: true,
     useAppCursor: true,
     explosionOnCollision: true,
+    showToolActivity: true,
+    showStatusActivity: true,
   });
 
   // GM player management
@@ -93,6 +95,8 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
         showMyTrail: cursorSettings?.showMyTrail ?? true,
         useAppCursor: cursorSettings?.useAppCursor ?? true,
         explosionOnCollision: cursorSettings?.explosionOnCollision ?? true,
+        showToolActivity: cursorSettings?.showToolActivity ?? true,
+        showStatusActivity: cursorSettings?.showStatusActivity ?? true,
       });
 
       // Copy existing overrides to local state
@@ -127,6 +131,8 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
       showMyTrail: updates.showMyTrail === 'true' || updates.showMyTrail === true,
       useAppCursor: updates.useAppCursor === 'true' || updates.useAppCursor === true,
       explosionOnCollision: updates.explosionOnCollision === 'true' || updates.explosionOnCollision === true,
+      showToolActivity: updates.showToolActivity === 'true' || updates.showToolActivity === true,
+      showStatusActivity: updates.showStatusActivity === 'true' || updates.showStatusActivity === true,
     });
   }, [selfValues, setCursorSettings]);
 
@@ -178,6 +184,8 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
             showMyTrail: override.showMyTrail,
             useAppCursor: override.useAppCursor,
             explosionOnCollision: override.explosionOnCollision,
+            showToolActivity: override.showToolActivity,
+            showStatusActivity: override.showStatusActivity,
           };
         }
       });
@@ -243,6 +251,8 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
       showMyTrail: override.showMyTrail ?? existing.showMyTrail ?? true,
       useAppCursor: override.useAppCursor ?? existing.useAppCursor ?? true,
       explosionOnCollision: override.explosionOnCollision ?? existing.explosionOnCollision ?? true,
+      showToolActivity: override.showToolActivity ?? existing.showToolActivity ?? true,
+      showStatusActivity: override.showStatusActivity ?? existing.showStatusActivity ?? true,
     };
   };
 

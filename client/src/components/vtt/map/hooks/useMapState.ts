@@ -11,6 +11,9 @@ export const useMapState = () => {
   const [draggedAttackZone, setDraggedAttackZone] = useState<{ id: string, startX: number, startY: number, originX: number, originY: number, rotating?: boolean; } | null>(null);
   const [hoveredTokenId, setHoveredTokenId] = useState<string | null>(null);
 
+  // Track dragging state for cursor visibility logic
+  const [isTokenDragging, setIsTokenDragging] = useState(false);
+
   // Refs for performance-critical or non-rendering state
   const liveDrawingPointsRef = useRef<{ x: number, y: number; }[]>([]);
   const isDrawingRef = useRef(false);
@@ -46,6 +49,7 @@ export const useMapState = () => {
     calculatedPath, setCalculatedPath,
     draggedAttackZone, setDraggedAttackZone,
     hoveredTokenId, setHoveredTokenId,
+    isTokenDragging, setIsTokenDragging,
     liveDrawingPointsRef,
     isDrawingRef,
     lastCursorEmit,

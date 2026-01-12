@@ -131,12 +131,13 @@ interface GameLogProps {
 }
 
 export const GameLog: React.FC<GameLogProps> = ({ onModeChange }) => {
-    const { chatMessages, sendChatMessage, toggleChatReaction, handleChatLinkClick, campaignCharacters } = useGameSession();
-    const { isGM } = useAccessControl();
-    const { user } = useAuth();
+    const { chatMessages, sendChatMessage, toggleChatReaction, handleChatLinkClick, campaignCharacters, setCursorChatState } = useGameSession(); // Add setCursorChatState
     const { t } = useTranslation();
 
     const [inputText, setInputText] = useState('');
+    const { user } = useAuth();
+    const { isGM } = useAccessControl();
+
     const [speakingAs, setSpeakingAs] = useState<'player' | string>('player');
     const [whisperTo, setWhisperTo] = useState<string | null>(null); // New: Whisper State
     const [showWhisperMenu, setShowWhisperMenu] = useState(false); // New: Menu State
@@ -386,7 +387,11 @@ export const GameLog: React.FC<GameLogProps> = ({ onModeChange }) => {
     };
 
     const renderContent = () => (
-        <div className={`flex flex-col h-full relative ${viewMode === 'floating' ? 'bg-zinc-950/95 backdrop-blur-md' : 'bg-zinc-950'}`}>
+        <div
+            className={`flex flex-col h-full relative ${viewMode === 'floating' ? 'bg-zinc-950/95 backdrop-blur-md' : 'bg-zinc-950'}`}
+            onMouseEnter={() => setCursorChatState?.(true)}
+            onMouseLeave={() => setCursorChatState?.(false)}
+        >
 
             {/* HEADER */}
             <div
@@ -589,6 +594,8 @@ export const GameLog: React.FC<GameLogProps> = ({ onModeChange }) => {
                             type="text"
                             value={inputText}
                             onChange={(e) => setInputText(e.target.value)}
+                            onFocus={() => setCursorChatState?.(true)}
+                            onBlur={() => setCursorChatState?.(false)}
                             placeholder={whisperTo ? t('vtt.chat.input.placeholder.whisper') : t('vtt.chat.input.placeholder.global')}
                             className="flex-1 bg-transparent px-3 py-2.5 text-sm text-white placeholder:text-zinc-600 outline-none min-w-0"
                         />

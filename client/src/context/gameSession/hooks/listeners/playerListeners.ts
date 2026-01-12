@@ -1,5 +1,5 @@
 import { socketService } from '../../../../services/socketService';
-import { CursorMovePayload, ViewportUpdatePayload, GMForceViewPayload, ViewportRestorePayload } from '../../../../types/socket';
+import { CursorMovePayload, CursorPressingPayload, ViewportUpdatePayload, GMForceViewPayload, ViewportRestorePayload } from '../../../../types/socket';
 import { ListenerDeps, ListenerCleanup } from './types';
 
 /**
@@ -98,6 +98,27 @@ export const registerPlayerListeners = ({
         remoteCursors: {
           ...previousState.remoteCursors,
           [payload.userId]: payload
+        }
+      };
+    });
+  };
+
+  // Handler: cursor:pressing (unthrottled click state for visual feedback)
+  const handleCursorPressing = (payload: CursorPressingPayload) => {
+    if (!payload.userId || payload.userId === user?.id) return;
+
+    setState(prev => {
+      const existingCursor = prev.remoteCursors[payload.userId!];
+      if (!existingCursor) return prev;
+
+      return {
+        ...prev,
+        remoteCursors: {
+          ...prev.remoteCursors,
+          [payload.userId!]: {
+            ...existingCursor,
+            isClicking: payload.pressing,
+          }
         }
       };
     });
@@ -222,6 +243,7 @@ export const registerPlayerListeners = ({
   socketService.on('player:join', handlePlayerJoin);
   socketService.on('player:leave', handlePlayerLeave);
   socketService.on('cursor:move', handleCursorMove);
+  socketService.on('cursor:pressing', handleCursorPressing);
   socketService.on('viewport:update', handleViewportUpdate);
   socketService.on('viewport:restore', handleViewportRestore);
   socketService.on('gm:force_view', handleGMForceView);
@@ -234,6 +256,7 @@ export const registerPlayerListeners = ({
     socketService.off('player:join', handlePlayerJoin);
     socketService.off('player:leave', handlePlayerLeave);
     socketService.off('cursor:move', handleCursorMove);
+    socketService.off('cursor:pressing', handleCursorPressing);
     socketService.off('viewport:update', handleViewportUpdate);
     socketService.off('viewport:restore', handleViewportRestore);
     socketService.off('gm:force_view', handleGMForceView);

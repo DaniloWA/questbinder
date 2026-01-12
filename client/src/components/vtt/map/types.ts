@@ -24,6 +24,7 @@ export interface MapCanvasProps {
   remoteViewports?: Record<string, { x: number, y: number, zoom: number, w: number, h: number; }>;
   permissions: SessionPermissions;
   campaign?: any;
+  players?: User[];
   cursorSettings?: {
     color: string;
     name: string;
@@ -91,6 +92,8 @@ export interface MapCanvasProps {
   onCancelAttackZonePlacement?: () => void;
   // PERFORMANCE: Used to throttle render loop when modal is open
   isModalOpen?: boolean;
+  isContexting?: boolean;
+  isChatting?: boolean;
 }
 
 export interface DragState {

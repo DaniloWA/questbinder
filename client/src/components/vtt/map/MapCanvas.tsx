@@ -10,8 +10,8 @@ import { useMapInteraction } from './hooks/useMapInteraction';
 import { useMapRenderer } from './hooks/useMapRenderer';
 import { TokenHoverCard } from './TokenHoverCard';
 import { CustomCursor } from '../CustomCursor';
-
-export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
+// ...
+export const MapCanvas = (props: MapCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const lightCanvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -96,7 +96,7 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
     imageCache,
     clickAnimationsRef, // Pass Ref
     viewportRef, // PERFORMANCE: Use ref for rendering during pan
-    mouseWorldPosRef: mapState.mouseWorldPosRef // PERFORMANCE: Use ref for immediate mouse position during drag
+    mouseWorldPosRef: mapState.mouseWorldPosRef, // PERFORMANCE: Use ref for immediate mouse position during drag
   });
 
   // Get cursor config from user's settings or GM overrides
@@ -206,7 +206,9 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
   return (
     <div
       className="relative w-full h-full overflow-hidden bg-black select-none"
-      style={{ cursor: isMouseOverVTT ? 'none' : 'auto' }}
+      // Logic: Show custom cursor (hide mouse) when over VTT OR Dragging, UNLESS hovering a token (show normal mouse)
+      // If dragging, we force hide mouse (cursor: none)
+      style={{ cursor: (isMouseOverVTT && !mapState.hoveredTokenId) || mapState.isTokenDragging ? 'none' : 'auto' }}
       onContextMenu={e => e.preventDefault()}
       onMouseEnter={() => setIsMouseOverVTT(true)}
       onMouseLeave={() => setIsMouseOverVTT(false)}
@@ -234,11 +236,24 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
       <CustomCursor
         shapeId={cursorConfig.shapeId}
         color={cursorConfig.color}
-        enabled={isMouseOverVTT}
+        // Disable custom cursor when hovering a token so we don't overlapping cursors
+        // Also disable when dragging (user requested cursor to disappear)
+        enabled={isMouseOverVTT && !mapState.hoveredTokenId && !mapState.isTokenDragging}
         trailEnabled={cursorConfig.trailEnabled && cursorConfig.showMyTrail}
         trailAnimation={cursorConfig.trailAnimation}
         trailColor={cursorConfig.trailColor}
         trailLength={cursorConfig.trailLength}
+        activeTool={props.activeTool}
+        isContexting={props.isContexting}
+        isChatting={props.isChatting}
+        healthStatus={(() => {
+          if (!props.currentUser?.id || !props.campaignCharacters) return 'healthy';
+          const char = props.campaignCharacters.find(c => c.ownerId === props.currentUser?.id);
+          if (!char) return 'healthy';
+          if (char.hpCurrent <= 0) return 'unconscious';
+          if (char.hpCurrent <= (char.hpMax / 2)) return 'bloodied';
+          return 'healthy';
+        })()}
       />
     </div>
   );

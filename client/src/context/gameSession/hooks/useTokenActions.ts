@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useEffect } from 'react';
 import { GameSessionState, BooleanPermissionKey } from '../types';
 import { campaignService } from '../../../services/campaignService';
 import { socketService } from '../../../services/socketService';
@@ -26,6 +26,18 @@ export const useTokenActions = (
   const prevCursorPosRef = useRef<{ x: number; y: number; time: number; } | null>(null);
   // Click state tracking (for remote click feedback)
   const isClickingRef = useRef<boolean>(false);
+  // Context menu state tracking
+  const isContextingRef = useRef<boolean>(false);
+  // Chat typing state tracking
+  const isChattingRef = useRef<boolean>(false);
+
+  // ... (inside emitCursorMove -> buildPayload)
+
+
+
+  // ... (inside setCursorChatState)
+
+
 
   const moveToken = useCallback((tokenId: string, newX: number, newY: number) => {
     const scene = activeScene;
@@ -310,7 +322,12 @@ export const useTokenActions = (
         velocityY: vy,
         isClicking: isClickingRef.current, // For remote click feedback
 
-        // New Trail/Status Fields
+        // New Trail/Status Fields with Privacy Checks
+        // New Trail/Status Fields with Privacy Checks
+        activeTool: (settings as any).showToolActivity !== false ? state.activeTool : null,
+        isContexting: (settings as any).showStatusActivity !== false ? isContextingRef.current : false,
+        isChatting: (settings as any).showStatusActivity !== false ? isChattingRef.current : false,
+
         healthStatus: (() => {
           const char = state.campaignCharacters.find(c => c.ownerId === userId);
           if (!char) return 'healthy';
@@ -365,9 +382,46 @@ export const useTokenActions = (
   };
 
   // Update click state for cursor feedback (called from useMapInteraction)
+  // Now also emits to server for remote visual feedback
   const setCursorClickState = useCallback((clicking: boolean) => {
+    // Deduplicate: Only emit if state actually changed
+    if (isClickingRef.current === clicking) return;
+
     isClickingRef.current = clicking;
+    // Emit immediately to server (no throttle) for remote shrink effect
+    socketService.emit('cursor:pressing', { pressing: clicking });
   }, []);
+
+  // Update context menu state
+  const setCursorContextState = useCallback((isOpen: boolean) => {
+    isContextingRef.current = isOpen;
+    // Force emit a move packet to update state immediately even if mouse is still
+    if (lastCursorEmitRef.current > 0) {
+      const prev = prevCursorPosRef.current;
+      if (prev) {
+        emitCursorMove(prev.x, prev.y);
+      }
+    }
+  }, [emitCursorMove]);
+
+  // Force emit on tool change so remote users see it immediately
+  useEffect(() => {
+    if (lastCursorEmitRef.current > 0 && prevCursorPosRef.current) {
+      emitCursorMove(prevCursorPosRef.current.x, prevCursorPosRef.current.y);
+    }
+  }, [state.activeTool]);
+
+  // Update chat state
+  const setCursorChatState = useCallback((isChatting: boolean) => {
+    isChattingRef.current = isChatting;
+    // Force emit a move packet to update state immediately
+    if (lastCursorEmitRef.current > 0) {
+      const prev = prevCursorPosRef.current;
+      if (prev) {
+        emitCursorMove(prev.x, prev.y);
+      }
+    }
+  }, [emitCursorMove]);
 
   return {
     moveToken,
@@ -376,10 +430,13 @@ export const useTokenActions = (
     addToken,
     removeToken,
     moveTokenToScene,
+    setCursorChatState,
+
     selectToken,
     clearSelection,
     emitTokenDrag,
     emitCursorMove,
     setCursorClickState, // For remote click feedback
+    setCursorContextState, // For remote gesture feedback
   };
 };

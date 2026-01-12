@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 import { useNotification } from './NotificationContext';
 import { GameSessionContextType } from './gameSession/types';
 import { useGameState } from './gameSession/hooks/useGameState';
@@ -38,7 +38,7 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
     const {
         moveToken, moveTokens, updateToken, addToken, removeToken,
         moveTokenToScene, selectToken, clearSelection, emitTokenDrag, emitCursorMove,
-        setCursorClickState
+        setCursorClickState, setCursorContextState, setCursorChatState
     } = useTokenActions(state, setState, campaignId, user, show, permissionHelper);
 
     const {
@@ -112,6 +112,18 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
     } = useAttackZoneActions(state, setState);
 
     const uiActions = useUiActions(state, setState, campaignId, isCompendiumOpen, setIsCompendiumOpen);
+
+    // --- STATE ---
+    const [isChatting, setIsChatting] = useState(false);
+
+    // --- ACTIONS ---
+    // Memoize setCursorChatState to prevent loops
+    const setCursorChatStateCallback = useCallback((chatting: boolean) => {
+        // Update ref for socket emission
+        setCursorChatState(chatting); // This is the original setCursorChatState from useTokenActions
+        // Update state for local UI
+        setIsChatting(chatting);
+    }, [setCursorChatState]);
 
     const value: GameSessionContextType = {
         ...state,
@@ -200,6 +212,9 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
         emitTokenDrag,
         emitCursorMove,
         setCursorClickState,
+        setCursorContextState,
+        setCursorChatState: setCursorChatStateCallback,
+        isChatting, // Added explicit property
         setPullNotification,
         toggleFollowMode,
         addAttackZone,
