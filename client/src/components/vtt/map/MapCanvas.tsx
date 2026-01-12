@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useMemo, useState } from 'react';
 import { socketService } from '../../../services/socketService';
 import { CursorClickPayload } from '../../../types/socket';
 import { MapCanvasProps } from './types';
@@ -9,10 +9,14 @@ import { useImageLoader } from './hooks/useImageLoader';
 import { useMapInteraction } from './hooks/useMapInteraction';
 import { useMapRenderer } from './hooks/useMapRenderer';
 import { TokenHoverCard } from './TokenHoverCard';
+import { CustomCursor } from '../CustomCursor';
 
 export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const lightCanvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Track if mouse is over VTT area (to show/hide custom cursor)
+  const [isMouseOverVTT, setIsMouseOverVTT] = useState(false);
 
   // PERFORMANCE: Ref for immediate viewport updates during pan/zoom
   // This avoids React re-renders during continuous mouse movement
@@ -78,7 +82,7 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
 
     clickAnimationsRef, // Pass Ref
     viewportRef, // PERFORMANCE: Pass ref for immediate panning
-    mouseWorldPosRef: mapState.mouseWorldPosRef // PERFORMANCE: Pass ref for immediate mouse position
+    mouseWorldPosRef: mapState.mouseWorldPosRef, // PERFORMANCE: Pass ref for immediate mouse position
   });
 
   // 6. Map Renderer (Canvas Loop)
@@ -94,6 +98,23 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
     viewportRef, // PERFORMANCE: Use ref for rendering during pan
     mouseWorldPosRef: mapState.mouseWorldPosRef // PERFORMANCE: Use ref for immediate mouse position during drag
   });
+
+  // Get cursor config from user's settings or GM overrides
+  // Priority: GM cursorOverrides > user cursorSettings > defaults
+  const cursorConfig = useMemo(() => {
+    const userId = props.currentUser?.id || '';
+    const overrides = props.permissions?.cursorOverrides?.[userId] || {};
+
+    return {
+      shapeId: overrides.shape || props.cursorSettings?.shape || 'default',
+      color: overrides.color || props.cursorSettings?.color || '#fbbf24',
+    };
+  }, [
+    props.currentUser?.id,
+    props.permissions?.cursorOverrides,
+    props.cursorSettings?.shape,
+    props.cursorSettings?.color
+  ]);
 
   const { hoveredTokenId, dragState } = mapState;
 
@@ -172,7 +193,13 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
   };
 
   return (
-    <div className="relative w-full h-full overflow-hidden bg-black select-none" onContextMenu={e => e.preventDefault()}>
+    <div
+      className="relative w-full h-full overflow-hidden bg-black select-none"
+      style={{ cursor: isMouseOverVTT ? 'none' : 'auto' }}
+      onContextMenu={e => e.preventDefault()}
+      onMouseEnter={() => setIsMouseOverVTT(true)}
+      onMouseLeave={() => setIsMouseOverVTT(false)}
+    >
       <canvas
         ref={canvasRef}
         width={window.innerWidth}
@@ -191,6 +218,13 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
 
       {/* Render Hover Card outside Canvas but inside Container */}
       {renderHoverCard()}
+
+      {/* DOM-based Custom Cursor with Physics Animation - only when over VTT */}
+      <CustomCursor
+        shapeId={cursorConfig.shapeId}
+        color={cursorConfig.color}
+        enabled={isMouseOverVTT}
+      />
     </div>
   );
 };

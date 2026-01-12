@@ -13,6 +13,9 @@ import { getContrastColor } from '../../../../utils/colors';
 import { getCursorShape } from '../../constants/cursorShapes';
 import { renderCursorToImage } from '../../../../utils/cursorRenderer';
 import { useLayerCache, drawCachedGrid } from './useLayerCache';
+// Advanced animation engine imports
+import { CursorPhysicsEngine } from '../../../../utils/cursorPhysicsEngine';
+import { getGlobalFrameTimer } from '../../../../utils/animationEngine';
 
 interface UseMapRendererProps extends MapCanvasProps {
   canvasRef: React.RefObject<HTMLCanvasElement>;
@@ -52,19 +55,27 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
 
   const { ui, drawingSettings, rulerSettings } = useGameSession();
 
-  // --- CURSOR PHYSICS STATE ---
-  // Enhanced structure for smooth interpolation with throttled updates
-  // Structure: { userId: { x, y, targetX, targetY, angle, targetAngle, lastUpdateTime, velocity } }
-  const cursorPhysics = React.useRef<Record<string, {
-    x: number,
-    y: number,
-    targetX: number,
-    targetY: number,
-    angle: number,
-    targetAngle: number,
-    velocity: number,
-    lastUpdateTime: number;
-  }>>({});
+  // --- ADVANCED CURSOR PHYSICS ENGINE ---
+  // Uses spring interpolation, latency compensation, and velocity-based prediction
+  const cursorEngineRef = React.useRef<CursorPhysicsEngine | null>(null);
+  if (!cursorEngineRef.current) {
+    cursorEngineRef.current = new CursorPhysicsEngine();
+  }
+  const cursorEngine = cursorEngineRef.current;
+
+  // Frame timer for delta-time independent animations
+  const frameTimer = React.useRef(getGlobalFrameTimer());
+
+  // Track last processed cursor positions to avoid re-processing same data every frame
+  const lastProcessedCursorsRef = React.useRef<Record<string, { x: number; y: number; }>>({});
+
+  // Track cursor collisions and explosions
+  const cursorCollisionsRef = React.useRef<Map<string, number>>(new Map());
+  const cursorExplosionsRef = React.useRef<{ x: number; y: number; time: number; colors: string[]; }[]>([]);
+
+  // Track local cursor position for self-cursor rendering
+  const localCursorRef = React.useRef<{ x: number; y: number; } | null>(null);
+
   // We use a ref because we update it inside the animation loop without triggering re-renders
 
   // --- DIRTY FLAGS FOR RENDER OPTIMIZATION ---
@@ -953,133 +964,54 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
         });
       }
 
-      // --- REMOTE CURSORS (New Design) ---
-      Object.values(remoteCursors).forEach((cursor: any) => {
-        if (cursor.userId === currentUser?.id) return;
+      // --- ALL CURSORS (Remote + Local with Advanced Physics Engine) ---
+      // Get delta time from frame timer for frame-independent animation
+      const deltaMs = frameTimer.current.tick();
 
-        // --- VELOCITY-BASED SMOOTH MOVEMENT (No teleporting) ---
-        const now = Date.now();
-        let physics = cursorPhysics.current[cursor.userId];
+      // Update local cursor position from mouseWorldPos (for self-visualization)
+      localCursorRef.current = { x: mouseWorldPos.x, y: mouseWorldPos.y };
 
-        // Initialize physics state if not exists
-        if (!physics) {
-          physics = {
-            x: cursor.x,
-            y: cursor.y,
-            targetX: cursor.x,
-            targetY: cursor.y,
-            angle: 0,
-            targetAngle: 0,
-            velocity: 0,
-            lastUpdateTime: now,
-            prevTargetX: cursor.x,
-            prevTargetY: cursor.y,
-            velocityX: 0,
-            velocityY: 0
-          } as any;
-        }
-
-        // Detect if we received a new target position
-        const targetChanged = physics.targetX !== cursor.x || physics.targetY !== cursor.y;
-        if (targetChanged) {
-          // Store previous target for velocity calculation
-          (physics as any).prevTargetX = physics.targetX;
-          (physics as any).prevTargetY = physics.targetY;
-
-          // Calculate velocity from previous to new target
-          const timeSinceLastUpdate = now - physics.lastUpdateTime;
-          if (timeSinceLastUpdate > 0 && timeSinceLastUpdate < 200) {
-            // Estimate velocity: how fast is the user moving?
-            (physics as any).velocityX = (cursor.x - physics.targetX) / timeSinceLastUpdate;
-            (physics as any).velocityY = (cursor.y - physics.targetY) / timeSinceLastUpdate;
-          }
-
-          physics.targetX = cursor.x;
-          physics.targetY = cursor.y;
-          physics.lastUpdateTime = now;
-        }
-
-        // Calculate direction to target
-        const dx = physics.targetX - physics.x;
-        const dy = physics.targetY - physics.y;
-        const dist = Math.hypot(dx, dy);
-
-        // ADAPTIVE SPEED INTERPOLATION
-        // Move faster when far, slower when close - always smooth
-        const BASE_SPEED = 1.2; // Base pixels per millisecond
-        const deltaTime = 16; // Assume ~60fps (16ms per frame)
-
-        if (dist > 0.5) {
-          // Adaptive speed: faster when further away, subtle acceleration
-          // sqrt scaling gives smooth acceleration curve
-          const distanceFactor = 1 + Math.sqrt(dist) * 0.08; // More speed at distance
-          const adaptiveSpeed = Math.min(BASE_SPEED * deltaTime * distanceFactor, dist * 0.25);
-          const moveX = (dx / dist) * adaptiveSpeed;
-          const moveY = (dy / dist) * adaptiveSpeed;
-
-          physics.x += moveX;
-          physics.y += moveY;
-
-          // If close enough, snap to prevent jitter
-          if (Math.hypot(physics.targetX - physics.x, physics.targetY - physics.y) < 1) {
-            physics.x = physics.targetX;
-            physics.y = physics.targetY;
-          }
-        } else {
-          // Already at target
-          physics.x = physics.targetX;
-          physics.y = physics.targetY;
-        }
-
-        // Update Physics Angle if moving significantly
-        const MIN_MOVE = 2;
-        if (dist > MIN_MOVE) {
-          let targetAngle = Math.atan2(dy, dx);
-          targetAngle += Math.PI / 2;
-
-          let deltaAngle = targetAngle - physics.angle;
-          while (deltaAngle > Math.PI) deltaAngle -= Math.PI * 2;
-          while (deltaAngle < -Math.PI) deltaAngle += Math.PI * 2;
-          physics.targetAngle = physics.angle + deltaAngle;
-        }
-
-        // Interpolate Angle smoothly
-        physics.angle += (physics.targetAngle - physics.angle) * 0.15;
-
-        // Save state
-        cursorPhysics.current[cursor.userId] = physics;
-
-        const effectiveX = physics.x;
-        const effectiveY = physics.y;
-        const effectiveAngle = physics.angle;
-
-
-        // z is already defined at top of render loop as effectiveViewport.zoom
-        const color = cursor.userColor || '#fbbf24';
-
-        // 1. Draw Cursor Shape
-        const shape = getCursorShape(cursor.userShape || 'default');
+      // Helper function to render a single cursor with physics effects
+      const renderCursor = (
+        cursorX: number,
+        cursorY: number,
+        cursorAngle: number,
+        cursorColor: string,
+        cursorShape: string,
+        cursorName: string,
+        isLocal: boolean,
+        scaleX: number = 1,  // Squash & stretch horizontal
+        scaleY: number = 1   // Squash & stretch vertical
+      ) => {
+        const shape = getCursorShape(cursorShape || 'default');
 
         ctx.save();
-        ctx.translate(effectiveX, effectiveY);
+        ctx.translate(cursorX, cursorY);
         ctx.scale(1 / z, 1 / z); // Normalize to screen pixels
 
-        // Apply Rotation (Visual Physics)
-        ctx.rotate(effectiveAngle);
+        // Apply Rotation (Visual Physics) - not for local cursor
+        if (!isLocal) {
+          ctx.rotate(cursorAngle);
+        }
+
+        // Apply Stretch (Squash & Stretch based on velocity)
+        ctx.scale(scaleX, scaleY);
 
         // Render size for the cursor
-        const renderSize = 38;
+        const renderSize = isLocal ? 32 : 38;
 
         // Try to render the React component first
         if (shape.Component) {
-          const cacheKey = `${cursor.userShape || 'default'}_${color}_${renderSize}`;
-          const img = renderCursorToImage(shape.Component, color, renderSize, cacheKey);
+          const cacheKey = `${cursorShape || 'default'}_${cursorColor}_${renderSize}`;
+          const img = renderCursorToImage(shape.Component, cursorColor, renderSize, cacheKey);
 
           if (img && img.complete && img.naturalWidth > 0) {
             ctx.save();
             // Apply simple shadow
             ctx.shadowColor = 'rgba(0,0,0,0.5)';
-            ctx.shadowBlur = 4;
+            ctx.shadowBlur = isLocal ? 3 : 4;
+            // Slightly transparent for local cursor
+            if (isLocal) ctx.globalAlpha = 0.7;
             // Center the image on the cursor position
             ctx.drawImage(img, -renderSize / 2, -renderSize / 2, renderSize, renderSize);
             ctx.restore();
@@ -1105,7 +1037,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
           ctx.scale(shape.scale || 1, shape.scale || 1);
           ctx.translate(-shape.hotspot.x, -shape.hotspot.y);
 
-          ctx.fillStyle = color;
+          ctx.fillStyle = cursorColor;
           ctx.fill(p);
 
           ctx.strokeStyle = '#FFFFFF';
@@ -1116,52 +1048,232 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
 
         ctx.restore();
 
-        // 2. Draw Name Badge
-        // Configure Font
-        ctx.save();
-        // Use interpolated position for smooth label movement
-        ctx.translate(effectiveX, effectiveY);
-        const fontSize = 11;
-        ctx.font = `600 ${fontSize / z}px "Inter", sans-serif`;
-        ctx.textBaseline = 'middle';
-        const textMetrics = ctx.measureText(cursor.userName);
+        // Draw Name Badge (not for local cursor)
+        if (!isLocal && cursorName) {
+          ctx.save();
+          ctx.translate(cursorX, cursorY);
+          const fontSize = 11;
+          ctx.font = `600 ${fontSize / z}px "Inter", sans-serif`;
+          ctx.textBaseline = 'middle';
+          const textMetrics = ctx.measureText(cursorName);
 
-        // Badge Dimensions
-        const paddingX = 6 / z;
-        const paddingY = 3 / z;
-        const badgeHeight = (fontSize + 6) / z;
-        const badgeWidth = textMetrics.width + (paddingX * 2);
+          // Badge Dimensions
+          const paddingX = 6 / z;
+          const badgeHeight = (fontSize + 6) / z;
+          const badgeWidth = textMetrics.width + (paddingX * 2);
 
-        // Badge Position (Offset from cursor)
-        const badgeX = 14 / z;
-        const badgeY = 14 / z;
+          // Badge Position (Offset from cursor)
+          const badgeX = 14 / z;
+          const badgeY = 14 / z;
 
-        // Draw Badge Background
-        ctx.fillStyle = color;
-        const r = 4 / z;
-        const bx = badgeX, by = badgeY, bw = badgeWidth, bh = badgeHeight;
+          // Draw Badge Background
+          ctx.fillStyle = cursorColor;
+          const r = 4 / z;
+          const bx = badgeX, by = badgeY, bw = badgeWidth, bh = badgeHeight;
 
-        ctx.beginPath();
-        ctx.moveTo(bx + r, by);
-        ctx.lineTo(bx + bw - r, by);
-        ctx.quadraticCurveTo(bx + bw, by, bx + bw, by + r);
-        ctx.lineTo(bx + bw, by + bh - r);
-        ctx.quadraticCurveTo(bx + bw, by + bh, bx + bw - r, by + bh);
-        ctx.lineTo(bx + r, by + bh);
-        ctx.quadraticCurveTo(bx, by + bh, bx, by + bh - r);
-        ctx.lineTo(bx, by + r);
-        ctx.quadraticCurveTo(bx, by, bx + r, by);
-        ctx.closePath();
-        ctx.shadowColor = 'rgba(0,0,0,0.3)';
-        ctx.shadowBlur = 4;
-        ctx.fill();
+          ctx.beginPath();
+          ctx.moveTo(bx + r, by);
+          ctx.lineTo(bx + bw - r, by);
+          ctx.quadraticCurveTo(bx + bw, by, bx + bw, by + r);
+          ctx.lineTo(bx + bw, by + bh - r);
+          ctx.quadraticCurveTo(bx + bw, by + bh, bx + bw - r, by + bh);
+          ctx.lineTo(bx + r, by + bh);
+          ctx.quadraticCurveTo(bx, by + bh, bx, by + bh - r);
+          ctx.lineTo(bx, by + r);
+          ctx.quadraticCurveTo(bx, by, bx + r, by);
+          ctx.closePath();
+          ctx.shadowColor = 'rgba(0,0,0,0.3)';
+          ctx.shadowBlur = 4;
+          ctx.fill();
 
-        // Draw Name Text
-        ctx.fillStyle = getContrastColor(color);
-        ctx.fillText(cursor.userName, badgeX + paddingX, badgeY + (badgeHeight / 2));
+          // Draw Name Text
+          ctx.fillStyle = getContrastColor(cursorColor);
+          ctx.fillText(cursorName, badgeX + paddingX, badgeY + (badgeHeight / 2));
 
-        ctx.restore();
+          ctx.restore();
+        }
+      };
+
+      // Render REMOTE cursors with physics engine
+      Object.values(remoteCursors).forEach((cursor: any) => {
+        if (cursor.userId === currentUser?.id) return;
+
+        // Only process server update if position actually changed (prevents teleportation)
+        const lastProcessed = lastProcessedCursorsRef.current[cursor.userId];
+        const positionChanged = !lastProcessed ||
+          lastProcessed.x !== cursor.x ||
+          lastProcessed.y !== cursor.y;
+
+        if (positionChanged) {
+          // Process server update through physics engine (handles prediction + latency)
+          cursorEngine.processServerUpdate(cursor.userId, {
+            x: cursor.x,
+            y: cursor.y,
+            timestamp: cursor.timestamp,
+            velocityX: cursor.velocityX,
+            velocityY: cursor.velocityY,
+          });
+          lastProcessedCursorsRef.current[cursor.userId] = { x: cursor.x, y: cursor.y };
+        }
+
+        // ALWAYS tick physics simulation each frame (spring interpolation)
+        cursorEngine.tick(cursor.userId, deltaMs);
+
+        // Get render data from engine
+        const renderData = cursorEngine.getRenderData(cursor.userId);
+        if (!renderData) return;
+
+        const cursorColor = cursor.userColor || '#fbbf24';
+        const now = performance.now();
+
+        // --- RENDER TRAIL PARTICLES ---
+        // Draw fading circles behind the cursor based on trail history
+        const trailMaxAge = 400; // ms - how long trail particles last
+        for (let i = 0; i < renderData.trailHistory.length; i++) {
+          const trail = renderData.trailHistory[i];
+          const age = now - trail.time;
+          if (age > trailMaxAge) continue;
+
+          const alpha = 1 - (age / trailMaxAge); // Fade out based on age
+          const size = (4 + (i * 0.3)) / z; // Larger particles further back
+
+          ctx.beginPath();
+          ctx.arc(trail.x, trail.y, size, 0, Math.PI * 2);
+          ctx.fillStyle = cursorColor;
+          ctx.globalAlpha = alpha * 0.4;
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1; // Reset alpha
+
+        // Calculate Squash & Stretch from velocity
+        const STRETCH_FACTOR = 0.05;
+        const velocity = Math.sqrt(renderData.velocity.x ** 2 + renderData.velocity.y ** 2);
+        let stretchScaleY = 1 + Math.min(velocity * STRETCH_FACTOR, 0.5);
+        let stretchScaleX = 1 - Math.min(velocity * STRETCH_FACTOR * 0.5, 0.2);
+
+        // Apply click scale effect (shrink when clicking)
+        if (renderData.isClicking) {
+          stretchScaleX *= 0.6;
+          stretchScaleY *= 0.6;
+        }
+
+        renderCursor(
+          renderData.position.x,
+          renderData.position.y,
+          renderData.angle,
+          cursorColor,
+          cursor.userShape || 'default',
+          cursor.userName || '?',
+          false,
+          stretchScaleX,
+          stretchScaleY
+        );
       });
+
+      // Local cursor is now handled by CustomCursor DOM component
+      // (See MapCanvas.tsx CustomCursor with physics animation)
+
+      // --- CURSOR COLLISION DETECTION & EXPLOSION ---
+      // Collect all cursor positions (remote only for now)
+      const cursorPositions: { id: string; x: number; y: number; color: string; }[] = [];
+      Object.values(remoteCursors).forEach((cursor: any) => {
+        if (cursor.userId === currentUser?.id) return;
+        const renderData = cursorEngine.getRenderData(cursor.userId);
+        if (renderData) {
+          cursorPositions.push({
+            id: cursor.userId,
+            x: renderData.position.x,
+            y: renderData.position.y,
+            color: cursor.userColor || '#fbbf24',
+          });
+        }
+      });
+
+      // Add local cursor if user exists
+      if (currentUser) {
+        cursorPositions.push({
+          id: currentUser.id,
+          x: mouseWorldPos.x,
+          y: mouseWorldPos.y,
+          color: permissions?.cursorOverrides?.[currentUser.id]?.color || props.cursorSettings?.color || '#3b82f6',
+        });
+      }
+
+      // Check for collisions and create explosions
+      const COLLISION_DISTANCE = 50 / z; // 50 screen pixels
+      const EXPLOSION_COOLDOWN = 800; // ms
+      const collisionTime = performance.now();
+
+      for (let i = 0; i < cursorPositions.length; i++) {
+        for (let j = i + 1; j < cursorPositions.length; j++) {
+          const a = cursorPositions[i];
+          const b = cursorPositions[j];
+          const dist = Math.hypot(a.x - b.x, a.y - b.y);
+
+          if (dist < COLLISION_DISTANCE) {
+            const collisionKey = [a.id, b.id].sort().join('_');
+            const lastCollision = cursorCollisionsRef.current.get(collisionKey) || 0;
+
+            if (collisionTime - lastCollision > EXPLOSION_COOLDOWN) {
+              cursorCollisionsRef.current.set(collisionKey, collisionTime);
+              // Add explosion at midpoint
+              cursorExplosionsRef.current.push({
+                x: (a.x + b.x) / 2,
+                y: (a.y + b.y) / 2,
+                time: collisionTime,
+                colors: [a.color, b.color],
+              });
+            }
+          }
+        }
+      }
+
+      // Render active explosions
+      const explosions = cursorExplosionsRef.current;
+      const EXPLOSION_DURATION = 600; // ms
+      for (let i = explosions.length - 1; i >= 0; i--) {
+        const exp = explosions[i];
+        const age = collisionTime - exp.time;
+        if (age > EXPLOSION_DURATION) {
+          explosions.splice(i, 1);
+          continue;
+        }
+
+        const progress = age / EXPLOSION_DURATION;
+        const alpha = 1 - progress;
+        const radius = (20 + progress * 60) / z;
+
+        // Draw expanding rings
+        for (let ring = 0; ring < 3; ring++) {
+          const ringProgress = Math.max(0, progress - ring * 0.15);
+          const ringRadius = (10 + ringProgress * 50) / z;
+          const ringAlpha = (1 - ringProgress) * 0.6;
+
+          ctx.beginPath();
+          ctx.arc(exp.x, exp.y, ringRadius, 0, Math.PI * 2);
+          ctx.strokeStyle = exp.colors[ring % exp.colors.length];
+          ctx.globalAlpha = ringAlpha;
+          ctx.lineWidth = 3 / z;
+          ctx.stroke();
+        }
+
+        // Draw particle burst
+        const particleCount = 12;
+        for (let p = 0; p < particleCount; p++) {
+          const angle = (p / particleCount) * Math.PI * 2;
+          const dist = radius * progress * 1.5;
+          const px = exp.x + Math.cos(angle) * dist;
+          const py = exp.y + Math.sin(angle) * dist;
+          const pSize = (4 - progress * 3) / z;
+
+          ctx.beginPath();
+          ctx.arc(px, py, Math.max(0.5, pSize), 0, Math.PI * 2);
+          ctx.fillStyle = exp.colors[p % exp.colors.length];
+          ctx.globalAlpha = alpha * 0.8;
+          ctx.fill();
+        }
+      }
+      ctx.globalAlpha = 1;
 
       ctx.restore();
       animationFrameId = requestAnimationFrame(render);

@@ -39,6 +39,8 @@ interface UseMapInteractionProps extends MapCanvasProps {
   viewportRef?: React.MutableRefObject<{ x: number, y: number, zoom: number; }>;
   // PERFORMANCE: Ref for immediate mouse position (avoids React state batching lag)
   mouseWorldPosRef?: React.MutableRefObject<{ x: number, y: number; }>;
+  // DOM-based screen-position click animation callback
+  addScreenClickAnimation?: (screenX: number, screenY: number, color: string, style: string) => void;
 }
 
 export const useMapInteraction = (props: UseMapInteractionProps) => {
@@ -56,7 +58,10 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
     isPlacingAttackZone, onUpdatePreviewOrigin, onConfirmAttackZonePlacement, onCancelAttackZonePlacement
   } = props;
 
-  const { removeObstacle, ui, audioSettings, removeAudioZone, handouts, addDrawing, removeDrawing, drawingSettings, rulerSettings, permissionHelper } = useGameSession();
+  const {
+    removeObstacle, ui, audioSettings, removeAudioZone, handouts, addDrawing, removeDrawing, drawingSettings,
+    rulerSettings, permissionHelper, setCursorClickState
+  } = useGameSession();
   const { openModal, closeModal } = useModal();
 
   const isDrawingTool = ['draw-wall', 'draw-door', 'draw-window', 'fog-poly', 'fog-rect', 'measure-path', 'eraser', 'draw-light-rect', 'draw-light-poly', 'draw-audio-rect', 'draw-audio-poly', 'eraser-audio', 'draw-trigger-rect', 'draw-trigger-poly', 'eraser-trigger', 'brush', 'eraser-drawing', 'smart-wall'].includes(activeTool);
@@ -362,6 +367,9 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
     const clickedDrawing = findDrawingAt(worldPos.x, worldPos.y);
     const clickedAttackZone = findAttackZoneAt(worldPos.x, worldPos.y);
 
+    // Notify usage of click for remote cursor feedback
+    setCursorClickState(true);
+
     if (e.button === 1 || (e.button === 0 && (e.metaKey || e.ctrlKey))) { setIsPanning(true); return; }
 
     if (e.button === 2) {
@@ -540,6 +548,9 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
 
   const handleMouseUp = (e: React.MouseEvent) => {
     if (isPanning) { setIsPanning(false); return; }
+    // Remote cursor click release
+    setCursorClickState(false);
+
     if (draggedAttackZone) { setDraggedAttackZone(null); return; }
 
     if (dragState.current.isDragging && dragState.current.token) {

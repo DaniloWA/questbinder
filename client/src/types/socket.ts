@@ -141,6 +141,11 @@ export interface CursorMovePayload {
   userShape?: string;
   x: number; // World coordinates (not grid)
   y: number;
+  // Animation engine fields for smooth interpolation
+  timestamp?: number;    // Client send time (for latency estimation)
+  velocityX?: number;    // Movement velocity hint (pixels/ms)
+  velocityY?: number;
+  isClicking?: boolean;  // Mouse button pressed (for click feedback)
 }
 
 export interface TokenAddPayload {

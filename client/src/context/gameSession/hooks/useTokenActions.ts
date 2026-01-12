@@ -22,6 +22,10 @@ export const useTokenActions = (
   const lastCursorEmitRef = useRef<number>(0);
   const pendingCursorRef = useRef<{ x: number; y: number; } | null>(null);
   const cursorRAFRef = useRef<number | null>(null);
+  // Velocity tracking for smooth receiver interpolation
+  const prevCursorPosRef = useRef<{ x: number; y: number; time: number; } | null>(null);
+  // Click state tracking (for remote click feedback)
+  const isClickingRef = useRef<boolean>(false);
 
   const moveToken = useCallback((tokenId: string, newX: number, newY: number) => {
     const scene = activeScene;
@@ -275,21 +279,46 @@ export const useTokenActions = (
     // Store pending position
     pendingCursorRef.current = { x, y };
 
-    // If enough time has passed since last emit, send immediately
-    if (now - lastCursorEmitRef.current >= CURSOR_THROTTLE_MS) {
+    // Calculate velocity from previous position
+    let velocityX = 0;
+    let velocityY = 0;
+    const prev = prevCursorPosRef.current;
+    if (prev) {
+      const dt = now - prev.time;
+      if (dt > 0 && dt < 200) { // Reasonable time window
+        velocityX = (x - prev.x) / dt;
+        velocityY = (y - prev.y) / dt;
+      }
+    }
+
+    // Helper to build payload with all animation fields
+    const buildPayload = (px: number, py: number, vx: number, vy: number) => {
       const userId = user?.id || '';
       const override = (state.permissions?.cursorOverrides?.[userId] || {}) as { color?: string, shape?: string, name?: string; };
       const settings = state.cursorSettings || {} as { color?: string, shape?: string, name?: string; };
 
-      socketService.emit('cursor:move', {
+      return {
         userId,
         userName: override.name || (settings as any).name || user?.name || '?',
         userColor: override.color || (settings as any).color || '#fbbf24',
         userShape: override.shape || (settings as any).shape || 'default',
-        x, y
-      });
+        x: px,
+        y: py,
+        // Animation engine fields for smooth interpolation
+        timestamp: Date.now(),
+        velocityX: vx,
+        velocityY: vy,
+        isClicking: isClickingRef.current, // For remote click feedback
+      };
+    };
 
+    // If enough time has passed since last emit, send immediately
+    if (now - lastCursorEmitRef.current >= CURSOR_THROTTLE_MS) {
+      socketService.emit('cursor:move', buildPayload(x, y, velocityX, velocityY));
+
+      // Update tracking refs
       lastCursorEmitRef.current = now;
+      prevCursorPosRef.current = { x, y, time: now };
       pendingCursorRef.current = null;
       return;
     }
@@ -298,27 +327,34 @@ export const useTokenActions = (
     if (cursorRAFRef.current === null) {
       cursorRAFRef.current = requestAnimationFrame(() => {
         const pending = pendingCursorRef.current;
-        if (pending && Date.now() - lastCursorEmitRef.current >= CURSOR_THROTTLE_MS) {
-          const userId = user?.id || '';
-          const override = (state.permissions?.cursorOverrides?.[userId] || {}) as { color?: string, shape?: string, name?: string; };
-          const settings = state.cursorSettings || {} as { color?: string, shape?: string, name?: string; };
+        const emitNow = Date.now();
+        if (pending && emitNow - lastCursorEmitRef.current >= CURSOR_THROTTLE_MS) {
+          // Recalculate velocity at emit time
+          let vx = 0, vy = 0;
+          const prevPos = prevCursorPosRef.current;
+          if (prevPos) {
+            const dt = emitNow - prevPos.time;
+            if (dt > 0 && dt < 200) {
+              vx = (pending.x - prevPos.x) / dt;
+              vy = (pending.y - prevPos.y) / dt;
+            }
+          }
 
-          socketService.emit('cursor:move', {
-            userId,
-            userName: override.name || (settings as any).name || user?.name || '?',
-            userColor: override.color || (settings as any).color || '#fbbf24',
-            userShape: override.shape || (settings as any).shape || 'default',
-            x: pending.x,
-            y: pending.y
-          });
+          socketService.emit('cursor:move', buildPayload(pending.x, pending.y, vx, vy));
 
-          lastCursorEmitRef.current = Date.now();
+          lastCursorEmitRef.current = emitNow;
+          prevCursorPosRef.current = { x: pending.x, y: pending.y, time: emitNow };
         }
         pendingCursorRef.current = null;
         cursorRAFRef.current = null;
       });
     }
   };
+
+  // Update click state for cursor feedback (called from useMapInteraction)
+  const setCursorClickState = useCallback((clicking: boolean) => {
+    isClickingRef.current = clicking;
+  }, []);
 
   return {
     moveToken,
@@ -330,6 +366,7 @@ export const useTokenActions = (
     selectToken,
     clearSelection,
     emitTokenDrag,
-    emitCursorMove
+    emitCursorMove,
+    setCursorClickState, // For remote click feedback
   };
 };

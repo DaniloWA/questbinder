@@ -256,6 +256,7 @@ export interface GameSessionContextType extends GameSessionState {
 
   emitTokenDrag: (id: string, x: number, y: number, path: { x: number, y: number; }[]) => void;
   emitCursorMove: (x: number, y: number) => void;
+  setCursorClickState: (clicking: boolean) => void; // For remote click feedback
   pullView: (targetId: string | 'all', x: number, y: number, zoom: number) => void;
   toggleFollowMode: (active: boolean, targets?: string[] | 'all') => void;
 
