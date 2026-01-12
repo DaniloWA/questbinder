@@ -27,7 +27,7 @@ export const TIER_CONFIGS = {
     maxPlayers: Infinity,
     maxStorageMB: 10000,
     maxConcurrentGames: Infinity,
-    features: new Set(['dynamicLighting', 'customAssets', 'advancedFog', 'apiAccess', 'bulkImport'])
+    features: new Set(['dynamicLighting', 'customAssets', 'advancedFog', 'apiAccess', 'bulkImport', 'attackZones'])
   }
 };
 

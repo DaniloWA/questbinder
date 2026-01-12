@@ -21,9 +21,9 @@ export const registerAttackZoneHandlers = (socket, client, utils) => {
       if (!client.campaignId) return;
 
       const helper = await utils.getPermissionHelper();
-      if (!helper.isGameMaster()) {
-        console.warn('[WS] attackZone:add denied: not GM');
-        return safeEmitError('Apenas o GM pode criar zonas de ataque.');
+      if (!helper.can('attackZoneCreate')) {
+        console.warn('[WS] attackZone:add denied: missing attackZoneCreate permission');
+        return safeEmitError('Permissão negada para criar zonas de ataque.');
       }
 
       const validation = validatePayload(payload, ['zone']);
@@ -57,9 +57,9 @@ export const registerAttackZoneHandlers = (socket, client, utils) => {
       if (!client.campaignId) return;
 
       const helper = await utils.getPermissionHelper();
-      if (!helper.isGameMaster()) {
-        console.warn('[WS] attackZone:update denied: not GM');
-        return safeEmitError('Apenas o GM pode editar zonas de ataque.');
+      if (!helper.can('attackZoneCreate')) {
+        console.warn('[WS] attackZone:update denied: missing attackZoneCreate permission');
+        return safeEmitError('Permissão negada para editar zonas de ataque.');
       }
 
       const validation = validatePayload(payload, ['zoneId', 'updates']);
@@ -91,9 +91,9 @@ export const registerAttackZoneHandlers = (socket, client, utils) => {
       if (!client.campaignId) return;
 
       const helper = await utils.getPermissionHelper();
-      if (!helper.isGameMaster()) {
-        console.warn('[WS] attackZone:remove denied: not GM');
-        return safeEmitError('Apenas o GM pode remover zonas de ataque.');
+      if (!helper.can('attackZoneCreate')) {
+        console.warn('[WS] attackZone:remove denied: missing attackZoneCreate permission');
+        return safeEmitError('Permissão negada para remover zonas de ataque.');
       }
 
       const validation = validatePayload(payload, ['zoneId']);

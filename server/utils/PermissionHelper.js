@@ -219,7 +219,8 @@ class PermissionHelper {
     const permissionKeys = [
       'tokenCreate', 'tokenEdit', 'tokenDelete', 'tokenMovement',
       'drawings', 'drawingDelete', 'fogReveal', 'doorControl',
-      'pingMap', 'measure', 'diceRolling', 'sheetEdit', 'compendiumBrowse'
+      'pingMap', 'measure', 'diceRolling', 'sheetEdit', 'compendiumBrowse',
+      'attackZoneCreate', 'attackZoneUse'
     ];
 
     permissionKeys.forEach(key => {
