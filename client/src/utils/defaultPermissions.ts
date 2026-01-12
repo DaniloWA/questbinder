@@ -64,6 +64,7 @@ export const getDefaultPermissions = (): SessionPermissions => ({
   cursorAllowNameChange: true,
   cursorAllowAnimationChange: true,
   cursorAllowAnimationColorChange: true,
+  cursorAllowTrailChange: true,
 
   // Chat Defaults
   chatGlobalAllowed: true,

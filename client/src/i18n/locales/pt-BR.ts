@@ -132,6 +132,89 @@ export default {
   },
 
   vtt: {
+    cursor: {
+      settings: {
+        title: 'Configurações de Cursor',
+        editingLabel: 'Editando',
+        myCursor: 'Meu Cursor',
+        playersLabel: 'Jogadores',
+        noPlayers: 'Nenhum jogador online',
+        defaultName: 'Nome',
+        setOverride: 'Definir Override',
+        clearOverride: 'Limpar',
+      },
+      editor: {
+        tabs: {
+          general: 'Geral',
+          animations: 'Animações',
+          ping: 'Ping',
+          trail: 'Rastro',
+          options: 'Opções',
+        },
+        general: {
+          shape: { label: 'Formato' },
+          name: { label: 'Nome de Exibição' },
+          color: { label: 'Cor Principal' },
+        },
+        animations: {
+          style: { label: 'Estilo do Clique' },
+          leftColor: { label: 'Botão Esquerdo' },
+          rightColor: { label: 'Botão Direito' },
+        },
+        ping: {
+          style: { label: 'Estilo do Ping' },
+          color: { label: 'Cor do Ping' },
+        },
+        preview: {
+          left: 'Clique Esq.',
+          right: 'Clique Dir.',
+          ping: 'Ping (Segurar)',
+        },
+        trail: {
+          enable: 'Habilitar Rastro/Trilha',
+          style: 'Estilo do Rastro',
+          color: 'Cor do Rastro',
+          length: 'Comprimento',
+        },
+        options: {
+          showOthersTrails: 'Ver Rastros de Outros',
+          showMyTrail: 'Ver Meu Rastro',
+          explosionOnCollision: 'Explosão ao Colidir',
+        },
+        overrides: {
+          gmSet: 'Definido pelo Mestre',
+          locked: 'Bloqueado',
+        },
+      },
+      animations: {
+        ripple: 'Onda',
+        burst: 'Explosão',
+        sparkle: 'Brilho',
+        pulse: 'Pulso',
+        vortex: 'Vórtice',
+        shard: 'Estilhaços',
+        ring: 'Anel',
+        echo: 'Eco',
+        orb: 'Orbe',
+      },
+      pings: {
+        radar: 'Radar',
+        beacon: 'Farol',
+        sonar: 'Sonar',
+        target: 'Alvo',
+        flare: 'Chama',
+        diamond: 'Diamante',
+        cross: 'Cruz',
+      },
+      trails: {
+        line: 'Linha Suave',
+        particles: 'Partículas',
+        dice: 'Dados (D20)',
+        sparkles: 'Estrelas',
+        smoke: 'Fumaça',
+        electric: 'Elétrico',
+      },
+    },
     tools: {
       toolbar: {
         selectTool: {
@@ -349,6 +432,7 @@ export default {
             },
           },
         },
+
         gmTools: {
           group: {
             label: 'Mestre',
@@ -2706,101 +2790,6 @@ export default {
       },
       level: {
         label: 'Nível',
-      },
-    },
-    cursor: {
-      settingsModal: {
-        noPlayers: {
-          text: 'Nenhum jogador.',
-        },
-        save: {
-          button: 'Salvar',
-        },
-        cancel: {
-          button: 'Cancelar',
-        },
-        players: {
-          title: 'Jogadores',
-        },
-      },
-      editor: {
-        displayName: {
-          label: 'Nome de Exibição',
-        },
-        tabs: {
-          general: 'Geral',
-          animations: 'Animações',
-          ping: 'Ping',
-        },
-        general: {
-          shape: {
-            label: 'Formato',
-          },
-          name: {
-            label: 'Nome de Exibição',
-          },
-          color: {
-            label: 'Cor Principal',
-          },
-        },
-        overrides: {
-          gmSet: 'Definido pelo GM',
-          locked: 'Bloqueado',
-        },
-        preview: {
-          left: 'Esquerdo',
-          right: 'Direito',
-          ping: 'Visualização do Ping',
-        },
-        animations: {
-          style: {
-            label: 'Estilo da Animação',
-          },
-          leftColor: {
-            label: 'Cor Esquerdo',
-          },
-          rightColor: {
-            label: 'Cor Direito',
-          },
-        },
-        ping: {
-          style: {
-            label: 'Estilo do Ping',
-          },
-          color: {
-            label: 'Cor do Ping',
-          },
-        },
-      },
-      settings: {
-        title: 'Cursores',
-        editingLabel: 'Editando',
-        myCursor: 'Meu Cursor',
-        playersLabel: 'JOGADORES',
-        noPlayers: 'Nenhum jogador.',
-        setOverride: 'Definir override',
-        clearOverride: 'Limpar',
-        defaultName: 'Nome',
-      },
-      animations: {
-        ripple: 'Ondas',
-        burst: 'Explosão',
-        sparkle: 'Brilho',
-        pulse: 'Pulso',
-        vortex: 'Vórtice',
-        shard: 'Fragmento',
-        ring: 'Anéis',
-        echo: 'Eco',
-        orb: 'Orbe',
-      },
-      pings: {
-        radar: 'Radar',
-        beacon: 'Farol',
-        sonar: 'Sonar',
-        target: 'Alvo',
-        flare: 'Flare',
-        diamond: 'Diamante',
-        cross: 'Cruz',
       },
     },
     mapContext: {

@@ -1098,6 +1098,9 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
       Object.values(remoteCursors).forEach((cursor: any) => {
         if (cursor.userId === currentUser?.id) return;
 
+        // Check legacy permission (default true)
+        const showTrails = props.cursorSettings?.showOthersTrails !== false;
+
         // Only process server update if position actually changed (prevents teleportation)
         const lastProcessed = lastProcessedCursorsRef.current[cursor.userId];
         const positionChanged = !lastProcessed ||
@@ -1112,6 +1115,12 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
             timestamp: cursor.timestamp,
             velocityX: cursor.velocityX,
             velocityY: cursor.velocityY,
+            // Pass new fields to engine
+            healthStatus: cursor.healthStatus,
+            trailAnimation: cursor.trailAnimation,
+            trailColor: cursor.trailColor,
+            trailEnabled: cursor.trailEnabled,
+            trailCustomImage: cursor.trailCustomImage,
           });
           lastProcessedCursorsRef.current[cursor.userId] = { x: cursor.x, y: cursor.y };
         }
@@ -1126,22 +1135,179 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
         const cursorColor = cursor.userColor || '#fbbf24';
         const now = performance.now();
 
-        // --- RENDER TRAIL PARTICLES ---
-        // Draw fading circles behind the cursor based on trail history
-        const trailMaxAge = 400; // ms - how long trail particles last
-        for (let i = 0; i < renderData.trailHistory.length; i++) {
-          const trail = renderData.trailHistory[i];
-          const age = now - trail.time;
-          if (age > trailMaxAge) continue;
+        // --- RENDER CURSOR TRAIL ---
+        if (showTrails && (renderData.trailConfig?.enabled || renderData.healthStatus !== 'healthy')) {
+          const trailColor = renderData.trailConfig.color || cursorColor;
+          let animation = renderData.trailConfig.animation || 'line';
 
-          const alpha = 1 - (age / trailMaxAge); // Fade out based on age
-          const size = (4 + (i * 0.3)) / z; // Larger particles further back
+          // Health Override
+          if (renderData.healthStatus === 'bloodied' || renderData.healthStatus === 'unconscious') {
+            animation = 'blood'; // Force blood trail
+          }
 
-          ctx.beginPath();
-          ctx.arc(trail.x, trail.y, size, 0, Math.PI * 2);
-          ctx.fillStyle = cursorColor;
-          ctx.globalAlpha = alpha * 0.4;
-          ctx.fill();
+          const history = renderData.trailHistory;
+          const trailMaxAge = renderData.healthStatus === 'unconscious' ? 1000 : 400;
+
+          if (animation === 'line') {
+            // Smooth Line
+            if (history.length > 2) {
+              ctx.save();
+              ctx.beginPath();
+              // Move to oldest point
+              const start = history[0];
+              ctx.moveTo(start.x, start.y);
+              // Draw curves through points
+              for (let i = 1; i < history.length - 1; i++) {
+                const p0 = history[i];
+                const p1 = history[i + 1];
+                const midX = (p0.x + p1.x) / 2;
+                const midY = (p0.y + p1.y) / 2;
+                ctx.quadraticCurveTo(p0.x, p0.y, midX, midY);
+              }
+              // Connect to current position
+              ctx.lineTo(renderData.position.x, renderData.position.y);
+
+              ctx.lineCap = 'round';
+              ctx.lineJoin = 'round';
+              ctx.lineWidth = 4 / z;
+              ctx.strokeStyle = adjustAlpha(trailColor, 0.4);
+              ctx.stroke();
+              // Core
+              ctx.lineWidth = 1 / z;
+              ctx.strokeStyle = adjustAlpha(trailColor, 0.8);
+              ctx.stroke();
+              ctx.restore();
+            }
+
+          } else if (animation === 'particles' || animation === 'sparkles' || animation === 'smoke' || animation === 'electric') {
+            // Particle Systems
+            for (let i = 0; i < history.length; i++) {
+              const trail = history[i];
+              const age = now - trail.time;
+              if (age > trailMaxAge) continue;
+
+              const progress = age / trailMaxAge; // 0 to 1
+              const alpha = 1 - progress;
+
+              const seed = (trail.time % 100) / 100;
+              const size = ((4 + (i * 0.2)) * (1 - progress * 0.5)) / z;
+
+              ctx.save();
+              ctx.translate(trail.x, trail.y);
+              ctx.fillStyle = trailColor;
+              ctx.globalAlpha = alpha * 0.6;
+
+              if (animation === 'sparkles') {
+                // Draw Stars
+                const rot = progress * Math.PI;
+                ctx.rotate(rot);
+                ctx.beginPath();
+                for (let k = 0; k < 5; k++) {
+                  ctx.lineTo(Math.cos((18 + k * 72) / 180 * Math.PI) * size, -Math.sin((18 + k * 72) / 180 * Math.PI) * size);
+                  ctx.lineTo(Math.cos((54 + k * 72) / 180 * Math.PI) * size * 0.4, -Math.sin((54 + k * 72) / 180 * Math.PI) * size * 0.4);
+                }
+                ctx.closePath();
+                ctx.fill();
+              } else if (animation === 'smoke') {
+                // Smoky circles
+                const driftY = -age * 0.05 / z; // Rise up
+                ctx.translate(0, driftY);
+                ctx.beginPath();
+                ctx.arc(0, 0, size * 2, 0, Math.PI * 2);
+                ctx.fillStyle = '#666666'; // Smoke color
+                ctx.fill();
+              } else if (animation === 'electric') {
+                // Jittery lines
+                const jitterX = (Math.random() - 0.5) * 10 / z;
+                const jitterY = (Math.random() - 0.5) * 10 / z;
+                ctx.translate(jitterX, jitterY);
+                ctx.strokeStyle = '#00ffff';
+                ctx.lineWidth = 1 / z;
+                ctx.beginPath(); ctx.moveTo(-size, -size); ctx.lineTo(size, size); ctx.stroke();
+              } else {
+                // Standard Particles
+                ctx.beginPath();
+                ctx.arc(0, 0, size, 0, Math.PI * 2);
+                ctx.fill();
+              }
+              ctx.restore();
+            }
+
+          } else if (animation === 'dice') {
+            // Falling Dice
+            for (let i = 0; i < history.length; i++) {
+              const trail = history[i];
+              const age = now - trail.time;
+              if (age > trailMaxAge * 1.5) continue; // Dice last longer
+
+              const progress = age / (trailMaxAge * 1.5);
+              const alpha = 1 - Math.pow(progress, 3);
+
+              // Pseudo-random based on time
+              const val = Math.floor((trail.time % 20)) + 1;
+              const size = 16 / z;
+
+              ctx.save();
+              ctx.translate(trail.x, trail.y);
+              // Spin and fall
+              ctx.rotate((age * 0.005) + (trail.time % Math.PI));
+              ctx.translate(0, age * 0.05 / z); // Gravity
+
+              ctx.globalAlpha = alpha;
+              ctx.fillStyle = '#FFFFFF';
+              ctx.strokeStyle = trailColor;
+              ctx.lineWidth = 1 / z;
+
+              // Hexagon shape
+              ctx.beginPath();
+              for (let s = 0; s < 6; s++) {
+                const angle = 2 * Math.PI / 6 * s;
+                ctx.lineTo(size * Math.cos(angle), size * Math.sin(angle));
+              }
+              ctx.closePath();
+              ctx.fill();
+              ctx.stroke();
+
+              // Number
+              ctx.fillStyle = trailColor;
+              ctx.font = `bold ${10 / z}px sans-serif`;
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillText(val.toString(), 0, 0);
+
+              ctx.restore();
+            }
+
+          } else if (animation === 'blood') {
+            // Blood drops
+            for (let i = 0; i < history.length; i++) {
+              const trail = history[i];
+              const age = now - trail.time;
+              const maxAge = trailMaxAge * 2; // Stays longer
+              if (age > maxAge) continue;
+
+              const progress = age / maxAge;
+              const alpha = 1 - Math.pow(progress, 0.5); // Fade slow
+
+              // Consistent Random Logic
+              const rand = (trail.time % 100) / 100;
+              const size = (3 + (rand * 4)) / z;
+
+              ctx.save();
+              ctx.translate(trail.x, trail.y);
+              // Drip down logic? Or just stay on ground. 
+              // "Blood trail" usually stays on ground.
+              // But cursor moves fast. Let's make it drip slightly or just static spots.
+
+              ctx.globalAlpha = alpha * 0.8;
+              ctx.fillStyle = '#8a0b0b'; // Deep red
+
+              ctx.beginPath();
+              ctx.arc(0, 0, size, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.restore();
+            }
+          }
         }
         ctx.globalAlpha = 1; // Reset alpha
 
@@ -1174,105 +1340,109 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
       // (See MapCanvas.tsx CustomCursor with physics animation)
 
       // --- CURSOR COLLISION DETECTION & EXPLOSION ---
-      // Collect all cursor positions (remote only for now)
-      const cursorPositions: { id: string; x: number; y: number; color: string; }[] = [];
-      Object.values(remoteCursors).forEach((cursor: any) => {
-        if (cursor.userId === currentUser?.id) return;
-        const renderData = cursorEngine.getRenderData(cursor.userId);
-        if (renderData) {
+      // Check collision explosion setting
+      if (props.cursorSettings?.explosionOnCollision !== false) {
+
+        // Collect all cursor positions (remote only for now)
+        const cursorPositions: { id: string; x: number; y: number; color: string; }[] = [];
+        Object.values(remoteCursors).forEach((cursor: any) => {
+          if (cursor.userId === currentUser?.id) return;
+          const renderData = cursorEngine.getRenderData(cursor.userId);
+          if (renderData) {
+            cursorPositions.push({
+              id: cursor.userId,
+              x: renderData.position.x,
+              y: renderData.position.y,
+              color: cursor.userColor || '#fbbf24',
+            });
+          }
+        });
+
+        // Add local cursor if user exists
+        if (currentUser) {
           cursorPositions.push({
-            id: cursor.userId,
-            x: renderData.position.x,
-            y: renderData.position.y,
-            color: cursor.userColor || '#fbbf24',
+            id: currentUser.id,
+            x: mouseWorldPos.x,
+            y: mouseWorldPos.y,
+            color: permissions?.cursorOverrides?.[currentUser.id]?.color || props.cursorSettings?.color || '#3b82f6',
           });
         }
-      });
 
-      // Add local cursor if user exists
-      if (currentUser) {
-        cursorPositions.push({
-          id: currentUser.id,
-          x: mouseWorldPos.x,
-          y: mouseWorldPos.y,
-          color: permissions?.cursorOverrides?.[currentUser.id]?.color || props.cursorSettings?.color || '#3b82f6',
-        });
-      }
+        // Check for collisions and create explosions
+        const COLLISION_DISTANCE = 50 / z; // 50 screen pixels
+        const EXPLOSION_COOLDOWN = 800; // ms
+        const collisionTime = performance.now();
 
-      // Check for collisions and create explosions
-      const COLLISION_DISTANCE = 50 / z; // 50 screen pixels
-      const EXPLOSION_COOLDOWN = 800; // ms
-      const collisionTime = performance.now();
+        for (let i = 0; i < cursorPositions.length; i++) {
+          for (let j = i + 1; j < cursorPositions.length; j++) {
+            const a = cursorPositions[i];
+            const b = cursorPositions[j];
+            const dist = Math.hypot(a.x - b.x, a.y - b.y);
 
-      for (let i = 0; i < cursorPositions.length; i++) {
-        for (let j = i + 1; j < cursorPositions.length; j++) {
-          const a = cursorPositions[i];
-          const b = cursorPositions[j];
-          const dist = Math.hypot(a.x - b.x, a.y - b.y);
+            if (dist < COLLISION_DISTANCE) {
+              const collisionKey = [a.id, b.id].sort().join('_');
+              const lastCollision = cursorCollisionsRef.current.get(collisionKey) || 0;
 
-          if (dist < COLLISION_DISTANCE) {
-            const collisionKey = [a.id, b.id].sort().join('_');
-            const lastCollision = cursorCollisionsRef.current.get(collisionKey) || 0;
-
-            if (collisionTime - lastCollision > EXPLOSION_COOLDOWN) {
-              cursorCollisionsRef.current.set(collisionKey, collisionTime);
-              // Add explosion at midpoint
-              cursorExplosionsRef.current.push({
-                x: (a.x + b.x) / 2,
-                y: (a.y + b.y) / 2,
-                time: collisionTime,
-                colors: [a.color, b.color],
-              });
+              if (collisionTime - lastCollision > EXPLOSION_COOLDOWN) {
+                cursorCollisionsRef.current.set(collisionKey, collisionTime);
+                // Add explosion at midpoint
+                cursorExplosionsRef.current.push({
+                  x: (a.x + b.x) / 2,
+                  y: (a.y + b.y) / 2,
+                  time: collisionTime,
+                  colors: [a.color, b.color],
+                });
+              }
             }
           }
         }
-      }
 
-      // Render active explosions
-      const explosions = cursorExplosionsRef.current;
-      const EXPLOSION_DURATION = 600; // ms
-      for (let i = explosions.length - 1; i >= 0; i--) {
-        const exp = explosions[i];
-        const age = collisionTime - exp.time;
-        if (age > EXPLOSION_DURATION) {
-          explosions.splice(i, 1);
-          continue;
+        // Render active explosions
+        const explosions = cursorExplosionsRef.current;
+        const EXPLOSION_DURATION = 600; // ms
+        for (let i = explosions.length - 1; i >= 0; i--) {
+          const exp = explosions[i];
+          const age = collisionTime - exp.time;
+          if (age > EXPLOSION_DURATION) {
+            explosions.splice(i, 1);
+            continue;
+          }
+
+          const progress = age / EXPLOSION_DURATION;
+          const alpha = 1 - progress;
+          const radius = (20 + progress * 60) / z;
+
+          // Draw expanding rings
+          for (let ring = 0; ring < 3; ring++) {
+            const ringProgress = Math.max(0, progress - ring * 0.15);
+            const ringRadius = (10 + ringProgress * 50) / z;
+            const ringAlpha = (1 - ringProgress) * 0.6;
+
+            ctx.beginPath();
+            ctx.arc(exp.x, exp.y, ringRadius, 0, Math.PI * 2);
+            ctx.strokeStyle = exp.colors[ring % exp.colors.length];
+            ctx.globalAlpha = ringAlpha;
+            ctx.lineWidth = 3 / z;
+            ctx.stroke();
+          }
+
+          // Draw particle burst
+          const particleCount = 12;
+          for (let p = 0; p < particleCount; p++) {
+            const angle = (p / particleCount) * Math.PI * 2;
+            const dist = radius * progress * 1.5;
+            const px = exp.x + Math.cos(angle) * dist;
+            const py = exp.y + Math.sin(angle) * dist;
+            const pSize = (4 - progress * 3) / z;
+
+            ctx.beginPath();
+            ctx.arc(px, py, Math.max(0.5, pSize), 0, Math.PI * 2);
+            ctx.fillStyle = exp.colors[p % exp.colors.length];
+            ctx.globalAlpha = alpha * 0.8;
+            ctx.fill();
+          }
         }
-
-        const progress = age / EXPLOSION_DURATION;
-        const alpha = 1 - progress;
-        const radius = (20 + progress * 60) / z;
-
-        // Draw expanding rings
-        for (let ring = 0; ring < 3; ring++) {
-          const ringProgress = Math.max(0, progress - ring * 0.15);
-          const ringRadius = (10 + ringProgress * 50) / z;
-          const ringAlpha = (1 - ringProgress) * 0.6;
-
-          ctx.beginPath();
-          ctx.arc(exp.x, exp.y, ringRadius, 0, Math.PI * 2);
-          ctx.strokeStyle = exp.colors[ring % exp.colors.length];
-          ctx.globalAlpha = ringAlpha;
-          ctx.lineWidth = 3 / z;
-          ctx.stroke();
-        }
-
-        // Draw particle burst
-        const particleCount = 12;
-        for (let p = 0; p < particleCount; p++) {
-          const angle = (p / particleCount) * Math.PI * 2;
-          const dist = radius * progress * 1.5;
-          const px = exp.x + Math.cos(angle) * dist;
-          const py = exp.y + Math.sin(angle) * dist;
-          const pSize = (4 - progress * 3) / z;
-
-          ctx.beginPath();
-          ctx.arc(px, py, Math.max(0.5, pSize), 0, Math.PI * 2);
-          ctx.fillStyle = exp.colors[p % exp.colors.length];
-          ctx.globalAlpha = alpha * 0.8;
-          ctx.fill();
-        }
-      }
+      } // End explosion check
       ctx.globalAlpha = 1;
 
       ctx.restore();

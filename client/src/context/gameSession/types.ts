@@ -10,7 +10,7 @@ import {
 } from '../../types/socket';
 import { PermissionHelper } from './helpers/PermissionHelper';
 
-export type BooleanPermissionKey = Exclude<keyof SessionPermissions, 'tokenHover' | 'logConfig' | 'userOverrides' | 'cursorOverrides'>;
+export type BooleanPermissionKey = Exclude<keyof SessionPermissions, 'tokenHover' | 'logConfig' | 'userOverrides' | 'cursorOverrides' | 'cursorAllowTrailChange'>;
 
 export interface DrawingSettings {
   color: string;
@@ -79,6 +79,20 @@ export interface GameSessionState {
     // Ping settings
     pingColor?: string;
     pingAnimation?: 'radar' | 'beacon' | 'sonar' | 'pulse' | 'target' | 'ripple' | 'flare' | 'diamond' | 'cross';
+
+    // Trail Settings
+    trailEnabled?: boolean;
+    trailSize?: number;
+    trailColor?: string;
+    trailAnimation?: 'line' | 'water' | 'fire' | 'particles' | 'dice' | 'rainbow' | 'smoke' | 'electric';
+    trailLength?: number;
+    trailCustomImage?: string; // URL for custom particles (e.g. dice)
+
+    // Visualization Config
+    showOthersTrails?: boolean;
+    showMyTrail?: boolean;
+    useAppCursor?: boolean;
+    explosionOnCollision?: boolean;
   };
   permissions: SessionPermissions;
   audioSettings: { playlists: Playlist[], soundboard: SoundEffect[]; };
@@ -228,6 +242,16 @@ export interface GameSessionContextType extends GameSessionState {
     clickColorRight?: string;
     pingColor?: string;
     pingAnimation?: 'radar' | 'beacon' | 'sonar' | 'pulse' | 'target' | 'ripple' | 'flare' | 'diamond' | 'cross';
+    trailEnabled?: boolean;
+    trailSize?: number;
+    trailColor?: string;
+    trailAnimation?: 'line' | 'water' | 'fire' | 'particles' | 'dice' | 'rainbow' | 'smoke' | 'electric';
+    trailLength?: number;
+    trailCustomImage?: string;
+    showOthersTrails?: boolean;
+    showMyTrail?: boolean;
+    useAppCursor?: boolean;
+    explosionOnCollision?: boolean;
   }) => void;
 
   toggleGMViewMode: () => void;

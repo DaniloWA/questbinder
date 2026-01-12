@@ -108,12 +108,23 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
     return {
       shapeId: overrides.shape || props.cursorSettings?.shape || 'default',
       color: overrides.color || props.cursorSettings?.color || '#fbbf24',
+      // Trail settings
+      trailEnabled: props.cursorSettings?.trailEnabled ?? false,
+      trailAnimation: props.cursorSettings?.trailAnimation || 'line',
+      trailColor: props.cursorSettings?.trailColor || props.cursorSettings?.color || '#fbbf24',
+      trailLength: props.cursorSettings?.trailLength ?? 20,
+      showMyTrail: props.cursorSettings?.showMyTrail ?? true,
     };
   }, [
     props.currentUser?.id,
     props.permissions?.cursorOverrides,
     props.cursorSettings?.shape,
-    props.cursorSettings?.color
+    props.cursorSettings?.color,
+    props.cursorSettings?.trailEnabled,
+    props.cursorSettings?.trailAnimation,
+    props.cursorSettings?.trailColor,
+    props.cursorSettings?.trailLength,
+    props.cursorSettings?.showMyTrail,
   ]);
 
   const { hoveredTokenId, dragState } = mapState;
@@ -224,6 +235,10 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
         shapeId={cursorConfig.shapeId}
         color={cursorConfig.color}
         enabled={isMouseOverVTT}
+        trailEnabled={cursorConfig.trailEnabled && cursorConfig.showMyTrail}
+        trailAnimation={cursorConfig.trailAnimation}
+        trailColor={cursorConfig.trailColor}
+        trailLength={cursorConfig.trailLength}
       />
     </div>
   );

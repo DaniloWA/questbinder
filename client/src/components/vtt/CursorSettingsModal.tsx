@@ -30,6 +30,17 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
     clickColorRight: '#f59e0b',
     pingColor: '#fbbf24',
     pingAnimation: 'radar',
+    // Trail
+    trailEnabled: false,
+    trailSize: 4,
+    trailColor: '#fbbf24',
+    trailAnimation: 'line',
+    trailLength: 20,
+    // Options
+    showOthersTrails: true,
+    showMyTrail: true,
+    useAppCursor: true,
+    explosionOnCollision: true,
   });
 
   // GM player management
@@ -48,13 +59,18 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
   const existingOverride = selectedPlayerId ? (permissions?.cursorOverrides?.[selectedPlayerId] || {}) : {};
 
   // Check permissions for self - Server uses 'shape' not 'shapeId'
-  type ServerOverride = { shape?: string; color?: string; name?: string; clickAnimation?: string; clickColorLeft?: string; clickColorRight?: string; pingColor?: string; pingAnimation?: string; };
+  type ServerOverride = {
+    shape?: string; color?: string; name?: string; clickAnimation?: string; clickColorLeft?: string; clickColorRight?: string; pingColor?: string; pingAnimation?: string;
+    trailEnabled?: boolean; trailSize?: number; trailColor?: string; trailAnimation?: string; trailLength?: number;
+    showOthersTrails?: boolean; showMyTrail?: boolean; useAppCursor?: boolean; explosionOnCollision?: boolean;
+  };
   const myOverride = (permissions?.cursorOverrides?.[user?.id || ''] || {}) as ServerOverride;
   const canChangeColor = isGM || (permissions?.cursorAllowColorChange ?? true);
   const canChangeShape = isGM || (permissions?.cursorAllowShapeChange ?? true);
   const canChangeName = isGM || (permissions?.cursorAllowNameChange ?? true);
   const canChangeAnimation = isGM || (permissions?.cursorAllowAnimationChange ?? true);
   const canChangeAnimationColor = isGM || (permissions?.cursorAllowAnimationColorChange ?? true);
+  const canChangeTrail = isGM || (permissions?.cursorAllowTrailChange ?? true);
 
   // Initialize values when modal opens
   useEffect(() => {
@@ -68,6 +84,15 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
         clickColorRight: cursorSettings?.clickColorRight || '#f59e0b',
         pingColor: cursorSettings?.pingColor || '#fbbf24',
         pingAnimation: cursorSettings?.pingAnimation || 'radar',
+        trailEnabled: cursorSettings?.trailEnabled ?? false,
+        trailSize: cursorSettings?.trailSize ?? 4,
+        trailColor: cursorSettings?.trailColor || '#fbbf24',
+        trailAnimation: cursorSettings?.trailAnimation || 'line',
+        trailLength: cursorSettings?.trailLength ?? 20,
+        showOthersTrails: cursorSettings?.showOthersTrails ?? true,
+        showMyTrail: cursorSettings?.showMyTrail ?? true,
+        useAppCursor: cursorSettings?.useAppCursor ?? true,
+        explosionOnCollision: cursorSettings?.explosionOnCollision ?? true,
       });
 
       // Copy existing overrides to local state
@@ -93,6 +118,15 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
       clickColorRight: updates.clickColorRight,
       pingColor: updates.pingColor,
       pingAnimation: updates.pingAnimation,
+      trailEnabled: updates.trailEnabled === 'true' || updates.trailEnabled === true,
+      trailSize: Number(updates.trailSize),
+      trailColor: updates.trailColor,
+      trailAnimation: updates.trailAnimation,
+      trailLength: Number(updates.trailLength),
+      showOthersTrails: updates.showOthersTrails === 'true' || updates.showOthersTrails === true,
+      showMyTrail: updates.showMyTrail === 'true' || updates.showMyTrail === true,
+      useAppCursor: updates.useAppCursor === 'true' || updates.useAppCursor === true,
+      explosionOnCollision: updates.explosionOnCollision === 'true' || updates.explosionOnCollision === true,
     });
   }, [selfValues, setCursorSettings]);
 
@@ -135,6 +169,15 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
             clickColorRight: override.clickColorRight,
             pingColor: override.pingColor,
             pingAnimation: override.pingAnimation,
+            trailEnabled: override.trailEnabled,
+            trailSize: override.trailSize,
+            trailColor: override.trailColor,
+            trailAnimation: override.trailAnimation,
+            trailLength: override.trailLength,
+            showOthersTrails: override.showOthersTrails,
+            showMyTrail: override.showMyTrail,
+            useAppCursor: override.useAppCursor,
+            explosionOnCollision: override.explosionOnCollision,
           };
         }
       });
@@ -153,6 +196,7 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
     rightColor: canChangeAnimationColor && !myOverride.clickColorRight,
     pingColor: canChangeColor && !myOverride.pingColor,
     pingAnimation: canChangeAnimation && !myOverride.pingAnimation,
+    trail: canChangeTrail && !myOverride.trailEnabled, // Simplified check
   };
 
   const selfOverrides = {
@@ -164,12 +208,14 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
     rightColor: !!myOverride.clickColorRight,
     pingColor: !!myOverride.pingColor,
     pingAnimation: !!myOverride.pingAnimation,
+    trail: !!myOverride.trailEnabled
   };
 
   // GM can edit everything for players
   const gmCanEdit = {
     shape: true, color: true, name: true, animation: true,
     leftColor: true, rightColor: true, pingColor: true, pingAnimation: true,
+    trail: true,
   };
 
   // Get effective values for override (merge existing + local changes)
@@ -188,6 +234,15 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
       clickColorRight: override.clickColorRight || existing.clickColorRight || '#f59e0b',
       pingColor: override.pingColor || existing.pingColor || '#fbbf24',
       pingAnimation: override.pingAnimation || existing.pingAnimation || 'radar',
+      trailEnabled: override.trailEnabled ?? existing.trailEnabled ?? false,
+      trailSize: override.trailSize ?? existing.trailSize ?? 4,
+      trailColor: override.trailColor || existing.trailColor || '#fbbf24',
+      trailAnimation: override.trailAnimation || existing.trailAnimation || 'line',
+      trailLength: override.trailLength ?? existing.trailLength ?? 20,
+      showOthersTrails: override.showOthersTrails ?? existing.showOthersTrails ?? true,
+      showMyTrail: override.showMyTrail ?? existing.showMyTrail ?? true,
+      useAppCursor: override.useAppCursor ?? existing.useAppCursor ?? true,
+      explosionOnCollision: override.explosionOnCollision ?? existing.explosionOnCollision ?? true,
     };
   };
 

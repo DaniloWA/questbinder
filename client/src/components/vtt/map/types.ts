@@ -31,6 +31,21 @@ export interface MapCanvasProps {
     clickAnimation?: 'ripple' | 'burst' | 'sparkle' | 'pulse' | 'vortex' | 'shard' | 'ring' | 'echo' | 'orb';
     clickColorLeft?: string;
     clickColorRight?: string;
+    // Ping
+    pingColor?: string;
+    pingAnimation?: string;
+    // Trail
+    trailEnabled?: boolean;
+    trailSize?: number;
+    trailColor?: string;
+    trailAnimation?: string;
+    trailLength?: number;
+    trailCustomImage?: string;
+    // Options
+    showOthersTrails?: boolean;
+    showMyTrail?: boolean;
+    useAppCursor?: boolean;
+    explosionOnCollision?: boolean;
   };
   wandSettings: any;
 

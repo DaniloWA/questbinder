@@ -67,6 +67,14 @@ export interface CursorState {
   isMoving: boolean;
   isVisible: boolean;
   isClicking: boolean; // Mouse button pressed
+
+  // New Fields
+  healthStatus?: 'healthy' | 'bloodied' | 'unconscious';
+  trailAnimation?: string;
+  trailColor?: string;
+  trailEnabled?: boolean;
+  trailLength?: number;
+  trailCustomImage?: string;
 }
 
 export interface CursorUpdatePayload {
@@ -76,6 +84,11 @@ export interface CursorUpdatePayload {
   velocityX?: number;
   velocityY?: number;
   isClicking?: boolean;
+  healthStatus?: 'healthy' | 'bloodied' | 'unconscious';
+  trailAnimation?: string;
+  trailColor?: string;
+  trailEnabled?: boolean;
+  trailCustomImage?: string;
 }
 
 // ============================================================================
@@ -152,6 +165,8 @@ export class CursorPhysicsEngine {
       isMoving: false,
       isVisible: true,
       isClicking: false,
+      healthStatus: 'healthy',
+      trailEnabled: false,
     };
 
     this.states.set(userId, state);
@@ -236,6 +251,13 @@ export class CursorPhysicsEngine {
     if (update.isClicking !== undefined) {
       state.isClicking = update.isClicking;
     }
+
+    // Update new fields
+    if (update.healthStatus) state.healthStatus = update.healthStatus;
+    if (update.trailAnimation) state.trailAnimation = update.trailAnimation;
+    if (update.trailColor) state.trailColor = update.trailColor;
+    if (update.trailEnabled !== undefined) state.trailEnabled = update.trailEnabled;
+    if (update.trailCustomImage) state.trailCustomImage = update.trailCustomImage;
 
     // Add to trail history (for particle effects)
     if (dist > 3) { // Only add if movement is significant
@@ -334,6 +356,13 @@ export class CursorPhysicsEngine {
     velocity: Point2D; // For squash & stretch effect
     trailHistory: { x: number; y: number; time: number; }[]; // For particle trail
     isClicking: boolean; // For click scale effect
+    healthStatus?: 'healthy' | 'bloodied' | 'unconscious';
+    trailConfig: {
+      enabled?: boolean;
+      animation?: string;
+      color?: string;
+      image?: string;
+    };
   } | null {
     const state = this.states.get(userId);
     if (!state) return null;
@@ -345,6 +374,13 @@ export class CursorPhysicsEngine {
       velocity: { x: state.velocityX, y: state.velocityY },
       trailHistory: state.trailHistory,
       isClicking: state.isClicking,
+      healthStatus: state.healthStatus,
+      trailConfig: {
+        enabled: state.trailEnabled,
+        animation: state.trailAnimation,
+        color: state.trailColor,
+        image: state.trailCustomImage
+      }
     };
   }
 
@@ -430,6 +466,14 @@ export const createCursorUpdateFromPayload = (payload: {
   timestamp?: number;
   velocityX?: number;
   velocityY?: number;
+  isClicking?: boolean;
+  healthStatus?: 'healthy' | 'bloodied' | 'unconscious';
+  trailAnimation?: string;
+  trailColor?: string;
+  trailEnabled?: boolean;
+  trailCustomImage?: string;
+  // Fallback for legacy calls
+  [key: string]: any;
 }): { userId: string; update: CursorUpdatePayload; } => ({
   userId: payload.userId,
   update: {
@@ -438,5 +482,11 @@ export const createCursorUpdateFromPayload = (payload: {
     timestamp: payload.timestamp,
     velocityX: payload.velocityX,
     velocityY: payload.velocityY,
+    isClicking: payload.isClicking,
+    healthStatus: payload.healthStatus,
+    trailAnimation: payload.trailAnimation,
+    trailColor: payload.trailColor,
+    trailEnabled: payload.trailEnabled,
+    trailCustomImage: payload.trailCustomImage,
   },
 });

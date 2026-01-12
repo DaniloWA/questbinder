@@ -245,6 +245,17 @@ export interface CursorEditorValues {
   clickColorRight: string;
   pingColor: string;
   pingAnimation: string;
+  // Trail
+  trailEnabled: boolean;
+  trailSize: number;
+  trailColor: string;
+  trailAnimation: string;
+  trailLength: number;
+  // Options
+  showOthersTrails: boolean;
+  showMyTrail: boolean;
+  useAppCursor: boolean;
+  explosionOnCollision: boolean;
 }
 
 export interface CursorEditorPermissions {
@@ -256,6 +267,7 @@ export interface CursorEditorPermissions {
   rightColor: boolean;
   pingColor: boolean;
   pingAnimation: boolean;
+  trail: boolean; // Grouped permission/validation for all trail settings
 }
 
 export interface CursorEditorOverrides {
@@ -267,6 +279,7 @@ export interface CursorEditorOverrides {
   rightColor?: boolean;
   pingColor?: boolean;
   pingAnimation?: boolean;
+  trail?: boolean;
 }
 
 export interface CursorEditorProps {
@@ -291,7 +304,7 @@ export const CursorEditor: React.FC<CursorEditorProps> = ({
   isGMMode = false,
 }) => {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<'general' | 'animations' | 'ping'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'animations' | 'ping' | 'trail' | 'options'>('general');
 
   // Default empty overrides to proper type for TS
   const overrides: CursorEditorOverrides = overridesInput || {};
@@ -346,6 +359,18 @@ export const CursorEditor: React.FC<CursorEditorProps> = ({
           className={`flex-1 text-[10px] py-1 rounded transition-all ${activeTab === 'ping' ? 'bg-zinc-700 text-white shadow font-bold' : 'text-zinc-500 hover:text-zinc-300'}`}
         >
           {t('vtt.cursor.editor.tabs.ping')}
+        </button>
+        <button
+          onClick={() => setActiveTab('trail')}
+          className={`flex-1 text-[10px] py-1 rounded transition-all ${activeTab === 'trail' ? 'bg-zinc-700 text-white shadow font-bold' : 'text-zinc-500 hover:text-zinc-300'}`}
+        >
+          {t('vtt.cursor.editor.tabs.trail')}
+        </button>
+        <button
+          onClick={() => setActiveTab('options')}
+          className={`flex-1 text-[10px] py-1 rounded transition-all ${activeTab === 'options' ? 'bg-zinc-700 text-white shadow font-bold' : 'text-zinc-500 hover:text-zinc-300'}`}
+        >
+          {t('vtt.cursor.editor.tabs.options')}
         </button>
       </div>
 
@@ -569,6 +594,102 @@ export const CursorEditor: React.FC<CursorEditorProps> = ({
               />
             </div>
           </>
+        )}
+        {activeTab === 'trail' && (
+          <div className={!canEdit.trail ? 'opacity-60' : ''}>
+            {/* Trail Enable Toggle */}
+            <div className="flex items-center justify-between mb-4">
+              <label className="text-xs font-semibold text-white flex items-center gap-1">
+                {t('vtt.cursor.editor.trail.enable')}
+                {!isGMMode && overrides.trail && <><Crown className="w-3 h-3 text-amber-500" /></>}
+              </label>
+              <div
+                onClick={() => canEdit.trail && onChange('trailEnabled', String(!values.trailEnabled))}
+                className={`w-10 h-5 rounded-full relative transition-colors cursor-pointer ${values.trailEnabled ? 'bg-primary' : 'bg-zinc-700'}`}
+              >
+                <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${values.trailEnabled ? 'left-6' : 'left-1'}`} />
+              </div>
+            </div>
+
+            {values.trailEnabled && (
+              <>
+                {/* Trail Style */}
+                <div className="mb-3">
+                  <label className="text-[10px] font-medium text-muted-foreground mb-1 block">{t('vtt.cursor.editor.trail.style')}</label>
+                  <div className="grid grid-cols-2 gap-1">
+                    {['line', 'particles', 'dice', 'sparkles', 'smoke', 'electric'].map(style => (
+                      <button
+                        key={style}
+                        onClick={() => canEdit.trail && onChange('trailAnimation', style)}
+                        className={`px-2 py-1.5 rounded text-[10px] border transition-all ${values.trailAnimation === style ? 'bg-primary/20 border-primary text-white' : 'border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
+                      >
+                        {t(`vtt.cursor.trails.${style}`)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Trail Color */}
+                <div className="mb-3">
+                  <label className="text-[10px] font-medium text-muted-foreground mb-1 block">{t('vtt.cursor.editor.trail.color')}</label>
+                  <div className="grid grid-cols-6 gap-1 mb-2">
+                    {PRESET_COLORS.slice(0, 6).map(c => (
+                      <button key={c} onClick={() => canEdit.trail && onChange('trailColor', c)} className={`h-5 rounded border ${values.trailColor === c ? 'border-white' : 'border-transparent'}`} style={{ backgroundColor: c }} />
+                    ))}
+                  </div>
+                  <ColorPicker value={values.trailColor} onChange={c => canEdit.trail && onChange('trailColor', c)} disabled={!canEdit.trail} />
+                </div>
+
+                {/* Trail Length/Size */}
+                <div>
+                  <label className="text-[10px] font-medium text-muted-foreground mb-1 block">{t('vtt.cursor.editor.trail.length')}</label>
+                  <input
+                    type="range" min="5" max="50"
+                    value={values.trailLength}
+                    onChange={e => canEdit.trail && onChange('trailLength', e.target.value)}
+                    className="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer"
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'options' && (
+          <div className="space-y-3">
+            {/* Show Others' Trails */}
+            <div className="flex items-center justify-between p-2 bg-zinc-900 rounded border border-zinc-800">
+              <span className="text-[11px] text-zinc-300">{t('vtt.cursor.editor.options.showOthersTrails')}</span>
+              <div
+                onClick={() => onChange('showOthersTrails', String(!values.showOthersTrails))}
+                className={`w-8 h-4 rounded-full relative transition-colors cursor-pointer ${values.showOthersTrails ? 'bg-primary' : 'bg-zinc-700'}`}
+              >
+                <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${values.showOthersTrails ? 'left-4.5' : 'left-0.5'}`} />
+              </div>
+            </div>
+
+            {/* Show My Trail */}
+            <div className="flex items-center justify-between p-2 bg-zinc-900 rounded border border-zinc-800">
+              <span className="text-[11px] text-zinc-300">{t('vtt.cursor.editor.options.showMyTrail')}</span>
+              <div
+                onClick={() => onChange('showMyTrail', String(!values.showMyTrail))}
+                className={`w-8 h-4 rounded-full relative transition-colors cursor-pointer ${values.showMyTrail ? 'bg-primary' : 'bg-zinc-700'}`}
+              >
+                <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${values.showMyTrail ? 'left-4.5' : 'left-0.5'}`} />
+              </div>
+            </div>
+
+            {/* Explosion on Collision */}
+            <div className="flex items-center justify-between p-2 bg-zinc-900 rounded border border-zinc-800">
+              <span className="text-[11px] text-zinc-300">{t('vtt.cursor.editor.options.explosionOnCollision')}</span>
+              <div
+                onClick={() => onChange('explosionOnCollision', String(!values.explosionOnCollision))}
+                className={`w-8 h-4 rounded-full relative transition-colors cursor-pointer ${values.explosionOnCollision ? 'bg-primary' : 'bg-zinc-700'}`}
+              >
+                <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${values.explosionOnCollision ? 'left-4.5' : 'left-0.5'}`} />
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>

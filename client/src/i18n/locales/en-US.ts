@@ -132,6 +132,89 @@ export default {
   },
 
   vtt: {
+    cursor: {
+      settings: {
+        title: 'Cursor Settings',
+        editingLabel: 'Editing',
+        myCursor: 'My Cursor',
+        playersLabel: 'Players',
+        noPlayers: 'No players online',
+        defaultName: 'Name',
+        setOverride: 'Set Override',
+        clearOverride: 'Clear',
+      },
+      editor: {
+        tabs: {
+          general: 'General',
+          animations: 'Animations',
+          ping: 'Ping',
+          trail: 'Trail',
+          options: 'Options',
+        },
+        general: {
+          shape: { label: 'Shape' },
+          name: { label: 'Display Name' },
+          color: { label: 'Main Color' },
+        },
+        animations: {
+          style: { label: 'Click Style' },
+          leftColor: { label: 'Left Button' },
+          rightColor: { label: 'Right Button' },
+        },
+        ping: {
+          style: { label: 'Ping Style' },
+          color: { label: 'Ping Color' },
+        },
+        preview: {
+          left: 'L. Click',
+          right: 'R. Click',
+          ping: 'Ping (Hold)',
+        },
+        trail: {
+          enable: 'Enable Trail',
+          style: 'Trail Style',
+          color: 'Trail Color',
+          length: 'Length',
+        },
+        options: {
+          showOthersTrails: 'Show Others Trails',
+          showMyTrail: 'Show My Trail',
+          explosionOnCollision: 'Explosion on Collision',
+        },
+        overrides: {
+          gmSet: 'Set by GM',
+          locked: 'Locked',
+        },
+      },
+      animations: {
+        ripple: 'Ripple',
+        burst: 'Burst',
+        sparkle: 'Sparkle',
+        pulse: 'Pulse',
+        vortex: 'Vortex',
+        shard: 'Shards',
+        ring: 'Ring',
+        echo: 'Echo',
+        orb: 'Orb',
+      },
+      pings: {
+        radar: 'Radar',
+        beacon: 'Beacon',
+        sonar: 'Sonar',
+        target: 'Target',
+        flare: 'Flare',
+        diamond: 'Diamond',
+        cross: 'Cross',
+      },
+      trails: {
+        line: 'Smooth Line',
+        particles: 'Particles',
+        dice: 'Dice (D20)',
+        sparkles: 'Sparkles',
+        smoke: 'Smoke',
+        electric: 'Electric',
+      },
+    },
     tools: {
       toolbar: {
         selectTool: {
@@ -349,6 +432,7 @@ export default {
             },
           },
         },
+
         gmTools: {
           group: {
             label: 'Game Master',
@@ -3275,101 +3359,6 @@ export default {
       },
       level: {
         label: 'Level',
-      },
-    },
-    cursor: {
-      settingsModal: {
-        noPlayers: {
-          text: 'No players.',
-        },
-        save: {
-          button: 'Save',
-        },
-        cancel: {
-          button: 'Cancel',
-        },
-        players: {
-          title: 'Players',
-        },
-      },
-      editor: {
-        displayName: {
-          label: 'Display Name',
-        },
-        tabs: {
-          general: 'General',
-          animations: 'Animations',
-          ping: 'Ping',
-        },
-        general: {
-          shape: {
-            label: 'Shape',
-          },
-          name: {
-            label: 'Display Name',
-          },
-          color: {
-            label: 'Main Color',
-          },
-        },
-        overrides: {
-          gmSet: 'Set by GM',
-          locked: 'Locked',
-        },
-        preview: {
-          left: 'Left',
-          right: 'Right',
-          ping: 'Ping Preview',
-        },
-        animations: {
-          style: {
-            label: 'Animation Style',
-          },
-          leftColor: {
-            label: 'Left Color',
-          },
-          rightColor: {
-            label: 'Right Color',
-          },
-        },
-        ping: {
-          style: {
-            label: 'Ping Style',
-          },
-          color: {
-            label: 'Ping Color',
-          },
-        },
-      },
-      settings: {
-        title: 'Cursors',
-        editingLabel: 'Editing',
-        myCursor: 'My Cursor',
-        playersLabel: 'PLAYERS',
-        noPlayers: 'No players.',
-        setOverride: 'Set override',
-        clearOverride: 'Clear',
-        defaultName: 'Name',
-      },
-      animations: {
-        ripple: 'Ripple',
-        burst: 'Burst',
-        sparkle: 'Sparkle',
-        pulse: 'Pulse',
-        vortex: 'Vortex',
-        shard: 'Shard',
-        ring: 'Ring',
-        echo: 'Echo',
-        orb: 'Orb',
-      },
-      pings: {
-        radar: 'Radar',
-        beacon: 'Beacon',
-        sonar: 'Sonar',
-        target: 'Target',
-        flare: 'Flare',
-        diamond: 'Diamond',
-        cross: 'Cross',
       },
     },
     mapContext: {

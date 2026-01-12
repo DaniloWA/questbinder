@@ -309,6 +309,19 @@ export const useTokenActions = (
         velocityX: vx,
         velocityY: vy,
         isClicking: isClickingRef.current, // For remote click feedback
+
+        // New Trail/Status Fields
+        healthStatus: (() => {
+          const char = state.campaignCharacters.find(c => c.ownerId === userId);
+          if (!char) return 'healthy';
+          if (char.hpCurrent <= 0) return 'unconscious';
+          if (char.hpCurrent <= (char.hpMax / 2)) return 'bloodied';
+          return 'healthy';
+        })() as 'healthy' | 'bloodied' | 'unconscious',
+        trailAnimation: (override as any).trailAnimation || (settings as any).trailAnimation,
+        trailColor: (override as any).trailColor || (settings as any).trailColor,
+        trailEnabled: (override as any).trailEnabled ?? (settings as any).trailEnabled,
+        trailCustomImage: (override as any).trailCustomImage || (settings as any).trailCustomImage,
       };
     };
 

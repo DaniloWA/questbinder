@@ -646,6 +646,7 @@ export interface PermissionSet {
   cursorAllowNameChange: boolean;    // Players can change their display name
   cursorAllowAnimationChange: boolean; // Players can change their click animation
   cursorAllowAnimationColorChange: boolean; // Players can change their click animation color
+  cursorAllowTrailChange: boolean;   // Players can change their trail settings
 
   // GM Cursor Overrides (per-player settings set by GM)
   cursorOverrides: Record<string, {

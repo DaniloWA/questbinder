@@ -74,13 +74,33 @@ export const registerPlayerListeners = ({
   const handleCursorMove = (payload: CursorMovePayload) => {
     if (payload.userId === user?.id) return;
 
-    setState(previousState => ({
-      ...previousState,
-      remoteCursors: {
-        ...previousState.remoteCursors,
-        [payload.userId]: payload
+    setState(previousState => {
+      // Auto-discover players who joined before us (if not in list)
+      // This fixes the bug where GM doesn't see existing players
+      const isKnownPlayer = previousState.players.some(p => p.id === payload.userId);
+      let newPlayers = previousState.players;
+
+      if (!isKnownPlayer && payload.userName) {
+        console.log('[PlayerListeners] Auto-discovering player from cursor:', payload.userId, payload.userName);
+        // Construct a partial user from cursor data
+        newPlayers = [...newPlayers, {
+          id: payload.userId,
+          name: payload.userName,
+          // We don't have email/avatar from cursor, but name/id is enough for the list
+          avatarUrl: undefined,
+          email: ''
+        }];
       }
-    }));
+
+      return {
+        ...previousState,
+        players: newPlayers,
+        remoteCursors: {
+          ...previousState.remoteCursors,
+          [payload.userId]: payload
+        }
+      };
+    });
   };
 
   const handleViewportUpdate = (payload: ViewportUpdatePayload) => {

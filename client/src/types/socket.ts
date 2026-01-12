@@ -146,6 +146,12 @@ export interface CursorMovePayload {
   velocityX?: number;    // Movement velocity hint (pixels/ms)
   velocityY?: number;
   isClicking?: boolean;  // Mouse button pressed (for click feedback)
+  // New Trail/Status Fields
+  healthStatus?: 'healthy' | 'bloodied' | 'unconscious'; // For Blood Trail
+  trailAnimation?: 'line' | 'water' | 'fire' | 'particles' | 'dice' | 'rainbow' | 'smoke' | 'electric';
+  trailColor?: string;
+  trailEnabled?: boolean;
+  trailCustomImage?: string;
 }
 
 export interface TokenAddPayload {

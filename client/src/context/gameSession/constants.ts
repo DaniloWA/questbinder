@@ -64,6 +64,7 @@ export const INITIAL_STATE: GameSessionState = {
     cursorAllowNameChange: true,
     cursorAllowAnimationChange: true,
     cursorAllowAnimationColorChange: true,
+    cursorAllowTrailChange: true,
     cursorOverrides: {},
     chatGlobalAllowed: true,
     chatPrivateAllowed: true,

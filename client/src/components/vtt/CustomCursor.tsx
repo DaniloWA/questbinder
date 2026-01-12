@@ -6,6 +6,11 @@ interface CustomCursorProps {
   shapeId: string;
   color: string;
   enabled?: boolean;
+  // Trail settings
+  trailEnabled?: boolean;
+  trailAnimation?: string;
+  trailColor?: string;
+  trailLength?: number;
 }
 
 /**
@@ -14,17 +19,23 @@ interface CustomCursorProps {
  * - Rotation based on movement direction
  * - Velocity-based stretch (squash & stretch)
  * - Click feedback (pulse/shrink)
- * - Mix-blend-mode for visibility on any background
+ * - Trail animations matching remote cursor rendering
  */
 export const CustomCursor: React.FC<CustomCursorProps> = ({
   shapeId = 'default',
   color = '#fbbf24',
   enabled = true,
+  trailEnabled = false,
+  trailAnimation = 'line',
+  trailColor,
+  trailLength = 20,
 }) => {
   const cursorRef = useRef<HTMLDivElement>(null);
-  const trailRef = useRef<HTMLDivElement>(null);
-  const particlesRef = useRef<{ x: number, y: number, vx: number, vy: number, age: number, el: HTMLDivElement; }[]>([]);
+  const trailCanvasRef = useRef<HTMLCanvasElement>(null);
   const [isClicking, setIsClicking] = useState(false);
+
+  // Use trailColor or default to cursor color
+  const effectiveTrailColor = trailColor || color;
 
   // Animation state (refs to avoid re-renders)
   const mousePos = useRef({ x: 0, y: 0 });
@@ -32,11 +43,16 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
   const angle = useRef(0);
   const animationRef = useRef<number>(0);
 
-  // Config
-  const LERP_SPEED = 0.75; // Higher = faster follow (0.45 feels responsive yet smooth)
-  const STRETCH_FACTOR = 0.05; // How much stretch on fast movement (reduced for faster lerp)
+  // Trail history storage
+  const trailHistory = useRef<{ x: number, y: number, time: number; }[]>([]);
+  const lastTrailTime = useRef(0);
 
-  // Responsive cursor size (larger on bigger screens)
+  // Config
+  const LERP_SPEED = 0.75;
+  const STRETCH_FACTOR = 0.05;
+  const TRAIL_MAX_AGE = 400; // ms - matching remote cursor
+
+  // Responsive cursor size
   const screenMin = Math.min(window.innerWidth, window.innerHeight);
   const CURSOR_SIZE = Math.max(48, Math.min(64, Math.round(screenMin * 0.04)));
 
@@ -60,12 +76,22 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
   const handleMouseDown = useCallback(() => setIsClicking(true), []);
   const handleMouseUp = useCallback(() => setIsClicking(false), []);
 
+  // Helper to adjust alpha
+  const adjustAlpha = (hexColor: string, alpha: number): string => {
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+  };
+
   // Animation loop
   useEffect(() => {
     if (!enabled) return;
 
     const animate = () => {
       const cursor = cursorRef.current;
+      const trailCanvas = trailCanvasRef.current;
+
       if (!cursor) {
         animationRef.current = requestAnimationFrame(animate);
         return;
@@ -75,26 +101,23 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
       const distX = mousePos.current.x - cursorPos.current.x;
       const distY = mousePos.current.y - cursorPos.current.y;
 
-      // Lerp movement (smooth follow)
+      // Lerp movement
       cursorPos.current.x += distX * LERP_SPEED;
       cursorPos.current.y += distY * LERP_SPEED;
 
-      // Calculate velocity (how fast mouse is moving)
+      // Calculate velocity
       const velocity = Math.sqrt(distX ** 2 + distY ** 2);
 
-      // Squash & Stretch based on velocity
-      // scaleY increases with speed, scaleX decreases to preserve "volume"
+      // Squash & Stretch
       const scaleY = 1 + Math.min(velocity * STRETCH_FACTOR, 0.5);
       const scaleX = 1 - Math.min(velocity * STRETCH_FACTOR * 0.5, 0.2);
 
-      // Calculate angle (only when moving)
+      // Calculate angle
       if (velocity > 0.5) {
-        // atan2 gives angle in radians, convert to degrees, +90 to point cursor tip forward
         angle.current = Math.atan2(distY, distX) * (180 / Math.PI) + 90;
       }
 
-      // Apply transform
-      // Order: translate -> rotate -> scale
+      // Apply transform to cursor
       const halfSize = CURSOR_SIZE / 2;
       cursor.style.transform = `
         translate3d(${cursorPos.current.x - halfSize}px, ${cursorPos.current.y - halfSize}px, 0)
@@ -102,48 +125,158 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
         scale(${scaleX}, ${scaleY})
       `;
 
-      // Update Particles
-      if (trailRef.current) {
-        const particles = particlesRef.current;
-        const PARTICLE_LIFETIME = 25; // frames
+      // Trail Logic
+      if (trailEnabled && trailCanvas) {
+        const ctx = trailCanvas.getContext('2d');
+        if (ctx) {
+          const now = performance.now();
 
-        // Spawn new particle if moved significantly
-        if (velocity > 1.5 && Math.random() > 0.3) { // Reduced to 0.3 for more continuous trail
-          const el = document.createElement('div');
-          el.style.position = 'absolute';
-          el.style.width = '6px';
-          el.style.height = '6px';
-          el.style.borderRadius = '50%';
-          el.style.backgroundColor = color;
-          el.style.opacity = '0.6';
-          el.style.pointerEvents = 'none';
-          trailRef.current.appendChild(el);
+          // Add point to trail history if moving
+          if (velocity > 2 && now - lastTrailTime.current > 16) { // ~60fps
+            trailHistory.current.push({
+              x: cursorPos.current.x,
+              y: cursorPos.current.y,
+              time: now,
+            });
+            lastTrailTime.current = now;
 
-          particles.push({
-            x: cursorPos.current.x,
-            y: cursorPos.current.y,
-            vx: (Math.random() - 0.5) * 2, // Slight scatter
-            vy: (Math.random() - 0.5) * 2,
-            age: 0,
-            el
-          });
-        }
-
-        // Update existing particles
-        for (let i = particles.length - 1; i >= 0; i--) {
-          const p = particles[i];
-          p.age++;
-          p.x += p.vx * 0.5;
-          p.y += p.vy * 0.5;
-
-          if (p.age > PARTICLE_LIFETIME) {
-            if (p.el.parentNode) p.el.parentNode.removeChild(p.el);
-            particles.splice(i, 1);
-          } else {
-            const life = 1 - (p.age / PARTICLE_LIFETIME);
-            p.el.style.transform = `translate3d(${p.x}px, ${p.y}px, 0) scale(${life})`;
-            p.el.style.opacity = (life * 0.5).toString();
+            // Limit trail length
+            const maxPoints = trailLength * 2;
+            if (trailHistory.current.length > maxPoints) {
+              trailHistory.current = trailHistory.current.slice(-maxPoints);
+            }
           }
+
+          // Clear canvas
+          ctx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
+
+          // Render trail based on animation type
+          const history = trailHistory.current;
+
+          if (trailAnimation === 'line' && history.length > 2) {
+            // Smooth Line (matching remote cursor)
+            ctx.beginPath();
+            ctx.moveTo(history[0].x, history[0].y);
+            for (let i = 1; i < history.length - 1; i++) {
+              const p0 = history[i];
+              const p1 = history[i + 1];
+              const midX = (p0.x + p1.x) / 2;
+              const midY = (p0.y + p1.y) / 2;
+              ctx.quadraticCurveTo(p0.x, p0.y, midX, midY);
+            }
+            ctx.lineTo(cursorPos.current.x, cursorPos.current.y);
+
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = adjustAlpha(effectiveTrailColor, 0.4);
+            ctx.stroke();
+            // Core
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = adjustAlpha(effectiveTrailColor, 0.8);
+            ctx.stroke();
+
+          } else if (trailAnimation === 'particles' || trailAnimation === 'sparkles' || trailAnimation === 'smoke' || trailAnimation === 'electric') {
+            // Particle-based trails
+            for (let i = 0; i < history.length; i++) {
+              const trail = history[i];
+              const age = now - trail.time;
+              if (age > TRAIL_MAX_AGE) continue;
+
+              const progress = age / TRAIL_MAX_AGE;
+              const alpha = 1 - progress;
+              const size = (4 + (i * 0.2)) * (1 - progress * 0.5);
+
+              ctx.save();
+              ctx.translate(trail.x, trail.y);
+              ctx.globalAlpha = alpha * 0.6;
+
+              if (trailAnimation === 'sparkles') {
+                // Star shape
+                ctx.fillStyle = effectiveTrailColor;
+                const rot = progress * Math.PI;
+                ctx.rotate(rot);
+                ctx.beginPath();
+                for (let k = 0; k < 5; k++) {
+                  ctx.lineTo(Math.cos((18 + k * 72) / 180 * Math.PI) * size, -Math.sin((18 + k * 72) / 180 * Math.PI) * size);
+                  ctx.lineTo(Math.cos((54 + k * 72) / 180 * Math.PI) * size * 0.4, -Math.sin((54 + k * 72) / 180 * Math.PI) * size * 0.4);
+                }
+                ctx.closePath();
+                ctx.fill();
+              } else if (trailAnimation === 'smoke') {
+                // Smoky circles
+                const driftY = -age * 0.05;
+                ctx.translate(0, driftY);
+                ctx.beginPath();
+                ctx.arc(0, 0, size * 2, 0, Math.PI * 2);
+                ctx.fillStyle = '#666666';
+                ctx.fill();
+              } else if (trailAnimation === 'electric') {
+                // Jittery lines
+                const jitterX = (Math.random() - 0.5) * 10;
+                const jitterY = (Math.random() - 0.5) * 10;
+                ctx.translate(jitterX, jitterY);
+                ctx.strokeStyle = '#00ffff';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(-size, -size);
+                ctx.lineTo(size, size);
+                ctx.stroke();
+              } else {
+                // Standard particles
+                ctx.fillStyle = effectiveTrailColor;
+                ctx.beginPath();
+                ctx.arc(0, 0, size, 0, Math.PI * 2);
+                ctx.fill();
+              }
+
+              ctx.restore();
+            }
+          } else if (trailAnimation === 'dice') {
+            // Dice trail
+            for (let i = 0; i < history.length; i++) {
+              const trail = history[i];
+              const age = now - trail.time;
+              if (age > TRAIL_MAX_AGE * 1.5) continue;
+
+              const progress = age / (TRAIL_MAX_AGE * 1.5);
+              const alpha = 1 - Math.pow(progress, 3);
+              const val = Math.floor((trail.time % 20)) + 1;
+              const size = 16;
+
+              ctx.save();
+              ctx.translate(trail.x, trail.y);
+              ctx.rotate((age * 0.005) + (trail.time % Math.PI));
+              ctx.translate(0, age * 0.05); // Gravity
+
+              ctx.globalAlpha = alpha;
+              ctx.fillStyle = '#FFFFFF';
+              ctx.strokeStyle = effectiveTrailColor;
+              ctx.lineWidth = 1;
+
+              // Hexagon shape
+              ctx.beginPath();
+              for (let s = 0; s < 6; s++) {
+                const angle = 2 * Math.PI / 6 * s;
+                ctx.lineTo(size * Math.cos(angle), size * Math.sin(angle));
+              }
+              ctx.closePath();
+              ctx.fill();
+              ctx.stroke();
+
+              // Number
+              ctx.fillStyle = effectiveTrailColor;
+              ctx.font = `bold 10px sans-serif`;
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillText(val.toString(), 0, 0);
+
+              ctx.restore();
+            }
+          }
+
+          // Cleanup old trail points
+          trailHistory.current = history.filter(t => now - t.time < TRAIL_MAX_AGE * 2);
         }
       }
 
@@ -167,13 +300,27 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
       document.removeEventListener('mousedown', handleMouseDown);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [enabled, handleMouseMove, handleMouseDown, handleMouseUp]);
+  }, [enabled, handleMouseMove, handleMouseDown, handleMouseUp, trailEnabled, trailAnimation, effectiveTrailColor, trailLength]);
 
   if (!enabled || !svgContent) return null;
 
   return (
     <>
-      {/* Custom cursor element - cursor:none is applied via MapCanvas container */}
+      {/* Trail Canvas - below cursor */}
+      {trailEnabled && (
+        <canvas
+          ref={trailCanvasRef}
+          width={window.innerWidth}
+          height={window.innerHeight}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            pointerEvents: 'none',
+            zIndex: 99998,
+          }}
+        />
+      )}
 
       {/* Custom cursor element */}
       <div
@@ -202,22 +349,6 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
           }}
         />
       </div>
-
-      {/* Particle Trail Container */}
-      <div
-        ref={trailRef}
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          pointerEvents: 'none',
-          zIndex: 99998, // Below cursor
-          overflow: 'hidden',
-          mixBlendMode: 'difference',
-        }}
-      />
     </>
   );
 };

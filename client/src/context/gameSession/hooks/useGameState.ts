@@ -20,7 +20,25 @@ export const useGameState = (campaignId: string) => {
       cursorSettings: {
         color: initialCursor.color || '#fbbf24',
         name: initialCursor.name || user?.name || '',
-        shape: initialCursor.shape || 'default'
+        shape: initialCursor.shape || 'default',
+        // Click Animation
+        clickAnimation: initialCursor.clickAnimation || 'ripple',
+        clickColorLeft: initialCursor.clickColorLeft || '#3b82f6',
+        clickColorRight: initialCursor.clickColorRight || '#f59e0b',
+        // Ping
+        pingColor: initialCursor.pingColor || '#fbbf24',
+        pingAnimation: initialCursor.pingAnimation || 'radar',
+        // Trail
+        trailEnabled: initialCursor.trailEnabled ?? false,
+        trailSize: initialCursor.trailSize ?? 4,
+        trailColor: initialCursor.trailColor || '#fbbf24',
+        trailAnimation: initialCursor.trailAnimation || 'line',
+        trailLength: initialCursor.trailLength ?? 20,
+        // Options
+        showOthersTrails: initialCursor.showOthersTrails ?? true,
+        showMyTrail: initialCursor.showMyTrail ?? true,
+        useAppCursor: initialCursor.useAppCursor ?? true,
+        explosionOnCollision: initialCursor.explosionOnCollision ?? true,
       }
     };
   });
