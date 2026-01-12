@@ -6,6 +6,7 @@ import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { RefreshCw, User as UserIcon, Crown, ChevronDown } from 'lucide-react';
 import { CursorEditor, CursorEditorValues } from './CursorEditor';
+import { useAccessControl } from '../../hooks/useAccessControl';
 import { getCursorShape } from './constants/cursorShapes';
 
 interface CursorSettingsModalProps {
@@ -14,7 +15,8 @@ interface CursorSettingsModalProps {
 }
 
 export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen, onClose }) => {
-  const { cursorSettings, setCursorSettings, permissions, isGM, players, updatePermissions, campaign } = useGameSession();
+  const { cursorSettings, setCursorSettings, permissions, players, updatePermissions, campaign } = useGameSession();
+  const { isGM } = useAccessControl();
   const { user } = useAuth();
   const { t } = useTranslation();
 

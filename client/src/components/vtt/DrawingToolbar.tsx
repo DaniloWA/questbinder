@@ -8,6 +8,7 @@ import { RotateCcw, Trash2, Eraser, Sparkles, Eye } from 'lucide-react';
 import { SmartWallPreviewModal } from './SmartWallPreviewModal';
 import { Tooltip } from '../ui/Tooltip';
 import { useTranslation } from '../../i18n/TranslationContext';
+import { AccessGate } from '../AccessGate';
 
 const PRESET_COLORS = [
     '#ffffff', '#ef4444', '#f97316', '#f59e0b',
@@ -217,7 +218,7 @@ export const DrawingToolbar: React.FC = () => {
                     </button>
                 </Tooltip>
 
-                {canClearAll && (
+                <AccessGate requirePermission="drawingClear">
                     <Tooltip content={t('vtt.drawing.toolbar.limparTodosOs.tooltip')}>
                         <button
                             onClick={handleClearAll}
@@ -226,7 +227,7 @@ export const DrawingToolbar: React.FC = () => {
                             <Trash2 className="w-4 h-4" />
                         </button>
                     </Tooltip>
-                )}
+                </AccessGate>
             </div>
         </div>
     );

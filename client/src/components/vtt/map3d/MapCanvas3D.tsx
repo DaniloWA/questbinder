@@ -24,7 +24,7 @@ export const MapCanvas3D: React.FC<MapCanvas3DProps> = (props) => {
     >
       <Map3DProvider>
         {/* Sync props to internal store */}
-        <MapStoreInitializer {...props} />
+        {props.scene && <MapStoreInitializer {...props} scene={props.scene} />}
 
         <Canvas
           gl={{ antialias: true, alpha: false }}

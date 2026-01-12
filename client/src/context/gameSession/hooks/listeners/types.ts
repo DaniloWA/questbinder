@@ -10,7 +10,9 @@ export interface ListenerDeps {
   show: (options: any) => void;
   setViewport?: (v: Partial<Viewport>) => void;
   stateRef: React.MutableRefObject<GameSessionState>;
+  campaignId: string;
 }
+
 
 // Cleanup function returned by each listener registrar
 export type ListenerCleanup = () => void;

@@ -75,7 +75,7 @@ export const MapCanvas: React.FC<MapCanvasProps> = (props) => {
     ...mapState,
     ...tokenLayer,
     imageCache,
-    visionTokens,
+
     clickAnimationsRef, // Pass Ref
     viewportRef, // PERFORMANCE: Pass ref for immediate panning
     mouseWorldPosRef: mapState.mouseWorldPosRef // PERFORMANCE: Pass ref for immediate mouse position

@@ -2,28 +2,7 @@ import * as db from '../db.js';
 import crypto from 'crypto';
 import PermissionHelper from '../utils/PermissionHelper.js';
 
-export const DEFAULT_PERMISSIONS = {
-  tokenMovement: true,
-  doorControl: true,
-  drawings: true,
-  drawingDelete: false,
-  drawingClear: false,
-  measure: true,
-  pingMap: true,
-  diceRolling: true,
-  tokenCreate: false,
-  tokenEdit: false,
-  tokenDelete: false,
-  fogReveal: false,
-  compendiumBrowse: false, // GM only by default
-  journalCreate: true,
-  sheetEdit: true,
-  initiativeRoll: true,
-  shareCursor: true,
-  allowSpectate: true,
-  logConfig: { movement: 'public', combat: 'public', rolls: 'public', system: 'public' },
-  userOverrides: {}
-};
+
 
 export const validatePayload = (payload, requiredFields) => {
   if (!payload || typeof payload !== 'object') {
@@ -124,7 +103,8 @@ export const createSocketUtils = (io, socket, client) => {
   };
 
   const requireGM = (handler) => async (payload) => {
-    if (!client.campaignId || !client.isGM) {
+    const helper = await getPermissionHelper();
+    if (!client.campaignId || !helper.isGameMaster()) {
       safeEmitError('Apenas o GM pode fazer isso.');
       return;
     }

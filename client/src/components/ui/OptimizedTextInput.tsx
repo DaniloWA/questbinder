@@ -40,7 +40,7 @@ export const OptimizedTextInput = React.memo<OptimizedTextInputProps>(({
 }) => {
   const [localValue, setLocalValue] = useState(value);
   const [isFocused, setIsFocused] = useState(false);
-  const debounceTimer = useRef<NodeJS.Timeout>();
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // Sincronizar com prop externa quando não focado
   useEffect(() => {

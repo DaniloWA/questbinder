@@ -1,13 +1,17 @@
 import { useTranslation } from '../../i18n/TranslationContext';
+import { useAccessControl } from '../../hooks/useAccessControl';
 import React from 'react';
 import { useGameSession } from '../../context/GameSessionContext';
 import { Swords, ChevronRight, ShieldAlert, Heart, Skull } from 'lucide-react';
 import { Tooltip } from '../ui/Tooltip';
 import { Button } from '../ui/Button';
+import { AccessGate } from '../AccessGate';
+import { GameRole } from '../../types/acl';
 
 export const CombatTracker: React.FC = () => {
     const { t } = useTranslation();
-    const { combat, isGM, nextTurn, updateCombatant } = useGameSession();
+    const { combat, nextTurn, updateCombatant } = useGameSession();
+    const { isGM } = useAccessControl();
 
     if (!combat || !combat.isActive) {
         return (
@@ -64,13 +68,14 @@ export const CombatTracker: React.FC = () => {
                         {/* HP */}
                         <div className="flex items-center gap-2">
                             <Heart className="w-4 h-4 text-red-500" />
-                            <input
-                                type="number"
-                                value={c.hp ?? ''}
-                                onChange={(e) => updateCombatant(c.id, { hp: parseInt(e.target.value) || 0 })}
-                                className="w-12 bg-zinc-900 border border-zinc-700 rounded text-center text-sm p-1 outline-none focus:ring-1 focus:ring-primary"
-                                disabled={!isGM}
-                            />
+                            <AccessGate requireRole={GameRole.GM} mode="disable">
+                                <input
+                                    type="number"
+                                    value={c.hp ?? ''}
+                                    onChange={(e) => updateCombatant(c.id, { hp: parseInt(e.target.value) || 0 })}
+                                    className="w-12 bg-zinc-900 border border-zinc-700 rounded text-center text-sm p-1 outline-none focus:ring-1 focus:ring-primary"
+                                />
+                            </AccessGate>
                         </div>
 
                     </div>
@@ -78,12 +83,12 @@ export const CombatTracker: React.FC = () => {
             </div>
 
             {/* GM Controls */}
-            {isGM && (
+            <AccessGate requireRole={GameRole.GM}>
                 <div className="p-3 border-t border-zinc-800 bg-zinc-900">
                     <Button onClick={nextTurn} fullWidth className="shadow-lg shadow-primary/20">{t('vtt.combat.tracker.prximoTurno.text')}<ChevronRight className="w-4 h-4 ml-2" />
                     </Button>
                 </div>
-            )}
+            </AccessGate>
         </div>
     );
 };

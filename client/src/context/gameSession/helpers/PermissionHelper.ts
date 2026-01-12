@@ -1,5 +1,14 @@
 import { BooleanPermissionKey } from '../types';
 import { SessionPermissions, Token, TokenHoverPermissions } from '../../../types';
+import {
+  SubscriptionTier,
+  GameRole,
+  PremiumFeatureKey,
+  TierLimits,
+  TIER_CONFIGS,
+  ROLE_DEFAULTS,
+  RoleCapabilities
+} from '../../../types/acl';
 
 /**
  * PermissionHelper - Centralized permission checking system
@@ -11,11 +20,26 @@ export class PermissionHelper {
   private isGM: boolean;
   private userId: string | null;
   private permissions: SessionPermissions;
+  private tier: SubscriptionTier;
+  private role: GameRole;
+  private capabilities: RoleCapabilities;
 
-  constructor(isGM: boolean, userId: string | null, permissions: SessionPermissions) {
-    this.isGM = isGM;
+  constructor(
+    isGM: boolean,
+    userId: string | null,
+    permissions: SessionPermissions,
+    tier: SubscriptionTier = SubscriptionTier.FREE,
+    role: GameRole = GameRole.PLAYER
+  ) {
     this.userId = userId;
     this.permissions = permissions;
+    this.tier = tier;
+
+    // Backward compatibility: If isGM is true, force GM role
+    this.role = isGM ? GameRole.GM : role;
+    this.isGM = this.role === GameRole.GM; // Derived source of truth
+
+    this.capabilities = ROLE_DEFAULTS[this.role];
   }
 
   /**
@@ -27,30 +51,104 @@ export class PermissionHelper {
 
   /**
    * Check if user has a specific boolean permission
-   * GM always returns true
-   * Checks user overrides first, then falls back to global permission
+   * 1. GM always returns true
+   * 2. Spectators are blocked from interactive permissions
+   * 3. User overrides take precedence
+   * 4. Role capabilities act as a filter
+   * 5. Default permissions
    */
   can(permission: BooleanPermissionKey): boolean {
-    if (this.isGM) return true;
+    // 1. GM Override
+    if (this.role === GameRole.GM) return true;
+
     if (!this.userId) return false;
 
+    // 2. Spectator Global Restriction (Interactive permissions)
+    if (this.role === GameRole.SPECTATOR) {
+      const interactivePerms: BooleanPermissionKey[] = [
+        'tokenMovement', 'tokenCreate', 'tokenEdit', 'tokenDelete',
+        'doorControl', 'drawings', 'measure', 'fogReveal',
+        'journalCreate', 'sheetEdit', 'initiativeRoll'
+      ];
+      if (interactivePerms.includes(permission)) return false;
+    }
+
+    // 3. User Specific Override
     const userOverrides = this.permissions.userOverrides?.[this.userId];
     const overrideValue = userOverrides?.[permission];
 
-    return (overrideValue !== undefined ? overrideValue : this.permissions[permission]) as boolean;
+    if (overrideValue !== undefined) {
+      return overrideValue;
+    }
+
+    // 4. Role Capability Filter (Optional - strict role enforcement)
+    // Map permissions to capabilities if needed. For now, rely on defaults + role.
+
+    // 5. Default/Global Permission
+    return this.permissions[permission] ?? false;
   }
 
   /**
-   * Check if user can control a specific token
-   * GM can control all tokens
-   * Players can control tokens they own or are controlled by them
+   * Check if user access to a Premium Feature based on Subscription Tier
    */
+  canFeature(feature: PremiumFeatureKey): boolean {
+    const tierConfig = TIER_CONFIGS[this.tier];
+    return tierConfig.features.has(feature);
+  }
+
+  /**
+   * Unified Access Check
+   * Checks Permission OR Feature OR Role requirements
+   */
+  checkAccess(requirements: {
+    permission?: BooleanPermissionKey;
+    feature?: PremiumFeatureKey;
+    role?: GameRole;
+  }): { allowed: boolean; reason?: string; } {
+    // 1. Role Check
+    if (requirements.role && this.role !== requirements.role) {
+      // GM has access to everything EXCEPT specific role checks (e.g. "Is Player")
+      // Unless we decide GM satisfies all roles. For now, strict check.
+      if (this.role !== GameRole.GM) {
+        return { allowed: false, reason: `Requires ${requirements.role} role` };
+      }
+    }
+
+    // 2. Feature/Tier Check
+    if (requirements.feature && !this.canFeature(requirements.feature)) {
+      return { allowed: false, reason: `Requires ${this.tier} tier or higher` };
+    }
+
+    // 3. Permission Check
+    if (requirements.permission && !this.can(requirements.permission)) {
+      return { allowed: false, reason: `Missing ${requirements.permission} permission` };
+    }
+
+    return { allowed: true };
+  }
+
+  canControlAnyToken(): boolean {
+    return this.capabilities.canControlAnyToken || false;
+  }
+
+  canControlOwnTokens(): boolean {
+    return this.capabilities.canControlOwnTokens || false;
+  }
+
   canControlToken(token: Token): boolean {
     if (!token) return false;
-    if (this.isGM) return true;
+
+    // 1. Universal Control (GM or equivalent)
+    if (this.canControlAnyToken()) return true;
+
+    // 2. Spectator/No Control Roles check
+    if (!this.canControlOwnTokens()) return false;
+
     if (!this.userId) return false;
 
-    return token.controlledBy?.includes(this.userId) || false;
+    // 3. Ownership/Control Check
+    return token.ownerId === this.userId ||
+      (token.controlledBy?.includes(this.userId) || false);
   }
 
   /**
@@ -181,6 +279,7 @@ export class PermissionHelper {
       // Novas Permissões (Total Control)
       'compendiumBrowse', 'bestiaryBrowse', 'journalCreate', 'sheetEdit', 'initiativeRoll',
       'drawingDelete', 'drawingClear',
+      'attackZoneCreate', 'attackZoneUse',
       // Privacidade
       'shareCursor', 'allowSpectate'
     ];
@@ -196,8 +295,14 @@ export class PermissionHelper {
    * Create a new instance with updated permissions
    * Useful for reactive updates
    */
-  static create(isGM: boolean, userId: string | null, permissions: SessionPermissions): PermissionHelper {
-    return new PermissionHelper(isGM, userId, permissions);
+  static create(
+    isGM: boolean,
+    userId: string | null,
+    permissions: SessionPermissions,
+    tier: SubscriptionTier = SubscriptionTier.FREE,
+    role: GameRole = GameRole.PLAYER
+  ): PermissionHelper {
+    return new PermissionHelper(isGM, userId, permissions, tier, role);
   }
 }
 
@@ -208,7 +313,9 @@ export class PermissionHelper {
 export const createPermissionHelper = (
   isGM: boolean,
   userId: string | null,
-  permissions: SessionPermissions
+  permissions: SessionPermissions,
+  tier: SubscriptionTier = SubscriptionTier.FREE,
+  role: GameRole = GameRole.PLAYER
 ): PermissionHelper => {
-  return PermissionHelper.create(isGM, userId, permissions);
+  return PermissionHelper.create(isGM, userId, permissions, tier, role);
 };

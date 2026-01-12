@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useGameSession } from '../../context/GameSessionContext';
+import { useAccessControl } from '../../hooks/useAccessControl';
 import { useAuth } from '../../context/AuthContext';
 import { ChatMessage, ChatLinkMetadata } from '../../types';
 import { Send, Dices, MapPin, User, Sword, Zap, Backpack, ThumbsUp, ThumbsDown, ChevronDown, MessageSquare, ExternalLink, Maximize2, Minimize2, Move, GripHorizontal, ArrowRightToLine, Eye, EyeOff, Hash, Heart, ShieldAlert, Footprints, Activity, Filter, BookOpen, Skull, Lock, Unlock, Users } from 'lucide-react';
@@ -130,7 +131,8 @@ interface GameLogProps {
 }
 
 export const GameLog: React.FC<GameLogProps> = ({ onModeChange }) => {
-    const { chatMessages, sendChatMessage, toggleChatReaction, handleChatLinkClick, campaignCharacters, isGM } = useGameSession();
+    const { chatMessages, sendChatMessage, toggleChatReaction, handleChatLinkClick, campaignCharacters } = useGameSession();
+    const { isGM } = useAccessControl();
     const { user } = useAuth();
     const { t } = useTranslation();
 

@@ -39,7 +39,7 @@ export const FeaturesTab: React.FC<FeaturesTabProps> = ({
                     value={feat.source}
                     onChange={(val) => {
                       const newFeatures = character.features.map(f => f.id === feat.id ? { ...f, source: val } : f);
-                      updateFields({ features: newFeatures });
+                      updateFields({ features: newFeatures as Character['features'] });
                     }}
                     className="w-full"
                     inputClassName="bg-zinc-950 text-[10px] text-zinc-500 border border-zinc-700 rounded px-1"
@@ -59,11 +59,11 @@ export const FeaturesTab: React.FC<FeaturesTabProps> = ({
                 value={feat.description}
                 onChange={(val) => {
                   const newFeatures = character.features.map(f => f.id === feat.id ? { ...f, description: val } : f);
-                  updateFields({ features: newFeatures });
+                  updateFields({ features: newFeatures as Character['features'] });
                 }}
                 className="w-full"
                 inputClassName="bg-zinc-950 text-xs text-zinc-400 border border-zinc-700 rounded px-1 w-full"
-                multiline
+                type="textarea"
                 placeholder={t('vtt.character.features.description.placeholder')}
               />
             ) : (

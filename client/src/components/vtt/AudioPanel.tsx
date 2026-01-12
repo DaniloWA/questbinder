@@ -5,6 +5,8 @@ import { DraggableWindow } from '../ui/DraggableWindow';
 import { useGameSession } from '../../context/GameSessionContext';
 import { Playlist, SoundEffect } from '../../types';
 import { Music, Volume2, Pause, Play, PowerOff, Shuffle, Settings, Trash2, Plus, Save, ArrowLeft, UploadCloud, Repeat, Loader2 } from 'lucide-react';
+import { AccessGate } from '../AccessGate';
+import { GameRole } from '../../types/acl';
 import { audioService } from '../../services/audioService';
 import { socketService } from '../../services/socketService';
 import { fileService } from '../../services/fileService';
@@ -233,14 +235,18 @@ export const AudioPanel: React.FC<AudioPanelProps> = ({ isOpen, onClose }) => {
             <div>
                 <div className="flex justify-between items-center mb-2">
                     <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">{t('vtt.audio.panel.playlists.label')}</h3>
-                    <button onClick={handleStopMusic} className="flex items-center gap-1 text-xs text-red-400/80 hover:text-red-400 font-bold transition-colors"><PowerOff className="w-3 h-3" />{t('vtt.audio.panel.pararTudo.text')}</button>
+                    <AccessGate requireRole={GameRole.GM}>
+                        <button onClick={handleStopMusic} className="flex items-center gap-1 text-xs text-red-400/80 hover:text-red-400 font-bold transition-colors"><PowerOff className="w-3 h-3" />{t('vtt.audio.panel.pararTudo.text')}</button>
+                    </AccessGate>
                 </div>
                 <div className="space-y-3">
                     {audioSettings.playlists.map(playlist => (
                         <div key={playlist.id} className="bg-zinc-800/50 border border-zinc-800 rounded-lg p-3">
                             <div className="flex justify-between items-center mb-2">
                                 <p className="text-sm font-bold text-zinc-300">{playlist.name}</p>
-                                <button onClick={() => handleShufflePlay(playlist.id)} className="flex items-center gap-1.5 text-xs bg-zinc-900/50 border border-zinc-700 rounded-full px-2 py-1 text-zinc-400 hover:text-white hover:border-primary/50 transition-colors"><Shuffle className="w-3 h-3" />{t('vtt.audio.panel.aleatrio.label')}</button>
+                                <AccessGate requireRole={GameRole.GM}>
+                                    <button onClick={() => handleShufflePlay(playlist.id)} className="flex items-center gap-1.5 text-xs bg-zinc-900/50 border border-zinc-700 rounded-full px-2 py-1 text-zinc-400 hover:text-white hover:border-primary/50 transition-colors"><Shuffle className="w-3 h-3" />{t('vtt.audio.panel.aleatrio.label')}</button>
+                                </AccessGate>
                             </div>
                             <div className="space-y-2">
                                 {playlist.tracks.map(track => {
@@ -251,11 +257,13 @@ export const AudioPanel: React.FC<AudioPanelProps> = ({ isOpen, onClose }) => {
 
                                     return (
                                         <div key={track.url} className="flex gap-2">
-                                            <button onClick={() => handleTrackClick(track.url)} className={`flex-1 text-left text-xs border rounded px-2 py-1.5 hover:border-primary/50 hover:bg-primary/20 text-zinc-400 hover:text-white transition-colors truncate flex items-center gap-2 ${isPlaying ? 'bg-primary/20 border-primary/50 text-white' : isPaused ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-300' : 'bg-zinc-900/50 border-zinc-700'}`}>
-                                                {isPlaying ? <Play className="w-3 h-3 fill-current" /> : isPaused ? <Pause className="w-3 h-3 fill-current" /> : <Play className="w-3 h-3" />}
-                                                {track.name}
-                                            </button>
-                                            <button onClick={() => handleToggleTrackLoop(track.url)} className={`p-1.5 border rounded transition-colors ${isLoopingForThisTrack ? 'text-primary border-primary/30' : 'text-zinc-600 border-zinc-700 hover:text-zinc-300'}`}><Repeat className="w-4 h-4" /></button>
+                                            <AccessGate requireRole={GameRole.GM} mode="disable">
+                                                <button onClick={() => handleTrackClick(track.url)} className={`flex-1 text-left text-xs border rounded px-2 py-1.5 hover:border-primary/50 hover:bg-primary/20 text-zinc-400 hover:text-white transition-colors truncate flex items-center gap-2 ${isPlaying ? 'bg-primary/20 border-primary/50 text-white' : isPaused ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-300' : 'bg-zinc-900/50 border-zinc-700'}`}>
+                                                    {isPlaying ? <Play className="w-3 h-3 fill-current" /> : isPaused ? <Pause className="w-3 h-3 fill-current" /> : <Play className="w-3 h-3" />}
+                                                    {track.name}
+                                                </button>
+                                                <button onClick={() => handleToggleTrackLoop(track.url)} className={`p-1.5 border rounded transition-colors ${isLoopingForThisTrack ? 'text-primary border-primary/30' : 'text-zinc-600 border-zinc-700 hover:text-zinc-300'}`}><Repeat className="w-4 h-4" /></button>
+                                            </AccessGate>
                                         </div>
                                     );
                                 })}
@@ -269,7 +277,11 @@ export const AudioPanel: React.FC<AudioPanelProps> = ({ isOpen, onClose }) => {
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {audioSettings.soundboard.map(sfx => {
                         const isSfxLooping = loopingSfxUrls.has(sfx.url);
-                        return <button key={sfx.id} onClick={() => handleToggleSfxLoop(sfx.url)} className={`aspect-square flex items-center justify-center text-center border rounded-lg hover:border-primary text-xs font-bold transition-all ${isSfxLooping ? 'bg-primary/20 border-primary text-primary shadow-md animate-pulse' : 'bg-zinc-800/50 border-zinc-700 text-zinc-300 hover:text-primary'}`}>{sfx.name}</button>;
+                        return (
+                            <AccessGate key={sfx.id} requireRole={GameRole.GM} mode="disable">
+                                <button onClick={() => handleToggleSfxLoop(sfx.url)} className={`aspect-square flex items-center justify-center text-center border rounded-lg hover:border-primary text-xs font-bold transition-all ${isSfxLooping ? 'bg-primary/20 border-primary text-primary shadow-md animate-pulse' : 'bg-zinc-800/50 border-zinc-700 text-zinc-300 hover:text-primary'}`}>{sfx.name}</button>
+                            </AccessGate>
+                        );
                     })}
                 </div>
             </div>
@@ -284,7 +296,10 @@ export const AudioPanel: React.FC<AudioPanelProps> = ({ isOpen, onClose }) => {
                     <div className="flex items-center gap-3"><Volume2 className="w-4 h-4 text-zinc-500" /><input type="range" min="0" max="1" step="0.05" value={sfxVolume} onChange={handleSfxVolumeChange} className="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-primary" /><span className="text-xs font-mono w-10 text-right">{Math.round(sfxVolume * 100)}%</span></div>
                 </div>
                 <div className="shrink-0 bg-zinc-900/50 border-b border-zinc-800 flex items-center justify-between px-4 py-2">
-                    {isManaging ? <Button size="sm" variant="ghost" onClick={() => setIsManaging(false)}><ArrowLeft className="w-4 h-4 mr-2" />{t('vtt.audio.panel.voltar.label')}</Button> : <Button size="sm" variant="ghost" onClick={() => setIsManaging(true)}><Settings className="w-4 h-4 mr-2" />{t('vtt.audio.panel.gerenciar.label')}</Button>}
+                    {isManaging ? <Button size="sm" variant="ghost" onClick={() => setIsManaging(false)}><ArrowLeft className="w-4 h-4 mr-2" />{t('vtt.audio.panel.voltar.label')}</Button> :
+                        <AccessGate requireRole={GameRole.GM} mode="hide">
+                            <Button size="sm" variant="ghost" onClick={() => setIsManaging(true)}><Settings className="w-4 h-4 mr-2" />{t('vtt.audio.panel.gerenciar.label')}</Button>
+                        </AccessGate>}
                     {isManaging && <Button size="sm" onClick={handleSaveChanges}><Save className="w-4 h-4 mr-2" />{t('vtt.audio.panel.salvarAlteraes.text')}</Button>}
                 </div>
                 {isManaging ? renderManager() : renderPlayer()}

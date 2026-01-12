@@ -34,7 +34,7 @@ export const apiService = {
     filter?: (item: T) => boolean
   ): Promise<ApiResponse<T[]>> => {
     if (!USE_REAL_BACKEND) {
-      const data = MockDataLayer.readTable(collection) as T[];
+      const data = MockDataLayer.readTable(collection) as unknown as T[];
       return {
         success: true,
         data: filter ? data.filter(filter) : data,
@@ -64,7 +64,7 @@ export const apiService = {
     id: string
   ): Promise<ApiResponse<T>> => {
     if (!USE_REAL_BACKEND) {
-      const items = MockDataLayer.readTable(collection) as T[];
+      const items = MockDataLayer.readTable(collection) as unknown as T[];
       const item = items.find((i) => i.id === id);
       return item
         ? { success: true, data: item }
@@ -94,14 +94,14 @@ export const apiService = {
     payload: Omit<T, 'id' | 'createdAt'>
   ): Promise<ApiResponse<T>> => {
     if (!USE_REAL_BACKEND) {
-      const items = MockDataLayer.readTable(collection) as T[];
+      const items = MockDataLayer.readTable(collection) as unknown as T[];
       const newItem = {
         ...(payload as any),
         id: crypto.randomUUID(),
         createdAt: new Date().toISOString(),
       };
       items.push(newItem);
-      MockDataLayer.writeTable(collection, items);
+      MockDataLayer.writeTable(collection, items as any);
       return { success: true, data: newItem };
     }
 
@@ -128,12 +128,12 @@ export const apiService = {
     changes: Partial<T>
   ): Promise<ApiResponse<T>> => {
     if (!USE_REAL_BACKEND) {
-      const items = MockDataLayer.readTable(collection) as T[];
+      const items = MockDataLayer.readTable(collection) as unknown as T[];
       const index = items.findIndex((i) => i.id === id);
       if (index === -1) return { success: false, message: 'Não encontrado' };
 
       items[index] = { ...items[index], ...changes };
-      MockDataLayer.writeTable(collection, items);
+      MockDataLayer.writeTable(collection, items as any);
       return { success: true, data: items[index] };
     }
 
@@ -180,7 +180,7 @@ export const apiService = {
   },
 
   // DELETE
-  delete: async (
+  delete: async <T = any>(
     collection: CollectionName,
     id: string
   ): Promise<ApiResponse<boolean>> => {

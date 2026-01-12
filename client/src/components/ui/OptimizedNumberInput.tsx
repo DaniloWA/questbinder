@@ -40,7 +40,7 @@ export const OptimizedNumberInput = React.memo<OptimizedNumberInputProps>(({
   const [localValue, setLocalValue] = useState(String(value));
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const debounceTimer = useRef<NodeJS.Timeout>();
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // Sincronizar com prop externa quando não focado
   useEffect(() => {

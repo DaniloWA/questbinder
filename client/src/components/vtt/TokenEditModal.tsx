@@ -11,6 +11,8 @@ import { useNotification } from '../../context/NotificationContext';
 import { useTranslation } from '../../i18n/TranslationContext';
 import { Aura } from '../../types';
 import { UploadCloud, Eye, Lock, BookOpen, Search, Sun, Activity, Palette, FileText, Shield, Image as ImageIcon, Type, Package, Loader2 } from 'lucide-react';
+import { AccessGate } from '../AccessGate';
+import { GameRole } from '../../types/acl';
 
 // Token Settings Components
 import { TokenPreviewPanel } from './TokenSettings/TokenPreviewPanel';
@@ -733,7 +735,9 @@ export const TokenEditModal: React.FC<TokenEditModalProps> = ({
                         )}
 
                         {activeTab === 'perms' && (
-                            <TokenPermsTab players={players} controlledBy={controlledBy} onControlledByChange={setControlledBy} />
+                            <AccessGate requireRole={GameRole.GM} mode="fallback" fallback={<div className="p-8 text-center text-zinc-500 italic flex flex-col items-center gap-2"><Lock className="w-8 h-8 opacity-50" /><span>{t('common.permissions.denied')}</span></div>}>
+                                <TokenPermsTab players={players} controlledBy={controlledBy} onControlledByChange={setControlledBy} />
+                            </AccessGate>
                         )}
                     </div>
                 </div>

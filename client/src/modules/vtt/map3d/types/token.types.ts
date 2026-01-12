@@ -5,7 +5,7 @@ export type Condition =
   | 'dead' | 'bloodied' | 'stunned' | 'shielded' | 'alert'
   | 'prone' | 'paralyzed' | 'unconscious' | 'poisoned'
   | 'blinded' | 'deafened' | 'frightened' | 'charmed'
-  | 'invisible' | 'restrained' | 'grappled' | 'concentrating';
+  | 'invisible' | 'restrained' | 'grappled' | 'concentrating' | string;
 
 export interface TokenBar {
   value: number;

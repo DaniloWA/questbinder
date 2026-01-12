@@ -5,6 +5,8 @@ import { Tooltip } from '../ui/Tooltip';
 import { STATUS_RULES, StatusDefinition } from '../../data/rules';
 import { useGameSession } from '../../context/GameSessionContext';
 import { useTranslation } from '../../i18n/TranslationContext';
+import { AccessGate } from '../AccessGate';
+import { GameRole } from '../../types/acl';
 
 interface TokenHoverCardProps {
     token: Token;
@@ -289,7 +291,7 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
                             </div>
                         </div>
 
-                        {isGM && (
+                        <AccessGate requireRole={GameRole.GM} mode="hide">
                             <button
                                 onClick={(e) => { e.stopPropagation(); onUpdate(token.id, { isVisibleToPlayers: !token.isVisibleToPlayers }); }}
                                 className={`p-1.5 rounded-md transition-all border ${!token.isVisibleToPlayers ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:text-white'}`}
@@ -297,7 +299,7 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
                             >
                                 {token.isVisibleToPlayers ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
                             </button>
-                        )}
+                        </AccessGate>
                     </div>
                 </div>
             </div>

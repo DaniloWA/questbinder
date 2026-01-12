@@ -61,7 +61,7 @@ export const useGameState = (campaignId: string) => {
               chatService.getMessages(campaignId),
               handoutService.getByCampaign(campaignId),
               campaignService.getPlayers(campaignId),
-              apiService.get<TokenTemplate[]>('token_templates') // Load templates
+              apiService.get<TokenTemplate>('token_templates') // Load templates
             ]);
 
             if (!isMounted) return;

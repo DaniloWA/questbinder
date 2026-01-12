@@ -5,13 +5,12 @@ import { Tooltip } from '../../ui/Tooltip';
 
 interface CombatantRowProps {
   combatant: Combatant;
-  isGM: boolean;
   isActive: boolean;
   onClick: () => void;
 }
 
 export const CombatantRow: React.FC<CombatantRowProps> = ({
-  combatant, isGM, isActive, onClick
+  combatant, isActive, onClick
 }) => {
   const hpPercentage = combatant.maxHp ? (combatant.hp || 0) / combatant.maxHp * 100 : 0;
 

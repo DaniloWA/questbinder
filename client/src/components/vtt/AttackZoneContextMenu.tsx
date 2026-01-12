@@ -4,6 +4,9 @@ import React, { useEffect, useRef } from 'react';
 import { Edit3, Copy, Trash2, Eye, EyeOff } from 'lucide-react';
 import { useTranslation } from '../../i18n/TranslationContext';
 import { AttackZoneConfig } from '../../types/attackZone';
+import { AccessGate } from '../AccessGate';
+import { GameRole } from '../../types/acl';
+import { BooleanPermissionKey } from '../../context/gameSession/types';
 
 interface AttackZoneContextMenuProps {
   x: number;
@@ -51,7 +54,15 @@ export const AttackZoneContextMenu: React.FC<AttackZoneContextMenuProps> = ({
     };
   }, [onClose]);
 
-  const menuItems = [
+  const menuItems: {
+      label: string;
+      icon: any;
+      onClick: () => void;
+      color: string;
+      separator?: boolean;
+      permission?: BooleanPermissionKey;
+      role?: GameRole;
+  }[] = [
     {
       label: t('vtt.attackZone.contextMenu.edit.label'),
       icon: Edit3,
@@ -60,6 +71,7 @@ export const AttackZoneContextMenu: React.FC<AttackZoneContextMenuProps> = ({
         onClose();
       },
       color: 'text-blue-400 hover:text-blue-300',
+      permission: 'attackZoneCreate'
     },
     {
       label: t('vtt.attackZone.contextMenu.duplicate.label'),
@@ -69,6 +81,7 @@ export const AttackZoneContextMenu: React.FC<AttackZoneContextMenuProps> = ({
         onClose();
       },
       color: 'text-cyan-400 hover:text-cyan-300',
+      permission: 'attackZoneUse'
     },
     {
       label: t('vtt.attackZone.contextMenu.delete.label'),
@@ -79,6 +92,7 @@ export const AttackZoneContextMenu: React.FC<AttackZoneContextMenuProps> = ({
       },
       color: 'text-red-400 hover:text-red-300',
       separator: true,
+      permission: 'attackZoneCreate'
     },
   ];
 
@@ -109,13 +123,15 @@ export const AttackZoneContextMenu: React.FC<AttackZoneContextMenuProps> = ({
       <div className="py-1">
         {menuItems.map((item, index) => (
           <React.Fragment key={index}>
-            <button
-              onClick={item.onClick}
-              className={`w-full px-4 py-2.5 flex items-center gap-3 transition-all ${item.color} hover:bg-white/5`}
-            >
-              <item.icon className="w-4 h-4" />
-              <span className="text-sm font-medium">{item.label}</span>
-            </button>
+            <AccessGate requirePermission={item.permission} requireRole={item.role}>
+              <button
+                onClick={item.onClick}
+                className={`w-full px-4 py-2.5 flex items-center gap-3 transition-all ${item.color} hover:bg-white/5`}
+              >
+                <item.icon className="w-4 h-4" />
+                <span className="text-sm font-medium">{item.label}</span>
+              </button>
+            </AccessGate>
             {item.separator && index < menuItems.length - 1 && (
               <div className="h-px bg-white/10 my-1 mx-2" />
             )}

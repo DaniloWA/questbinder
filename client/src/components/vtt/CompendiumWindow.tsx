@@ -8,6 +8,7 @@ import { CompendiumCategory, ApiMonster, ApiSpell, ApiMagicItem, ApiSection } fr
 import { Book, Skull, Zap, Backpack, Scale, Search, ChevronRight, ChevronDown, ExternalLink, Activity, Shield, Heart, Loader2, RotateCw, Star, Bookmark, Image as ImageIcon, MessageSquare, Copy, Share2, Lock } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useGameSession } from '../../context/GameSessionContext';
+import { useAccessControl } from '../../hooks/useAccessControl';
 import { useNotification } from '../../context/NotificationContext';
 import { ftToM } from '../../utils/unitConversion';
 import { formatMarkdown } from '../../utils/markdown';
@@ -146,7 +147,8 @@ export const CompendiumWindow: React.FC<CompendiumWindowProps> = ({ isOpen, onCl
 
     const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
 
-    const { isGM, addToken, sendChatMessage, viewport, activeScene, compendiumTarget, permissionHelper } = useGameSession();
+    const { addToken, sendChatMessage, viewport, activeScene, compendiumTarget, permissionHelper } = useGameSession();
+    const { isGM } = useAccessControl();
     const { show } = useNotification();
 
     // REGRA MILENAR: Use PermissionHelper

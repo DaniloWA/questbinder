@@ -58,6 +58,21 @@ export const getDefaultPermissions = (): SessionPermissions => ({
   shareCursor: true,
   allowSpectate: true,
 
+  // Cursor Customization Defaults
+  cursorAllowColorChange: true,
+  cursorAllowShapeChange: true,
+  cursorAllowNameChange: true,
+  cursorAllowAnimationChange: true,
+  cursorAllowAnimationColorChange: true,
+
+  // Chat Defaults
+  chatGlobalAllowed: true,
+  chatPrivateAllowed: true,
+
+  // Viewport Defaults
+  showRemoteViewports: true,
+  shareViewport: true,
+
   // Token Hover Visibility
   tokenHover: defaultTokenHoverPermissions,
 
@@ -71,5 +86,6 @@ export const getDefaultPermissions = (): SessionPermissions => ({
   },
 
   // Overrides por Usuário
+  cursorOverrides: {},
   userOverrides: {},
 });

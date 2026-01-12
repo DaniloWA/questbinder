@@ -51,7 +51,11 @@ interface TranslationContextValue {
   hasKey: (key: string) => boolean;
 }
 
-const TranslationContext = createContext<TranslationContextValue | null>(null);
+console.log('[DEBUG] TranslationContext Module Loaded', new Error().stack); // Log stack to see importer
+const TranslationContext = (globalThis as any).__TranslationContext || createContext<TranslationContextValue | null>(null);
+if (process.env.NODE_ENV !== 'production') {
+  (globalThis as any).__TranslationContext = TranslationContext;
+}
 
 // === Provider ===
 export const TranslationProvider: React.FC<{ children: React.ReactNode; }> = ({
@@ -107,7 +111,7 @@ export function useTranslation(): TranslationContextValue {
   if (!ctx) {
     throw new Error('useTranslation must be used within TranslationProvider');
   }
-  return ctx;
+  return ctx as TranslationContextValue;
 }
 
 /**

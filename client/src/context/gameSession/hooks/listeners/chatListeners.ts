@@ -46,7 +46,7 @@ export const registerChatListeners = ({
       visibility: rollVisibility,
       timestamp: Date.now(),
       rollDetails: payload.result
-    };
+    } as ChatMessage;
 
     setState(previousState => ({
       ...previousState,

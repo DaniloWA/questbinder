@@ -15,6 +15,9 @@ import { useGameSession } from '../../context/GameSessionContext';
 import { useModal } from '../../context/ModalContext';
 import { useTranslation } from '../../i18n/TranslationContext';
 import { ConfirmationModal } from '../ui/ConfirmationModal';
+import { AccessGate, AccessMode } from '../AccessGate';
+import { BooleanPermissionKey } from '../../context/gameSession/types';
+import { GameRole, PremiumFeatureKey } from '../../types/acl';
 
 // Hook para detectar mobile/touch
 const useIsMobile = () => {
@@ -39,6 +42,10 @@ export interface ToolbarItemConfig {
     isActive?: boolean;
     children?: ToolbarItemConfig[];
     onClick?: () => void;
+    requirePermission?: BooleanPermissionKey;
+    requireRole?: GameRole;
+    requireFeature?: PremiumFeatureKey;
+    accessMode?: AccessMode; // Defaults to 'hide' for toolbar items usually
 }
 
 interface VTTToolbarProps {
@@ -134,6 +141,11 @@ const MenuItem: React.FC<{
 
     if (item.hidden) return null;
 
+    // We wrap the Item content in AccessGate
+    // If it's a group, we might want to check permissions on the group itself
+    // but usually groups are hidden if the user lacks role/permission.
+
+
     const [isHovered, setIsHovered] = useState(false);
     const itemRef = useRef<HTMLDivElement>(null);
     const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -187,80 +199,93 @@ const MenuItem: React.FC<{
 
     if (depth === 0) {
         return (
-            <div
-                ref={itemRef}
-                className="relative flex items-center justify-center px-1"
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
+            <AccessGate
+                requirePermission={item.requirePermission}
+                requireRole={item.requireRole}
+                requireFeature={item.requireFeature}
+                mode={item.accessMode || 'hide'}
             >
-                <Tooltip content={isHovered && hasChildren ? '' : `${item.label} ${item.shortcut ? `(${item.shortcut})` : ''}`} position="top">
-                    <button
-                        onClick={handleClick}
-                        className={`
+                <div
+                    ref={itemRef}
+                    className="relative flex items-center justify-center px-1"
+                    onMouseEnter={handleMouseEnter}
+                    onMouseLeave={handleMouseLeave}
+                >
+                    <Tooltip content={isHovered && hasChildren ? '' : `${item.label} ${item.shortcut ? `(${item.shortcut})` : ''}`} position="top">
+                        <button
+                            onClick={handleClick}
+                            className={`
                         relative w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 flex items-center justify-center rounded-xl sm:rounded-2xl transition-all duration-300 ease-out
                         ${isParentActive
-                                ? 'bg-primary text-white shadow-[0_0_20px_rgba(124,58,237,0.6)] scale-110 -translate-y-1 sm:-translate-y-2 z-20 ring-1 ring-white/20'
-                                : item.danger
-                                    ? 'text-red-400 hover:bg-red-950/30 hover:text-red-200 active:bg-red-950/50'
-                                    : 'text-zinc-400 hover:bg-white/10 hover:text-white active:bg-white/20'
-                            }
+                                    ? 'bg-primary text-white shadow-[0_0_20px_rgba(124,58,237,0.6)] scale-110 -translate-y-1 sm:-translate-y-2 z-20 ring-1 ring-white/20'
+                                    : item.danger
+                                        ? 'text-red-400 hover:bg-red-950/30 hover:text-red-200 active:bg-red-950/50'
+                                        : 'text-zinc-400 hover:bg-white/10 hover:text-white active:bg-white/20'
+                                }
                     `}
-                    >
-                        <div className={`transition-transform duration-300 ${isParentActive ? 'scale-110' : 'group-hover:scale-110'}`}>
-                            {item.icon}
-                        </div>
+                        >
+                            <div className={`transition-transform duration-300 ${isParentActive ? 'scale-110' : 'group-hover:scale-110'}`}>
+                                {item.icon}
+                            </div>
 
-                        {isParentActive && <span className="absolute -bottom-3 w-1 h-1 bg-primary rounded-full shadow-[0_0_5px_rgba(124,58,237,1)]"></span>}
-                        {hasChildren && !isParentActive && <span className="absolute top-2.5 right-2.5 w-1 h-1 bg-zinc-600 rounded-full"></span>}
-                    </button>
-                </Tooltip>
+                            {isParentActive && <span className="absolute -bottom-3 w-1 h-1 bg-primary rounded-full shadow-[0_0_5px_rgba(124,58,237,1)]"></span>}
+                            {hasChildren && !isParentActive && <span className="absolute top-2.5 right-2.5 w-1 h-1 bg-zinc-600 rounded-full"></span>}
+                        </button>
+                    </Tooltip>
 
-                {
-                    hasChildren && (
-                        <div
-                            className={`
+                    {
+                        hasChildren && (
+                            <div
+                                className={`
                         absolute bottom-full left-1/2 -translate-x-1/2 mb-4 z-50 origin-bottom transition-all duration-200
                         ${isMenuOpen ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-95 pointer-events-none'}
                     `}
-                        >
-                            <div className="bg-zinc-950/90 border border-zinc-800 rounded-2xl p-1.5 shadow-2xl backdrop-blur-xl flex flex-col gap-1 min-w-[200px] sm:min-w-[220px] ring-1 ring-white/10 max-w-[90vw]">
-                                <div className="px-2 sm:px-3 py-2 border-b border-white/5 mb-1 flex justify-between items-center">
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">{item.label}</span>
-                                    <div className="flex items-center gap-2">
-                                        {!isMobile && item.shortcut && <span className="text-[9px] font-mono bg-zinc-900 border border-zinc-800 text-zinc-400 px-1.5 rounded">{item.shortcut}</span>}
-                                        {isMobile && (
-                                            <button onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); }} className="p-1 text-zinc-500 hover:text-white">
-                                                <X className="w-3.5 h-3.5" />
-                                            </button>
-                                        )}
+                            >
+                                <div className="bg-zinc-950/90 border border-zinc-800 rounded-2xl p-1.5 shadow-2xl backdrop-blur-xl flex flex-col gap-1 min-w-[200px] sm:min-w-[220px] ring-1 ring-white/10 max-w-[90vw]">
+                                    <div className="px-2 sm:px-3 py-2 border-b border-white/5 mb-1 flex justify-between items-center">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">{item.label}</span>
+                                        <div className="flex items-center gap-2">
+                                            {!isMobile && item.shortcut && <span className="text-[9px] font-mono bg-zinc-900 border border-zinc-800 text-zinc-400 px-1.5 rounded">{item.shortcut}</span>}
+                                            {isMobile && (
+                                                <button onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); }} className="p-1 text-zinc-500 hover:text-white">
+                                                    <X className="w-3.5 h-3.5" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col gap-1 max-h-[50vh] overflow-y-auto custom-scrollbar">
+                                        {item.children?.map(child => (
+                                            <MenuItem
+                                                key={child.id}
+                                                item={child}
+                                                activeTool={activeTool}
+                                                depth={depth + 1}
+                                                onToolSelect={onToolSelect}
+                                                isMobile={isMobile}
+                                                openMenuId={openMenuId}
+                                                setOpenMenuId={setOpenMenuId}
+                                            />
+                                        ))}
                                     </div>
                                 </div>
-
-                                <div className="flex flex-col gap-1 max-h-[50vh] overflow-y-auto custom-scrollbar">
-                                    {item.children?.map(child => (
-                                        <MenuItem
-                                            key={child.id}
-                                            item={child}
-                                            activeTool={activeTool}
-                                            depth={depth + 1}
-                                            onToolSelect={onToolSelect}
-                                            isMobile={isMobile}
-                                            openMenuId={openMenuId}
-                                            setOpenMenuId={setOpenMenuId}
-                                        />
-                                    ))}
-                                </div>
+                                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-zinc-950/90 border-b border-r border-zinc-800 rotate-45"></div>
                             </div>
-                            <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-zinc-950/90 border-b border-r border-zinc-800 rotate-45"></div>
-                        </div>
-                    )
-                }
-            </div >
+                        )
+                    }
+                </div >
+            </AccessGate>
         );
     }
 
+
     return (
-        <>
+        <AccessGate
+            requirePermission={item.requirePermission}
+            requireRole={item.requireRole}
+            requireFeature={item.requireFeature}
+            mode={item.accessMode || 'hide'}
+        >
             <div
                 ref={itemRef}
                 className="relative group/item w-full"
@@ -318,7 +343,7 @@ const MenuItem: React.FC<{
                     </SubMenuPortal>
                 )}
             </div>
-        </>
+        </AccessGate>
     );
 };
 
@@ -338,16 +363,16 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
 
         const interactionGroup: ToolbarItemConfig[] = [
             { id: 'select', type: 'tool', label: t('vtt.tools.toolbar.selectTool.button.label'), icon: <MousePointer2 />, shortcut: 'V' },
-            { id: 'measure-path', type: 'tool', label: t('vtt.tools.toolbar.rulerTool.button.label'), icon: <Ruler />, shortcut: 'M', hidden: !permissionHelper.canAsGMOr('measure') },
+            { id: 'measure-path', type: 'tool', label: t('vtt.tools.toolbar.rulerTool.button.label'), icon: <Ruler />, shortcut: 'M', requirePermission: 'measure' },
             {
                 id: 'drawings',
                 type: 'group',
                 label: t('vtt.tools.toolbar.drawingTools.group.label'),
                 icon: <Brush />,
-                hidden: !permissionHelper.canAsGMOr('drawings'),
+                requirePermission: 'drawings',
                 children: [
                     { id: 'brush', type: 'tool', label: t('vtt.tools.toolbar.drawingTools.brush.button.label'), icon: <PenTool /> },
-                    { id: 'eraser-drawing', type: 'tool', label: t('vtt.tools.toolbar.drawingTools.eraser.button.label'), icon: <Eraser />, danger: true, hidden: !permissionHelper.canAsGMOr('drawingDelete') }
+                    { id: 'eraser-drawing', type: 'tool', label: t('vtt.tools.toolbar.drawingTools.eraser.button.label'), icon: <Eraser />, danger: true, requirePermission: 'drawingDelete' }
                 ]
             },
             {
@@ -362,7 +387,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 type: 'group',
                 label: t('vtt.tools.toolbar.architectureTools.group.label'),
                 icon: <LayoutGrid />,
-                hidden: !permissionHelper.isGameMaster(),
+                requireRole: GameRole.GM,
                 children: [
                     { id: 'draw-wall', type: 'tool', label: t('vtt.tools.toolbar.architectureTools.wall.button.label'), icon: <Fence /> },
                     { id: 'freehand-wall', type: 'tool', label: t('vtt.tools.toolbar.architectureTools.freehandWall.button.label'), icon: <PenTool /> },
@@ -377,7 +402,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 type: 'group',
                 label: t('vtt.tools.toolbar.lightingTools.group.label'),
                 icon: <Lightbulb />,
-                hidden: !permissionHelper.isGameMaster(),
+                requireRole: GameRole.GM,
                 children: [
                     { id: 'draw-light-rect', type: 'tool', label: t('vtt.tools.toolbar.lightingTools.lightRect.button.label'), icon: <Sun /> },
                     { id: 'draw-light-poly', type: 'tool', label: t('vtt.tools.toolbar.lightingTools.lightPoly.button.label'), icon: <Hexagon /> },
@@ -395,7 +420,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 type: 'group',
                 label: t('vtt.tools.toolbar.audioTools.group.label'),
                 icon: <Music />,
-                hidden: !permissionHelper.isGameMaster(),
+                requireRole: GameRole.GM,
                 children: [
                     { id: 'audio-panel-action', type: 'action', label: t('vtt.tools.toolbar.audioTools.panel.button.label'), icon: <Music />, onClick: props.onToggleAudioPanel, isActive: props.isAudioPanelOpen },
                     {
@@ -412,7 +437,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 type: 'group',
                 label: t('vtt.tools.toolbar.triggerTools.group.label'),
                 icon: <Zap />,
-                hidden: !permissionHelper.isGameMaster(),
+                requireRole: GameRole.GM,
                 children: [
                     { id: 'draw-trigger-rect', type: 'tool', label: t('vtt.tools.toolbar.triggerTools.rect.button.label'), icon: <Square /> },
                     { id: 'draw-trigger-poly', type: 'tool', label: t('vtt.tools.toolbar.triggerTools.poly.button.label'), icon: <Hexagon /> },
@@ -429,7 +454,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 icon: <Target />,
                 onClick: props.onToggleAttackZones,
                 isActive: !!props.isAttackZonePanelOpen,
-                hidden: !permissionHelper.canAsGMOr('attackZoneUse'),
+                requirePermission: 'attackZoneUse',
             },
             {
                 id: 'dice-roller',
@@ -438,7 +463,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 icon: <Dices />,
                 onClick: props.onToggleDiceRoller,
                 isActive: !!props.isDiceRollerOpen,
-                hidden: !permissionHelper.canAsGMOr('diceRolling')
+                requirePermission: 'diceRolling'
             },
             {
                 id: 'bestiary',
@@ -447,7 +472,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 icon: <BookOpen />,
                 onClick: props.onToggleLibrary,
                 isActive: props.isLibraryOpen,
-                hidden: !permissionHelper.canAsGMOr("bestiaryBrowse"),
+                requirePermission: "bestiaryBrowse",
             },
             {
                 id: 'compendium',
@@ -456,7 +481,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 icon: <Book />,
                 onClick: props.onToggleCompendium,
                 isActive: !!props.isCompendiumOpen,
-                hidden: !permissionHelper.canAsGMOr('compendiumBrowse'),
+                requirePermission: 'compendiumBrowse',
             },
             {
                 id: 'handouts',
@@ -465,7 +490,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 icon: <FileText />,
                 onClick: props.onToggleHandouts,
                 isActive: !!props.isHandoutTrayOpen,
-                hidden: !permissionHelper.isGameMaster(),
+                requireRole: GameRole.GM,
             },
             {
                 id: 'add-token',
@@ -473,7 +498,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 label: t('vtt.tools.toolbar.gameplayTools.addToken.button.label'),
                 icon: <UserPlus />,
                 onClick: props.onAddToken,
-                hidden: !permissionHelper.canAsGMOr('tokenCreate')
+                requirePermission: 'tokenCreate'
             },
             {
                 id: 'combat',
@@ -482,7 +507,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 icon: props.isCombatActive ? <ShieldOff /> : <Swords />,
                 danger: props.isCombatActive,
                 onClick: props.isCombatActive ? props.onEndCombat : props.onStartCombat,
-                hidden: !permissionHelper.isGameMaster()
+                requireRole: GameRole.GM
             }
         ];
 
@@ -492,7 +517,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 type: 'group',
                 label: t('vtt.tools.toolbar.gmTools.group.label'),
                 icon: <Crown />,
-                hidden: !permissionHelper.isGameMaster(),
+                requireRole: GameRole.GM,
                 children: [
                     {
                         id: 'view-settings',

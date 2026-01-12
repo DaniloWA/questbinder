@@ -18,7 +18,7 @@ interface CombatInitiativeRollerProps {
 
 export const CombatInitiativeRoller: React.FC<CombatInitiativeRollerProps> = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
-  const { activeScene, startCombat, isGM } = useGameSession();
+  const { activeScene, startCombat } = useGameSession();
 
   const [selectedTokens, setSelectedTokens] = useState<Set<string>>(new Set());
   const [initiatives, setInitiatives] = useState<Record<string, number>>({});

@@ -19,6 +19,7 @@ import { TokenEditModal } from '../components/vtt/TokenEditModal';
 import { MapSettingsModal } from '../components/vtt/MapSettingsModal';
 import { MapContextMenu } from '../components/vtt/MapContextMenu';
 import { useAuth } from '../context/AuthContext';
+import { useAccessControl } from '../hooks/useAccessControl';
 import { SceneNavigation } from '../components/vtt/SceneNavigation';
 import { Sidebar } from '../components/vtt/Sidebar';
 import { CharacterSheetViewer } from '../components/vtt/CharacterSheetViewer';
@@ -142,6 +143,7 @@ const TokenLibrary: React.FC<{
 const GameSessionUI: React.FC = () => {
     const { t } = useTranslation();
     const session = useGameSession();
+    const { isGM } = useAccessControl();
     const { user: currentUser } = useAuth();
     const { navigateTo, params } = useNavigation();
     const { openModal, closeModal } = useModal();
@@ -200,18 +202,18 @@ const GameSessionUI: React.FC = () => {
 
     // ... (Logic for tools/permissions remains unchanged) ...
     useEffect(() => {
-        if (session.isGM) return;
+        if (isGM) return;
         const drawingTools = ['draw-wall', 'draw-door', 'draw-window', 'eraser', 'draw-audio-rect', 'draw-audio-poly'];
         const measureTool = 'measure-path';
         const fogTools = ['fog-poly', 'fog-rect'];
         if (drawingTools.includes(session.activeTool) && !session.permissionHelper.can('drawings')) session.setActiveTool('select');
         if (session.activeTool === measureTool && !session.permissionHelper.can('measure')) session.setActiveTool('select');
         if (fogTools.includes(session.activeTool) && !session.permissionHelper.can('fogReveal')) session.setActiveTool('select');
-    }, [session.permissions, session.activeTool, session.isGM, session.permissionHelper, session.setActiveTool]);
+    }, [session.permissions, session.activeTool, isGM, session.permissionHelper, session.setActiveTool]);
 
     // ... (Modal Handlers remain unchanged) ...
     const handleOpenTokenModal = (token: Token | 'new', initialPosition?: { x: number, y: number; }) => {
-        if (!session.isGM) {
+        if (!isGM) {
             if (token === 'new') {
                 if (!session.permissionHelper.can('tokenCreate')) {
                     show({ type: 'warning', message: t('vtt.gameSession.error.noTokenCreatePerm') });
@@ -262,7 +264,7 @@ const GameSessionUI: React.FC = () => {
 
     // ... (Duplicate, Template, ContextMenu handlers unchanged) ...
     const handleDuplicateToken = (token: Token) => {
-        if (!session.isGM && !session.permissionHelper.can('tokenCreate')) {
+        if (!isGM && !session.permissionHelper.can('tokenCreate')) {
             show({ type: 'warning', message: t('vtt.gameSession.error.tokenCreateBlocked') });
             return;
         }
@@ -272,7 +274,7 @@ const GameSessionUI: React.FC = () => {
     };
 
     const handleUseTemplate = (tpl: TokenTemplate) => {
-        if (!session.isGM && !session.permissionHelper.can('tokenCreate')) {
+        if (!isGM && !session.permissionHelper.can('tokenCreate')) {
             show({ type: 'warning', message: t('vtt.gameSession.error.tokenCreateBlocked') });
             return;
         }
@@ -291,7 +293,7 @@ const GameSessionUI: React.FC = () => {
         const token = session.activeScene?.tokens.find(t => t.id === tokenId);
         if (token) {
             const isOwner = token.ownerId === currentUser?.id || token.controlledBy?.includes(currentUser?.id || '');
-            if (session.isGM || isOwner) {
+            if (isGM || isOwner) {
                 setMapContextMenu(null);
                 setTokenContextMenu({ x: e.clientX, y: e.clientY, token });
             }
@@ -443,7 +445,7 @@ const GameSessionUI: React.FC = () => {
                     scene={session.activeScene}
                     tokens={session.activeScene?.tokens || []}
                     viewport={session.viewport}
-                    isGM={session.isGM}
+                    isGM={isGM}
                     gmViewMode={session.gmViewMode}
                     previewPlayerId={session.previewPlayerId}
                     currentUser={currentUser}
@@ -649,7 +651,7 @@ const GameSessionUI: React.FC = () => {
                             onOpenPermissions={() => setIsPermissionsOpen(true)}
                             onOpenCursorSettings={() => setIsCursorSettingsOpen(true)}
                             onOpenViewSettings={() => setIsViewSettingsOpen(true)}
-                            isGameMaster={session.permissionHelper.isGameMaster()}
+                            isGameMaster={isGM}
                             canAsGMOr={(perm) => session.permissionHelper.canAsGMOr(perm)}
                         />
                     </div>
@@ -745,7 +747,7 @@ const GameSessionUI: React.FC = () => {
 
             {viewingCharacter && (
                 <Modal isOpen={!!viewingCharacter} onClose={() => setViewingCharacterId(null)} size="xl" hideCloseButton>
-                    <div className="h-[80vh]"><CharacterSheetViewer character={viewingCharacter} isGM={session.isGM} currentUserId={currentUser?.id} onClose={() => setViewingCharacterId(null)} onUpdate={(updates) => session.updateCharacter(viewingCharacter.id, updates, true)} onRoll={(label, formula) => session.rollDice(label, formula)} onShare={(type, data) => session.sendChatMessage(`Compartilhou ${data.name || 'algo'}`, 'message', undefined, { type, label: data.name, data, id: data.id })} /></div>
+                    <div className="h-[80vh]"><CharacterSheetViewer character={viewingCharacter} isGM={isGM} currentUserId={currentUser?.id} onClose={() => setViewingCharacterId(null)} onUpdate={(updates) => session.updateCharacter(viewingCharacter.id, updates, true)} onRoll={(label, formula) => session.rollDice(label, formula)} onShare={(type, data) => session.sendChatMessage(`Compartilhou ${data.name || 'algo'}`, 'message', undefined, { type, label: data.name, data, id: data.id })} /></div>
                 </Modal>
             )}
 
@@ -771,7 +773,7 @@ const GameSessionUI: React.FC = () => {
                     y={mapContextMenu.y}
                     worldX={mapContextMenu.worldX}
                     worldY={mapContextMenu.worldY}
-                    isGM={session.isGM}
+                    isGM={isGM}
                     canCreateToken={session.permissionHelper.can('tokenCreate')}
                     obstacleId={mapContextMenu.obstacleId}
                     triggerZoneId={mapContextMenu.triggerZoneId}

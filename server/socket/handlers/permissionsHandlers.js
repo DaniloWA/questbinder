@@ -14,6 +14,14 @@ export const registerPermissionsHandlers = (socket, client, utils) => {
 
       const { campaignId, permissions } = payload;
 
+      const { getPermissionHelper } = utils;
+      const helper = await getPermissionHelper();
+
+      if (!helper.canModifyPermissions()) {
+        console.warn('[WS] campaign:updatePermissions denied: insufficient permissions');
+        return safeEmitError('Sem permissão para alterar permissões.');
+      }
+
       // Verify campaign exists
       const campaign = await db.getById('campaigns', campaignId);
       if (!campaign) {

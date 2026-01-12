@@ -1,11 +1,11 @@
 // src/data/mockDataLayer.ts  
-import { User, Campaign, Character, ChatMessage, JournalEntry, Project, TokenTemplate, Handout, TranslationEntry } from '../types';
+import { User, Campaign, Character, ChatMessage, JournalEntry, TokenTemplate, Handout, TranslationEntry } from '../types';
 
 const DB_PREFIX = 'questbinder_db_';
 
 export type CollectionName =
   | 'users' | 'campaigns' | 'characters' | 'chat_messages'
-  | 'journal_entries' | 'projects' | 'token_templates'
+  | 'journal_entries' | 'token_templates'
   | 'handouts' | 'translations';
 
 export interface DatabaseSchema {
@@ -14,7 +14,7 @@ export interface DatabaseSchema {
   characters: Character[];
   chat_messages: ChatMessage[];
   journal_entries: JournalEntry[];
-  projects: Project[];
+  // projects: Project[]; // Deprecated or missing type
   token_templates: TokenTemplate[];
   handouts: Handout[];
   translations: TranslationEntry[];
@@ -78,7 +78,7 @@ const SEED_DATA: DatabaseSchema = {
   token_templates: [],
   handouts: [],           // ← Descontinuar (agora dentro da campaign)
   translations: []
-};
+} as any;
 
 // Inicialização segura
 export const initMockDatabase = () => {

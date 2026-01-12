@@ -118,6 +118,15 @@ export default {
     sheet: 'Ficha',
     cancel: 'Cancelar',
   },
+  access: {
+    restricted: 'Acesso Restrito',
+    featureLocked: 'Funcionalidade Bloqueada',
+    upgradeRequired: 'Upgrade Necessário',
+    upgradeToAccess: 'Faça upgrade para acessar {{feature}}',
+    permissionDenied: 'Permissão Negada',
+    roleRequired: 'Requer função {{role}}',
+    clickToUpgrade: 'Clique para ver planos',
+  },
   vtt: {
     tools: {
       toolbar: {

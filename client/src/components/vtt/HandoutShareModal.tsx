@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../../i18n/TranslationContext';
+import { useAccessControl } from '../../hooks/useAccessControl';
 import { Handout } from '../../types';
 import { useGameSession } from '../../context/GameSessionContext';
 import { Button } from '../ui/Button';
@@ -14,7 +15,8 @@ interface HandoutShareModalProps {
 export const HandoutShareModal: React.FC<HandoutShareModalProps> = ({ handout, onClose }) => {
   const { t } = useTranslation();
   // FIX: Get `campaign` from context to access `ownerId`.
-  const { players, shareHandout, isGM, campaign } = useGameSession();
+  const { players, shareHandout, campaign } = useGameSession();
+  const { isGM } = useAccessControl();
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
 
   useEffect(() => {

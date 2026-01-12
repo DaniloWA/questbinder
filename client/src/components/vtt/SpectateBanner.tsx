@@ -2,13 +2,16 @@ import React from 'react';
 import { Eye, X } from 'lucide-react';
 import { useTranslation } from '../../i18n/TranslationContext';
 import { useGameSession } from '../../context/GameSessionContext';
+import { useAccessControl } from '../../hooks/useAccessControl';
+import { GameRole } from '../../types/acl';
 import { Button } from '../ui/Button';
 
 export const SpectateBanner: React.FC = () => {
     const { t } = useTranslation();
-    const { isGM, gmViewMode, previewPlayerId, players, toggleGMViewMode } = useGameSession();
+    const { gmViewMode, previewPlayerId, players, toggleGMViewMode } = useGameSession();
+    const { role } = useAccessControl();
 
-    if (!isGM || gmViewMode !== 'player') {
+    if (role !== GameRole.GM || gmViewMode !== 'player') {
         return null;
     }
 

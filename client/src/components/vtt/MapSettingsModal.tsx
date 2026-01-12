@@ -3,6 +3,8 @@ import React, { useState, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { MapScene, Playlist, SoundEffect } from '../../types';
 import { Button } from '../ui/Button';
+import { AccessGate } from '../AccessGate';
+import { GameRole } from '../../types/acl';
 import { SheetLabel, SheetInput, SheetSelect, SheetSelectOption } from '../ui/SheetPrimitives';
 import { X, UploadCloud, Image as ImageIcon, Eye, EyeOff, ShieldAlert, Sun, Moon, Music, Loader2 } from 'lucide-react';
 import { ColorPicker } from '../ui/ColorPicker';
@@ -132,28 +134,30 @@ export const MapSettingsModal: React.FC<MapSettingsModalProps> = ({
                 <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
 
                     {/* Global Lighting */}
-                    <div className="bg-zinc-950/50 p-4 rounded-xl border border-zinc-800 space-y-3">
-                        <div className="flex items-center justify-between">
-                            <SheetLabel icon={<Sun className="w-4 h-4 text-yellow-500" />}>{t('vtt.maps.settingsModal.ambientLight.label')}</SheetLabel>
-                            <span className={`text-xs font-bold ${ambientLight === 0 ? 'text-red-400' : 'text-zinc-400'}`}>
-                                {ambientLight === 0 ? t('vtt.maps.settingsModal.ambientLight.totalDarkness') : `${Math.round(ambientLight * 100)}%`}
-                            </span>
+                    <AccessGate requireRole={GameRole.GM} mode="disable">
+                        <div className="bg-zinc-950/50 p-4 rounded-xl border border-zinc-800 space-y-3">
+                            <div className="flex items-center justify-between">
+                                <SheetLabel icon={<Sun className="w-4 h-4 text-yellow-500" />}>{t('vtt.maps.settingsModal.ambientLight.label')}</SheetLabel>
+                                <span className={`text-xs font-bold ${ambientLight === 0 ? 'text-red-400' : 'text-zinc-400'}`}>
+                                    {ambientLight === 0 ? t('vtt.maps.settingsModal.ambientLight.totalDarkness') : `${Math.round(ambientLight * 100)}%`}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Moon className="w-4 h-4 text-zinc-600" />
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="1"
+                                    step="0.05"
+                                    value={ambientLight}
+                                    onChange={(e) => setAmbientLight(parseFloat(e.target.value))}
+                                    className="flex-1 h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-yellow-500"
+                                />
+                                <Sun className="w-4 h-4 text-yellow-500" />
+                            </div>
+                            <p className="text-[10px] text-zinc-500">{t('vtt.maps.settingsModal.ambientLight.desc')}</p>
                         </div>
-                        <div className="flex items-center gap-3">
-                            <Moon className="w-4 h-4 text-zinc-600" />
-                            <input
-                                type="range"
-                                min="0"
-                                max="1"
-                                step="0.05"
-                                value={ambientLight}
-                                onChange={(e) => setAmbientLight(parseFloat(e.target.value))}
-                                className="flex-1 h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-yellow-500"
-                            />
-                            <Sun className="w-4 h-4 text-yellow-500" />
-                        </div>
-                        <p className="text-[10px] text-zinc-500">{t('vtt.maps.settingsModal.ambientLight.desc')}</p>
-                    </div>
+                    </AccessGate>
 
                     {/* Map Image */}
                     <div className="space-y-2">
@@ -307,32 +311,34 @@ export const MapSettingsModal: React.FC<MapSettingsModalProps> = ({
 
                     {/* Bulk Actions */}
                     {bulkUpdateObstacles && (
-                        <div className="space-y-2 border-t border-zinc-800 pt-4">
-                            <SheetLabel icon={<ShieldAlert className="w-3 h-3" />}>{t('vtt.maps.settingsModal.bulkActions.title')}</SheetLabel>
-                            <div className="bg-zinc-800/50 p-3 rounded-lg space-y-3">
-                                <div className="flex gap-3">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        fullWidth
-                                        onClick={() => bulkUpdateObstacles({ hidden: true })}
-                                        className="border-dashed border-zinc-600 hover:border-zinc-400 text-zinc-400 hover:text-white"
-                                    >
-                                        <EyeOff className="w-4 h-4 mr-2" /> {t('vtt.maps.settingsModal.bulkActions.hideAll')}
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        fullWidth
-                                        onClick={() => bulkUpdateObstacles({ hidden: false })}
-                                        className="border-dashed border-zinc-600 hover:border-zinc-400 text-zinc-400 hover:text-white"
-                                    >
-                                        <Eye className="w-4 h-4 mr-2" /> {t('vtt.maps.settingsModal.bulkActions.revealAll')}
-                                    </Button>
+                        <AccessGate requireRole={GameRole.GM} mode="hide">
+                            <div className="space-y-2 border-t border-zinc-800 pt-4">
+                                <SheetLabel icon={<ShieldAlert className="w-3 h-3" />}>{t('vtt.maps.settingsModal.bulkActions.title')}</SheetLabel>
+                                <div className="bg-zinc-800/50 p-3 rounded-lg space-y-3">
+                                    <div className="flex gap-3">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            fullWidth
+                                            onClick={() => bulkUpdateObstacles({ hidden: true })}
+                                            className="border-dashed border-zinc-600 hover:border-zinc-400 text-zinc-400 hover:text-white"
+                                        >
+                                            <EyeOff className="w-4 h-4 mr-2" /> {t('vtt.maps.settingsModal.bulkActions.hideAll')}
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            fullWidth
+                                            onClick={() => bulkUpdateObstacles({ hidden: false })}
+                                            className="border-dashed border-zinc-600 hover:border-zinc-400 text-zinc-400 hover:text-white"
+                                        >
+                                            <Eye className="w-4 h-4 mr-2" /> {t('vtt.maps.settingsModal.bulkActions.revealAll')}
+                                        </Button>
+                                    </div>
+                                    <p className="text-[10px] text-zinc-500 italic text-center">{t('vtt.maps.settingsModal.bulkActions.desc')}</p>
                                 </div>
-                                <p className="text-[10px] text-zinc-500 italic text-center">{t('vtt.maps.settingsModal.bulkActions.desc')}</p>
                             </div>
-                        </div>
+                        </AccessGate>
                     )}
                 </div>
 

@@ -1,10 +1,10 @@
-import { Token, Scene } from '../../types';
+import { Token, MapScene } from '../../types';
 
 export class TokenService {
   /**
    * Calculates the effective vision range of a token based on its properties and scene settings.
    */
-  static calculateVisionRange(token: Token, scene?: Scene): number {
+  static calculateVisionRange(token: Token, scene?: MapScene): number {
     // Basic vision range from token property
     let range = token.visionRange || 0;
 

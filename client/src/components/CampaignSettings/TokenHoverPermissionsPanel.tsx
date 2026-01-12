@@ -14,6 +14,7 @@ export const TokenHoverPermissionsPanel: React.FC<TokenHoverPermissionsPanelProp
   const { show } = useNotification();
   const [permissions, setPermissions] = useState<TokenHoverPermissions>(
     campaign.permissions?.tokenHover || {
+      enabled: true,
       pc: { showName: true, showHP: true, showResource: true, showConditions: true, showStats: true, showAttributes: true },
       npc: { showName: true, showHP: false, showResource: false, showConditions: true, showStats: false, showAttributes: false },
       object: { showName: true, showConditions: false }
@@ -21,12 +22,12 @@ export const TokenHoverPermissionsPanel: React.FC<TokenHoverPermissionsPanelProp
   );
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleToggle = (type: keyof TokenHoverPermissions, field: string) => {
+  const handleToggle = (type: Exclude<keyof TokenHoverPermissions, 'enabled'>, field: string) => {
     setPermissions(prev => ({
       ...prev,
       [type]: {
-        ...prev[type],
-        [field]: !(prev[type] as any)[field]
+        ...(prev[type] as any),
+        [field]: !((prev[type] as any)[field])
       }
     }));
   };
@@ -58,7 +59,7 @@ export const TokenHoverPermissionsPanel: React.FC<TokenHoverPermissionsPanelProp
   const renderSection = (
     title: string,
     icon: React.ReactNode,
-    type: keyof TokenHoverPermissions,
+    type: Exclude<keyof TokenHoverPermissions, 'enabled'>,
     fields: { key: string; label: string; description: string; }[]
   ) => (
     <div className="bg-zinc-900 border border-white/10 rounded-xl overflow-hidden">

@@ -2,19 +2,20 @@ import React from 'react';
 import { useTranslation } from '../../../i18n/TranslationContext';
 import { Combatant, CombatCondition } from '../../../types';
 import { Heart, Shield, Zap, Skull, Swords, MoreVertical } from 'lucide-react';
+import { AccessGate } from '../../AccessGate';
+import { GameRole } from '../../../types/acl';
 import { Tooltip } from '../../ui/Tooltip';
 import { Button } from '../../ui/Button';
 
 interface ActiveCombatantCardProps {
   combatant: Combatant;
-  isGM: boolean;
   onDamage: (amount: number) => void;
   onHeal: (amount: number) => void;
   onNextTurn: () => void;
 }
 
 export const ActiveCombatantCard: React.FC<ActiveCombatantCardProps> = ({
-  combatant, isGM, onDamage, onHeal, onNextTurn
+  combatant, onDamage, onHeal, onNextTurn
 }) => {
   const { t } = useTranslation();
   const hpPercentage = combatant.maxHp ? (combatant.hp || 0) / combatant.maxHp * 100 : 0;
@@ -55,11 +56,11 @@ export const ActiveCombatantCard: React.FC<ActiveCombatantCardProps> = ({
           </div>
 
           {/* Turn Actions */}
-          {isGM && (
+          <AccessGate requireRole={GameRole.GM}>
             <Button size="sm" onClick={onNextTurn} className="shadow-lg shadow-primary/20">
               {t('vtt.combat.card.nextTurn.button')}
             </Button>
-          )}
+          </AccessGate>
         </div>
 
         {/* Stats & Conditions */}

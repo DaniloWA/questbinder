@@ -5,6 +5,8 @@ import { useNotification } from '../../context/NotificationContext';
 import { UserPlus, Wifi, Copy } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useTranslation } from '../../i18n/TranslationContext';
+import { AccessGate } from '../AccessGate';
+import { GameRole } from '../../types/acl';
 
 export const PartyList: React.FC = () => {
     const { players, campaignCharacters, invitePlayer } = useGameSession();
@@ -20,18 +22,20 @@ export const PartyList: React.FC = () => {
     return (
         <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6 bg-zinc-900/50 h-full">
             {/* Invite Section */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center space-y-3">
-                <div className="w-10 h-10 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto">
-                    <UserPlus className="w-5 h-5" />
+            <AccessGate requireRole={GameRole.GM} mode="hide">
+                <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center space-y-3">
+                    <div className="w-10 h-10 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto">
+                        <UserPlus className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <h4 className="font-bold text-white text-sm">{t('vtt.party.invite.title')}</h4>
+                        <p className="text-xs text-zinc-500 mt-1">{t('vtt.party.invite.desc')}</p>
+                    </div>
+                    <Button size="sm" fullWidth variant="outline" onClick={handleInvite} className="text-xs border-dashed">
+                        <Copy className="w-3 h-3 mr-2" /> {t('vtt.party.invite.copyButton')}
+                    </Button>
                 </div>
-                <div>
-                    <h4 className="font-bold text-white text-sm">{t('vtt.party.invite.title')}</h4>
-                    <p className="text-xs text-zinc-500 mt-1">{t('vtt.party.invite.desc')}</p>
-                </div>
-                <Button size="sm" fullWidth variant="outline" onClick={handleInvite} className="text-xs border-dashed">
-                    <Copy className="w-3 h-3 mr-2" /> {t('vtt.party.invite.copyButton')}
-                </Button>
-            </div>
+            </AccessGate>
 
             {/* Players List */}
             <div>

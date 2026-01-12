@@ -51,11 +51,11 @@ export class AttributeCalculator {
     const mod = this.calcModifier(attrScore);
     let bonus = mod;
 
-    if (character.skills.includes(skillId)) {
+    if (character.skills.includes(skillId as any)) {
       bonus += character.profBonus;
     }
 
-    if (character.expertise?.includes(skillId)) {
+    if (character.expertise?.includes(skillId as any)) {
       bonus += character.profBonus;
     }
 

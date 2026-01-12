@@ -105,6 +105,7 @@ export interface GMSyncViewPayload {
   h: number;
   centerX?: number;
   centerY?: number;
+  targets?: string[] | 'all';
 }
 
 export interface GMViewportSyncPayload {

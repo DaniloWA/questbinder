@@ -8,46 +8,140 @@
  */
 
 import * as db from '../db.js';
+import { SubscriptionTier, GameRole, TIER_CONFIGS, ROLE_DEFAULTS } from './acl.js';
 
 class PermissionHelper {
   constructor(client, campaign) {
     this.client = client;
     this.campaign = campaign;
-    this.isGM = client.isGM;
     this.userId = client.userId;
     this.campaignId = client.campaignId;
+
+    // SaaS & Role Info
+    this.tier = client.subscriptionTier || SubscriptionTier.FREE;
+    // If client.isGM is true, force role to GM, otherwise use client.gameRole or default to PLAYER
+    this.role = client.isGM ? GameRole.GM : (client.gameRole || GameRole.PLAYER);
+
+    // Derived for backward compatibility
+    this.isGM = this.role === GameRole.GM;
   }
 
   /**
    * Check if the current user is the Game Master
    */
   isGameMaster() {
-    return this.isGM === true;
+    return this.role === GameRole.GM;
   }
 
   /**
-   * Check if user has a specific boolean permission
-   * GM always returns true
-   * Checks user overrides first, then falls back to global permission
+   * Role Capability Checks
    */
+  canModifyGame() {
+    return ROLE_DEFAULTS[this.role]?.canModifyGame || false;
+  }
+
+  canModifyPermissions() {
+    return ROLE_DEFAULTS[this.role]?.canModifyPermissions || false;
+  }
+
+  canViewHidden() {
+    return ROLE_DEFAULTS[this.role]?.canViewHidden || false;
+  }
+
+  canControlAnyToken() {
+    return ROLE_DEFAULTS[this.role]?.canControlAnyToken || false;
+  }
+
+  canControlOwnTokens() {
+    return ROLE_DEFAULTS[this.role]?.canControlOwnTokens || false;
+  }
+
+  /**
+   * Check SaaS feature access
+   */
+  canFeature(featureKey) {
+    const config = TIER_CONFIGS[this.tier];
+    return config?.features.has(featureKey) || false;
+  }
+
+  // ... (can method remains the same) ...
+
   can(permission) {
-    if (this.isGM) return true;
+    // 1. GM Bypass (or anyone with modifyGame capability?)
+    // Strictly speaking, canModifyGame implies administrative rights, but checking isGM is safer for now.
+    if (this.isGameMaster()) return true;
+
+    // ... (rest of logical checks) ...
+    // ...
+    // 2. Spectator Restrictions
+    if (this.role === GameRole.SPECTATOR) {
+      // Block interactive permissions, allow only explicitly safe ones (like viewing)
+      const allowedSpectatorPerms = ['allowSpectate', 'shareCursor', 'showRemoteViewports'];
+      if (!allowedSpectatorPerms.includes(permission)) {
+        return false;
+      }
+    }
+
+    // ...
     if (!this.userId) return false;
     if (!this.campaign) return false;
 
+    // 3. Role Capability Check (Platform Level)
+    const roleCaps = ROLE_DEFAULTS[this.role];
+    if (roleCaps && roleCaps.canModifyGame === false) {
+      // If capabilities strict check needed
+    }
+
+    // 4. User Overrides
     const override = this.campaign.permissions?.userOverrides?.[this.userId]?.[permission];
-    return override !== undefined ? override : this.campaign.permissions?.[permission] || false;
+    // 5. Default Campaign Permission
+    const result = override !== undefined ? override : this.campaign.permissions?.[permission];
+    return result || false;
+  }
+
+  /**
+   * Universal Access Check (Tier + Role + Permission + Feature)
+   */
+  // ... (checkAccess remains same) ...
+
+  checkAccess(requirements) {
+    const { permission, feature, role } = requirements;
+
+    // 1. Role Check
+    if (role && this.role !== role) {
+      if (this.role !== GameRole.GM) {
+        return { allowed: false, reason: `Requires role: ${role}` };
+      }
+    }
+
+    // 2. Feature Check (Tier)
+    if (feature && !this.canFeature(feature)) {
+      return { allowed: false, reason: `Requires feature: ${feature} (${this.tier})` };
+    }
+
+    // 3. Permission Check
+    if (permission && !this.can(permission)) {
+      return { allowed: false, reason: `Requires permission: ${permission}` };
+    }
+
+    return { allowed: true };
   }
 
   /**
    * Check if user can control a specific token
-   * GM can control all tokens
-   * Players can control tokens they own or are controlled by them
+   * Uses ROLE_DEFAULTS capabilities: canControlAnyToken, canControlOwnTokens
    */
   canControlToken(token) {
-    if (this.isGM) return true;
+    // 1. Universal Control (GM or equivalent)
+    if (this.canControlAnyToken()) return true;
+
+    // 2. Spectator/No Control Roles check
+    // If role cannot control even own tokens, return false immediately
+    if (!this.canControlOwnTokens()) return false;
+
     if (!this.userId) return false;
 
+    // 3. Ownership/Control Check
     return token.ownerId === this.userId ||
       (token.controlledBy && token.controlledBy.includes(this.userId));
   }
@@ -57,7 +151,7 @@ class PermissionHelper {
    * Requires both token control AND tokenEdit permission
    */
   canEditToken(token) {
-    if (this.isGM) return true;
+    if (this.isGameMaster()) return true;
     return this.canControlToken(token) && this.can('tokenEdit');
   }
 
@@ -66,7 +160,7 @@ class PermissionHelper {
    * Requires both token control AND tokenDelete permission
    */
   canDeleteToken(token) {
-    if (this.isGM) return true;
+    if (this.isGameMaster()) return true;
     return this.canControlToken(token) && this.can('tokenDelete');
   }
 
@@ -75,7 +169,7 @@ class PermissionHelper {
    * Requires both token control AND tokenMovement permission
    */
   canMoveToken(token) {
-    if (this.isGM) return true;
+    if (this.isGameMaster()) return true;
     return this.canControlToken(token) && this.can('tokenMovement');
   }
 
@@ -86,7 +180,7 @@ class PermissionHelper {
    * Players can delete others' drawings if they have 'drawingDelete' permission
    */
   canDeleteDrawing(drawingUserId) {
-    if (this.isGM) return true;
+    if (this.isGameMaster()) return true;
     if (!this.userId) return false;
 
     const isOwner = drawingUserId === this.userId;
@@ -114,7 +208,7 @@ class PermissionHelper {
    * Common pattern: isGM || hasPermission
    */
   canAsGMOr(permission) {
-    return this.isGM || this.can(permission);
+    return this.isGameMaster() || this.can(permission);
   }
 
   /**
@@ -140,7 +234,7 @@ class PermissionHelper {
    * Use this for GM-only actions
    */
   requireGM(action = 'this action') {
-    if (!this.isGM) {
+    if (!this.isGameMaster()) {
       throw new Error(`GM permission required for ${action}`);
     }
   }

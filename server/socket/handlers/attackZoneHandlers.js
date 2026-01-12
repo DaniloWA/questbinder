@@ -16,12 +16,12 @@ export const registerAttackZoneHandlers = (socket, client, utils) => {
   };
 
   // attackZone:add - Add a new attack zone
-  socket.on('attackZone:add', (payload) => {
+  socket.on('attackZone:add', async (payload) => {
     try {
       if (!client.campaignId) return;
 
-      // Only GM can create attack zones
-      if (!client.isGM) {
+      const helper = await utils.getPermissionHelper();
+      if (!helper.isGameMaster()) {
         console.warn('[WS] attackZone:add denied: not GM');
         return safeEmitError('Apenas o GM pode criar zonas de ataque.');
       }
@@ -52,11 +52,12 @@ export const registerAttackZoneHandlers = (socket, client, utils) => {
   });
 
   // attackZone:update - Update an existing attack zone
-  socket.on('attackZone:update', (payload) => {
+  socket.on('attackZone:update', async (payload) => {
     try {
       if (!client.campaignId) return;
 
-      if (!client.isGM) {
+      const helper = await utils.getPermissionHelper();
+      if (!helper.isGameMaster()) {
         console.warn('[WS] attackZone:update denied: not GM');
         return safeEmitError('Apenas o GM pode editar zonas de ataque.');
       }
@@ -85,11 +86,12 @@ export const registerAttackZoneHandlers = (socket, client, utils) => {
   });
 
   // attackZone:remove - Remove an attack zone
-  socket.on('attackZone:remove', (payload) => {
+  socket.on('attackZone:remove', async (payload) => {
     try {
       if (!client.campaignId) return;
 
-      if (!client.isGM) {
+      const helper = await utils.getPermissionHelper();
+      if (!helper.isGameMaster()) {
         console.warn('[WS] attackZone:remove denied: not GM');
         return safeEmitError('Apenas o GM pode remover zonas de ataque.');
       }
@@ -120,11 +122,12 @@ export const registerAttackZoneHandlers = (socket, client, utils) => {
   });
 
   // attackZone:clear - Clear all attack zones
-  socket.on('attackZone:clear', () => {
+  socket.on('attackZone:clear', async () => {
     try {
       if (!client.campaignId) return;
 
-      if (!client.isGM) {
+      const helper = await utils.getPermissionHelper();
+      if (!helper.isGameMaster()) {
         console.warn('[WS] attackZone:clear denied: not GM');
         return safeEmitError('Apenas o GM pode limpar zonas de ataque.');
       }

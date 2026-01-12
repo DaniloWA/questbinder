@@ -14,15 +14,19 @@ import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
 import { ActiveCombatantCard } from './combat/ActiveCombatantCard';
 import { CombatantRow } from './combat/CombatantRow';
 import { useTranslation } from '../../i18n/TranslationContext';
+import { AccessGate } from '../AccessGate';
+import { useAccessControl } from '../../hooks/useAccessControl';
+import { GameRole } from '../../types/acl';
 
 export const CombatTrackerEnhanced: React.FC = () => {
   const {
-    combat, isGM,
+    combat,
     nextTurn, previousTurn, endCombat,
     applyDamage, applyHealing, removeCombatant,
     addCondition, removeCondition,
     getCombatStats, updateCombatSettings
   } = useGameSession();
+  const { isGM } = useAccessControl();
   const { t } = useTranslation();
 
   const [showHistory, setShowHistory] = useState(false);
@@ -163,29 +167,27 @@ export const CombatTrackerEnhanced: React.FC = () => {
                 </button>
               </Tooltip>
 
-              {isGM && (
-                <>
-                  <Tooltip content={t('vtt.combat.tracker.settingsButton.tooltip')}>
-                    <button
-                      type="button"
-                      onClick={() => setShowSettings(!showSettings)}
-                      className={`p-2 rounded-lg transition-all ${showSettings ? 'bg-primary/20 text-primary' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'}`}
-                    >
-                      <Settings className="w-4 h-4" />
-                    </button>
-                  </Tooltip>
+              <AccessGate requireRole={GameRole.GM}>
+                <Tooltip content={t('vtt.combat.tracker.settingsButton.tooltip')}>
+                  <button
+                    type="button"
+                    onClick={() => setShowSettings(!showSettings)}
+                    className={`p-2 rounded-lg transition-all ${showSettings ? 'bg-primary/20 text-primary' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'}`}
+                  >
+                    <Settings className="w-4 h-4" />
+                  </button>
+                </Tooltip>
 
-                  <Tooltip content={t('vtt.combat.tracker.shortcutsButton.tooltip')}>
-                    <button
-                      type="button"
-                      onClick={() => setShowKeyboardHelp(true)}
-                      className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"
-                    >
-                      <Keyboard className="w-4 h-4" />
-                    </button>
-                  </Tooltip>
-                </>
-              )}
+                <Tooltip content={t('vtt.combat.tracker.shortcutsButton.tooltip')}>
+                  <button
+                    type="button"
+                    onClick={() => setShowKeyboardHelp(true)}
+                    className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"
+                  >
+                    <Keyboard className="w-4 h-4" />
+                  </button>
+                </Tooltip>
+              </AccessGate>
             </div>
           </div>
         </div>
@@ -193,7 +195,6 @@ export const CombatTrackerEnhanced: React.FC = () => {
         {/* Active Combatant Card */}
         <ActiveCombatantCard
           combatant={activeCombatant}
-          isGM={isGM}
           onDamage={(amt) => applyDamage(activeCombatant.id, amt)}
           onHeal={(amt) => applyHealing(activeCombatant.id, amt)}
           onNextTurn={nextTurn}
@@ -201,30 +202,32 @@ export const CombatTrackerEnhanced: React.FC = () => {
       </div>
 
       {/* Settings Panel */}
-      {showSettings && isGM && (
-        <div className="p-4 bg-zinc-900/90 border-b border-zinc-800 space-y-4 animate-in slide-in-from-top-2 shadow-inner">
-          <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">{t('vtt.combat.tracker.settingsPanel.title')}</h4>
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { key: 'autoRollInitiative', label: t('vtt.combat.tracker.settingsPanel.autoRollInit.label') },
-              { key: 'showInitiativeToPlayers', label: t('vtt.combat.tracker.settingsPanel.showInit.label') },
-              { key: 'showEnemyHP', label: t('vtt.combat.tracker.settingsPanel.showEnemyHP.label') },
-              { key: 'trackConcentration', label: t('vtt.combat.tracker.settingsPanel.concentration.label') },
-              { key: 'enableTurnTimer', label: t('vtt.combat.tracker.settingsPanel.turnTimer.label') },
-              { key: 'enableSuggestions', label: t('vtt.combat.tracker.settingsPanel.aiSuggestions.label') },
-            ].map(({ key, label }) => (
-              <label key={key} className="flex items-center gap-3 text-xs cursor-pointer hover:bg-zinc-800/50 p-2 rounded-lg transition-colors border border-transparent hover:border-zinc-800">
-                <input
-                  type="checkbox"
-                  checked={(combat.settings as any)[key]}
-                  onChange={(e) => updateCombatSettings({ [key]: e.target.checked })}
-                  className="rounded border-zinc-700 bg-zinc-900 text-primary focus:ring-primary w-4 h-4"
-                />
-                <span className="text-zinc-300 font-medium">{label}</span>
-              </label>
-            ))}
+      {showSettings && (
+        <AccessGate requireRole={GameRole.GM}>
+          <div className="p-4 bg-zinc-900/90 border-b border-zinc-800 space-y-4 animate-in slide-in-from-top-2 shadow-inner">
+            <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">{t('vtt.combat.tracker.settingsPanel.title')}</h4>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { key: 'autoRollInitiative', label: t('vtt.combat.tracker.settingsPanel.autoRollInit.label') },
+                { key: 'showInitiativeToPlayers', label: t('vtt.combat.tracker.settingsPanel.showInit.label') },
+                { key: 'showEnemyHP', label: t('vtt.combat.tracker.settingsPanel.showEnemyHP.label') },
+                { key: 'trackConcentration', label: t('vtt.combat.tracker.settingsPanel.concentration.label') },
+                { key: 'enableTurnTimer', label: t('vtt.combat.tracker.settingsPanel.turnTimer.label') },
+                { key: 'enableSuggestions', label: t('vtt.combat.tracker.settingsPanel.aiSuggestions.label') },
+              ].map(({ key, label }) => (
+                <label key={key} className="flex items-center gap-3 text-xs cursor-pointer hover:bg-zinc-800/50 p-2 rounded-lg transition-colors border border-transparent hover:border-zinc-800">
+                  <input
+                    type="checkbox"
+                    checked={(combat.settings as any)[key]}
+                    onChange={(e) => updateCombatSettings({ [key]: e.target.checked })}
+                    className="rounded border-zinc-700 bg-zinc-900 text-primary focus:ring-primary w-4 h-4"
+                  />
+                  <span className="text-zinc-300 font-medium">{label}</span>
+                </label>
+              ))}
+            </div>
           </div>
-        </div>
+        </AccessGate>
       )}
 
       {/* History Panel */}
@@ -255,50 +258,51 @@ export const CombatTrackerEnhanced: React.FC = () => {
             <div key={combatant.id} className="relative group">
               <CombatantRow
                 combatant={combatant}
-                isGM={isGM}
                 isActive={false}
                 onClick={() => setQuickActionTarget(quickActionTarget === combatant.id ? null : combatant.id)}
               />
 
               {/* Quick Actions Overlay */}
-              {quickActionTarget === combatant.id && isGM && (
-                <div className="absolute inset-x-0 top-full mt-1 z-10 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl p-3 animate-in slide-in-from-top-2 fade-in">
-                  <div className="flex gap-2 mb-2">
-                    <input
-                      type="number"
-                      value={damageAmount}
-                      onChange={(e) => setDamageAmount(e.target.value)}
-                      placeholder={t('vtt.combat.tracker.turnOrder.damagePlaceholder')}
-                      className="flex-1 bg-zinc-950 border border-zinc-800 rounded px-2 py-1 text-sm outline-none focus:border-red-500"
-                      autoFocus
-                    />
-                    <Button size="sm" variant="destructive" onClick={() => handleQuickDamage(combatant.id)} disabled={!damageAmount}>
-                      <Zap className="w-3 h-3" />
+              {quickActionTarget === combatant.id && (
+                <AccessGate requireRole={GameRole.GM}>
+                  <div className="absolute inset-x-0 top-full mt-1 z-10 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl p-3 animate-in slide-in-from-top-2 fade-in">
+                    <div className="flex gap-2 mb-2">
+                      <input
+                        type="number"
+                        value={damageAmount}
+                        onChange={(e) => setDamageAmount(e.target.value)}
+                        placeholder={t('vtt.combat.tracker.turnOrder.damagePlaceholder')}
+                        className="flex-1 bg-zinc-950 border border-zinc-800 rounded px-2 py-1 text-sm outline-none focus:border-red-500"
+                        autoFocus
+                      />
+                      <Button size="sm" variant="destructive" onClick={() => handleQuickDamage(combatant.id)} disabled={!damageAmount}>
+                        <Zap className="w-3 h-3" />
+                      </Button>
+                    </div>
+                    <div className="flex gap-2 mb-3">
+                      <input
+                        type="number"
+                        value={healAmount}
+                        onChange={(e) => setHealAmount(e.target.value)}
+                        placeholder={t('vtt.combat.tracker.turnOrder.healPlaceholder')}
+                        className="flex-1 bg-zinc-950 border border-zinc-800 rounded px-2 py-1 text-sm outline-none focus:border-green-500"
+                      />
+                      <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleQuickHeal(combatant.id)} disabled={!healAmount}>
+                        <Heart className="w-3 h-3" />
+                      </Button>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="w-full text-red-400 hover:text-red-300 hover:bg-red-900/20 text-xs"
+                      onClick={() => {
+                        if (confirm(t('vtt.combat.tracker.turnOrder.removeFromCombat.confirmPrompt', { name: combatant.name }))) removeCombatant(combatant.id);
+                      }}
+                    >
+                      <Trash2 className="w-3 h-3 mr-2" /> {t('vtt.combat.tracker.turnOrder.removeFromCombat.label')}
                     </Button>
                   </div>
-                  <div className="flex gap-2 mb-3">
-                    <input
-                      type="number"
-                      value={healAmount}
-                      onChange={(e) => setHealAmount(e.target.value)}
-                      placeholder={t('vtt.combat.tracker.turnOrder.healPlaceholder')}
-                      className="flex-1 bg-zinc-950 border border-zinc-800 rounded px-2 py-1 text-sm outline-none focus:border-green-500"
-                    />
-                    <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleQuickHeal(combatant.id)} disabled={!healAmount}>
-                      <Heart className="w-3 h-3" />
-                    </Button>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="w-full text-red-400 hover:text-red-300 hover:bg-red-900/20 text-xs"
-                    onClick={() => {
-                      if (confirm(t('vtt.combat.tracker.turnOrder.removeFromCombat.confirmPrompt', { name: combatant.name }))) removeCombatant(combatant.id);
-                    }}
-                  >
-                    <Trash2 className="w-3 h-3 mr-2" /> {t('vtt.combat.tracker.turnOrder.removeFromCombat.label')}
-                  </Button>
-                </div>
+                </AccessGate>
               )}
             </div>
           );
@@ -306,7 +310,7 @@ export const CombatTrackerEnhanced: React.FC = () => {
       </div>
 
       {/* GM Controls Footer */}
-      {isGM && (
+      <AccessGate requireRole={GameRole.GM}>
         <div className="p-3 border-t border-zinc-800 bg-zinc-900 shrink-0 space-y-2">
           <div className="flex gap-2">
             <Tooltip content={t('vtt.combat.tracker.controls.prevTurn.tooltip')}>
@@ -343,7 +347,7 @@ export const CombatTrackerEnhanced: React.FC = () => {
             {t('vtt.combat.tracker.controls.endCombat.label')}
           </Button>
         </div>
-      )}
+      </AccessGate>
 
       {/* Keyboard Shortcuts Help */}
       <KeyboardShortcutsHelp

@@ -78,7 +78,7 @@ export const registerTokenHandlers = (socket, client, utils) => {
       const { sceneId, token } = payload;
 
       token.id = token.id || crypto.randomUUID();
-      if (!client.isGM) token.ownerId = client.userId;
+      if (!helper.isGameMaster()) token.ownerId = client.userId;
 
       const campaign = await db.getById('campaigns', client.campaignId);
       if (!campaign) {

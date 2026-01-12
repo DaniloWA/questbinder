@@ -2,6 +2,8 @@
 import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Plus, RadioTower, Eye, EyeOff, Trash2, MapPin, Share2, Edit, Music, Lightbulb } from 'lucide-react';
+import { AccessGate } from '../AccessGate';
+import { GameRole } from '../../types/acl';
 import { useTranslation } from '../../i18n/TranslationContext';
 import { useGameSession } from '../../context/GameSessionContext';
 import { useNotification } from '../../context/NotificationContext';
@@ -93,93 +95,106 @@ export const MapContextMenu: React.FC<MapContextMenuProps> = ({
             <div className="flex flex-col gap-1">
 
                 {/* OBSTACLE ACTIONS (GM ONLY) */}
-                {isGM && obstacleId && (
-                    <div className="bg-zinc-800/50 rounded-lg p-1 mb-1">
-                        <button
-                            onClick={() => { if (onToggleObstacleVisibility) onToggleObstacleVisibility(); onClose(); }}
-                            className="flex items-center gap-3 w-full text-left px-2 py-2 text-sm text-zinc-200 rounded-md hover:bg-primary/20 hover:text-white transition-colors"
-                        >
-                            <EyeOff className="w-4 h-4 text-primary" />
-                            <span>{t('vtt.mapContext.toggleInvisibility.label')}</span>
-                        </button>
+                {/* OBSTACLE ACTIONS (GM ONLY) */}
+                {obstacleId && (
+                    <AccessGate requireRole={GameRole.GM}>
+                        <div className="bg-zinc-800/50 rounded-lg p-1 mb-1">
+                            <button
+                                onClick={() => { if (onToggleObstacleVisibility) onToggleObstacleVisibility(); onClose(); }}
+                                className="flex items-center gap-3 w-full text-left px-2 py-2 text-sm text-zinc-200 rounded-md hover:bg-primary/20 hover:text-white transition-colors"
+                            >
+                                <EyeOff className="w-4 h-4 text-primary" />
+                                <span>{t('vtt.mapContext.toggleInvisibility.label')}</span>
+                            </button>
 
-                        <div className="h-px bg-zinc-700/50 my-1 mx-2" />
+                            <div className="h-px bg-zinc-700/50 my-1 mx-2" />
 
-                        <button
-                            onClick={() => { if (onDeleteObstacle) onDeleteObstacle(); onClose(); }}
-                            className="flex items-center gap-3 w-full text-left px-2 py-2 text-sm text-red-400 rounded-md hover:bg-red-500/20 hover:text-red-300 transition-colors"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                            <span>{t('vtt.mapContext.destroyStructure.label')}</span>
-                        </button>
-                    </div>
+                            <button
+                                onClick={() => { if (onDeleteObstacle) onDeleteObstacle(); onClose(); }}
+                                className="flex items-center gap-3 w-full text-left px-2 py-2 text-sm text-red-400 rounded-md hover:bg-red-500/20 hover:text-red-300 transition-colors"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                                <span>{t('vtt.mapContext.destroyStructure.label')}</span>
+                            </button>
+                        </div>
+                    </AccessGate>
                 )}
 
                 {/* TRIGGER ZONE ACTIONS (GM ONLY) */}
-                {isGM && triggerZoneId && (
-                    <div className="bg-zinc-800/50 rounded-lg p-1 mb-1">
-                        <button
-                            onClick={() => { if (onEditTriggerZone) onEditTriggerZone(); onClose(); }}
-                            className="flex items-center gap-3 w-full text-left px-2 py-2 text-sm text-zinc-200 rounded-md hover:bg-primary/20 hover:text-white transition-colors"
-                        >
-                            <Edit className="w-4 h-4 text-purple-400" />
-                            <span>{t('vtt.mapContext.editTrigger.label')}</span>
-                        </button>
+                {/* TRIGGER ZONE ACTIONS (GM ONLY) */}
+                {triggerZoneId && (
+                    <AccessGate requireRole={GameRole.GM}>
+                        <div className="bg-zinc-800/50 rounded-lg p-1 mb-1">
+                            <button
+                                onClick={() => { if (onEditTriggerZone) onEditTriggerZone(); onClose(); }}
+                                className="flex items-center gap-3 w-full text-left px-2 py-2 text-sm text-zinc-200 rounded-md hover:bg-primary/20 hover:text-white transition-colors"
+                            >
+                                <Edit className="w-4 h-4 text-purple-400" />
+                                <span>{t('vtt.mapContext.editTrigger.label')}</span>
+                            </button>
 
-                        <div className="h-px bg-zinc-700/50 my-1 mx-2" />
+                            <div className="h-px bg-zinc-700/50 my-1 mx-2" />
 
-                        <button
-                            onClick={() => { if (onDeleteTriggerZone) onDeleteTriggerZone(); onClose(); }}
-                            className="flex items-center gap-3 w-full text-left px-2 py-2 text-sm text-red-400 rounded-md hover:bg-red-500/20 hover:text-red-300 transition-colors"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                            <span>{t('vtt.mapContext.removeTrigger.label')}</span>
-                        </button>
-                    </div>
+                            <button
+                                onClick={() => { if (onDeleteTriggerZone) onDeleteTriggerZone(); onClose(); }}
+                                className="flex items-center gap-3 w-full text-left px-2 py-2 text-sm text-red-400 rounded-md hover:bg-red-500/20 hover:text-red-300 transition-colors"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                                <span>{t('vtt.mapContext.removeTrigger.label')}</span>
+                            </button>
+                        </div>
+                    </AccessGate>
                 )}
 
                 {/* AUDIO ZONE ACTIONS (GM ONLY) */}
-                {isGM && audioZoneId && (
-                    <div className="bg-zinc-800/50 rounded-lg p-1 mb-1">
-                        <button
-                            onClick={() => { if (onEditAudioZone) onEditAudioZone(); onClose(); }}
-                            className="flex items-center gap-3 w-full text-left px-2 py-2 text-sm text-zinc-200 rounded-md hover:bg-primary/20 hover:text-white transition-colors"
-                        >
-                            <Music className="w-4 h-4 text-cyan-400" />
-                            <span>{t('vtt.mapContext.editAudioZone.label')}</span>
-                        </button>
+                {/* AUDIO ZONE ACTIONS (GM ONLY) */}
+                {audioZoneId && (
+                    <AccessGate requireRole={GameRole.GM}>
+                        <div className="bg-zinc-800/50 rounded-lg p-1 mb-1">
+                            <button
+                                onClick={() => { if (onEditAudioZone) onEditAudioZone(); onClose(); }}
+                                className="flex items-center gap-3 w-full text-left px-2 py-2 text-sm text-zinc-200 rounded-md hover:bg-primary/20 hover:text-white transition-colors"
+                            >
+                                <Music className="w-4 h-4 text-cyan-400" />
+                                <span>{t('vtt.mapContext.editAudioZone.label')}</span>
+                            </button>
 
-                        <div className="h-px bg-zinc-700/50 my-1 mx-2" />
+                            <div className="h-px bg-zinc-700/50 my-1 mx-2" />
 
-                        <button
-                            onClick={() => { if (onDeleteAudioZone) onDeleteAudioZone(); onClose(); }}
-                            className="flex items-center gap-3 w-full text-left px-2 py-2 text-sm text-red-400 rounded-md hover:bg-red-500/20 hover:text-red-300 transition-colors"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                            <span>{t('vtt.mapContext.removeZone.label')}</span>
-                        </button>
-                    </div>
+                            <button
+                                onClick={() => { if (onDeleteAudioZone) onDeleteAudioZone(); onClose(); }}
+                                className="flex items-center gap-3 w-full text-left px-2 py-2 text-sm text-red-400 rounded-md hover:bg-red-500/20 hover:text-red-300 transition-colors"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                                <span>{t('vtt.mapContext.removeZone.label')}</span>
+                            </button>
+                        </div>
+                    </AccessGate>
                 )}
 
                 {/* GENERAL MAP ACTIONS */}
-                {!obstacleId && !triggerZoneId && !audioZoneId && hasCreationPerms && (
+                {!obstacleId && !triggerZoneId && !audioZoneId && (
                     <div className="bg-zinc-800/50 rounded-lg p-1 mb-1 flex flex-col gap-1">
-                        <button
-                            onClick={() => { onAddToken(); onClose(); }}
-                            className="flex items-center gap-3 w-full text-left px-2 py-2 text-sm text-zinc-300 rounded-md hover:bg-white/10 hover:text-white transition-colors"
-                        >
-                            <Plus className="w-4 h-4" />
-                            {t('vtt.mapContext.addToken.label')}
-                        </button>
+                        <AccessGate requirePermission="tokenCreate">
+                            <button
+                                onClick={() => { onAddToken(); onClose(); }}
+                                className="flex items-center gap-3 w-full text-left px-2 py-2 text-sm text-zinc-300 rounded-md hover:bg-white/10 hover:text-white transition-colors"
+                            >
+                                <Plus className="w-4 h-4" />
+                                {t('vtt.mapContext.addToken.label')}
+                            </button>
+                        </AccessGate>
 
                         {onAddLight && (
-                            <button
-                                onClick={() => { onAddLight(); onClose(); }}
-                                className="flex items-center gap-3 w-full text-left px-2 py-2 text-sm text-amber-400 rounded-md hover:bg-amber-500/10 hover:text-amber-200 transition-colors"
-                            >
-                                <Lightbulb className="w-4 h-4" />
-                                {t('vtt.mapContext.addLight.label')}
-                            </button>
+                            <AccessGate requireRole={GameRole.GM}>
+                                <button
+                                    onClick={() => { onAddLight(); onClose(); }}
+                                    className="flex items-center gap-3 w-full text-left px-2 py-2 text-sm text-amber-400 rounded-md hover:bg-amber-500/10 hover:text-amber-200 transition-colors"
+                                >
+                                    <Lightbulb className="w-4 h-4" />
+                                    {t('vtt.mapContext.addLight.label')}
+                                </button>
+                            </AccessGate>
                         )}
                     </div>
                 )}

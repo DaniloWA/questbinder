@@ -21,7 +21,7 @@ export const CampaignBestiary: React.FC = () => {
   const loadTemplates = async () => {
     setIsLoading(true);
     try {
-      const res = await apiService.get<TokenTemplate[]>('token_templates');
+      const res = await apiService.get<TokenTemplate>('token_templates');
       if (res.success && res.data) {
         setTemplates(res.data);
       }

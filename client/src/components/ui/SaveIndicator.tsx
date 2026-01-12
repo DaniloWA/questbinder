@@ -50,7 +50,7 @@ export const SaveIndicator: React.FC<SaveIndicatorProps> = ({ status, onRetry, c
 // Hook para gerenciar estado de salvamento
 export const useSaveIndicator = (autoHideDuration: number = 2000) => {
   const [status, setStatus] = React.useState<SaveStatus>('idle');
-  const timeoutRef = React.useRef<NodeJS.Timeout>();
+  const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const setSaving = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);

@@ -118,6 +118,15 @@ export default {
     sheet: 'Sheet',
     cancel: 'Cancel',
   },
+  access: {
+    restricted: 'Access Restricted',
+    featureLocked: 'Feature Locked',
+    upgradeRequired: 'Upgrade Required',
+    upgradeToAccess: 'Upgrade to access {{feature}}',
+    permissionDenied: 'Permission Denied',
+    roleRequired: 'Requires {{role}} role',
+    clickToUpgrade: 'Click to view plans',
+  },
   vtt: {
     tools: {
       toolbar: {

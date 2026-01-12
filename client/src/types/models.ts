@@ -286,6 +286,8 @@ export interface TriggerZone {
   handoutId: string;
 }
 
+export type Zone = LightZone | AudioZone | TriggerZone;
+
 export interface MapDrawing {
   id: string;
   userId: string;
@@ -525,6 +527,10 @@ export interface CombatState {
 
 export interface TokenTemplate extends Omit<Token, 'id' | 'x' | 'y'> {
   id: string;
+  hpMax?: number;
+  hpCurrent?: number;
+  ac?: number;
+  systemData?: any;
 }
 
 // --- CHAT & LOGS ---

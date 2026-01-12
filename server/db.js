@@ -109,7 +109,7 @@ export const create = async (collection, data) => {
       shareCursor: true,
       allowSpectate: true,
       tokenHover: defaultTokenHoverPermissions,
-      logConfig: { movement: 'public', combat: 'public', rolls: 'public', system: 'public' },
+      logConfig: { movement: 'public', combat: 'public', rolls: 'public', system: 'public', broadcastConditions: true },
       userOverrides: {}
     };
   }

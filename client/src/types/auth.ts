@@ -1,3 +1,5 @@
+import { SubscriptionTier, GameRole } from './acl';
+
 /**
  * Representa um usuário do sistema (Mestre ou Jogador).
  */
@@ -5,10 +7,13 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  color?: string;
   avatarUrl?: string;
   /** @deprecated Usado apenas para validação simulada no frontend */
   password?: string;
   createdAt?: string;
+  subscriptionTier?: SubscriptionTier;
+  gameRole?: GameRole;
 }
 
 /**

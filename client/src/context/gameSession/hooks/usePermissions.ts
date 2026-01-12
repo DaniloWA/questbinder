@@ -3,6 +3,7 @@ import { GameSessionState, BooleanPermissionKey } from '../types';
 import { socketService } from '../../../services/socketService';
 import { campaignService } from '../../../services/campaignService';
 import { SessionPermissions } from '../../../types';
+import { SubscriptionTier, GameRole, PremiumFeatureKey } from '../../../types/acl';
 import { PermissionHelper } from '../helpers/PermissionHelper';
 
 export const usePermissions = (
@@ -12,8 +13,14 @@ export const usePermissions = (
 ) => {
   // Create PermissionHelper instance (memoized for performance)
   const permissionHelper = useMemo(
-    () => new PermissionHelper(state.isGM, user?.id || null, state.permissions),
-    [state.isGM, user?.id, state.permissions]
+    () => new PermissionHelper(
+      state.isGM,
+      user?.id || null,
+      state.permissions,
+      user?.subscriptionTier || SubscriptionTier.FREE,
+      user?.gameRole || GameRole.PLAYER
+    ),
+    [state.isGM, user?.id, state.permissions, user?.subscriptionTier, user?.gameRole]
   );
 
   // Backward compatibility: keep original checkPermission function
@@ -50,6 +57,12 @@ export const usePermissions = (
   return {
     checkPermission,
     updatePermissions,
-    permissionHelper // Export the helper for advanced usage
+    permissionHelper, // Export the helper for advanced usage
+
+    // Exposed AccessGuard API
+    canFeature: (feature: PremiumFeatureKey) => permissionHelper.canFeature(feature),
+    checkAccess: permissionHelper.checkAccess.bind(permissionHelper),
+    tier: (user?.subscriptionTier || SubscriptionTier.FREE) as SubscriptionTier,
+    role: (user?.gameRole || GameRole.PLAYER) as GameRole
   };
 };

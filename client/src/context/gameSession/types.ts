@@ -10,7 +10,7 @@ import {
 } from '../../types/socket';
 import { PermissionHelper } from './helpers/PermissionHelper';
 
-export type BooleanPermissionKey = Exclude<keyof SessionPermissions, 'tokenHover' | 'logConfig' | 'userOverrides'>;
+export type BooleanPermissionKey = Exclude<keyof SessionPermissions, 'tokenHover' | 'logConfig' | 'userOverrides' | 'cursorOverrides'>;
 
 export interface DrawingSettings {
   color: string;

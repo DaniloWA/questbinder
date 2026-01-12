@@ -2,6 +2,7 @@
 import { Server } from 'socket.io';
 import * as db from './db.js';
 import { createSocketUtils, validatePayload } from './socket/utils.js';
+import { TIER_CONFIGS } from './utils/acl.js';
 import { registerTokenHandlers } from './socket/handlers/tokenHandlers.js';
 import { registerDrawingHandlers } from './socket/handlers/drawingHandlers.js';
 import { registerChatHandlers } from './socket/handlers/chatHandlers.js';
@@ -50,7 +51,7 @@ export const setupSocket = (server) => {
     // Log all incoming events
     socket.onAny((event, ...args) => {
       if (!ephemeralEvents.includes(event)) {
-        console.log(`[WS] Listener received: ${event}`, args);
+        console.log(`[WS] Listener received: ${event} `, args);
       }
     });
 
@@ -70,19 +71,56 @@ export const setupSocket = (server) => {
           socket.leave(client.campaignId);
         }
 
+        // --- FETCH CAMPAIGN & OWNER FOR ACL ---
+        const campaign = await db.getById('campaigns', campaignId);
+        if (!campaign) {
+          console.warn('[WS] room:join rejected: campaign not found');
+          socket.emit('error', { message: 'Campanha não encontrada.' });
+          return socket.disconnect(true);
+        }
+
+        const owner = await db.getById('users', campaign.ownerId);
+        const ownerTier = owner?.subscriptionTier || 'free';
+        const tierConfig = TIER_CONFIGS[ownerTier];
+        const maxPlayers = tierConfig?.maxPlayers || 4;
+
+        // Check if user is GM or Owner (Bypass limits)
+        const isRefGM = campaign.ownerId === userId || campaign.gms?.includes(userId);
+
+        // --- ENFORCE MAX PLAYERS ---
+        const room = io.sockets.adapter.rooms.get(campaignId);
+        const currentCount = room ? room.size : 0;
+
+        if (!isRefGM && currentCount >= maxPlayers) {
+          console.warn(`[WS] room:join rejected: Campaign ${campaignId} is full(Max: ${maxPlayers})`);
+          socket.emit('error', { message: `A campanha atingiu o limite de ${maxPlayers} jogadores.` });
+          return socket.disconnect(true);
+        }
+
         socket.join(campaignId);
         client.campaignId = campaignId;
         client.userId = userId;
 
-        const campaign = await db.getById('campaigns', campaignId);
-        client.isGM = campaign?.ownerId === userId || campaign?.gms?.includes(userId) || false;
+        // Populate client ACL state (already added in previous step, ensuring consistency)
+        client.subscriptionTier = ownerTier; // NOTE: Client usually stores its OWN tier, but for campaign context, maybe owner matters?
+        // Actually, client.subscriptionTier should be the USER's tier for their own feature access (e.g. if they are GM in another game).
+        // Let's keep existing logic for client.subscriptionTier (User's tier).
 
+        // Fetch User for self-info
         const user = await db.getById('users', userId);
-        const playerInfo = user || { id: userId, name: 'Unknown', color: '#ffffff', role: client.isGM ? 'gm' : 'player' };
+        client.subscriptionTier = user?.subscriptionTier || 'free';
 
+        client.isGM = isRefGM;
+        if (client.isGM) {
+          client.gameRole = 'gm';
+        } else {
+          client.gameRole = 'player';
+        }
+
+        const playerInfo = user || { id: userId, name: 'Unknown', color: '#ffffff', role: client.gameRole };
         client.userName = playerInfo.name || 'Unknown';
 
-        const role = client.isGM ? 'gm' : 'player';
+        const role = client.gameRole;
         const playerPayload = { ...playerInfo, role };
 
         socket.to(campaignId).emit('player:join', { user: playerPayload });
@@ -91,12 +129,12 @@ export const setupSocket = (server) => {
         const campaignViewports = playerViewports.get(campaignId);
         if (campaignViewports && campaignViewports.has(userId)) {
           const savedViewport = campaignViewports.get(userId);
-          console.log(`[WS] Restoring viewport for ${userId}:`, savedViewport);
+          console.log(`[WS] Restoring viewport for ${userId}: `, savedViewport);
           socket.emit('viewport:restore', savedViewport);
         }
 
         const roomSize = io.sockets.adapter.rooms.get(campaignId)?.size || 0;
-        console.log(`[WS] ${userId} joined campaign ${campaignId} | GM: ${client.isGM} | Players: ${roomSize}`);
+        console.log(`[WS] ${userId} joined campaign ${campaignId} | GM: ${client.isGM} | Players: ${roomSize}/${maxPlayers}`);
       } catch (err) {
         console.error('[WS] room:join error:', err);
         socket.disconnect(true);
@@ -201,31 +239,7 @@ export const setupSocket = (server) => {
       socket.to(client.campaignId).emit('gm:viewport_sync', payload);
     });
 
-    socket.on('gm:pull_view', (payload) => {
-      console.log('[WS] Received gm:pull_view', { userId: client.userId, isGM: client.isGM, campaignId: client.campaignId, payload });
 
-      if (!client.isGM) {
-        console.warn('[WS] gm:pull_view rejected: User is not GM');
-        return;
-      }
-      if (!client.campaignId) {
-        console.warn('[WS] gm:pull_view rejected: No campaignId');
-        return;
-      }
-
-      const { targetId, x, y, centerX, centerY, zoom } = payload;
-      const forcePayload = { x, y, centerX, centerY, zoom };
-
-      console.log(`[WS] Re-emitting gm:force_view to ${targetId === 'all' ? 'all' : 'targets'}`);
-
-      if (targetId === 'all') {
-        socket.to(client.campaignId).emit('gm:force_view', forcePayload);
-      } else if (Array.isArray(targetId)) {
-        socket.to(client.campaignId).emit('gm:force_view', { ...forcePayload, targets: targetId });
-      } else {
-        socket.to(client.campaignId).emit('gm:force_view', { ...forcePayload, targets: [targetId] });
-      }
-    });
 
     registerTokenHandlers(socket, client, utils);
     registerDrawingHandlers(socket, client, utils);
