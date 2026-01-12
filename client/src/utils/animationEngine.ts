@@ -418,32 +418,157 @@ export const springInterpolateAngle = (
 // SMOOTH RECONCILIATION
 // ============================================================================
 
+export interface ReconciliationConfig {
+  /** Error threshold above which position snaps directly (pixels) */
+  snapThreshold: number;
+  /** How fast to blend towards server position (0.0-1.0) */
+  blendSpeed: number;
+  /** Maximum correction per frame (pixels) */
+  maxCorrection: number;
+}
+
+export const DEFAULT_RECONCILIATION_CONFIG: ReconciliationConfig = {
+  snapThreshold: 150,
+  blendSpeed: 0.15,
+  maxCorrection: 20,
+};
+
 /**
  * Smoothly blend between local prediction and server correction
  * Avoids jarring snaps when server update arrives
+ * 
+ * @param local - Current local/predicted position
+ * @param server - Authoritative server position
+ * @param config - Reconciliation configuration
+ * @returns Reconciled position and whether correction was applied
+ */
+export const reconcilePositionSmooth = (
+  local: Point2D,
+  server: Point2D,
+  config: ReconciliationConfig = DEFAULT_RECONCILIATION_CONFIG
+): { position: Point2D; correctionApplied: boolean; error: number; } => {
+  const error = Math.hypot(server.x - local.x, server.y - local.y);
+
+  // Small error - no correction needed
+  if (error < 2) {
+    return { position: local, correctionApplied: false, error };
+  }
+
+  // Large error - snap directly to server position
+  if (error > config.snapThreshold) {
+    return { position: server, correctionApplied: true, error };
+  }
+
+  // Medium error - blend smoothly
+  const blend = Math.min(config.blendSpeed, config.maxCorrection / error);
+  return {
+    position: lerp2D(local, server, blend),
+    correctionApplied: true,
+    error
+  };
+};
+
+/**
+ * Legacy reconcilePosition for backwards compatibility
  */
 export const reconcilePosition = (
   predicted: Point2D,
   serverPosition: Point2D,
-  blendFactor: number = 0.3 // How fast to correct (0-1)
+  blendFactor: number = 0.3
 ): Point2D => {
-  const error = {
-    x: serverPosition.x - predicted.x,
-    y: serverPosition.y - predicted.y,
-  };
+  const result = reconcilePositionSmooth(predicted, serverPosition, {
+    snapThreshold: 150,
+    blendSpeed: blendFactor,
+    maxCorrection: 20
+  });
+  return result.position;
+};
 
-  // If error is small, just use server position
-  const errorMagnitude = Math.hypot(error.x, error.y);
-  if (errorMagnitude < 1) {
-    return serverPosition;
-  }
+// ============================================================================
+// FIXED TIMESTEP ACCUMULATOR (DETERMINISTIC PHYSICS)
+// ============================================================================
 
-  // Blend towards server position
+export interface FixedTimestepState {
+  previous: Point2D;
+  current: Point2D;
+}
+
+/**
+ * Creates a fixed timestep accumulator for deterministic physics
+ * 
+ * This ensures physics runs at a consistent rate regardless of framerate,
+ * preventing different results on 30fps vs 144fps monitors.
+ * 
+ * Usage:
+ * ```
+ * const accumulator = createFixedTimestepAccumulator();
+ * 
+ * // In render loop:
+ * const alpha = accumulator.update(deltaMs, (fixedDt) => {
+ *   // Physics simulation with consistent dt
+ *   physics.tick(fixedDt);
+ * });
+ * 
+ * // Use alpha for visual interpolation
+ * const renderX = lerp(prevX, currX, alpha);
+ * ```
+ */
+export const createFixedTimestepAccumulator = (
+  fixedDtMs: number = 16.67,  // 60 FPS equivalent
+  maxAccumulatedMs: number = 100  // Prevent spiral of death
+) => {
+  let accumulator = 0;
+
   return {
-    x: predicted.x + error.x * blendFactor,
-    y: predicted.y + error.y * blendFactor,
+    /**
+     * Update the accumulator with frame delta time
+     * @param deltaMs - Time since last frame
+     * @param tickFn - Physics tick function called with fixed dt
+     * @returns Alpha value (0-1) for visual interpolation
+     */
+    update: (deltaMs: number, tickFn: (fixedDt: number) => void): number => {
+      // Clamp to prevent spiral of death
+      accumulator += Math.min(deltaMs, maxAccumulatedMs);
+
+      let tickCount = 0;
+      while (accumulator >= fixedDtMs) {
+        tickFn(fixedDtMs);
+        accumulator -= fixedDtMs;
+        tickCount++;
+
+        // Safety: limit ticks per frame to prevent freezing
+        if (tickCount > 10) {
+          accumulator = 0;
+          break;
+        }
+      }
+
+      // Return interpolation alpha
+      return accumulator / fixedDtMs;
+    },
+
+    /**
+     * Reset accumulator (call after long pause/tab switch)
+     */
+    reset: () => {
+      accumulator = 0;
+    },
+
+    /**
+     * Get current accumulator value
+     */
+    getAccumulator: () => accumulator,
   };
 };
+
+/**
+ * Interpolate between previous and current state for smooth rendering
+ */
+export const interpolateState = (
+  previous: Point2D,
+  current: Point2D,
+  alpha: number
+): Point2D => lerp2D(previous, current, alpha);
 
 // ============================================================================
 // DEBUG UTILITIES (Development Only)

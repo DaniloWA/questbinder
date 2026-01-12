@@ -14,6 +14,8 @@ import { registerCharacterHandlers } from './socket/handlers/characterHandlers.j
 import { registerCombatHandlers } from './socket/handlers/combatHandlers.js';
 import { registerPermissionsHandlers } from './socket/handlers/permissionsHandlers.js';
 import { registerAttackZoneHandlers } from './socket/handlers/attackZoneHandlers.js';
+import { registerCursorHandlers } from './socket/handlers/cursorHandlers.js';
+import { cursorState } from './socket/state/cursorState.js';
 
 // In-memory store for player viewports: Map<campaignId, Map<userId, viewport>>
 const playerViewports = new Map();
@@ -156,7 +158,8 @@ export const setupSocket = (server) => {
     // Track last emit time per event type for this client
     const lastEmitTimes = {};
 
-    const ephemeralEvents = ['token:drag', 'cursor:move', 'chat:reaction', 'cursor:click', 'viewport:update'];
+    // cursor:move and cursor:click now handled by cursorHandlers.js
+    const ephemeralEvents = ['token:drag', 'chat:reaction', 'viewport:update'];
 
     ephemeralEvents.forEach(event => {
       socket.on(event, (payload) => {
@@ -252,6 +255,7 @@ export const setupSocket = (server) => {
     registerCombatHandlers(socket, client, utils);
     registerPermissionsHandlers(socket, client, utils);
     registerAttackZoneHandlers(socket, client, utils);
+    registerCursorHandlers(socket, client, utils);
 
     socket.on('disconnect', () => {
       console.log(`[WS] Client disconnected: ${socket.id}`);

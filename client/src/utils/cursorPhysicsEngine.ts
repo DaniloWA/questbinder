@@ -18,10 +18,16 @@ import {
   springInterpolateAngle,
   predictPosition,
   calculateVelocity,
-  reconcilePosition,
+  reconcilePositionSmooth,
   lerp,
+  lerp2D,
   debugLog,
+  createFixedTimestepAccumulator,
+  DEFAULT_RECONCILIATION_CONFIG,
 } from './animationEngine';
+import {
+  CURSOR_CONFIG,
+} from '../constants/cursorConstants';
 
 // ============================================================================
 // TYPES
@@ -31,6 +37,10 @@ export interface CursorState {
   // Current interpolated position (what we render)
   x: number;
   y: number;
+
+  // Previous position (for fixed timestep interpolation)
+  previousX: number;
+  previousY: number;
 
   // Target position from server
   targetX: number;
@@ -46,6 +56,7 @@ export interface CursorState {
 
   // Rotation angle (radians)
   angle: number;
+  previousAngle: number;
   targetAngle: number;
   angleVelocity: number;
 
@@ -67,6 +78,7 @@ export interface CursorState {
   isMoving: boolean;
   isVisible: boolean;
   isClicking: boolean; // Mouse button pressed
+  correctionApplied: boolean; // For debug visualization
 
   // New Fields
   healthStatus?: 'healthy' | 'bloodied' | 'unconscious';
@@ -147,6 +159,8 @@ export class CursorPhysicsEngine {
     const state: CursorState = {
       x: initialPosition.x,
       y: initialPosition.y,
+      previousX: initialPosition.x,
+      previousY: initialPosition.y,
       targetX: initialPosition.x,
       targetY: initialPosition.y,
       predictedX: initialPosition.x,
@@ -154,17 +168,19 @@ export class CursorPhysicsEngine {
       velocityX: 0,
       velocityY: 0,
       angle: 0,
+      previousAngle: 0,
       targetAngle: 0,
       angleVelocity: 0,
       history: [{ ...initialPosition, timestamp: now }],
       trailHistory: [{ x: initialPosition.x, y: initialPosition.y, time: now }],
       lastUpdateTime: now,
       lastServerTime: now,
-      estimatedLatencyMs: 50, // Conservative initial estimate
+      estimatedLatencyMs: 50,
       latencySamples: [],
       isMoving: false,
       isVisible: true,
       isClicking: false,
+      correctionApplied: false,
       healthStatus: 'healthy',
       trailEnabled: false,
     };
@@ -280,6 +296,9 @@ export class CursorPhysicsEngine {
   /**
    * Tick animation for a cursor (call every frame)
    * Returns the interpolated position to render
+   * 
+   * For fixed timestep rendering, use the returned position with alpha interpolation:
+   * renderPos = lerp(state.previousX, state.x, alpha)
    */
   tick(userId: string, deltaMs: number): Point2D | null {
     const state = this.states.get(userId);
@@ -287,13 +306,18 @@ export class CursorPhysicsEngine {
 
     const now = performance.now();
 
+    // Store previous positions for visual interpolation
+    state.previousX = state.x;
+    state.previousY = state.y;
+    state.previousAngle = state.angle;
+
     // Check if cursor stopped receiving updates
     const timeSinceUpdate = now - state.lastServerTime;
-    if (timeSinceUpdate > STOPPED_THRESHOLD_MS) {
+    if (timeSinceUpdate > CURSOR_CONFIG.STOPPED_THRESHOLD_MS) {
       state.isMoving = false;
       // Decay velocity when stopped
-      state.velocityX *= VELOCITY_DECAY;
-      state.velocityY *= VELOCITY_DECAY;
+      state.velocityX *= CURSOR_CONFIG.VELOCITY_DECAY;
+      state.velocityY *= CURSOR_CONFIG.VELOCITY_DECAY;
     }
 
     // Use predicted position as interpolation target for smoother feel
@@ -335,7 +359,7 @@ export class CursorPhysicsEngine {
       state.angle,
       state.targetAngle,
       state.angleVelocity,
-      { ...this.springConfig, stiffness: this.springConfig.stiffness * 0.6 }, // Slower rotation
+      { ...this.springConfig, stiffness: this.springConfig.stiffness * 0.6 },
       deltaMs
     );
     state.angle = angleResult.angle;
@@ -347,15 +371,18 @@ export class CursorPhysicsEngine {
   }
 
   /**
-   * Get render data for a cursor
+   * Get render data for a cursor (includes previous positions for interpolation)
    */
   getRenderData(userId: string): {
     position: Point2D;
+    previousPosition: Point2D;
     angle: number;
+    previousAngle: number;
     isMoving: boolean;
-    velocity: Point2D; // For squash & stretch effect
-    trailHistory: { x: number; y: number; time: number; }[]; // For particle trail
-    isClicking: boolean; // For click scale effect
+    velocity: Point2D;
+    trailHistory: { x: number; y: number; time: number; }[];
+    isClicking: boolean;
+    correctionApplied: boolean;
     healthStatus?: 'healthy' | 'bloodied' | 'unconscious';
     trailConfig: {
       enabled?: boolean;
@@ -369,11 +396,14 @@ export class CursorPhysicsEngine {
 
     return {
       position: { x: state.x, y: state.y },
+      previousPosition: { x: state.previousX, y: state.previousY },
       angle: state.angle,
+      previousAngle: state.previousAngle,
       isMoving: state.isMoving,
       velocity: { x: state.velocityX, y: state.velocityY },
       trailHistory: state.trailHistory,
       isClicking: state.isClicking,
+      correctionApplied: state.correctionApplied,
       healthStatus: state.healthStatus,
       trailConfig: {
         enabled: state.trailEnabled,
