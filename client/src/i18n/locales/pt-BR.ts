@@ -117,16 +117,20 @@ export default {
     speed: 'Deslocamento',
     sheet: 'Ficha',
     cancel: 'Cancelar',
+    permissions: {
+      denied: 'Permissão Negada',
+    },
   },
   access: {
     restricted: 'Acesso Restrito',
     featureLocked: 'Funcionalidade Bloqueada',
     upgradeRequired: 'Upgrade Necessário',
-    upgradeToAccess: 'Faça upgrade para acessar {{feature}}',
+    upgradeToAccess: 'Faça upgrade para acessar :feature',
     permissionDenied: 'Permissão Negada',
-    roleRequired: 'Requer função {{role}}',
+    roleRequired: 'Requer função :role',
     clickToUpgrade: 'Clique para ver planos',
   },
+
   vtt: {
     tools: {
       toolbar: {
@@ -633,11 +637,11 @@ export default {
           label: 'Cancelar',
         },
         hover: {
-          applyCondition: 'Aplicou **{condition}** em {name}.',
-          shareCondition: 'Compartilhou a condição **{condition}**.',
+          applyCondition: 'Aplicou **:condition** em :name.',
+          shareCondition: 'Compartilhou a condição **:condition**.',
           addCondition: 'Adicionar Condição',
-          rollAttribute: 'Rolar Teste de {attr} ({mod})',
-          testOf: 'Teste de {attr}',
+          rollAttribute: 'Rolar Teste de :attr (:mod)',
+          testOf: 'Teste de :attr',
         },
         deleteButton: {
           label: 'Excluir Token',
@@ -726,7 +730,7 @@ export default {
         },
       },
       contextMenu: {
-        size: 'Tamanho {size}x{size}',
+        size: 'Tamanho :size x :size',
         openSheet: 'Abrir Ficha',
         shareToken: 'Linkar no Chat',
         edit: 'Editar',
@@ -738,7 +742,7 @@ export default {
         remove: 'Remover Token',
         conditions: 'Condições',
         linkTokenNotify: 'Token linkado no chat.',
-        shareTokenNotify: 'Linkou o token {name} no chat.',
+        shareTokenNotify: 'Linkou o token :name no chat.',
       },
       hoverCard: {
         healthBar: {
@@ -1047,7 +1051,7 @@ export default {
         recipient: {
           title: 'Destinatário',
           global: 'Todos (Global)',
-          whisper: 'Sussurrar para {name}',
+          whisper: 'Sussurrar para :name',
         },
         ooc: 'Eu (OOC)',
         global: 'Todos (OOC)',
@@ -1055,12 +1059,12 @@ export default {
       messages: {
         whisper: {
           toMe: 'Sussurrou para você',
-          fromMe: 'Sussurrou para {name}',
-          other: 'Sussurro para {name}',
+          fromMe: 'Sussurrou para :name',
+          other: 'Sussurro para :name',
         },
         system: {
-          damage: '**:name** sofreu **{diff}** de dano.',
-          heal: '**:name** recuperou **{diff}** de vida.',
+          damage: '**:name** sofreu **:diff** de dano.',
+          heal: '**:name** recuperou **:diff** de vida.',
         },
         roll: {
           label: 'Rolagem',
@@ -1097,7 +1101,7 @@ export default {
           qty: 'Qtd',
         },
         position: {
-          goTo: 'Ir para {label}',
+          goTo: 'Ir para :label',
         },
       },
       labels: {
@@ -1114,7 +1118,7 @@ export default {
       },
     },
     party: {
-      onlineCount: 'Online ({count})',
+      onlineCount: 'Online (:count)',
       playerLabel: 'Jogador',
       invite: {
         title: 'Convidar Jogadores',
@@ -1164,7 +1168,7 @@ export default {
           appearance: {
             title: 'Aparência da Grade',
             color: 'Cor da Grade',
-            opacity: 'Opacidade ({percent}%)',
+            opacity: 'Opacidade (:percent%)',
           },
         },
         defaults: {
@@ -1243,7 +1247,7 @@ export default {
           inherit: 'Herdar Global',
           allowed: 'Permitido',
           forbidden: 'Proibido',
-          inheritValue: 'Herdar ({value})',
+          inheritValue: 'Herdar (:value)',
           yes: 'Sim',
           no: 'Não',
         },
@@ -2606,7 +2610,7 @@ export default {
           tooltip: 'Compartilhar',
         },
         triggerTool: {
-          notification: 'Ferramenta de Gatilho selecionada para "{name}". Desenhe no mapa.',
+          notification: 'Ferramenta de Gatilho selecionada para ":name". Desenhe no mapa.',
         },
       },
       preview: {
@@ -3041,7 +3045,7 @@ export default {
         broadcasting: 'TRANSMITINDO VISÃO',
         followingGM: 'SEGUINDO MESTRE',
         toAll: 'PARA TODOS',
-        toPlayers: 'PARA {count} JOGADORES',
+        toPlayers: 'PARA :count JOGADORES',
         toPrefix: 'PARA',
       },
     },
@@ -3066,7 +3070,7 @@ export default {
         emptyTitle: 'Grimório vazio.',
         emptyDesc: 'Crie um token no mapa e salve-o como modelo para vê-lo aqui.',
         title: 'Bestiário',
-        vision: '{{range}}m Visão',
+        vision: ':range m Visão',
         blind: 'Cego',
       },
       modal: {
@@ -3075,7 +3079,7 @@ export default {
           edit: 'Editar Criatura',
         },
         handout: {
-          deleteConfirm: 'Tem certeza que deseja excluir "{{name}}"?',
+          deleteConfirm: 'Tem certeza que deseja excluir ":name"?',
           deleteTitle: 'Excluir Recurso',
           new: 'Novo Recurso',
           edit: 'Editar Recurso',
@@ -3124,7 +3128,7 @@ export default {
       },
       combat: {
         label: 'COMBATE',
-        round: 'RODADA {{round}}',
+        round: 'RODADA :round',
       },
     },
   },
@@ -3771,90 +3775,90 @@ export default {
     },
     aura: {
       corrosiveAsh: {
-        name: 'Aura of Corrosive Ash',
+        name: 'Aura de Cinzas Corrosivas',
         trigger: 'Início do turno',
         desc: '1d6 ácido por turno. Criaturas afetadas têm -2m de movimento.',
         effectName: 'Cinzas Corrosivas',
         effectDesc: '1d6 Ácido / -2m Movimento',
       },
       deepTerror: {
-        name: 'Deep Terror Aura',
+        name: 'Aura de Terror Profundo',
         trigger: 'Entrada ou Início do turno',
         desc: 'Teste de Sabedoria (CD 8+Prof+Attr). Falha: Amedrontado por 1 turno.',
         effectName: 'Terror Profundo',
         effectDesc: 'Save WIS ou Amedrontado',
       },
       etherealGuardian: {
-        name: 'Ethereal Guardian Aura',
+        name: 'Aura do Guardião Etéreo',
         trigger: 'Constante',
         desc: '+1 CA para aliados. Primeiro ataque contra cada aliado tem desvantagem (1/rodada).',
         effectName: 'Guardião Etéreo',
         effectDesc: '+1 CA / Desvantagem no 1º ataque recebido',
       },
       elementalResistance: {
-        name: 'Elemental Resistance Aura',
+        name: 'Aura de Resistência Elemental',
         desc: 'Resistência a um elemento escolhido (Fogo, Frio, Ácido, etc).',
         effectName: 'Resistência Elemental',
         effectDesc: 'Resistência ao elemento escolhido',
       },
       protection: {
-        name: 'Aura of Protection',
+        name: 'Aura de Proteção',
         desc: 'Aliados adicionam modificador de Carisma aos testes de resistência.',
         effectName: 'Proteção (Carisma)',
         effectDesc: '+CHA em Saves',
       },
       courage: {
-        name: 'Aura of Courage',
+        name: 'Aura de Coragem',
         desc: 'Aliados não podem ser amedrontados.',
         effectName: 'Coragem',
         effectDesc: 'Imune a Medo',
       },
       strategist: {
-        name: 'Strategist\'s Aura',
+        name: 'Aura do Estrategista',
         desc: 'Aliados ganham +1 em testes de ataque.',
         effectName: 'Estrategista',
         effectDesc: '+1 Ataque',
       },
       arcaneFocus: {
-        name: 'Arcane Focus Aura',
+        name: 'Aura de Foco Arcano',
         desc: 'Aliados têm vantagem em testes de concentração.',
         effectName: 'Foco Arcano',
         effectDesc: 'Vantagem em Concentração',
       },
       vitality: {
-        name: 'Aura of Vitality',
+        name: 'Aura de Vitalidade',
         trigger: 'Ação Bônus',
         desc: 'Cura 2d6 por ação em um alvo dentro da área.',
         effectName: 'Vitalidade',
         effectDesc: 'Pode ser curado (2d6)',
       },
       temporalSlow: {
-        name: 'Temporal Slow Aura',
+        name: 'Aura de Lentidão Temporal',
         trigger: 'Entrada',
         desc: 'Criaturas têm -3m de movimento e não podem fazer Reações.',
         effectName: 'Lentidão Temporal',
         effectDesc: '-3m Movimento / Sem Reações',
       },
       windGust: {
-        name: 'Wind Gust Aura',
+        name: 'Aura de Rajada de Vento',
         desc: 'Criaturas que entram fazem teste de Força ou são empurradas 1,5m.',
         effectName: 'Pancada de Vento',
         effectDesc: 'Save STR ou Empurrão 1.5m',
       },
       spiritGuardians: {
-        name: 'Spirit Guardians',
+        name: 'Espíritos Guardiões',
         desc: 'Dano contínuo e redução de movimento para inimigos.',
         effectName: 'Guardiões Espirituais',
         effectDesc: 'Dano / Movimento Reduzido',
       },
       fear: {
-        name: 'Fear Aura',
+        name: 'Aura de Medo',
         desc: 'Criaturas devem passar teste ou ficam amedrontadas.',
         effectName: 'Medo',
         effectDesc: 'Teste de Sabedoria ou Amedrontado',
       },
       fire: {
-        name: 'Fire Aura',
+        name: 'Aura de Fogo',
         desc: 'Dano de fogo ao aproximar ou iniciar turno.',
         effectName: 'Fogo',
         effectDesc: 'Dano de Fogo',

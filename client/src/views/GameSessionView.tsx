@@ -250,6 +250,7 @@ const GameSessionUI: React.FC = () => {
                 }}
                 onSaveTemplate={session.saveTemplate}
                 onCancel={closeModal}
+                isGM={isGM}
             />,
             { title: token === 'new' ? t('vtt.gameSession.modal.token.create') : t('vtt.gameSession.modal.token.edit'), size: 'xl' }
         );

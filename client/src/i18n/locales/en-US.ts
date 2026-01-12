@@ -117,16 +117,20 @@ export default {
     speed: 'Speed',
     sheet: 'Sheet',
     cancel: 'Cancel',
+    permissions: {
+      denied: 'Permission Denied',
+    },
   },
   access: {
     restricted: 'Access Restricted',
     featureLocked: 'Feature Locked',
     upgradeRequired: 'Upgrade Required',
-    upgradeToAccess: 'Upgrade to access {{feature}}',
+    upgradeToAccess: 'Upgrade to access :feature',
     permissionDenied: 'Permission Denied',
-    roleRequired: 'Requires {{role}} role',
+    roleRequired: 'Requires :role role',
     clickToUpgrade: 'Click to view plans',
   },
+
   vtt: {
     tools: {
       toolbar: {
@@ -552,11 +556,11 @@ export default {
           save: 'Save Changes',
         },
         hover: {
-          applyCondition: 'Applied **{condition}** to {name}.',
-          shareCondition: 'Shared condition **{condition}**.',
+          applyCondition: 'Applied **:condition** to :name.',
+          shareCondition: 'Shared condition **:condition**.',
           addCondition: 'Add Condition',
-          rollAttribute: 'Roll {attr} Check ({mod})',
-          testOf: '{attr} Check',
+          rollAttribute: 'Roll :attr Check (:mod)',
+          testOf: ':attr Check',
         },
         light: {
           title: 'Light',
@@ -731,7 +735,7 @@ export default {
         },
       },
       contextMenu: {
-        size: 'Size {size}x{size}',
+        size: 'Size :size x :size',
         openSheet: 'Open Sheet',
         shareToken: 'Link to Chat',
         edit: 'Edit',
@@ -743,7 +747,7 @@ export default {
         remove: 'Remove Token',
         conditions: 'Conditions',
         linkTokenNotify: 'Token linked to chat.',
-        shareTokenNotify: 'Linked token {name} to chat.',
+        shareTokenNotify: 'Linked token :name to chat.',
       },
       hoverCard: {
         healthBar: {
@@ -1052,7 +1056,7 @@ export default {
         recipient: {
           title: 'Recipient',
           global: 'All (Global)',
-          whisper: 'Whisper to {name}',
+          whisper: 'Whisper to :name',
         },
         ooc: 'Me (OOC)',
         global: 'All (OOC)',
@@ -1060,12 +1064,12 @@ export default {
       messages: {
         whisper: {
           toMe: 'Whispered to you',
-          fromMe: 'Whispered to {name}',
-          other: 'Whisper for {name}',
+          fromMe: 'Whispered to :name',
+          other: 'Whisper for :name',
         },
         system: {
-          damage: '**:name** took **{diff}** damage.',
-          heal: '**:name** recovered **{diff}** HP.',
+          damage: '**:name** took **:diff** damage.',
+          heal: '**:name** recovered **:diff** HP.',
         },
         roll: {
           label: 'Roll',
@@ -1102,7 +1106,7 @@ export default {
           qty: 'Qty',
         },
         position: {
-          goTo: 'Go to {label}',
+          goTo: 'Go to :label',
         },
       },
       labels: {
@@ -1119,7 +1123,7 @@ export default {
       },
     },
     party: {
-      onlineCount: 'Online ({count})',
+      onlineCount: 'Online (:count)',
       playerLabel: 'Player',
       invite: {
         title: 'Invite Players',
@@ -1169,7 +1173,7 @@ export default {
           appearance: {
             title: 'Grid Appearance',
             color: 'Grid Color',
-            opacity: 'Opacity ({percent}%)',
+            opacity: 'Opacity (:percent%)',
           },
         },
         defaults: {
@@ -1248,7 +1252,7 @@ export default {
           inherit: 'Inherit Global',
           allowed: 'Allowed',
           forbidden: 'Forbidden',
-          inheritValue: 'Inherit ({value})',
+          inheritValue: 'Inherit (:value)',
           yes: 'Yes',
           no: 'No',
         },
@@ -3175,7 +3179,7 @@ export default {
           tooltip: 'Share',
         },
         triggerTool: {
-          notification: 'Trigger tool selected for "{name}". Draw on the map.',
+          notification: 'Trigger tool selected for ":name". Draw on the map.',
         },
       },
       preview: {
@@ -3610,7 +3614,7 @@ export default {
         broadcasting: 'BROADCASTING VIEW',
         followingGM: 'FOLLOWING GM',
         toAll: 'TO ALL',
-        toPlayers: 'TO {count} PLAYERS',
+        toPlayers: 'TO :count PLAYERS',
         toPrefix: 'TO',
       },
     },
@@ -3635,7 +3639,7 @@ export default {
         emptyTitle: 'Empty Grimoire',
         emptyDesc: 'Create a token on the map and save it as a template to see it here.',
         title: 'Bestiary',
-        vision: '{{range}}m Vision',
+        vision: ':range m Vision',
         blind: 'Blind',
       },
       modal: {
@@ -3644,7 +3648,7 @@ export default {
           edit: 'Edit Creature',
         },
         handout: {
-          deleteConfirm: 'Are you sure you want to delete "{{name}}"?',
+          deleteConfirm: 'Are you sure you want to delete ":name"?',
           deleteTitle: 'Delete Resource',
           new: 'New Resource',
           edit: 'Edit Resource',
@@ -3693,7 +3697,7 @@ export default {
       },
       combat: {
         label: 'COMBAT',
-        round: 'ROUND {{round}}',
+        round: 'ROUND :round',
       },
     },
   },
