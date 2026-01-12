@@ -11,13 +11,8 @@ import { ListenerDeps, ListenerCleanup } from './types';
  * - gm:force_view
  * - error
  */
-export const registerPlayerListeners = ({
-  setState,
-  user,
-  show,
-  setViewport,
-  stateRef
-}: ListenerDeps): ListenerCleanup => {
+export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => {
+  const { setState, user, show, setViewport, stateRef } = deps;
 
   // Handler: player:join
   const handlePlayerJoin = (payload: { user: any; }) => {
@@ -70,58 +65,44 @@ export const registerPlayerListeners = ({
   };
 
   // Handler: cursor:move
-
+  // PERFORMANCE FIX: Removed setState call. React reads from ref directly via animation loop.
   const handleCursorMove = (payload: CursorMovePayload) => {
     if (payload.userId === user?.id) return;
 
-    setState(previousState => {
-      // Auto-discover players who joined before us (if not in list)
-      // This fixes the bug where GM doesn't see existing players
-      const isKnownPlayer = previousState.players.some(p => p.id === payload.userId);
-      let newPlayers = previousState.players;
+    // Direct ref update ONLY - no React state update to avoid main thread blocking
+    if (deps.remoteCursorsRef) {
+      deps.remoteCursorsRef.current[payload.userId] = payload;
+    }
 
-      if (!isKnownPlayer && payload.userName) {
-        console.log('[PlayerListeners] Auto-discovering player from cursor:', payload.userId, payload.userName);
-        // Construct a partial user from cursor data
-        newPlayers = [...newPlayers, {
+    // Player auto-discovery (rare event, so setState is ok here)
+    // Only call setState if this is a NEW player we haven't seen before
+    const isKnownPlayer = stateRef.current.players.some(p => p.id === payload.userId);
+    if (!isKnownPlayer && payload.userName) {
+      console.log('[PlayerListeners] Auto-discovering player from cursor:', payload.userId, payload.userName);
+      setState(prev => ({
+        ...prev,
+        players: [...prev.players, {
           id: payload.userId,
           name: payload.userName,
-          // We don't have email/avatar from cursor, but name/id is enough for the list
           avatarUrl: undefined,
           email: ''
-        }];
-      }
-
-      return {
-        ...previousState,
-        players: newPlayers,
-        remoteCursors: {
-          ...previousState.remoteCursors,
-          [payload.userId]: payload
-        }
-      };
-    });
+        }]
+      }));
+    }
   };
 
   // Handler: cursor:pressing (unthrottled click state for visual feedback)
+  // PERFORMANCE FIX: Removed setState call. React reads from ref directly.
   const handleCursorPressing = (payload: CursorPressingPayload) => {
     if (!payload.userId || payload.userId === user?.id) return;
 
-    setState(prev => {
-      const existingCursor = prev.remoteCursors[payload.userId!];
-      if (!existingCursor) return prev;
-
-      return {
-        ...prev,
-        remoteCursors: {
-          ...prev.remoteCursors,
-          [payload.userId!]: {
-            ...existingCursor,
-            isClicking: payload.pressing,
-          }
-        }
+    // Direct ref update ONLY
+    if (deps.remoteCursorsRef?.current[payload.userId]) {
+      deps.remoteCursorsRef.current[payload.userId] = {
+        ...deps.remoteCursorsRef.current[payload.userId],
+        isClicking: payload.pressing
       };
-    });
+    }
   };
 
   const handleViewportUpdate = (payload: ViewportUpdatePayload) => {

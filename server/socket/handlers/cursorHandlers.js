@@ -13,7 +13,7 @@ import { cursorState } from '../state/cursorState.js';
 // THROTTLE SETTINGS
 // ============================================================================
 
-const CURSOR_MOVE_THROTTLE_MS = 50; // Max 20/sec
+const CURSOR_MOVE_THROTTLE_MS = 50; // Batch Mode (~20/sec)
 
 // ============================================================================
 // HANDLER REGISTRATION

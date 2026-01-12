@@ -10,8 +10,8 @@
 // NETWORK THROTTLING
 // ============================================================================
 
-/** Maximum cursor move events per second (1000 / 50 = 20/s) */
-export const EMIT_THROTTLE_MS = 50;
+/** Maximum cursor move events per second (1000 / 80 = ~12.5/s, relies on batch replay) */
+export const EMIT_THROTTLE_MS = 80;
 
 // ============================================================================
 // SPRING PHYSICS
@@ -109,8 +109,8 @@ export const POSITION_HISTORY_SIZE = 20;
 // ANTI-CHEAT
 // ============================================================================
 
-/** Maximum allowed cursor speed (pixels/ms) - ~2000px/100ms */
-export const MAX_CURSOR_SPEED = 25;
+/** Maximum allowed cursor speed (DISABLED - No limit) */
+export const MAX_CURSOR_SPEED = Infinity;
 
 // ============================================================================
 // BUNDLED CONFIG OBJECT

@@ -146,10 +146,9 @@ export interface CursorMovePayload {
   velocityX?: number;    // Movement velocity hint (pixels/ms)
   velocityY?: number;
   isClicking?: boolean;  // Mouse button pressed (for click feedback)
-  activeTool?: string;
-  isContexting?: boolean;
-  isChatting?: boolean;
-  // New Trail/Status Fields
+  // Batch Replay
+  path?: { x: number, y: number, time: number; }[]; // Full history since last emit
+  // New State Fields
   healthStatus?: 'healthy' | 'bloodied' | 'unconscious'; // For Blood Trail
   trailAnimation?: 'line' | 'water' | 'fire' | 'particles' | 'dice' | 'rainbow' | 'smoke' | 'electric';
   trailColor?: string;

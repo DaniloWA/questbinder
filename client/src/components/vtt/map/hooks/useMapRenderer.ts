@@ -43,6 +43,7 @@ interface UseMapRendererProps extends MapCanvasProps {
   viewportRef?: React.MutableRefObject<{ x: number, y: number, zoom: number; }>;
   // PERFORMANCE: Ref for immediate mouse position during token drag
   mouseWorldPosRef?: React.MutableRefObject<{ x: number, y: number; }>;
+  remoteCursorsRef?: React.MutableRefObject<Record<string, any>>;
 }
 
 export const useMapRenderer = (props: UseMapRendererProps) => {
@@ -52,7 +53,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
     animatingTokens, animationsRef, setAnimatingTokens, mouseWorldPos, dragState, hoveredObstacleId, calculatedPath,
     draggedAttackZone, liveDrawingPointsRef, isDrawingRef, currentFogRect, hoveredTokenId, visionTokens, imageCache,
     drawingLightZone, drawingAudioZone, drawingTriggerZone, attackZoneResults, previewZoneResult,
-    campaignCharacters = [], currentUser, remoteViewports, players
+    campaignCharacters = [], currentUser, remoteViewports, players, remoteCursorsRef
   } = props;
 
   const { ui, drawingSettings, rulerSettings } = useGameSession();
@@ -1124,7 +1125,8 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
       };
 
       // Render REMOTE cursors with physics engine
-      Object.values(remoteCursors).forEach((cursor: any) => {
+      const cursorsToRender = remoteCursorsRef?.current ? remoteCursorsRef.current : remoteCursors;
+      Object.values(cursorsToRender).forEach((cursor: any) => {
         if (cursor.userId === currentUser?.id) return;
 
         // Check legacy permission (default true)

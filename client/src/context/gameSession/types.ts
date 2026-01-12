@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   Campaign, MapScene, Token, Viewport, CombatState, ChatMessage,
   SessionPermissions, User, Character, TokenTemplate, Handout,
@@ -132,6 +133,8 @@ export interface GameSessionState {
 
 export interface GameSessionContextType extends GameSessionState {
   user: User | null;
+  // Direct access to cursor data
+  remoteCursorsRef: React.MutableRefObject<Record<string, CursorMovePayload>>;
   // Actions
   setViewport: (v: Partial<Viewport>) => void;
   switchScene: (id: string) => void;

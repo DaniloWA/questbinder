@@ -11,8 +11,8 @@
 // CONSTANTS
 // ============================================================================
 
-const POSITION_HISTORY_SIZE = 20; // ~1 second at 20 updates/sec
-const MAX_CURSOR_SPEED = 25; // pixels/ms - reasonable maximum
+const POSITION_HISTORY_SIZE = 60; // ~1 second at 60 updates/sec
+const MAX_CURSOR_SPEED = Infinity; // DISABLED - No speed limit
 const MAX_LAG_COMPENSATION_MS = 500; // Maximum time to compensate
 
 // ============================================================================

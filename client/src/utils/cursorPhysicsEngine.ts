@@ -7,6 +7,9 @@
  * - Latency estimation and compensation
  * - Smooth reconciliation with server updates
  * - Spring physics for natural deceleration
+ * - Batch Replay for exact movement reproduction
+ * - Smart Buffering & Gap Stitching for zero stutter
+ * - Adaptive Playback (Time Dilation) for "Live" feel
  */
 
 import {
@@ -16,80 +19,77 @@ import {
   CURSOR_SPRING,
   springInterpolate2D,
   springInterpolateAngle,
-  predictPosition,
   calculateVelocity,
-  reconcilePositionSmooth,
   lerp,
-  lerp2D,
   debugLog,
-  createFixedTimestepAccumulator,
-  DEFAULT_RECONCILIATION_CONFIG,
 } from './animationEngine';
-import {
-  CURSOR_CONFIG,
-} from '../constants/cursorConstants';
+
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+const MAX_HISTORY_SIZE = 10;
+const MAX_LATENCY_SAMPLES = 5;
+const STOPPED_THRESHOLD_MS = 150;
+const SNAP_THRESHOLD = 5;
+const VELOCITY_DECAY = 0.85;
 
 // ============================================================================
 // TYPES
 // ============================================================================
 
 export interface CursorState {
-  // Current interpolated position (what we render)
   x: number;
   y: number;
-
-  // Previous position (for fixed timestep interpolation)
   previousX: number;
   previousY: number;
-
-  // Target position from server
   targetX: number;
   targetY: number;
-
-  // Predicted position (for latency compensation)
   predictedX: number;
   predictedY: number;
-
-  // Velocity (pixels per millisecond)
   velocityX: number;
   velocityY: number;
-
-  // Rotation angle (radians)
   angle: number;
   previousAngle: number;
   targetAngle: number;
   angleVelocity: number;
-
-  // Position history for prediction
   history: TimestampedPosition[];
-
-  // Trail history for particle effect (more positions, with color)
   trailHistory: { x: number; y: number; time: number; }[];
-
-  // Timing
   lastUpdateTime: number;
   lastServerTime: number;
-
-  // Latency estimation
   estimatedLatencyMs: number;
   latencySamples: number[];
-
-  // State flags
   isMoving: boolean;
   isVisible: boolean;
-  isClicking: boolean; // Mouse button pressed
-  correctionApplied: boolean; // For debug visualization
-
-  // New Fields
+  isClicking: boolean;
+  correctionApplied: boolean;
   healthStatus?: 'healthy' | 'bloodied' | 'unconscious';
-  activeTool?: string; // New: Tool being used (ruler, fog, etc.)
-  isContexting?: boolean; // New: Is context menu open?
-  isChatting?: boolean; // New: Is user typing in chat?
+  activeTool?: string;
+  isContexting?: boolean;
+  isChatting?: boolean;
   trailAnimation?: string;
   trailColor?: string;
   trailEnabled?: boolean;
-  trailLength?: number;
   trailCustomImage?: string;
+
+  // Batch Replay State
+  replayQueue: { x: number; y: number; duration: number; }[];
+  currentSegment?: {
+    startX: number;
+    startY: number;
+    targetX: number;
+    targetY: number;
+    targetAngle: number;
+    duration: number;
+  };
+  segmentTimeElapsed: number;
+  playbackRate: number;
+  isReplaying: boolean;
+  lastSenderTimestamp: number;
+
+  // Smart Buffering State
+  isBridgingGap: boolean;
+  lastBridgingTime: number;
 }
 
 export interface CursorUpdatePayload {
@@ -99,6 +99,7 @@ export interface CursorUpdatePayload {
   velocityX?: number;
   velocityY?: number;
   isClicking?: boolean;
+  path?: { x: number; y: number; time: number; }[];
   healthStatus?: 'healthy' | 'bloodied' | 'unconscious';
   activeTool?: string;
   isContexting?: boolean;
@@ -108,28 +109,6 @@ export interface CursorUpdatePayload {
   trailEnabled?: boolean;
   trailCustomImage?: string;
 }
-
-// ============================================================================
-// CONSTANTS
-// ============================================================================
-
-// Maximum positions to keep in history
-const MAX_HISTORY_SIZE = 10;
-
-// How far ahead to predict (based on estimated latency)
-const PREDICTION_LOOKAHEAD_FACTOR = 0.5;
-
-// Maximum latency samples to average
-const MAX_LATENCY_SAMPLES = 5;
-
-// Minimum time between server updates to consider "stopped"
-const STOPPED_THRESHOLD_MS = 150;
-
-// Snap threshold (if error is below this, snap to target)
-const SNAP_THRESHOLD = 2;
-
-// Velocity decay when stopped (per frame)
-const VELOCITY_DECAY = 0.85;
 
 // ============================================================================
 // CURSOR PHYSICS ENGINE CLASS
@@ -143,23 +122,14 @@ export class CursorPhysicsEngine {
     this.springConfig = springConfig;
   }
 
-  /**
-   * Get or create state for a cursor
-   */
   getState(userId: string): CursorState | undefined {
     return this.states.get(userId);
   }
 
-  /**
-   * Check if a cursor exists
-   */
   has(userId: string): boolean {
     return this.states.has(userId);
   }
 
-  /**
-   * Initialize a new cursor state
-   */
   initCursor(userId: string, initialPosition: Point2D): CursorState {
     const now = performance.now();
     const state: CursorState = {
@@ -189,16 +159,23 @@ export class CursorPhysicsEngine {
       correctionApplied: false,
       healthStatus: 'healthy',
       trailEnabled: false,
+
+      // Batch Replay
+      replayQueue: [],
+      isReplaying: false,
+      lastSenderTimestamp: 0,
+      segmentTimeElapsed: 0,
+      playbackRate: 1.0,
+
+      // Smart Buffering
+      isBridgingGap: false,
+      lastBridgingTime: 0,
     };
 
     this.states.set(userId, state);
-    debugLog(`Initialized cursor for ${userId}`, initialPosition);
     return state;
   }
 
-  /**
-   * Process server update for a cursor
-   */
   processServerUpdate(
     userId: string,
     update: CursorUpdatePayload
@@ -206,203 +183,279 @@ export class CursorPhysicsEngine {
     const now = performance.now();
     let state = this.states.get(userId);
 
-    // Initialize if new cursor
     if (!state) {
       state = this.initCursor(userId, { x: update.x, y: update.y });
     }
 
-    // Update latency estimation if timestamp provided
+    // Latency estimation
     if (update.timestamp) {
       const latency = now - update.timestamp;
-      if (latency > 0 && latency < 1000) { // Sanity check
+      if (latency > 0 && latency < 1000) {
         state.latencySamples.push(latency);
-        if (state.latencySamples.length > MAX_LATENCY_SAMPLES) {
-          state.latencySamples.shift();
-        }
-        state.estimatedLatencyMs =
-          state.latencySamples.reduce((a, b) => a + b, 0) / state.latencySamples.length;
+        if (state.latencySamples.length > MAX_LATENCY_SAMPLES) state.latencySamples.shift();
+        state.estimatedLatencyMs = state.latencySamples.reduce((a, b) => a + b, 0) / state.latencySamples.length;
       }
     }
 
-    // Add to history
-    state.history.push({
-      x: update.x,
-      y: update.y,
-      timestamp: update.timestamp ?? now,
-    });
-    if (state.history.length > MAX_HISTORY_SIZE) {
-      state.history.shift();
+    // Discard out-of-order
+    if (update.timestamp && update.timestamp < state.lastServerTime) {
+      return state;
     }
 
-    // Update target position
-    state.targetX = update.x;
-    state.targetY = update.y;
+    // Teleport Check
+    const lastPos = state.history[state.history.length - 1];
+    if (lastPos) {
+      const jumpDist = Math.hypot(update.x - lastPos.x, update.y - lastPos.y);
+      const timeSinceLast = update.timestamp && lastPos.timestamp ? (update.timestamp - lastPos.timestamp) : 0;
+      const isMassiveJump = jumpDist > 5000;
+      const isLagSpike = timeSinceLast > 300 && jumpDist > 500;
 
-    // Use velocity hints if provided, otherwise calculate from history
-    if (update.velocityX !== undefined && update.velocityY !== undefined) {
-      // Blend server velocity with our estimate for stability
-      const ourVelocity = calculateVelocity(state.history);
-      state.velocityX = lerp(ourVelocity.x, update.velocityX, 0.6);
-      state.velocityY = lerp(ourVelocity.y, update.velocityY, 0.6);
+      if (isMassiveJump || isLagSpike) {
+        // Hard teleport reset
+        state.x = update.x;
+        state.y = update.y;
+        state.previousX = update.x;
+        state.previousY = update.y;
+        state.velocityX = 0;
+        state.velocityY = 0;
+        state.history = [];
+        state.replayQueue = [];
+        state.isReplaying = false;
+        state.lastSenderTimestamp = 0;
+        state.isBridgingGap = false;
+        state.segmentTimeElapsed = 0;
+        state.currentSegment = undefined;
+      }
     }
 
-    // Calculate predicted position (compensate for latency)
-    const lookAhead = state.estimatedLatencyMs * PREDICTION_LOOKAHEAD_FACTOR;
-    const predicted = predictPosition(state.history, lookAhead);
-    if (predicted) {
-      state.predictedX = predicted.x;
-      state.predictedY = predicted.y;
+    // === BATCH REPLAY LOGIC ===
+    if (update.path && update.path.length > 0) {
+      const shouldStitch = state.isBridgingGap && state.replayQueue.length === 0;
+
+      // Overflow protection
+      if (state.replayQueue.length > 100) {
+        state.replayQueue = [];
+        state.x = update.x;
+        state.y = update.y;
+        state.lastSenderTimestamp = 0;
+        state.isBridgingGap = false;
+        state.segmentTimeElapsed = 0;
+        state.currentSegment = undefined;
+      }
+
+      // Calculate reference time
+      let referenceTime = state.lastSenderTimestamp;
+      if (referenceTime === 0 || (update.path[0].time - referenceTime > 1000)) {
+        referenceTime = update.path[0].time - 16;
+      }
+
+      // Prepare new segments
+      const newSegments: { x: number, y: number, duration: number; }[] = [];
+      update.path.forEach(p => {
+        let dt = p.time - referenceTime;
+        if (dt <= 0) dt = 16;
+        if (dt > 500) dt = 100;
+        newSegments.push({ x: p.x, y: p.y, duration: dt });
+        referenceTime = p.time;
+      });
+      state.lastSenderTimestamp = referenceTime;
+
+      // MOMENTUM PRESERVATION STITCHING
+      if (shouldStitch && newSegments.length > 0) {
+        const startTarget = newSegments[0];
+        const stitchDist = Math.hypot(startTarget.x - state.x, startTarget.y - state.y);
+        const currentSpeed = Math.hypot(state.velocityX, state.velocityY);
+
+        let stitchDuration = 32;
+        if (currentSpeed > 0.1) {
+          const timeNeeded = (stitchDist / currentSpeed) * 1000;
+          stitchDuration = Math.max(16, Math.min(120, timeNeeded));
+        } else {
+          stitchDuration = Math.min(50, Math.max(16, stitchDist));
+        }
+
+        state.replayQueue.push({ x: startTarget.x, y: startTarget.y, duration: stitchDuration });
+        state.isBridgingGap = false;
+      }
+
+      // Append segments
+      newSegments.forEach(s => state.replayQueue.push(s));
+      state.isReplaying = true;
     } else {
-      state.predictedX = update.x;
-      state.predictedY = update.y;
+      // Legacy update (no path)
+      if (!state.isReplaying) {
+        state.targetX = update.x;
+        state.targetY = update.y;
+      }
     }
 
-    // Calculate target angle from movement direction
+    // History
+    state.history.push({ x: update.x, y: update.y, timestamp: update.timestamp ?? now });
+    if (state.history.length > MAX_HISTORY_SIZE) state.history.shift();
+
+    // Angle
     const dx = update.x - state.x;
     const dy = update.y - state.y;
-    const dist = Math.hypot(dx, dy);
-    if (dist > 5) { // Only update angle if significant movement
-      state.targetAngle = Math.atan2(dy, dx) + Math.PI / 2; // Point cursor tip forward
+    if (Math.hypot(dx, dy) > 5 && !state.isReplaying) {
+      state.targetAngle = Math.atan2(dy, dx) + Math.PI / 2;
     }
 
-    // Update timing
     state.lastServerTime = now;
     state.isMoving = true;
 
-    // Update clicking state
-    if (update.isClicking !== undefined) {
-      state.isClicking = update.isClicking;
-    }
-
-    // Update new fields
+    // Metadata updates
+    if (update.isClicking !== undefined) state.isClicking = update.isClicking;
     if (update.healthStatus) state.healthStatus = update.healthStatus;
-    if (update.activeTool) state.activeTool = update.activeTool; // New
-    if (update.isContexting !== undefined) state.isContexting = update.isContexting; // New
-    if (update.isChatting !== undefined) state.isChatting = update.isChatting; // New
+    if (update.activeTool) state.activeTool = update.activeTool;
+    if (update.isContexting !== undefined) state.isContexting = update.isContexting;
+    if (update.isChatting !== undefined) state.isChatting = update.isChatting;
     if (update.trailAnimation) state.trailAnimation = update.trailAnimation;
     if (update.trailColor) state.trailColor = update.trailColor;
     if (update.trailEnabled !== undefined) state.trailEnabled = update.trailEnabled;
     if (update.trailCustomImage) state.trailCustomImage = update.trailCustomImage;
 
-    // Add to trail history (for particle effects)
-    if (dist > 3) { // Only add if movement is significant
+    // Trail particles
+    if (Math.hypot(dx, dy) > 3) {
       state.trailHistory.push({ x: state.x, y: state.y, time: now });
-      // Keep trail history limited (last 25 positions)
-      if (state.trailHistory.length > 25) {
-        state.trailHistory.shift();
-      }
+      if (state.trailHistory.length > 25) state.trailHistory.shift();
     }
-
-    debugLog(`Server update for ${userId}`, {
-      target: { x: update.x, y: update.y },
-      predicted: { x: state.predictedX, y: state.predictedY },
-      latency: state.estimatedLatencyMs,
-    });
 
     return state;
   }
 
-  /**
-   * Tick animation for a cursor (call every frame)
-   * Returns the interpolated position to render
-   * 
-   * For fixed timestep rendering, use the returned position with alpha interpolation:
-   * renderPos = lerp(state.previousX, state.x, alpha)
-   */
   tick(userId: string, deltaMs: number): Point2D | null {
     const state = this.states.get(userId);
     if (!state) return null;
 
     const now = performance.now();
+    state.previousX = state.x; state.previousY = state.y; state.previousAngle = state.angle;
 
-    // Store previous positions for visual interpolation
-    state.previousX = state.x;
-    state.previousY = state.y;
-    state.previousAngle = state.angle;
+    // === REPLAY MODE ===
+    if (state.isReplaying) {
+      // CASE A: Queue has data -> Process Segment
+      if (state.replayQueue.length > 0 || state.currentSegment) {
+        state.isBridgingGap = false;
 
-    // Check if cursor stopped receiving updates
-    const timeSinceUpdate = now - state.lastServerTime;
-    if (timeSinceUpdate > CURSOR_CONFIG.STOPPED_THRESHOLD_MS) {
-      state.isMoving = false;
-      // Decay velocity when stopped
-      state.velocityX *= CURSOR_CONFIG.VELOCITY_DECAY;
-      state.velocityY *= CURSOR_CONFIG.VELOCITY_DECAY;
-    }
+        // 1. ADAPTIVE PLAYBACK SPEED
+        let bufferDuration = state.currentSegment ? (state.currentSegment.duration - state.segmentTimeElapsed) : 0;
+        for (const item of state.replayQueue) bufferDuration += item.duration;
 
-    // Use predicted position as interpolation target for smoother feel
-    const effectiveTarget: Point2D = state.isMoving
-      ? { x: state.predictedX, y: state.predictedY }
-      : { x: state.targetX, y: state.targetY };
+        const TARGET_BUFFER = 40;
+        let targetRate = 1.0;
 
-    // Spring interpolation for position
-    const positionResult = springInterpolate2D(
-      { x: state.x, y: state.y },
-      effectiveTarget,
-      { x: state.velocityX, y: state.velocityY },
-      this.springConfig,
-      deltaMs
-    );
+        if (bufferDuration > TARGET_BUFFER) {
+          targetRate = 1.0 + (bufferDuration - TARGET_BUFFER) * 0.005;
+          targetRate = Math.min(targetRate, 2.0);
+        } else if (bufferDuration < TARGET_BUFFER && bufferDuration > 0) {
+          targetRate = Math.max(0.95, 1.0 - (TARGET_BUFFER - bufferDuration) * 0.005);
+        }
+        state.playbackRate = lerp(state.playbackRate, targetRate, 0.05);
 
-    // Check for snap threshold (prevent jitter when close)
-    const dist = Math.hypot(
-      effectiveTarget.x - positionResult.position.x,
-      effectiveTarget.y - positionResult.position.y
-    );
+        // 2. Initialize Segment if needed
+        if (!state.currentSegment) {
+          const nextPoint = state.replayQueue.shift()!;
+          const dx = nextPoint.x - state.x;
+          const dy = nextPoint.y - state.y;
+          let segAngle = state.angle;
+          if (Math.hypot(dx, dy) > 1) {
+            segAngle = Math.atan2(dy, dx) + Math.PI / 2;
+          }
 
-    if (dist < SNAP_THRESHOLD && !state.isMoving) {
-      // Snap to target
-      state.x = state.targetX;
-      state.y = state.targetY;
-      state.velocityX = 0;
-      state.velocityY = 0;
+          state.currentSegment = {
+            startX: state.x,
+            startY: state.y,
+            targetX: nextPoint.x,
+            targetY: nextPoint.y,
+            targetAngle: segAngle,
+            duration: nextPoint.duration
+          };
+          state.segmentTimeElapsed = 0;
+        }
+
+        // 3. Process Animation
+        const seg = state.currentSegment!;
+        state.segmentTimeElapsed += deltaMs * state.playbackRate;
+        const progress = Math.min(state.segmentTimeElapsed / seg.duration, 1.0);
+
+        state.x = lerp(seg.startX, seg.targetX, progress);
+        state.y = lerp(seg.startY, seg.targetY, progress);
+        state.targetAngle = seg.targetAngle;
+
+        if (seg.duration > 0) {
+          state.velocityX = ((seg.targetX - seg.startX) / seg.duration) * 1000;
+          state.velocityY = ((seg.targetY - seg.startY) / seg.duration) * 1000;
+        }
+
+        if (progress >= 1.0) {
+          state.currentSegment = undefined;
+        }
+        state.lastUpdateTime = now;
+        state.isMoving = true;
+      }
+      // CASE B: Queue Empty -> EXTRAPOLATE (Natural Slide)
+      else {
+        if (!state.isBridgingGap) {
+          state.isBridgingGap = true;
+          state.lastBridgingTime = now;
+          state.playbackRate = 1.0;
+        }
+
+        // INFINITE SLIDE with FRICTION
+        state.velocityX *= 0.92;
+        state.velocityY *= 0.92;
+        state.x += state.velocityX * (deltaMs / 1000);
+        state.y += state.velocityY * (deltaMs / 1000);
+
+        if (Math.hypot(state.velocityX, state.velocityY) < 5) {
+          state.velocityX = 0;
+          state.velocityY = 0;
+          state.isMoving = false;
+          state.isReplaying = false;
+          state.isBridgingGap = false;
+        } else {
+          state.isMoving = true;
+        }
+      }
     } else {
-      // Apply interpolation
-      state.x = positionResult.position.x;
-      state.y = positionResult.position.y;
-      state.velocityX = positionResult.velocity.x;
-      state.velocityY = positionResult.velocity.y;
+      // === FALLBACK: SPRING PHYSICS (Legacy/Idle) ===
+      const timeSinceUpdate = now - state.lastServerTime;
+      if (timeSinceUpdate > STOPPED_THRESHOLD_MS) {
+        state.velocityX *= VELOCITY_DECAY;
+        state.velocityY *= VELOCITY_DECAY;
+        if (Math.hypot(state.velocityX, state.velocityY) < 1) {
+          state.isMoving = false;
+        }
+      }
+
+      const effectiveTarget = { x: state.targetX, y: state.targetY };
+      const posRes = springInterpolate2D(
+        { x: state.x, y: state.y },
+        effectiveTarget,
+        { x: state.velocityX, y: state.velocityY },
+        this.springConfig,
+        deltaMs
+      );
+
+      const dist = Math.hypot(effectiveTarget.x - posRes.position.x, effectiveTarget.y - posRes.position.y);
+      if (dist < SNAP_THRESHOLD && !state.isMoving) {
+        state.x = state.targetX; state.y = state.targetY;
+        state.velocityX = 0; state.velocityY = 0;
+      } else {
+        state.x = posRes.position.x; state.y = posRes.position.y;
+        state.velocityX = posRes.velocity.x; state.velocityY = posRes.velocity.y;
+      }
+      state.lastUpdateTime = now;
     }
 
-    // Spring interpolation for angle
-    const angleResult = springInterpolateAngle(
-      state.angle,
-      state.targetAngle,
-      state.angleVelocity,
-      { ...this.springConfig, stiffness: this.springConfig.stiffness * 0.6 },
-      deltaMs
-    );
-    state.angle = angleResult.angle;
-    state.angleVelocity = angleResult.velocity;
-
-    state.lastUpdateTime = now;
+    // Angle Interpolation
+    const angleRes = springInterpolateAngle(state.angle, state.targetAngle, state.angleVelocity,
+      { ...this.springConfig, stiffness: this.springConfig.stiffness * 0.6 }, deltaMs);
+    state.angle = angleRes.angle; state.angleVelocity = angleRes.velocity;
 
     return { x: state.x, y: state.y };
   }
 
-  /**
-   * Get render data for a cursor (includes previous positions for interpolation)
-   */
-  getRenderData(userId: string): {
-    position: Point2D;
-    previousPosition: Point2D;
-    angle: number;
-    previousAngle: number;
-    isMoving: boolean;
-    velocity: Point2D;
-    trailHistory: { x: number; y: number; time: number; }[];
-    isClicking: boolean;
-    correctionApplied: boolean;
-    healthStatus?: 'healthy' | 'bloodied' | 'unconscious';
-    activeTool?: string;
-    isContexting?: boolean;
-    isChatting?: boolean;
-    trailConfig: {
-      enabled?: boolean;
-      animation?: string;
-      color?: string;
-      image?: string;
-    };
-  } | null {
+  getRenderData(userId: string) {
     const state = this.states.get(userId);
     if (!state) return null;
 
@@ -417,9 +470,9 @@ export class CursorPhysicsEngine {
       isClicking: state.isClicking,
       correctionApplied: state.correctionApplied,
       healthStatus: state.healthStatus,
-      activeTool: state.activeTool, // New
-      isContexting: state.isContexting, // New
-      isChatting: state.isChatting, // New
+      activeTool: state.activeTool,
+      isContexting: state.isContexting,
+      isChatting: state.isChatting,
       trailConfig: {
         enabled: state.trailEnabled,
         animation: state.trailAnimation,
@@ -429,97 +482,33 @@ export class CursorPhysicsEngine {
     };
   }
 
-  /**
-   * Remove a cursor (player left)
-   */
   removeCursor(userId: string): void {
     this.states.delete(userId);
-    debugLog(`Removed cursor for ${userId}`);
   }
 
-  /**
-   * Clear all cursors
-   */
   clear(): void {
     this.states.clear();
   }
 
-  /**
-   * Set visibility for a cursor (for viewport culling)
-   */
   setVisibility(userId: string, visible: boolean): void {
     const state = this.states.get(userId);
-    if (state) {
-      state.isVisible = visible;
-    }
+    if (state) state.isVisible = visible;
   }
 
-  /**
-   * Get all cursor IDs
-   */
   getCursorIds(): string[] {
     return Array.from(this.states.keys());
   }
 
-  /**
-   * Get debug info for all cursors
-   */
-  getDebugInfo(): Record<string, {
-    position: Point2D;
-    target: Point2D;
-    predicted: Point2D;
-    velocity: Point2D;
-    latency: number;
-    isMoving: boolean;
-  }> {
-    const info: Record<string, any> = {};
-    this.states.forEach((state, userId) => {
-      info[userId] = {
-        position: { x: state.x, y: state.y },
-        target: { x: state.targetX, y: state.targetY },
-        predicted: { x: state.predictedX, y: state.predictedY },
-        velocity: { x: state.velocityX, y: state.velocityY },
-        latency: state.estimatedLatencyMs,
-        isMoving: state.isMoving,
-      };
-    });
-    return info;
-  }
+  getDebugInfo() { return {}; }
 }
 
-// ============================================================================
-// SINGLETON INSTANCE
-// ============================================================================
-
 let globalCursorEngine: CursorPhysicsEngine | null = null;
-
 export const getCursorPhysicsEngine = (): CursorPhysicsEngine => {
-  if (!globalCursorEngine) {
-    globalCursorEngine = new CursorPhysicsEngine();
-  }
+  if (!globalCursorEngine) globalCursorEngine = new CursorPhysicsEngine();
   return globalCursorEngine;
 };
 
-// ============================================================================
-// UTILITY: Create cursor from server payload format
-// ============================================================================
-
-export const createCursorUpdateFromPayload = (payload: {
-  userId: string;
-  x: number;
-  y: number;
-  timestamp?: number;
-  velocityX?: number;
-  velocityY?: number;
-  isClicking?: boolean;
-  healthStatus?: 'healthy' | 'bloodied' | 'unconscious';
-  trailAnimation?: string;
-  trailColor?: string;
-  trailEnabled?: boolean;
-  trailCustomImage?: string;
-  // Fallback for legacy calls
-  [key: string]: any;
-}): { userId: string; update: CursorUpdatePayload; } => ({
+export const createCursorUpdateFromPayload = (payload: any) => ({
   userId: payload.userId,
   update: {
     x: payload.x,
@@ -536,5 +525,6 @@ export const createCursorUpdateFromPayload = (payload: {
     trailColor: payload.trailColor,
     trailEnabled: payload.trailEnabled,
     trailCustomImage: payload.trailCustomImage,
+    path: payload.path,
   },
 });

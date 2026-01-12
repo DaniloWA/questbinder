@@ -14,6 +14,8 @@ import {
 } from './listeners';
 import React from 'react';
 
+import { CursorMovePayload } from '../../../types/socket';
+
 /**
  * Main hook to register all socket listeners
  * Orchestrates listener registration and cleanup
@@ -25,13 +27,14 @@ export const useSocketListeners = (
   user: any,
   show: (notification: any) => void,
   setViewport: ((v: any) => void) | undefined,
-  stateRef: React.MutableRefObject<GameSessionState>
+  stateRef: React.MutableRefObject<GameSessionState>,
+  remoteCursorsRef: React.MutableRefObject<Record<string, CursorMovePayload>>
 ) => {
   useEffect(() => {
     if (!state.isConnected) return;
 
     // Create dependencies object for all listeners
-    const deps = { state, setState, campaignId, user, show, setViewport, stateRef };
+    const deps = { state, setState, campaignId, user, show, setViewport, stateRef, remoteCursorsRef };
 
     // Register all listener modules and collect cleanup functions
     const cleanups = [

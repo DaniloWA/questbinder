@@ -6,7 +6,7 @@ import { Token } from '../../../types';
 import { ActionHandlers, StateHelpers, GeometryHelpers } from '../helpers';
 
 // Cursor throttle constants
-const CURSOR_THROTTLE_MS = 50; // Max 20 cursor updates per second
+const CURSOR_THROTTLE_MS = 80; // Batch Mode (relies on replay for smoothness)
 
 export const useTokenActions = (
   state: GameSessionState,
@@ -21,6 +21,7 @@ export const useTokenActions = (
   // Cursor throttle refs
   const lastCursorEmitRef = useRef<number>(0);
   const pendingCursorRef = useRef<{ x: number; y: number; } | null>(null);
+  const movementBufferRef = useRef<{ x: number, y: number, time: number; }[]>([]);
   const cursorRAFRef = useRef<number | null>(null);
   // Velocity tracking for smooth receiver interpolation
   const prevCursorPosRef = useRef<{ x: number; y: number; time: number; } | null>(null);
@@ -303,13 +304,17 @@ export const useTokenActions = (
       }
     }
 
+    // Add to movement buffer (history since last emit)
+    // Add to movement buffer (history since last emit)
+    movementBufferRef.current.push({ x, y, time: now });
+
     // Helper to build payload with all animation fields
     const buildPayload = (px: number, py: number, vx: number, vy: number) => {
       const userId = user?.id || '';
       const override = (state.permissions?.cursorOverrides?.[userId] || {}) as { color?: string, shape?: string, name?: string; };
       const settings = state.cursorSettings || {} as { color?: string, shape?: string, name?: string; };
 
-      return {
+      const payload = {
         userId,
         userName: override.name || (settings as any).name || user?.name || '?',
         userColor: override.color || (settings as any).color || '#fbbf24',
@@ -322,7 +327,10 @@ export const useTokenActions = (
         velocityY: vy,
         isClicking: isClickingRef.current, // For remote click feedback
 
-        // New Trail/Status Fields with Privacy Checks
+        // BATCH REPLAY: Send full path history
+        // BATCH REPLAY: Send full path history
+        path: [...movementBufferRef.current],
+
         // New Trail/Status Fields with Privacy Checks
         activeTool: (settings as any).showToolActivity !== false ? state.activeTool : null,
         isContexting: (settings as any).showStatusActivity !== false ? isContextingRef.current : false,
@@ -340,6 +348,10 @@ export const useTokenActions = (
         trailEnabled: (override as any).trailEnabled ?? (settings as any).trailEnabled,
         trailCustomImage: (override as any).trailCustomImage || (settings as any).trailCustomImage,
       };
+
+      // Clear buffer after building payload
+      movementBufferRef.current = [];
+      return payload;
     };
 
     // If enough time has passed since last emit, send immediately

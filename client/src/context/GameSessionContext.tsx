@@ -6,6 +6,7 @@ import { useSocketListeners } from './gameSession/hooks/useSocketListeners';
 import { useSceneActions } from './gameSession/hooks/useSceneActions';
 import { useTokenActions } from './gameSession/hooks/useTokenActions';
 import { useCombatActions } from './gameSession/hooks/useCombatActions';
+import { CursorMovePayload } from '../types/socket';
 import { useChatActions } from './gameSession/hooks/useChatActions';
 import { useHandoutActions } from './gameSession/hooks/useHandoutActions';
 import { useAudioActions } from './gameSession/hooks/useAudioActions';
@@ -47,11 +48,13 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
 
     // Create a ref for state to be used in listeners without closure staleness
     const stateRef = React.useRef(state);
+    const remoteCursorsRef = React.useRef<Record<string, CursorMovePayload>>({}); // Ref for cursors
+
     React.useEffect(() => {
         stateRef.current = state;
     }, [state]);
 
-    useSocketListeners(state, setState, campaignId, user, show, setViewport, stateRef);
+    useSocketListeners(state, setState, campaignId, user, show, setViewport, stateRef, remoteCursorsRef);
     useAuraSystem(state, updateToken, campaignId, state.isGM);
 
     // Audio Zone Playback Effect
@@ -223,6 +226,7 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
         clearAttackZones,
         isCompendiumOpen,
         isFollowingGM: state.followMode.active && !state.isGM,
+        remoteCursorsRef, // Expose the ref
         ...uiActions
     };
 

@@ -1,5 +1,6 @@
 import { GameSessionState } from '../../types';
 import { User, Viewport } from '../../../../types';
+import { CursorMovePayload } from '../../../../types/socket';
 import React from 'react';
 
 // Dependencies passed to listener functions
@@ -10,6 +11,7 @@ export interface ListenerDeps {
   show: (options: any) => void;
   setViewport?: (v: Partial<Viewport>) => void;
   stateRef: React.MutableRefObject<GameSessionState>;
+  remoteCursorsRef?: React.MutableRefObject<Record<string, CursorMovePayload>>; // Optional for backward compatibility if needed, but we should make it required
   campaignId: string;
 }
 

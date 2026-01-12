@@ -491,6 +491,7 @@ const GameSessionUI: React.FC = () => {
                     addAudioZones={session.addAudioZones}
                     emitCursorMove={session.emitCursorMove}
                     remoteCursors={session.remoteCursors}
+                    remoteCursorsRef={session.remoteCursorsRef}
                     remoteViewports={session.remoteViewports}
                     players={session.players}
 

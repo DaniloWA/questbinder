@@ -44,11 +44,11 @@ export const DEFAULT_SPRING: SpringConfig = {
   mass: 1,
 };
 
-// Lighter spring for cursor movement - responsive
+// Lighter spring for cursor movement - smooth following
 export const CURSOR_SPRING: SpringConfig = {
-  stiffness: 400,
-  damping: 28,
-  mass: 0.8,
+  stiffness: 200,
+  damping: 24,
+  mass: 1,
 };
 
 // Target frame time (60 FPS)
@@ -428,7 +428,7 @@ export interface ReconciliationConfig {
 }
 
 export const DEFAULT_RECONCILIATION_CONFIG: ReconciliationConfig = {
-  snapThreshold: 150,
+  snapThreshold: 500,
   blendSpeed: 0.15,
   maxCorrection: 20,
 };
