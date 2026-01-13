@@ -405,6 +405,35 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
         const drag = dragItem as any; // TokenDragPayload
         const ghostToken = tokens.find(t => t.id === drag.tokenId);
         if (ghostToken) {
+          // Visibility Check: Skip if player can't see this token
+          if (!effectiveIsGM) {
+            const isOwner = ghostToken.ownerId === currentUser?.id ||
+              ghostToken.controlledBy?.includes(currentUser?.id || '');
+            const isVisibleToOthers = ghostToken.isVisibleToPlayers;
+
+            // First check: isVisibleToPlayers flag
+            if (!isVisibleToOthers && !isOwner) return; // Skip this drag - player shouldn't see it
+
+            // Second check: Vision polygon (line of sight / vision range)
+            if (!isOwner && allVisionPolygons.length > 0) {
+              const tGx = drag.x * gridSize;
+              const tGy = drag.y * gridSize;
+              const tSize = ghostToken.size * gridSize;
+              const pointsToCheck = [
+                { x: tGx + tSize / 2, y: tGy + tSize / 2 }, // Center
+                { x: tGx, y: tGy }, // Top-left
+                { x: tGx + tSize, y: tGy }, // Top-right
+                { x: tGx + tSize, y: tGy + tSize }, // Bottom-right
+                { x: tGx, y: tGy + tSize } // Bottom-left
+              ];
+              const isInVision = pointsToCheck.some(p => allVisionPolygons.some(poly => isPointInPolygon(p, poly)));
+              if (!isInVision) return; // Skip - outside player's vision range
+            } else if (!isOwner && allVisionPolygons.length === 0 && scene.fogPath) {
+              // Fog path check (fallback when no vision tokens exist)
+              const center = { x: drag.x * gridSize + ghostToken.size * gridSize / 2, y: drag.y * gridSize + ghostToken.size * gridSize / 2 };
+              if (!ctx.isPointInPath(new Path2D(scene.fogPath), center.x, center.y)) return;
+            }
+          }
           const dragPosWorld = { x: drag.x * gridSize + (ghostToken.size * gridSize) / 2, y: drag.y * gridSize + (ghostToken.size * gridSize) / 2 };
           const pathWorld = drag.path.map((p: any) => ({ x: p.x * gridSize + (ghostToken.size * gridSize) / 2, y: p.y * gridSize + (ghostToken.size * gridSize) / 2 }));
           if (pathWorld.length > 0) {
