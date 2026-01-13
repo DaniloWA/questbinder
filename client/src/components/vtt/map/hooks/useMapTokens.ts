@@ -10,7 +10,7 @@ interface UseMapTokensProps {
   scene: Scene | null;
   tokens: Token[];
   viewport: { zoom: number; };
-  dragState: React.MutableRefObject<DragState>;
+  dragState: React.RefObject<DragState>;
   selectedTokenIds: string[];
   currentUser: any;
   isGM: boolean;

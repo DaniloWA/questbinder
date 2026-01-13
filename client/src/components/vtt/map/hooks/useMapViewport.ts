@@ -7,9 +7,9 @@ interface UseMapViewportProps {
   isPanning: boolean;
   setIsPanning: (isPanning: boolean) => void;
   setHoveredTokenId: (id: string | null) => void;
-  hoverCloseTimerRef: React.MutableRefObject<NodeJS.Timeout | null>;
-  lastMousePos: React.MutableRefObject<{ x: number; y: number; }>;
-  viewportRef: React.MutableRefObject<{ x: number; y: number; zoom: number; }>;
+  hoverCloseTimerRef: React.RefObject<NodeJS.Timeout | null>;
+  lastMousePos: React.RefObject<{ x: number; y: number; }>;
+  viewportRef: React.RefObject<{ x: number; y: number; zoom: number; }>;
 }
 
 export const useMapViewport = ({

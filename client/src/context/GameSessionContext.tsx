@@ -39,7 +39,7 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
     const {
         moveToken, moveTokens, updateToken, addToken, removeToken,
         moveTokenToScene, selectToken, clearSelection, emitTokenDrag, emitCursorMove,
-        setCursorClickState, setCursorContextState, setCursorChatState
+        setCursorClickState, setCursorContextState, setCursorChatState, setDragging
     } = useTokenActions(state, setState, campaignId, user, show, permissionHelper);
 
     const {
@@ -147,6 +147,7 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
         moveTokenToScene,
         selectToken,
         clearSelection,
+        setDragging,
         addObstacles,
         updateObstacle,
         removeObstacle,

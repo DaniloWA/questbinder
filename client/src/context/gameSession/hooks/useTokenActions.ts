@@ -31,20 +31,60 @@ export const useTokenActions = (
   const isContextingRef = useRef<boolean>(false);
   // Chat typing state tracking
   const isChattingRef = useRef<boolean>(false);
+  // AFK & Hidden state tracking
+  const isAfkRef = useRef<boolean>(false);
+  const isHiddenRef = useRef<boolean>(false);
+  // Dragging state tracking (hide cursor when dragging tokens)
+  const isDraggingRef = useRef<boolean>(false);
+  const afkTimerRef = useRef<any>(null);
 
-  // ... (inside emitCursorMove -> buildPayload)
+  // Helper to force update state
+  const forceEmitState = useCallback(() => {
+    if (lastCursorEmitRef.current > 0 && prevCursorPosRef.current) {
+      emitCursorMove(prevCursorPosRef.current.x, prevCursorPosRef.current.y);
+    }
+  }, []);
 
+  // AFK Logic: Reset timer on activity
+  const resetAfkTimer = useCallback(() => {
+    if (afkTimerRef.current) clearTimeout(afkTimerRef.current);
 
+    if (isAfkRef.current) {
+      isAfkRef.current = false;
+      forceEmitState(); // Notify exit of AFK
+    }
 
-  // ... (inside setCursorChatState)
+    afkTimerRef.current = setTimeout(() => {
+      isAfkRef.current = true;
+      forceEmitState(); // Notify entry of AFK
+    }, 60000); // 60s inactive = AFK
+  }, [forceEmitState]);
 
+  // Hidden/Tab Logic
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const hidden = document.hidden;
+      if (isHiddenRef.current !== hidden) {
+        isHiddenRef.current = hidden;
+        forceEmitState(); // Notify visibility change
+      }
+    };
 
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    // Initialize AFK timer on mount
+    resetAfkTimer();
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (afkTimerRef.current) clearTimeout(afkTimerRef.current);
+    };
+  }, [forceEmitState, resetAfkTimer]);
 
   const moveToken = useCallback((tokenId: string, newX: number, newY: number) => {
+    resetAfkTimer(); // Token movement counts as activity
     const scene = activeScene;
     const token = scene?.tokens.find(t => t.id === tokenId);
-
-
+    // ... existing moveToken logic ...
 
     if (!scene || !token) return;
 
@@ -127,11 +167,15 @@ export const useTokenActions = (
         }
       }
     }
-  }, [activeScene, state, user, setState, campaignId, permissionHelper]);
+  }, [activeScene, state, user, setState, campaignId, permissionHelper, resetAfkTimer]);
 
-  const moveTokens = (updates: { id: string, x: number, y: number; }[]) => { updates.forEach(u => moveToken(u.id, u.x, u.y)); };
+  const moveTokens = (updates: { id: string, x: number, y: number; }[]) => {
+    resetAfkTimer();
+    updates.forEach(u => moveToken(u.id, u.x, u.y));
+  };
 
   const updateToken = (id: string, data: Partial<Token>) => {
+    resetAfkTimer();
     ActionHandlers.handleOptimisticAction({
       state,
       setState,
@@ -158,6 +202,7 @@ export const useTokenActions = (
   };
 
   const addToken = (tokenData: Partial<Token>) => {
+    resetAfkTimer();
     if (!state.activeSceneId) {
       console.warn('[CLIENT] addToken: no active scene');
       return;
@@ -214,6 +259,7 @@ export const useTokenActions = (
   };
 
   const removeToken = (id: string) => {
+    resetAfkTimer();
     ActionHandlers.handleOptimisticAction({
       state,
       setState,
@@ -260,6 +306,7 @@ export const useTokenActions = (
   };
 
   const moveTokenToScene = (tokenId: string, sceneId: string) => {
+    resetAfkTimer();
     const currentScene = state.scenes.find(s => s.id === state.activeSceneId);
     const token = currentScene?.tokens.find(t => t.id === tokenId);
 
@@ -283,10 +330,12 @@ export const useTokenActions = (
   const clearSelection = () => setState(prev => ({ ...prev, selectedTokenIds: [] }));
 
   const emitTokenDrag = (id: string, x: number, y: number, path: { x: number, y: number; }[]) => {
+    resetAfkTimer();
     socketService.emit('token:drag', { userId: user?.id || '', tokenId: id, x, y, path });
   };
 
   const emitCursorMove = (x: number, y: number) => {
+    resetAfkTimer();
     const now = Date.now();
 
     // Store pending position
@@ -335,6 +384,8 @@ export const useTokenActions = (
         activeTool: (settings as any).showToolActivity !== false ? state.activeTool : null,
         isContexting: (settings as any).showStatusActivity !== false ? isContextingRef.current : false,
         isChatting: (settings as any).showStatusActivity !== false ? isChattingRef.current : false,
+        isAfk: isAfkRef.current,
+        isHidden: isHiddenRef.current,
 
         healthStatus: (() => {
           const char = state.campaignCharacters.find(c => c.ownerId === userId);
@@ -347,6 +398,7 @@ export const useTokenActions = (
         trailColor: (override as any).trailColor || (settings as any).trailColor,
         trailEnabled: (override as any).trailEnabled ?? (settings as any).trailEnabled,
         trailCustomImage: (override as any).trailCustomImage || (settings as any).trailCustomImage,
+        isDragging: isDraggingRef.current, // Hide cursor when dragging tokens
       };
 
       // Clear buffer after building payload
@@ -398,15 +450,17 @@ export const useTokenActions = (
   const setCursorClickState = useCallback((clicking: boolean) => {
     // Deduplicate: Only emit if state actually changed
     if (isClickingRef.current === clicking) return;
+    resetAfkTimer();
 
     isClickingRef.current = clicking;
     // Emit immediately to server (no throttle) for remote shrink effect
     socketService.emit('cursor:pressing', { pressing: clicking });
-  }, []);
+  }, [resetAfkTimer]);
 
   // Update context menu state
   const setCursorContextState = useCallback((isOpen: boolean) => {
     isContextingRef.current = isOpen;
+    resetAfkTimer();
     // Force emit a move packet to update state immediately even if mouse is still
     if (lastCursorEmitRef.current > 0) {
       const prev = prevCursorPosRef.current;
@@ -414,18 +468,20 @@ export const useTokenActions = (
         emitCursorMove(prev.x, prev.y);
       }
     }
-  }, [emitCursorMove]);
+  }, [emitCursorMove, resetAfkTimer]);
 
   // Force emit on tool change so remote users see it immediately
   useEffect(() => {
     if (lastCursorEmitRef.current > 0 && prevCursorPosRef.current) {
       emitCursorMove(prevCursorPosRef.current.x, prevCursorPosRef.current.y);
+      resetAfkTimer();
     }
-  }, [state.activeTool]);
+  }, [state.activeTool, emitCursorMove, resetAfkTimer]);
 
   // Update chat state
   const setCursorChatState = useCallback((isChatting: boolean) => {
     isChattingRef.current = isChatting;
+    resetAfkTimer();
     // Force emit a move packet to update state immediately
     if (lastCursorEmitRef.current > 0) {
       const prev = prevCursorPosRef.current;
@@ -433,7 +489,11 @@ export const useTokenActions = (
         emitCursorMove(prev.x, prev.y);
       }
     }
-  }, [emitCursorMove]);
+  }, [emitCursorMove, resetAfkTimer]);
+
+  const setDragging = useCallback((dragging: boolean) => {
+    isDraggingRef.current = dragging;
+  }, []);
 
   return {
     moveToken,
@@ -450,5 +510,7 @@ export const useTokenActions = (
     emitCursorMove,
     setCursorClickState, // For remote click feedback
     setCursorContextState, // For remote gesture feedback
+    resetAfkTimer, // Expose for other generic activity
+    setDragging, // For hiding cursor during token drag
   };
 };

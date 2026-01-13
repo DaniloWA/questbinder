@@ -12,7 +12,7 @@ export interface TokenAnimation {
   duration: number;
 }
 
-export const useTokenLayer = (tokens: Token[], dragState: React.MutableRefObject<DragState>) => {
+export const useTokenLayer = (tokens: Token[], dragState: React.RefObject<DragState>) => {
   const [animatingTokens, setAnimatingTokens] = useState<Map<string, TokenAnimation>>(new Map());
   const animationsRef = useRef<Map<string, TokenAnimation>>(new Map());
   const prevTokensRef = useRef<Token[]>(tokens);

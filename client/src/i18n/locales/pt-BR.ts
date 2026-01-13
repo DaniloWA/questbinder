@@ -48,78 +48,79 @@ export default {
       apply: {
         label: 'Aplicar',
       },
-      undo: {
-        label: 'Desfazer',
-      },
-      redo: {
-        label: 'Refazer',
-      },
     },
-    states: {
-      loading: {
-        message: 'Carregando...',
-      },
-      saving: {
-        message: 'Salvando...',
-      },
-      error: {
-        title: 'Erro',
-        description: 'Algo deu errado.',
-      },
-      success: {
-        message: 'Sucesso!',
-      },
-      empty: {
-        message: 'Nenhum item encontrado.',
-      },
-      notFound: {
-        message: 'Não encontrado.',
-      },
+    undo: {
+      label: 'Desfazer',
     },
-    validation: {
-      required: {
-        errorMessage: 'Este campo é obrigatório.',
-      },
-      email: {
-        errorMessage: 'E-mail inválido.',
-      },
-      minLength: {
-        errorMessage: 'Mínimo de :min caracteres.',
-      },
-      maxLength: {
-        errorMessage: 'Máximo de :max caracteres.',
-      },
+    redo: {
+      label: 'Refazer',
     },
-    plurals: {
-      items: '{0} Nenhum item|{1} :count item|[2,*] :count itens',
-      characters: '{0} Nenhum personagem|{1} :count personagem|[2,*] :count personagens',
-      tokens: '{0} Nenhum token|{1} :count token|[2,*] :count tokens',
+    me: 'Você',
+  },
+  states: {
+    loading: {
+      message: 'Carregando...',
     },
-    time: {
-      seconds: '{1} :count segundo|[2,*] :count segundos',
-      minutes: '{1} :count minuto|[2,*] :count minutos',
-      hours: '{1} :count hora|[2,*] :count horas',
+    saving: {
+      message: 'Salvando...',
     },
-    duration: 'Duração',
-    shareTooltip: 'Compartilhar',
-    hero: 'Herói',
-    creature: 'Criatura',
-    passivePerception: 'Percepção Passiva',
-    visible: 'Visível',
-    hidden: 'Oculto',
-    hp: 'PV',
-    resource: 'Recurso',
-    unknownEffect: 'Efeito Desconhecido',
-    activeEffects: 'Efeitos Ativos',
-    acModifier: 'Mod CA',
-    ac: 'CA',
-    speedModifier: 'Mod Desl.',
-    speed: 'Deslocamento',
-    sheet: 'Ficha',
-    cancel: 'Cancelar',
-    permissions: {
-      denied: 'Permissão Negada',
+    error: {
+      title: 'Erro',
+      description: 'Algo deu errado.',
     },
+    success: {
+      message: 'Sucesso!',
+    },
+    empty: {
+      message: 'Nenhum item encontrado.',
+    },
+    notFound: {
+      message: 'Não encontrado.',
+    },
+  },
+  validation: {
+    required: {
+      errorMessage: 'Este campo é obrigatório.',
+    },
+    email: {
+      errorMessage: 'E-mail inválido.',
+    },
+    minLength: {
+      errorMessage: 'Mínimo de :min caracteres.',
+    },
+    maxLength: {
+      errorMessage: 'Máximo de :max caracteres.',
+    },
+  },
+  plurals: {
+    items: '{0} Nenhum item|{1} :count item|[2,*] :count itens',
+    characters: '{0} Nenhum personagem|{1} :count personagem|[2,*] :count personagens',
+    tokens: '{0} Nenhum token|{1} :count token|[2,*] :count tokens',
+  },
+  time: {
+    seconds: '{1} :count segundo|[2,*] :count segundos',
+    minutes: '{1} :count minuto|[2,*] :count minutos',
+    hours: '{1} :count hora|[2,*] :count horas',
+  },
+  duration: 'Duração',
+  shareTooltip: 'Compartilhar',
+  hero: 'Herói',
+  creature: 'Criatura',
+  passivePerception: 'Percepção Passiva',
+  visible: 'Visível',
+  hidden: 'Oculto',
+  hp: 'PV',
+  resource: 'Recurso',
+  unknownEffect: 'Efeito Desconhecido',
+  activeEffects: 'Efeitos Ativos',
+  acModifier: 'Mod CA',
+  ac: 'CA',
+  speedModifier: 'Mod Desl.',
+  speed: 'Deslocamento',
+  sheet: 'Ficha',
+  cancel: 'Cancelar',
+  permissions: {
+    denied: 'Permissão Negada',
   },
   access: {
     restricted: 'Acesso Restrito',
@@ -180,6 +181,10 @@ export default {
           showOthersTrails: 'Ver Rastros de Outros',
           showMyTrail: 'Ver Meu Rastro',
           explosionOnCollision: 'Explosão ao Colidir',
+          showToolActivity: 'Mostrar Ferramentas',
+          showToolActivityDesc: 'Exibir ícone da ferramenta ativa (ex: Régua, Combate) junto ao cursor.',
+          showStatusActivity: 'Mostrar Status',
+          showStatusActivityDesc: 'Exibir ícones de status (ex: Digitando, Em Combate).',
         },
         overrides: {
           gmSet: 'Definido pelo Mestre',

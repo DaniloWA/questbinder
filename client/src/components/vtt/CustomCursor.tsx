@@ -376,10 +376,10 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
           left: 0,
           width: CURSOR_SIZE,
           height: CURSOR_SIZE,
-          pointerEvents: 'none',
           zIndex: 99999,
           transformOrigin: 'center center',
-          mixBlendMode: 'difference',
+          // mixBlendMode: 'difference', // Removed to prevent "behind grid" visual effect
+          pointerEvents: 'none', // Ensure it doesn't block interactions
         }}
       >
         <div

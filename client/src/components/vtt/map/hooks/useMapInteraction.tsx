@@ -13,7 +13,7 @@ interface UseMapInteractionProps extends MapCanvasProps {
   canvasRef: React.RefObject<HTMLCanvasElement>;
   mouseWorldPos: { x: number, y: number; };
   setMouseWorldPos: (p: { x: number, y: number; }) => void;
-  dragState: React.MutableRefObject<DragState>;
+  dragState: React.RefObject<DragState>;
   isPanning: boolean;
   setIsPanning: (b: boolean) => void;
   fogRectStart: { x: number, y: number; } | null;
@@ -28,18 +28,18 @@ interface UseMapInteractionProps extends MapCanvasProps {
   setCalculatedPath: (path: { x: number, y: number; }[]) => void;
   draggedAttackZone: { id: string, startX: number, startY: number, originX: number, originY: number, rotating?: boolean; } | null;
   setDraggedAttackZone: (z: { id: string, startX: number, startY: number, originX: number, originY: number, rotating?: boolean; } | null) => void;
-  liveDrawingPointsRef: React.MutableRefObject<{ x: number, y: number; }[]>;
-  isDrawingRef: React.MutableRefObject<boolean>;
-  lastCursorEmit: React.MutableRefObject<number>;
-  lastMousePos: React.MutableRefObject<{ x: number, y: number; }>;
-  hoverOpenTimerRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>;
-  hoverCloseTimerRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>;
+  liveDrawingPointsRef: React.RefObject<{ x: number, y: number; }[]>;
+  isDrawingRef: React.RefObject<boolean>;
+  lastCursorEmit: React.RefObject<number>;
+  lastMousePos: React.RefObject<{ x: number, y: number; }>;
+  hoverOpenTimerRef: React.RefObject<ReturnType<typeof setTimeout> | null>;
+  hoverCloseTimerRef: React.RefObject<ReturnType<typeof setTimeout> | null>;
   imageCache: { [src: string]: HTMLImageElement; };
-  clickAnimationsRef?: React.MutableRefObject<{ x: number, y: number, color: string, style?: 'ripple' | 'burst' | 'sparkle' | 'pulse' | 'vortex' | 'shard' | 'ring' | 'echo' | 'orb', startTime: number; }[]>;
+  clickAnimationsRef?: React.RefObject<{ x: number, y: number, color: string, style?: 'ripple' | 'burst' | 'sparkle' | 'pulse' | 'vortex' | 'shard' | 'ring' | 'echo' | 'orb', startTime: number; }[]>;
   // PERFORMANCE: Ref for immediate viewport updates without React re-render
-  viewportRef?: React.MutableRefObject<{ x: number, y: number, zoom: number; }>;
+  viewportRef?: React.RefObject<{ x: number, y: number, zoom: number; }>;
   // PERFORMANCE: Ref for immediate mouse position (avoids React state batching lag)
-  mouseWorldPosRef?: React.MutableRefObject<{ x: number, y: number; }>;
+  mouseWorldPosRef?: React.RefObject<{ x: number, y: number; }>;
   // DOM-based screen-position click animation callback
   addScreenClickAnimation?: (screenX: number, screenY: number, color: string, style: string) => void;
 }
@@ -61,7 +61,7 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
 
   const {
     removeObstacle, ui, audioSettings, removeAudioZone, handouts, addDrawing, removeDrawing, drawingSettings,
-    rulerSettings, permissionHelper, setCursorClickState
+    rulerSettings, permissionHelper, setCursorClickState, setDragging
   } = useGameSession();
   const { openModal, closeModal } = useModal();
 
@@ -386,6 +386,7 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
       if (dragState.current.isDragging) {
         dragState.current.isDragging = false;
         setIsTokenDragging(false);
+        setDragging?.(false); // Remote cursor visibility
         dragState.current.token = null;
         setCalculatedPath([]);
         return;
@@ -540,6 +541,7 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
           }
           dragState.current.isDragging = true;
           setIsTokenDragging(true);
+          setDragging?.(true); // Remote cursor visibility
           dragState.current.token = clickedToken;
           dragState.current.dragStartX = pos.x;
           dragState.current.dragStartY = pos.y;
@@ -640,6 +642,7 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
     }
     dragState.current.isDragging = false;
     setIsTokenDragging(false);
+    setDragging?.(false); // Remote cursor visibility
     dragState.current.token = null;
     setCalculatedPath([]);
     return;

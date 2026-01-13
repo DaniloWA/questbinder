@@ -149,11 +149,17 @@ export interface CursorMovePayload {
   // Batch Replay
   path?: { x: number, y: number, time: number; }[]; // Full history since last emit
   // New State Fields
+  activeTool?: string | null;
+  isContexting?: boolean;
+  isChatting?: boolean;
+  isAfk?: boolean;
+  isHidden?: boolean;
   healthStatus?: 'healthy' | 'bloodied' | 'unconscious'; // For Blood Trail
   trailAnimation?: 'line' | 'water' | 'fire' | 'particles' | 'dice' | 'rainbow' | 'smoke' | 'electric';
   trailColor?: string;
   trailEnabled?: boolean;
   trailCustomImage?: string;
+  isDragging?: boolean; // Hide cursor when user is dragging a token
 }
 
 export interface TokenAddPayload {

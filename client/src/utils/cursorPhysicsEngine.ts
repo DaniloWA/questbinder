@@ -67,6 +67,8 @@ export interface CursorState {
   activeTool?: string;
   isContexting?: boolean;
   isChatting?: boolean;
+  isAfk?: boolean; // New AFK state
+  isHidden?: boolean; // New Hidden state
   trailAnimation?: string;
   trailColor?: string;
   trailEnabled?: boolean;
@@ -111,6 +113,8 @@ export interface CursorUpdatePayload {
   activeTool?: string;
   isContexting?: boolean;
   isChatting?: boolean;
+  isAfk?: boolean; // New AFK state
+  isHidden?: boolean; // New Hidden state
   trailAnimation?: string;
   trailColor?: string;
   trailEnabled?: boolean;
@@ -334,14 +338,19 @@ export class CursorPhysicsEngine {
     state.isMoving = true;
 
     // Metadata updates
+    // Update Status Flags (from Payload)
     if (update.isClicking !== undefined) state.isClicking = update.isClicking;
-    if (update.healthStatus) state.healthStatus = update.healthStatus;
-    if (update.activeTool) state.activeTool = update.activeTool;
+    if (update.activeTool !== undefined) state.activeTool = update.activeTool;
     if (update.isContexting !== undefined) state.isContexting = update.isContexting;
     if (update.isChatting !== undefined) state.isChatting = update.isChatting;
-    if (update.trailAnimation) state.trailAnimation = update.trailAnimation;
-    if (update.trailColor) state.trailColor = update.trailColor;
+    if (update.isAfk !== undefined) state.isAfk = update.isAfk;
+    if (update.isHidden !== undefined) state.isHidden = update.isHidden;
+    if (update.healthStatus) state.healthStatus = update.healthStatus;
+
+    // Trail Config Updates
     if (update.trailEnabled !== undefined) state.trailEnabled = update.trailEnabled;
+    if (update.trailColor) state.trailColor = update.trailColor;
+    if (update.trailAnimation) state.trailAnimation = update.trailAnimation;
     if (update.trailCustomImage) state.trailCustomImage = update.trailCustomImage;
 
     // Trail particles
@@ -550,6 +559,8 @@ export class CursorPhysicsEngine {
       activeTool: state.activeTool,
       isContexting: state.isContexting,
       isChatting: state.isChatting,
+      isAfk: state.isAfk,
+      isHidden: state.isHidden,
       trailConfig: {
         enabled: state.trailEnabled,
         animation: state.trailAnimation,

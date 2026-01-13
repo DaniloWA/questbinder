@@ -10,8 +10,8 @@ export interface ListenerDeps {
   user: User | null;
   show: (options: any) => void;
   setViewport?: (v: Partial<Viewport>) => void;
-  stateRef: React.MutableRefObject<GameSessionState>;
-  remoteCursorsRef?: React.MutableRefObject<Record<string, CursorMovePayload>>; // Optional for backward compatibility if needed, but we should make it required
+  stateRef: React.RefObject<GameSessionState>;
+  remoteCursorsRef?: React.RefObject<Record<string, CursorMovePayload>>; // Optional for backward compatibility if needed, but we should make it required
   campaignId: string;
 }
 

@@ -21,7 +21,7 @@ export interface MapCanvasProps {
   previewPlayerId?: string | 'all';
   remoteDrags?: Record<string, TokenDragPayload>;
   remoteCursors: Record<string, CursorMovePayload>;
-  remoteCursorsRef?: React.MutableRefObject<Record<string, CursorMovePayload>>; // For smoother updates
+  remoteCursorsRef?: React.RefObject<Record<string, CursorMovePayload>>; // For smoother updates
   remoteViewports?: Record<string, { x: number, y: number, zoom: number, w: number, h: number; }>;
   permissions: SessionPermissions;
   campaign?: any;

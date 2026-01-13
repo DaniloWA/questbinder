@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useTranslation } from '../../../../i18n/TranslationContext';
 import { MapCanvasProps, DragState } from '../types';
 import { TokenAnimation } from './useTokenLayer';
 import { useGameSession } from '../../../../context/GameSessionContext';
@@ -22,15 +23,15 @@ interface UseMapRendererProps extends MapCanvasProps {
   canvasRef: React.RefObject<HTMLCanvasElement>;
   lightCanvasRef: React.RefObject<HTMLCanvasElement>;
   animatingTokens: Map<string, TokenAnimation>;
-  animationsRef: React.MutableRefObject<Map<string, TokenAnimation>>;
+  animationsRef: React.RefObject<Map<string, TokenAnimation>>;
   setAnimatingTokens: (m: Map<string, TokenAnimation>) => void;
   mouseWorldPos: { x: number, y: number; };
-  dragState: React.MutableRefObject<DragState>;
+  dragState: React.RefObject<DragState>;
   hoveredObstacleId: string | null;
   calculatedPath: { x: number, y: number; }[];
   draggedAttackZone: { id: string, startX: number, startY: number, originX: number, originY: number, rotating?: boolean; } | null;
-  liveDrawingPointsRef: React.MutableRefObject<{ x: number, y: number; }[]>;
-  isDrawingRef: React.MutableRefObject<boolean>;
+  liveDrawingPointsRef: React.RefObject<{ x: number, y: number; }[]>;
+  isDrawingRef: React.RefObject<boolean>;
   currentFogRect: { x: number, y: number, w: number, h: number; } | null;
   hoveredTokenId: string | null;
   visionTokens: Token[];
@@ -38,12 +39,12 @@ interface UseMapRendererProps extends MapCanvasProps {
   currentUser: User | null;
   players?: User[];
   remoteViewports?: Record<string, { x: number, y: number, zoom: number, w: number, h: number; }>;
-  clickAnimationsRef?: React.MutableRefObject<{ x: number, y: number, color: string, style?: 'ripple' | 'burst' | 'sparkle' | 'pulse' | 'vortex' | 'shard' | 'ring' | 'echo' | 'orb', startTime: number; }[]>;
+  clickAnimationsRef?: React.RefObject<{ x: number, y: number, color: string, style?: 'ripple' | 'burst' | 'sparkle' | 'pulse' | 'vortex' | 'shard' | 'ring' | 'echo' | 'orb', startTime: number; }[]>;
   // PERFORMANCE: Ref for immediate viewport during pan/zoom (avoids state re-render)
-  viewportRef?: React.MutableRefObject<{ x: number, y: number, zoom: number; }>;
+  viewportRef?: React.RefObject<{ x: number, y: number, zoom: number; }>;
   // PERFORMANCE: Ref for immediate mouse position during token drag
-  mouseWorldPosRef?: React.MutableRefObject<{ x: number, y: number; }>;
-  remoteCursorsRef?: React.MutableRefObject<Record<string, any>>;
+  mouseWorldPosRef?: React.RefObject<{ x: number, y: number; }>;
+  remoteCursorsRef?: React.RefObject<Record<string, any>>;
 }
 
 export const useMapRenderer = (props: UseMapRendererProps) => {
@@ -68,6 +69,9 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
 
   // Frame timer for delta-time independent animations
   const frameTimer = React.useRef(getGlobalFrameTimer());
+
+  // Translation hook for localized strings
+  const { t } = useTranslation();
 
   // Track last processed cursor positions to avoid re-processing same data every frame
   const lastProcessedCursorsRef = React.useRef<Record<string, { x: number; y: number; isClicking?: boolean; }>>({});
@@ -550,7 +554,13 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
           if (token.id === leader.id) {
             const pathWorldPoints = calculatedPath.map(p => ({ x: p.x * gridSize + (token.size * gridSize) / 2, y: p.y * gridSize + (token.size * gridSize) / 2 }));
             const currentSnap = { x: (groupItem.startGridX + deltaGridX) * gridSize + (token.size * gridSize) / 2, y: (groupItem.startGridY + deltaGridY) * gridSize + (token.size * gridSize) / 2 };
-            if (pathWorldPoints.length > 0) drawRuler(ctx, pathWorldPoints, currentSnap, gridSize, unitsPerSquare, z, '#fbbf24', token.speed || 9);
+            // Use user's cursor color for drag visuals
+            const dragColor = props.cursorSettings?.color || '#fbbf24';
+            if (pathWorldPoints.length > 0) drawRuler(ctx, pathWorldPoints, currentSnap, gridSize, unitsPerSquare, z, dragColor, token.speed || 9);
+
+            // Draw User Name Label (Translated)
+            const dragLabel = `${t('common.me')} (${token.name})`;
+            drawLabel(ctx, dragLabel, (groupItem.startGridX + deltaGridX) * gridSize + (token.size * gridSize) / 2, (groupItem.startGridY + deltaGridY) * gridSize - 20 / z, z, dragColor);
           }
         });
       }
@@ -1027,8 +1037,10 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
         // Apply Stretch (Squash & Stretch based on velocity)
         ctx.scale(scaleX, scaleY);
 
-        // Render size for the cursor
-        const renderSize = isLocal ? 32 : 38;
+        // Render size for the cursor (Matching CustomCursor.tsx logic)
+        const screenMin = Math.min(window.innerWidth, window.innerHeight);
+        const dynamicSize = Math.max(48, Math.min(64, Math.round(screenMin * 0.04)));
+        const renderSize = isLocal ? dynamicSize : dynamicSize; // Same size for both now
 
         // Try to render the React component first
         if (shape.Component) {
@@ -1149,6 +1161,9 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
             isClicking: cursor.isClicking, // For shrink effect
             // Pass new fields to engine
             healthStatus: cursor.healthStatus,
+            activeTool: cursor.activeTool,
+            isContexting: cursor.isContexting,
+            isChatting: cursor.isChatting,
             trailAnimation: cursor.trailAnimation,
             trailColor: cursor.trailColor,
             trailEnabled: cursor.trailEnabled,
@@ -1168,10 +1183,20 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
         const renderData = cursorEngine.getRenderData(cursor.userId);
         if (!renderData) return;
 
+        // Skip rendering cursor when user is dragging a token
+        if (cursor.isDragging) return;
+
         const cursorColor = cursor.userColor || '#fbbf24';
         const now = performance.now();
 
+        // Initialize Alpha with Hidden State
+        ctx.save(); // Start Cursor Scope
+        if (renderData.isHidden) {
+          ctx.globalAlpha = 0.4;
+        }
+
         // --- RENDER CURSOR TRAIL ---
+        const cursorAngle = renderData.angle;
         if (showTrails && (renderData.trailConfig?.enabled || renderData.healthStatus !== 'healthy')) {
           const trailColor = renderData.trailConfig.color || cursorColor;
           let animation = renderData.trailConfig.animation || 'line';
@@ -1398,6 +1423,9 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
           ctx.restore();
         }
 
+        // Restore cursor scope (handles alpha reset)
+        ctx.restore();
+
         // Active Tool Indicator
         const activeTool = renderData.activeTool;
         if (activeTool && activeTool !== 'select' && activeTool !== 'pan' && activeTool !== 'combat') {
@@ -1421,6 +1449,41 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
           }
           ctx.restore();
         }
+
+        // AFK Indicator (ZZZ)
+        if (renderData.isAfk) {
+          ctx.save();
+          ctx.translate(renderData.position.x, renderData.position.y - 40 / z);
+          ctx.scale(1 / z, 1 / z);
+
+          const time = Date.now();
+          const zAnimation = (offset: number) => {
+            const age = (time + offset) % 2000;
+            const progress = age / 2000;
+            const y = -progress * 20;
+            const alpha = 1 - progress;
+            const x = Math.sin(progress * Math.PI * 4) * 5;
+            return { x, y, alpha };
+          };
+
+          ctx.fillStyle = '#ffffff';
+          ctx.shadowColor = 'black';
+          ctx.shadowBlur = 2;
+          ctx.font = 'bold 16px sans-serif';
+
+          [0, 600, 1200].forEach(offset => {
+            const anim = zAnimation(offset);
+            ctx.globalAlpha = anim.alpha;
+            ctx.fillText('Z', anim.x, anim.y);
+          });
+
+          ctx.restore();
+        }
+
+        // Hidden Indicator (Ghost/Tabbed Out) - MOVED TO START OF LOOP
+        // if (renderData.isHidden) {
+        //   ctx.globalAlpha = 0.4;
+        // }
 
         // Status Indicator (Chat or Combat)
         // Priority: Chat > Combat
@@ -1449,11 +1512,15 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
 
       // --- CURSOR COLLISION DETECTION & EXPLOSION ---
       // Check collision explosion setting
-      if (props.cursorSettings?.explosionOnCollision !== false) {
+      const explosionSetting = props.cursorSettings?.explosionOnCollision;
+      const explosionEnabled = explosionSetting !== false && String(explosionSetting) !== 'false';
+      const collisionTime = performance.now(); // Moved outside for explosion rendering
 
+      if (explosionEnabled) {
         // Collect all cursor positions (remote only for now)
         const cursorPositions: { id: string; x: number; y: number; color: string; }[] = [];
-        Object.values(remoteCursors).forEach((cursor: any) => {
+        const cursorsSource = remoteCursorsRef?.current || remoteCursors;
+        Object.values(cursorsSource).forEach((cursor: any) => {
           if (cursor.userId === currentUser?.id) return;
           const renderData = cursorEngine.getRenderData(cursor.userId);
           if (renderData) {
@@ -1476,10 +1543,8 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
           });
         }
 
-        // Check for collisions and create explosions
         const COLLISION_DISTANCE = 50 / z; // 50 screen pixels
         const EXPLOSION_COOLDOWN = 800; // ms
-        const collisionTime = performance.now();
 
         for (let i = 0; i < cursorPositions.length; i++) {
           for (let j = i + 1; j < cursorPositions.length; j++) {
@@ -1504,53 +1569,54 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
             }
           }
         }
+      }
 
-        // Render active explosions
-        const explosions = cursorExplosionsRef.current;
-        const EXPLOSION_DURATION = 600; // ms
-        for (let i = explosions.length - 1; i >= 0; i--) {
-          const exp = explosions[i];
-          const age = collisionTime - exp.time;
-          if (age > EXPLOSION_DURATION) {
-            explosions.splice(i, 1);
-            continue;
-          }
-
-          const progress = age / EXPLOSION_DURATION;
-          const alpha = 1 - progress;
-          const radius = (20 + progress * 60) / z;
-
-          // Draw expanding rings
-          for (let ring = 0; ring < 3; ring++) {
-            const ringProgress = Math.max(0, progress - ring * 0.15);
-            const ringRadius = (10 + ringProgress * 50) / z;
-            const ringAlpha = (1 - ringProgress) * 0.6;
-
-            ctx.beginPath();
-            ctx.arc(exp.x, exp.y, ringRadius, 0, Math.PI * 2);
-            ctx.strokeStyle = exp.colors[ring % exp.colors.length];
-            ctx.globalAlpha = ringAlpha;
-            ctx.lineWidth = 3 / z;
-            ctx.stroke();
-          }
-
-          // Draw particle burst
-          const particleCount = 12;
-          for (let p = 0; p < particleCount; p++) {
-            const angle = (p / particleCount) * Math.PI * 2;
-            const dist = radius * progress * 1.5;
-            const px = exp.x + Math.cos(angle) * dist;
-            const py = exp.y + Math.sin(angle) * dist;
-            const pSize = (4 - progress * 3) / z;
-
-            ctx.beginPath();
-            ctx.arc(px, py, Math.max(0.5, pSize), 0, Math.PI * 2);
-            ctx.fillStyle = exp.colors[p % exp.colors.length];
-            ctx.globalAlpha = alpha * 0.8;
-            ctx.fill();
-          }
+      // Render active explosions
+      const explosions = cursorExplosionsRef.current;
+      const EXPLOSION_DURATION = 600; // ms
+      for (let i = explosions.length - 1; i >= 0; i--) {
+        const exp = explosions[i];
+        const age = collisionTime - exp.time;
+        if (age > EXPLOSION_DURATION) {
+          explosions.splice(i, 1);
+          continue;
         }
-      } // End explosion check
+
+        const progress = age / EXPLOSION_DURATION;
+        const alpha = 1 - progress;
+        const radius = (20 + progress * 60) / z;
+
+        // Draw expanding rings
+        for (let ring = 0; ring < 3; ring++) {
+          const ringProgress = Math.max(0, progress - ring * 0.15);
+          const ringRadius = (10 + ringProgress * 50) / z;
+          const ringAlpha = (1 - ringProgress) * 0.6;
+
+          ctx.beginPath();
+          ctx.arc(exp.x, exp.y, ringRadius, 0, Math.PI * 2);
+          ctx.strokeStyle = exp.colors[ring % exp.colors.length];
+          ctx.globalAlpha = ringAlpha;
+          ctx.lineWidth = 3 / z;
+          ctx.stroke();
+        }
+
+        // Draw particle burst
+        const particleCount = 12;
+        for (let p = 0; p < particleCount; p++) {
+          const angle = (p / particleCount) * Math.PI * 2;
+          const dist = radius * progress * 1.5;
+          const px = exp.x + Math.cos(angle) * dist;
+          const py = exp.y + Math.sin(angle) * dist;
+          const pSize = (4 - progress * 3) / z;
+
+          ctx.beginPath();
+          ctx.arc(px, py, Math.max(0.5, pSize), 0, Math.PI * 2);
+          ctx.fillStyle = exp.colors[p % exp.colors.length];
+          ctx.globalAlpha = alpha * 0.8;
+          ctx.fill();
+        }
+      }
+      // End explosion rendering
       ctx.globalAlpha = 1;
 
       ctx.restore();

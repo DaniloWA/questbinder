@@ -134,7 +134,7 @@ export interface GameSessionState {
 export interface GameSessionContextType extends GameSessionState {
   user: User | null;
   // Direct access to cursor data
-  remoteCursorsRef: React.MutableRefObject<Record<string, CursorMovePayload>>;
+  remoteCursorsRef: React.RefObject<Record<string, CursorMovePayload>>;
   // Actions
   setViewport: (v: Partial<Viewport>) => void;
   switchScene: (id: string) => void;
@@ -150,6 +150,7 @@ export interface GameSessionContextType extends GameSessionState {
   moveTokenToScene: (tokenId: string, sceneId: string) => void;
   selectToken: (id: string, multi: boolean) => void;
   clearSelection: () => void;
+  setDragging: (dragging: boolean) => void;
 
   addObstacles: (obstacles: any[]) => void;
   updateObstacle: (id: string, data: Partial<Obstacle>) => void;

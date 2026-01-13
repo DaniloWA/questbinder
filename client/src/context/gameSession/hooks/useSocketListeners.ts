@@ -27,8 +27,8 @@ export const useSocketListeners = (
   user: any,
   show: (notification: any) => void,
   setViewport: ((v: any) => void) | undefined,
-  stateRef: React.MutableRefObject<GameSessionState>,
-  remoteCursorsRef: React.MutableRefObject<Record<string, CursorMovePayload>>
+  stateRef: React.RefObject<GameSessionState>,
+  remoteCursorsRef: React.RefObject<Record<string, CursorMovePayload>>
 ) => {
   useEffect(() => {
     if (!state.isConnected) return;

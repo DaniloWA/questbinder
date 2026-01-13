@@ -120,6 +120,7 @@ export default {
     permissions: {
       denied: 'Permission Denied',
     },
+    me: 'You',
   },
   access: {
     restricted: 'Access Restricted',
@@ -180,6 +181,10 @@ export default {
           showOthersTrails: 'Show Others Trails',
           showMyTrail: 'Show My Trail',
           explosionOnCollision: 'Explosion on Collision',
+          showToolActivity: 'Show Tool Activity',
+          showToolActivityDesc: 'Display active tool icon (e.g. Ruler, Combat) next to cursor.',
+          showStatusActivity: 'Show Status Activity',
+          showStatusActivityDesc: 'Display status icons (e.g. Typing, In Combat).',
         },
         overrides: {
           gmSet: 'Set by GM',
