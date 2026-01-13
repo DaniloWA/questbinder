@@ -72,6 +72,13 @@ export interface CursorState {
   trailEnabled?: boolean;
   trailCustomImage?: string;
 
+  // Visual Decoupling State (The "Ghost" Cursor)
+  visualX: number;
+  visualY: number;
+  visualAngle: number;
+  stretchX: number;
+  stretchY: number;
+
   // Batch Replay State
   replayQueue: { x: number; y: number; duration: number; }[];
   currentSegment?: {
@@ -118,6 +125,10 @@ export class CursorPhysicsEngine {
   private states: Map<string, CursorState> = new Map();
   private springConfig: SpringConfig;
 
+  // Visual Physics Constants (Matching CustomCursor.tsx)
+  private readonly VISUAL_LERP = 0.75;
+  private readonly STRETCH_FACTOR = 0.05;
+
   constructor(springConfig: SpringConfig = CURSOR_SPRING) {
     this.springConfig = springConfig;
   }
@@ -147,6 +158,14 @@ export class CursorPhysicsEngine {
       previousAngle: 0,
       targetAngle: 0,
       angleVelocity: 0,
+
+      // Initialize visual state same as physical to start
+      visualX: initialPosition.x,
+      visualY: initialPosition.y,
+      visualAngle: 0,
+      stretchX: 1,
+      stretchY: 1,
+
       history: [{ ...initialPosition, timestamp: now }],
       trailHistory: [{ x: initialPosition.x, y: initialPosition.y, time: now }],
       lastUpdateTime: now,
@@ -228,7 +247,18 @@ export class CursorPhysicsEngine {
       }
     }
 
-    // === BATCH REPLAY LOGIC ===
+    // --- INITIALIZE VISUAL STATE IF NEW ---
+    if (!state.correctionApplied) {
+      state.visualX = update.x;
+      state.visualY = update.y;
+      state.visualAngle = 0;
+      state.stretchX = 1;
+      state.stretchY = 1;
+      state.correctionApplied = true;
+    }
+
+    // --- BATCH REPLAY PROCESSING ---
+    // If update has a path, queue it up for replay
     if (update.path && update.path.length > 0) {
       const shouldStitch = state.isBridgingGap && state.replayQueue.length === 0;
 
@@ -447,11 +477,54 @@ export class CursorPhysicsEngine {
       state.lastUpdateTime = now;
     }
 
-    // Angle Interpolation
-    const angleRes = springInterpolateAngle(state.angle, state.targetAngle, state.angleVelocity,
-      { ...this.springConfig, stiffness: this.springConfig.stiffness * 0.6 }, deltaMs);
-    state.angle = angleRes.angle; state.angleVelocity = angleRes.velocity;
+    state.lastUpdateTime = now;
 
+    // =========================================================================
+    // VISUAL PHYSICS LAYER (The Ghost Cursor)
+    // =========================================================================
+    // Decouples visual fluidity from network/physics reconcilliation.
+    // The "Ghost" follows the "Physical Body" using exact logic from CustomCursor.tsx
+
+    // 1. Calculate Distances
+    const distX = state.x - state.visualX;
+    const distY = state.y - state.visualY;
+
+    // 2. Lerp Movement (Standard LERP like local cursor)
+    state.visualX += distX * this.VISUAL_LERP;
+    state.visualY += distY * this.VISUAL_LERP;
+
+    // 3. Calculate Visual Velocity (px/frame normalized to ~60fps for consistency)
+    // We treat deltaMs as roughly 16ms for the visual feel, but adapt if frames drop significantly
+    // CustomCursor just moves per frame, so we normalize to that feel.
+    const visualVelX = distX * this.VISUAL_LERP;
+    const visualVelY = distY * this.VISUAL_LERP;
+    const visualSpeed = Math.hypot(visualVelX, visualVelY);
+
+    // 4. Calculate Visual Angle
+    if (visualSpeed > 1) { // Threshold to prevent jitter when stopping
+      // Direct angle set for responsiveness (matching CustomCursor)
+      state.visualAngle = Math.atan2(visualVelY, visualVelX) + Math.PI / 2;
+    }
+
+    // 5. Calculate Squash & Stretch
+    // CustomCursor: 1 + min(velocity * STRETCH_FACTOR, 0.5)
+    // We use visualSpeed which effectively is "distance traveled this frame"
+    const targetStretchY = 1 + Math.min(visualSpeed * this.STRETCH_FACTOR, 0.5);
+    const targetStretchX = 1 - Math.min(visualSpeed * this.STRETCH_FACTOR * 0.5, 0.2);
+
+    // Smooth stretch transition (optional, but good for stability)
+    // CustomCursor sets it directly per frame based on velocity. Let's match that.
+    state.stretchX = targetStretchX;
+    state.stretchY = targetStretchY;
+
+    // Apply Click Scale Effect to Stretch
+    if (state.isClicking) {
+      state.stretchX *= 0.6;
+      state.stretchY *= 0.6;
+    }
+
+    // Return the PHYSICAL position for logic/collisions, but rendering uses visual...
+    // Actually, getRenderData should return VISUAL props.
     return { x: state.x, y: state.y };
   }
 
@@ -460,12 +533,16 @@ export class CursorPhysicsEngine {
     if (!state) return null;
 
     return {
-      position: { x: state.x, y: state.y },
-      previousPosition: { x: state.previousX, y: state.previousY },
-      angle: state.angle,
+      // RETURN VISUAL STATE FOR RENDERING
+      position: { x: state.visualX, y: state.visualY },
+      previousPosition: { x: state.previousX, y: state.previousY }, // Keep for history/trails if needed
+      angle: state.visualAngle, // visual angle
+      scaleX: state.stretchX,   // visual stretch
+      scaleY: state.stretchY,   // visual stretch
+
       previousAngle: state.previousAngle,
       isMoving: state.isMoving,
-      velocity: { x: state.velocityX, y: state.velocityY },
+      velocity: { x: state.velocityX, y: state.velocityY }, // Keep physics velocity for logic if needed
       trailHistory: state.trailHistory,
       isClicking: state.isClicking,
       correctionApplied: state.correctionApplied,
@@ -484,16 +561,16 @@ export class CursorPhysicsEngine {
 
   removeCursor(userId: string): void {
     this.states.delete(userId);
-  }
+  };
 
   clear(): void {
     this.states.clear();
-  }
+  };
 
   setVisibility(userId: string, visible: boolean): void {
     const state = this.states.get(userId);
     if (state) state.isVisible = visible;
-  }
+  };
 
   getCursorIds(): string[] {
     return Array.from(this.states.keys());
