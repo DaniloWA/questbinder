@@ -159,6 +159,27 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
     }));
   };
 
+  // Handler: me:kicked (Server kicking user for AFK or other reasons)
+  const handleKicked = (payload: { reason: string, message: string, redirectTo: string; }) => {
+    console.log('[PlayerListeners] Received me:kicked:', payload);
+
+    // Store the kick message in sessionStorage so dashboard can display it
+    sessionStorage.setItem('kickMessage', payload.message);
+    sessionStorage.setItem('kickReason', payload.reason);
+
+    // Show notification
+    show({
+      type: 'error',
+      message: payload.message,
+      duration: 5000
+    });
+
+    // Redirect to dashboard after a short delay
+    setTimeout(() => {
+      window.location.href = payload.redirectTo;
+    }, 500);
+  };
+
   const handleViewportUpdate = (payload: ViewportUpdatePayload) => {
     if (payload.userId === user?.id) return;
     setState(prev => ({
@@ -280,6 +301,7 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
   socketService.on('cursor:move', handleCursorMove);
   socketService.on('cursor:pressing', handleCursorPressing);
   socketService.on('me:afk_status', handleMyAfkStatus);
+  socketService.on('me:kicked', handleKicked);
   socketService.on('viewport:update', handleViewportUpdate);
   socketService.on('viewport:restore', handleViewportRestore);
   socketService.on('gm:force_view', handleGMForceView);
@@ -293,6 +315,8 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
     socketService.off('player:leave', handlePlayerLeave);
     socketService.off('cursor:move', handleCursorMove);
     socketService.off('cursor:pressing', handleCursorPressing);
+    socketService.off('me:afk_status', handleMyAfkStatus);
+    socketService.off('me:kicked', handleKicked);
     socketService.off('viewport:update', handleViewportUpdate);
     socketService.off('viewport:restore', handleViewportRestore);
     socketService.off('gm:force_view', handleGMForceView);

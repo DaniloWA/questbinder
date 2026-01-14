@@ -297,8 +297,14 @@ class CursorStateManager {
           if (state.socketId) {
             const socket = io.sockets.sockets.get(state.socketId);
             if (socket) {
-              socket.emit('error', { message: 'Você foi desconectado por inatividade (5min).' });
-              socket.disconnect(true);
+              // Send kick event with redirect info BEFORE disconnecting
+              socket.emit('me:kicked', {
+                reason: 'afk',
+                message: 'Você foi desconectado por inatividade (5 minutos).',
+                redirectTo: '/dashboard'
+              });
+              // Slight delay to ensure the event is received
+              setTimeout(() => socket.disconnect(true), 100);
             }
           }
           this.removeUser(campaignId, userId);
@@ -307,15 +313,19 @@ class CursorStateManager {
         }
 
         // Stage 2: Warning (2m)
-        if (timeSinceLastUpdate > WARN_TIMEOUT && !state.warningSent) {
-          state.warningSent = true;
-          io.to(campaignId).emit('system:notification', {
-            message: `ATENÇÃO: ${state.userName || 'Um jogador'} será desconectado em 3 minutos por inatividade.`,
-            type: 'warning'
-          });
+        if (timeSinceLastUpdate > WARN_TIMEOUT) {
+          // Public Warning (One-time)
+          if (!state.warningSent) {
+            state.warningSent = true;
+            io.to(campaignId).emit('system:notification', {
+              message: `ATENÇÃO: ${state.userName || 'Um jogador'} será desconectado em 3 minutos por inatividade.`,
+              type: 'warning'
+            });
+          }
 
-          // Private Warning to User (MUST use sockets.get, not io.to)
-          if (state.socketId) {
+          // Private Warning/Status Update (Periodic - every 10s via checkPresence)
+          // Ensure we don't send this if we are about to kick (handled in Stage 3)
+          if (timeSinceLastUpdate < KICK_TIMEOUT && state.socketId) {
             const userSocket = io.sockets.sockets.get(state.socketId);
             if (userSocket) {
               userSocket.emit('me:afk_status', {
@@ -340,7 +350,8 @@ class CursorStateManager {
           });
 
           // Private AFK Status to User (MUST use sockets.get, not io.to)
-          if (state.socketId) {
+          // Only send "afk" if we haven't reached "warning" stage yet to avoid downgrading status
+          if (state.socketId && timeSinceLastUpdate < WARN_TIMEOUT) {
             const userSocket = io.sockets.sockets.get(state.socketId);
             if (userSocket) {
               userSocket.emit('me:afk_status', { status: 'afk' });

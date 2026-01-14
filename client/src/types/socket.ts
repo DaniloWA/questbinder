@@ -385,6 +385,8 @@ export interface SocketEventMap {
   'attackZone:clear': { userId?: string; };
   'attackZone:sync': {};
   'attackZone:syncResponse': { zones: any[]; };
+  // AFK System events
+  'me:kicked': { reason: string; message: string; redirectTo: string; };
 }
 
 export interface SocketEvent<K extends keyof SocketEventMap> {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGameSession } from '../../context/GameSessionContext';
 import { useTranslation } from '../../i18n/TranslationContext';
 
@@ -6,11 +6,33 @@ export const AfkOverlay: React.FC = () => {
   const { afkStatus, afkTimeLeft } = useGameSession();
   const { t } = useTranslation();
 
-  console.log('[AfkOverlay] Render:', { afkStatus, afkTimeLeft });
+  // Local countdown state - decrements every second
+  const [displayTime, setDisplayTime] = useState<number>(0);
+
+  // Sync with server value when it changes
+  useEffect(() => {
+    if (afkTimeLeft !== undefined && afkTimeLeft > 0) {
+      setDisplayTime(afkTimeLeft);
+    }
+  }, [afkTimeLeft]);
+
+  // Countdown effect - decrements every second
+  useEffect(() => {
+    if (afkStatus !== 'warning' || displayTime <= 0) return;
+
+    const timer = setInterval(() => {
+      setDisplayTime(prev => Math.max(0, prev - 1));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [afkStatus, displayTime]);
+
+  console.log('[AfkOverlay] Render:', { afkStatus, afkTimeLeft, displayTime });
 
   if (!afkStatus || afkStatus === 'active') return null;
 
   const isWarning = afkStatus === 'warning';
+  const timeToShow = isWarning ? displayTime : 0;
 
   return (
     <div className={`fixed inset-0 z-[9999] pointer-events-none flex items-start justify-center pt-24 transition-opacity duration-300 ${isWarning ? 'bg-red-900/20' : 'bg-yellow-900/10'}`}>
@@ -33,7 +55,7 @@ export const AfkOverlay: React.FC = () => {
             </h3>
             <p className="text-sm opacity-90">
               {isWarning
-                ? (t('vtt.cursor.afk.warning_desc', { seconds: afkTimeLeft || 0 }) || `Você será desconectado em ${afkTimeLeft || 0} segundos.`)
+                ? (t('vtt.cursor.afk.warning_desc', { seconds: timeToShow }) || `Você será desconectado em ${timeToShow} segundos.`)
                 : (t('vtt.cursor.afk.desc') || 'Mexa o mouse ou interaja com a tela para retornar.')
               }
             </p>
@@ -44,7 +66,7 @@ export const AfkOverlay: React.FC = () => {
           <div className="mt-4 w-full bg-red-900/50 rounded-full h-2 overflow-hidden">
             <div
               className="bg-red-500 h-full transition-all duration-1000 ease-linear"
-              style={{ width: `${((afkTimeLeft || 0) / 180) * 100}%` }}
+              style={{ width: `${(timeToShow / 180) * 100}%` }}
             />
           </div>
         )}
@@ -52,4 +74,3 @@ export const AfkOverlay: React.FC = () => {
     </div>
   );
 };
-
