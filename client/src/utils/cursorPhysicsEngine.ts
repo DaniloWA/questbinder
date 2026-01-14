@@ -67,8 +67,8 @@ export interface CursorState {
   activeTool?: string;
   isContexting?: boolean;
   isChatting?: boolean;
-  isAfk?: boolean; // New AFK state
-  isHidden?: boolean; // New Hidden state
+  isAfk?: boolean;
+
   trailAnimation?: string;
   trailColor?: string;
   trailEnabled?: boolean;
@@ -113,8 +113,7 @@ export interface CursorUpdatePayload {
   activeTool?: string;
   isContexting?: boolean;
   isChatting?: boolean;
-  isAfk?: boolean; // New AFK state
-  isHidden?: boolean; // New Hidden state
+  isAfk?: boolean;
   trailAnimation?: string;
   trailColor?: string;
   trailEnabled?: boolean;
@@ -329,7 +328,7 @@ export class CursorPhysicsEngine {
 
     // Angle
     const dx = update.x - state.x;
-    const dy = update.y - state.y;
+    const dy = update.y;
     if (Math.hypot(dx, dy) > 5 && !state.isReplaying) {
       state.targetAngle = Math.atan2(dy, dx) + Math.PI / 2;
     }
@@ -344,7 +343,7 @@ export class CursorPhysicsEngine {
     if (update.isContexting !== undefined) state.isContexting = update.isContexting;
     if (update.isChatting !== undefined) state.isChatting = update.isChatting;
     if (update.isAfk !== undefined) state.isAfk = update.isAfk;
-    if (update.isHidden !== undefined) state.isHidden = update.isHidden;
+
     if (update.healthStatus) state.healthStatus = update.healthStatus;
 
     // Trail Config Updates
@@ -560,7 +559,7 @@ export class CursorPhysicsEngine {
       isContexting: state.isContexting,
       isChatting: state.isChatting,
       isAfk: state.isAfk,
-      isHidden: state.isHidden,
+
       trailConfig: {
         enabled: state.trailEnabled,
         animation: state.trailAnimation,
@@ -614,5 +613,6 @@ export const createCursorUpdateFromPayload = (payload: any) => ({
     trailEnabled: payload.trailEnabled,
     trailCustomImage: payload.trailCustomImage,
     path: payload.path,
+    isAfk: payload.isAfk,
   },
 });

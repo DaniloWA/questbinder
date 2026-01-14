@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { GameSessionProvider, useGameSession } from '../context/GameSessionContext';
 import { useTranslation } from '../i18n/TranslationContext';
@@ -24,6 +23,7 @@ import { SceneNavigation } from '../components/vtt/SceneNavigation';
 import { Sidebar } from '../components/vtt/Sidebar';
 import { CharacterSheetViewer } from '../components/vtt/CharacterSheetViewer';
 import { Modal } from '../components/ui/Modal';
+import { AfkOverlay } from '../components/game/AfkOverlay';
 import { SmartDiceRoller } from '../components/vtt/SmartDiceRoller';
 import { PermissionsModal } from '../components/vtt/PermissionsModal';
 import { useNotification } from '../context/NotificationContext';
@@ -70,6 +70,7 @@ export const GameSessionView: React.FC = () => {
 
     return (
         <GameSessionProvider campaignId={campaignId}>
+            <AfkOverlay />
             <GameSessionUI />
         </GameSessionProvider>
     );

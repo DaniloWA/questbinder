@@ -656,6 +656,10 @@ export interface PermissionSet {
     clickAnimation?: 'ripple' | 'burst' | 'sparkle' | 'pulse' | 'vortex' | 'shard' | 'ring' | 'echo' | 'orb';
     clickColorLeft?: string;
     clickColorRight?: string;
+    trailEnabled?: boolean;
+    trailColor?: string;
+    trailAnimation?: 'line' | 'water' | 'fire' | 'particles' | 'dice' | 'rainbow' | 'smoke' | 'electric';
+    trailCustomImage?: string;
   }>;
 
   // Chat Permissions

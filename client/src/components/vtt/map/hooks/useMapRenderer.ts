@@ -80,13 +80,18 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
   }
   const cursorEngine = cursorEngineRef.current;
 
+  // Local Cursor Engine (for identical trail behavior)
+  // We use the same engine instance but a special ID to manage local state
+  const LOCAL_ID = 'local_user_cursor';
+
   const frameTimer = React.useRef(getGlobalFrameTimer());
   const { t } = useTranslation();
 
-  const lastProcessedCursorsRef = React.useRef<Record<string, { x: number; y: number; isClicking?: boolean; }>>({});
+  const lastProcessedCursorsRef = React.useRef<Record<string, { x: number; y: number; isClicking?: boolean; isAfk?: boolean; }>>({});
   const cursorCollisionsRef = React.useRef<Map<string, number>>(new Map());
   const cursorExplosionsRef = React.useRef<{ x: number; y: number; time: number; colors: string[]; }[]>([]);
   const localCursorRef = React.useRef<{ x: number; y: number; } | null>(null);
+  // removed localTrailHistoryRef
 
   // --- DIRTY FLAGS ---
   const dirtyFlags = React.useRef({
@@ -478,6 +483,42 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
       const deltaMs = frameTimer.current.tick();
       localCursorRef.current = { x: mouseWorldPos.x, y: mouseWorldPos.y };
 
+      // --- LOCAL TRAIL RENDERING (Using Engine for Parity) ---
+      const LOCAL_ID = 'local_user_cursor';
+      const currentUserOverride = props.permissions?.cursorOverrides?.[currentUser?.id || ''] || {};
+      const localSettings = (props.cursorSettings || {}) as any;
+
+      const effectiveLocalSettings = {
+        color: currentUserOverride.color || localSettings.color || COLORS.DEFAULT_CURSOR,
+        trailEnabled: currentUserOverride.trailEnabled ?? localSettings.trailEnabled,
+        trailColor: currentUserOverride.trailColor || localSettings.trailColor || localSettings.color,
+        trailAnimation: currentUserOverride.trailAnimation || localSettings.trailAnimation,
+        trailCustomImage: currentUserOverride.trailCustomImage || localSettings.trailCustomImage
+      };
+
+      // Feed local data into physics engine to get exact same trail behavior
+      cursorEngine.processServerUpdate(LOCAL_ID, {
+        x: mouseWorldPos.x,
+        y: mouseWorldPos.y,
+        timestamp: performance.now(),
+        // Pass effective settings to engine in case it uses them for filtering
+        trailEnabled: effectiveLocalSettings.trailEnabled,
+        trailColor: effectiveLocalSettings.trailColor,
+        trailAnimation: effectiveLocalSettings.trailAnimation,
+        trailCustomImage: effectiveLocalSettings.trailCustomImage,
+        healthStatus: 'healthy', // Local user always sees themselves healthy for cursor purposes usually
+
+      });
+
+      // Tick and Render
+      cursorEngine.tick(LOCAL_ID, deltaMs);
+      const localRenderData = cursorEngine.getRenderData(LOCAL_ID);
+
+      if (localRenderData && effectiveLocalSettings.trailEnabled) {
+        renderCursorTrails(ctx, localRenderData as any, effectiveLocalSettings.color, z);
+      }
+
+
       const cursorsToRender = remoteCursorsRef?.current ? remoteCursorsRef.current : remoteCursors;
 
       if (cursorsToRender) {
@@ -488,7 +529,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
           const lastProcessed = lastProcessedCursorsRef.current[cursor.userId];
           const positionChanged = !lastProcessed || lastProcessed.x !== cursor.x || lastProcessed.y !== cursor.y;
 
-          if (positionChanged || cursor.isClicking !== lastProcessed?.isClicking) {
+          if (positionChanged || cursor.isClicking !== lastProcessed?.isClicking || cursor.isAfk !== lastProcessed?.isAfk) {
             cursorEngine.processServerUpdate(cursor.userId, {
               x: cursor.x, y: cursor.y, timestamp: cursor.timestamp,
               velocityX: cursor.velocityX, velocityY: cursor.velocityY,
@@ -497,8 +538,15 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
               isChatting: cursor.isChatting, trailAnimation: cursor.trailAnimation as any,
               trailColor: cursor.trailColor, trailEnabled: cursor.trailEnabled,
               trailCustomImage: cursor.trailCustomImage,
+              isAfk: cursor.isAfk,
             });
-            lastProcessedCursorsRef.current[cursor.userId] = { x: cursor.x, y: cursor.y, isClicking: cursor.isClicking };
+            lastProcessedCursorsRef.current[cursor.userId] = {
+              x: cursor.x,
+              y: cursor.y,
+              isClicking: cursor.isClicking,
+              isAfk: cursor.isAfk,
+
+            };
           }
 
           cursorEngine.tick(cursor.userId, deltaMs);
@@ -509,7 +557,7 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
           const cursorColor = cursor.userColor || COLORS.DEFAULT_CURSOR;
 
           ctx.save();
-          if (renderData.isHidden) ctx.globalAlpha = 0.4;
+
 
           // Trails
           if (showTrails && (renderData.trailConfig?.enabled || renderData.healthStatus !== 'healthy')) {
@@ -523,12 +571,24 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
           let stretchScaleX = 1 - Math.min(velocity * STRETCH_FACTOR * 0.5, 0.2);
           if (renderData.isClicking) { stretchScaleX *= 0.6; stretchScaleY *= 0.6; }
 
+          // Ghost Mode for AFK/Hidden
+          const isInactive = renderData.isAfk;
+          const effectiveColor = isInactive ? '#9ca3af' : cursorColor; // Gray-400 for ghost
+          const effectiveOpacity = isInactive ? 0.5 : 1.0;
+
+          ctx.save();
+          ctx.globalAlpha = effectiveOpacity;
+          if (isInactive) {
+            ctx.filter = 'blur(2px)'; // Add blur for ghost
+          }
+
           renderCursor(ctx, renderData.position.x, renderData.position.y, renderData.angle,
-            cursorColor, cursor.userShape || 'default', cursor.userName || '?',
+            effectiveColor, cursor.userShape || 'default', cursor.userName || '?',
             false, stretchScaleX, stretchScaleY, z
           );
+          ctx.restore();
 
-          // Overlays
+          // Overlays (Icons) - Render at full opacity
           renderCursorOverlays(ctx, renderData, z);
 
           ctx.restore();
@@ -544,7 +604,10 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
           Object.values(cursorsToRender).forEach((cursor: any) => {
             if (cursor.userId === currentUser?.id) return;
             const data = cursorEngine.getRenderData(cursor.userId);
-            if (data) cursorPositions.push({ id: cursor.userId, x: data.position.x, y: data.position.y, color: cursor.userColor || COLORS.DEFAULT_CURSOR });
+            // Don't explode if hidden/afk?
+            if (data && !data.isAfk) {
+              cursorPositions.push({ id: cursor.userId, x: data.position.x, y: data.position.y, color: cursor.userColor || COLORS.DEFAULT_CURSOR });
+            }
           });
         }
         if (currentUser) {

@@ -38,6 +38,8 @@ export type SocketEventType =
   | 'viewport:update'
   | 'gm:pull_view'
   | 'gm:force_view'
+  | 'cursor:keep_alive'
+  | 'system:notification'
   | 'connect'
   | 'disconnect';
 
@@ -153,7 +155,6 @@ export interface CursorMovePayload {
   isContexting?: boolean;
   isChatting?: boolean;
   isAfk?: boolean;
-  isHidden?: boolean;
   healthStatus?: 'healthy' | 'bloodied' | 'unconscious'; // For Blood Trail
   trailAnimation?: 'line' | 'water' | 'fire' | 'particles' | 'dice' | 'rainbow' | 'smoke' | 'electric';
   trailColor?: string;
@@ -313,6 +314,11 @@ export interface CursorPressingPayload {
   timestamp?: number;
 }
 
+export interface SystemNotificationPayload {
+  message: string;
+  type: 'info' | 'error' | 'success' | 'warning';
+}
+
 // --- EVENT MAP (Strict Typing) ---
 
 export interface SocketEventMap {
@@ -345,6 +351,7 @@ export interface SocketEventMap {
   'cursor:move': CursorMovePayload;
   'cursor:click': CursorClickPayload;
   'cursor:pressing': CursorPressingPayload;
+  'me:afk_status': { status: 'active' | 'afk' | 'warning', timeLeft?: number; };
   'viewport:update': ViewportUpdatePayload;
   'gm:pull_view': GMPullViewPayload;
   'gm:force_view': GMForceViewPayload;
@@ -365,6 +372,8 @@ export interface SocketEventMap {
   'player:join': { user: { id: string; name: string; color: string; avatar?: string; role: 'gm' | 'player'; }; };
   'player:leave': { userId: string; userName?: string; };
   'viewport:restore': ViewportRestorePayload;
+  'cursor:keep_alive': void;
+  'system:notification': SystemNotificationPayload;
   'connect': void;
   'disconnect': void;
   'error': { message: string; };

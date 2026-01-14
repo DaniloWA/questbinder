@@ -244,38 +244,42 @@ export const GameLog: React.FC<GameLogProps> = ({ onModeChange }) => {
     const formatTime = (timestamp: number) => { return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); };
 
     // Filter Logic + Visibility Logic
-    const filteredMessages = chatMessages.filter(msg => {
-        const isMe = msg.senderId === user?.id;
+    const filteredMessages = React.useMemo(() => {
+        return chatMessages.filter(msg => {
+            const isMe = msg.senderId === user?.id;
 
-        // Visibility Check
-        if (msg.visibility === 'gm' && !isGM && !isMe) return false;
+            // Visibility Check
+            if (msg.visibility === 'gm' && !isGM && !isMe) return false;
 
-        // Private Message Check
-        if (msg.recipientId) {
-            const isRecipient = msg.recipientId === user?.id;
-            if (!isMe && !isRecipient && !isGM) return false;
-        }
+            // Private Message Check
+            if (msg.recipientId) {
+                const isRecipient = msg.recipientId === user?.id;
+                if (!isMe && !isRecipient && !isGM) return false;
+            }
 
-        if (activeFilter === 'all') return true;
-        if (activeFilter === 'chat') return msg.type === 'message';
-        if (activeFilter === 'roll') return msg.type === 'roll';
-        if (activeFilter === 'system') return msg.type === 'system';
-        return true;
-    });
+            if (activeFilter === 'all') return true;
+            if (activeFilter === 'chat') return msg.type === 'message';
+            if (activeFilter === 'roll') return msg.type === 'roll';
+            if (activeFilter === 'system') return msg.type === 'system';
+            return true;
+        });
+    }, [chatMessages, user?.id, isGM, activeFilter]);
 
-    const groupedMessages = filteredMessages.reduce((acc, msg, index) => {
-        const prevMsg = filteredMessages[index - 1];
-        const isSameSender = prevMsg &&
-            prevMsg.senderId === msg.senderId &&
-            prevMsg.senderName === msg.senderName &&
-            prevMsg.characterName === msg.characterName && // Check Identity (RP vs OOC)
-            prevMsg.recipientId === msg.recipientId &&     // Check Scope (Public vs Whisper)
-            prevMsg.type === msg.type &&
-            (msg.timestamp - prevMsg.timestamp < 60000);
+    const groupedMessages = React.useMemo(() => {
+        return filteredMessages.reduce((acc, msg, index) => {
+            const prevMsg = filteredMessages[index - 1];
+            const isSameSender = prevMsg &&
+                prevMsg.senderId === msg.senderId &&
+                prevMsg.senderName === msg.senderName &&
+                prevMsg.characterName === msg.characterName && // Check Identity (RP vs OOC)
+                prevMsg.recipientId === msg.recipientId &&     // Check Scope (Public vs Whisper)
+                prevMsg.type === msg.type &&
+                (msg.timestamp - prevMsg.timestamp < 60000);
 
-        if (isSameSender) acc[acc.length - 1].push(msg); else acc.push([msg]);
-        return acc;
-    }, [] as ChatMessage[][]);
+            if (isSameSender) acc[acc.length - 1].push(msg); else acc.push([msg]);
+            return acc;
+        }, [] as ChatMessage[][]);
+    }, [filteredMessages]);
 
     const renderLink = (link: ChatLinkMetadata) => {
         if (['item', 'spell', 'attack', 'feature', 'compendium'].includes(link.type)) return <RichLinkCard link={link} onClick={() => handleChatLinkClick(link)} />;

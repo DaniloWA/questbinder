@@ -10,9 +10,11 @@ import {
   registerAudioListeners,
   registerCharacterListeners,
   registerPlayerListeners,
-  registerAttackZoneListeners
+  registerAttackZoneListeners,
+  registerSystemListeners
 } from './listeners';
 import React from 'react';
+import { useTranslation } from '../../../i18n/TranslationContext';
 
 import { CursorMovePayload } from '../../../types/socket';
 
@@ -30,11 +32,13 @@ export const useSocketListeners = (
   stateRef: React.RefObject<GameSessionState>,
   remoteCursorsRef: React.RefObject<Record<string, CursorMovePayload>>
 ) => {
+  const { t } = useTranslation();
+
   useEffect(() => {
     if (!state.isConnected) return;
 
     // Create dependencies object for all listeners
-    const deps = { state, setState, campaignId, user, show, setViewport, stateRef, remoteCursorsRef };
+    const deps = { state, setState, campaignId, user, show, setViewport, stateRef, remoteCursorsRef, t };
 
     // Register all listener modules and collect cleanup functions
     const cleanups = [
@@ -47,7 +51,8 @@ export const useSocketListeners = (
       registerAudioListeners(deps),
       registerCharacterListeners(deps),
       registerPlayerListeners(deps),
-      registerAttackZoneListeners(deps)
+      registerAttackZoneListeners(deps),
+      registerSystemListeners(deps)
     ];
 
     // Cleanup function called on unmount or when dependencies change

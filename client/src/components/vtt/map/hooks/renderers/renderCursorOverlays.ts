@@ -56,27 +56,31 @@ export const renderCursorOverlays = (
   // AFK
   if (isAfk) {
     ctx.save();
-    ctx.translate(position.x, position.y - 40 / zoom);
+    ctx.translate(position.x, position.y - 50 / zoom);
     ctx.scale(1 / zoom, 1 / zoom);
 
     const time = Date.now();
     ctx.fillStyle = '#ffffff';
     ctx.shadowColor = 'black';
-    ctx.shadowBlur = 2;
-    ctx.font = 'bold 16px sans-serif';
+    ctx.shadowBlur = 4;
+    ctx.font = 'bold 32px sans-serif'; // Larger Zzz
 
-    [0, 600, 1200].forEach(offset => {
+    [0, 600, 1200].forEach((offset, i) => {
       const age = (time + offset) % 2000;
       const progress = age / 2000;
-      const y = -progress * 20;
+      const y = -progress * 30; // Float higher
       const alpha = 1 - progress;
-      const x = Math.sin(progress * Math.PI * 4) * 5;
+      const x = Math.sin(progress * Math.PI * 2) * 10;
+      const sizeC = 1 - (i * 0.2); // Vary size
 
       ctx.globalAlpha = alpha;
+      ctx.font = `bold ${Math.max(16, 32 * sizeC)}px sans-serif`;
       ctx.fillText('Z', x, y);
     });
     ctx.restore();
   }
+
+
 
   // Status (Chat/Combat)
   if (isChatting || activeTool === 'combat') {

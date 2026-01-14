@@ -219,6 +219,17 @@ export default {
         smoke: 'Smoke',
         electric: 'Electric',
       },
+      // AFK System translations
+      notifications: {
+        afk: ':name is away (AFK)',
+        active: ':name returned',
+      },
+      afk: {
+        title: 'You are Away',
+        desc: 'Move your mouse or interact with the screen to return.',
+        warning_title: 'Inactivity Detected!',
+        warning_desc: 'You will be disconnected in :seconds seconds.',
+      },
     },
     tools: {
       toolbar: {
@@ -3441,7 +3452,20 @@ export default {
       },
     },
     attackZone: {
+      notifications: {
+        afk: ':name is away (AFK)',
+        active: ':name returned',
+      },
+      afk: {
+        title: 'You are Away',
+        desc: 'Move your mouse or interact with the screen to return.',
+        warning_title: 'Inactivity Detected!',
+        warning_desc: 'You will be disconnected in :seconds seconds.',
+      },
       contextMenu: {
+        token: {
+          move_to_front: 'Move to Front',
+        },
         delete: {
           label: 'Delete Zone',
         },
@@ -3599,6 +3623,11 @@ export default {
       },
     },
     notifications: {
+      token_added: 'Token added',
+      token_removed: 'Token removed',
+      active: ':name is back',
+      afk: ':name is AFK',
+      permission_denied: 'Permission denied',
       pullView: {
         message: 'The GM pulled your view',
         title: 'Attention',

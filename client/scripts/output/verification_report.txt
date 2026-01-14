@@ -1,7 +1,69 @@
 
-❌ Found 1 potential missing translations in 1 files:
+❌ Found 49 potential missing translations in 8 files:
 
-📄 client\src\views\GameSessionView.tsx
-   L345: "common.delete" 🔴 Missing in: EN, PT
+📄 src\components\vtt\map\TokenHoverCard.tsx
+   L172: "common.duration" 🔴 Missing in: PT
+   L199: "common.duration" 🔴 Missing in: PT
+   L238: "common.duration" 🔴 Missing in: PT
+   L242: "common.shareTooltip" 🔴 Missing in: PT
+   L282: "common.hero" 🔴 Missing in: PT
+   L282: "common.creature" 🔴 Missing in: PT
+   L285: "common.passivePerception" 🔴 Missing in: PT
+   L296: "common.visible" 🔴 Missing in: PT
+   L296: "common.hidden" 🔴 Missing in: PT
+   L313: "common.hp" 🔴 Missing in: PT
+   L343: "common.resource" 🔴 Missing in: PT
+   L380: "common.unknownEffect" 🔴 Missing in: PT
+   L438: "common.activeEffects" 🔴 Missing in: PT
+   L444: "common.acModifier" 🔴 Missing in: PT
+   L444: "common.ac" 🔴 Missing in: PT
+   L445: "common.speedModifier" 🔴 Missing in: PT
+   L445: "common.speed" 🔴 Missing in: PT
+   L460: "common.ac" 🔴 Missing in: PT
+   L466: "common.speed" 🔴 Missing in: PT
+   L478: "common.sheet" 🔴 Missing in: PT
+
+📄 src\components\vtt\MapSettingsModal.tsx
+   L346: "common.cancel" 🔴 Missing in: PT
+
+📄 src\components\vtt\PermissionsModal.tsx
+   L493: "common.cancel" 🔴 Missing in: PT
+
+📄 src\components\vtt\TokenContextMenu.tsx
+   L96: "common.duration" 🔴 Missing in: PT
+
+📄 src\components\vtt\TokenEditModal.tsx
+   L745: "common.permissions.denied" 🔴 Missing in: PT
+
+📄 src\components\vtt\TokenHoverCard.tsx
+   L174: "common.duration" 🔴 Missing in: PT
+   L201: "common.duration" 🔴 Missing in: PT
+   L240: "common.duration" 🔴 Missing in: PT
+   L244: "common.shareTooltip" 🔴 Missing in: PT
+   L284: "common.hero" 🔴 Missing in: PT
+   L284: "common.creature" 🔴 Missing in: PT
+   L287: "common.passivePerception" 🔴 Missing in: PT
+   L298: "common.visible" 🔴 Missing in: PT
+   L298: "common.hidden" 🔴 Missing in: PT
+   L315: "common.hp" 🔴 Missing in: PT
+   L345: "common.resource" 🔴 Missing in: PT
+   L382: "common.unknownEffect" 🔴 Missing in: PT
+   L439: "common.activeEffects" 🔴 Missing in: PT
+   L445: "common.acModifier" 🔴 Missing in: PT
+   L445: "common.ac" 🔴 Missing in: PT
+   L446: "common.speedModifier" 🔴 Missing in: PT
+   L446: "common.speed" 🔴 Missing in: PT
+   L461: "common.ac" 🔴 Missing in: PT
+   L467: "common.speed" 🔴 Missing in: PT
+   L479: "common.sheet" 🔴 Missing in: PT
+
+📄 src\i18n\index.ts
+   L156: "common.validation.minLength.errorMessage" 🔴 Missing in: PT
+   L159: "common.plurals.items" 🔴 Missing in: PT
+   L160: "common.plurals.items" 🔴 Missing in: PT
+
+📄 src\views\GameSessionView.tsx
+   L350: "common.cancel" 🔴 Missing in: PT
+   L351: "common.delete" 🔴 Missing in: EN, PT
 
 Note: Some errors might be false positives if keys are constructed dynamically (e.g. `rules.${type}.name`).

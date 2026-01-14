@@ -93,7 +93,7 @@ class RealSocketService {
       this.queue.push({ event, payload });
       return;
     }
-    if (event != 'cursor:move' && event != 'token:drag') {
+    if (event != 'cursor:move' && event != 'token:drag' && event != 'cursor:keep_alive') {
       console.log('[WS] Emitting:', event, payload);
     }
     this.socket.emit(event, payload);

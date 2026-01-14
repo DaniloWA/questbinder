@@ -12,7 +12,7 @@ import { ListenerDeps, ListenerCleanup } from './types';
  * - error
  */
 export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => {
-  const { setState, user, show, setViewport, stateRef } = deps;
+  const { setState, user, show, setViewport, stateRef, t } = deps;
 
   // Handler: player:join
   const handlePlayerJoin = (payload: { user: any; }) => {
@@ -56,6 +56,20 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
       )
     }));
 
+    // Immediate Cleanup for Visuals
+    if (deps.remoteCursorsRef && deps.remoteCursorsRef.current) {
+      if (deps.remoteCursorsRef.current[payload.userId]) {
+        delete deps.remoteCursorsRef.current[payload.userId];
+      }
+    }
+
+    // Direct Engine Cleanup (Import cursorEngine?) 
+    // We can't import the specific instance of cursorEngine used in useMapRenderer here easily without context.
+    // However, cleaning the Ref should stop useMapRenderer from ticking it.
+    // AND useMapRenderer's loop is: Object.values(cursorsToRender).forEach...
+    // cursorsToRender = remoteCursorsRef.current
+    // So removing it from the ref STOPS the rendering loop for that user immediately.
+
     // Show notification for player leaving
     show({
       type: 'error',
@@ -64,6 +78,10 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
     });
   };
 
+  // Debounce map to prevent duplicate notifications
+  const notificationDebounce = new Map<string, number>();
+  const NOTIFICATION_DEBOUNCE_MS = 5000; // 5 seconds between same-user notifications
+
   // Handler: cursor:move
   // PERFORMANCE FIX: Removed setState call. React reads from ref directly via animation loop.
   const handleCursorMove = (payload: CursorMovePayload) => {
@@ -71,6 +89,32 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
 
     // Direct ref update ONLY - no React state update to avoid main thread blocking
     if (deps.remoteCursorsRef) {
+      const prev = deps.remoteCursorsRef.current[payload.userId];
+      const now = Date.now();
+      const lastNotification = notificationDebounce.get(payload.userId) || 0;
+
+      // AFK Notification Logic with debounce
+      if (payload.isAfk && (!prev || !prev.isAfk)) {
+        // Only show if we have a name AND debounce passed
+        if (payload.userName && (now - lastNotification > NOTIFICATION_DEBOUNCE_MS)) {
+          notificationDebounce.set(payload.userId, now);
+          show({
+            type: 'warning',
+            message: t('vtt.cursor.notifications.afk', { name: payload.userName }),
+            duration: 3000
+          });
+        }
+      } else if (!payload.isAfk && prev?.isAfk) {
+        if (payload.userName && (now - lastNotification > NOTIFICATION_DEBOUNCE_MS)) {
+          notificationDebounce.set(payload.userId, now);
+          show({
+            type: 'success',
+            message: t('vtt.cursor.notifications.active', { name: payload.userName }),
+            duration: 2000
+          });
+        }
+      }
+
       deps.remoteCursorsRef.current[payload.userId] = payload;
     }
 
@@ -103,6 +147,16 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
         isClicking: payload.pressing
       };
     }
+  };
+
+  // Handler: me:afk_status (Server notifying my own AFK state)
+  const handleMyAfkStatus = (payload: { status: 'active' | 'afk' | 'warning', timeLeft?: number; }) => {
+    console.log('[PlayerListeners] Received me:afk_status:', payload);
+    setState(prev => ({
+      ...prev,
+      afkStatus: payload.status,
+      afkTimeLeft: payload.timeLeft
+    }));
   };
 
   const handleViewportUpdate = (payload: ViewportUpdatePayload) => {
@@ -225,6 +279,7 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
   socketService.on('player:leave', handlePlayerLeave);
   socketService.on('cursor:move', handleCursorMove);
   socketService.on('cursor:pressing', handleCursorPressing);
+  socketService.on('me:afk_status', handleMyAfkStatus);
   socketService.on('viewport:update', handleViewportUpdate);
   socketService.on('viewport:restore', handleViewportRestore);
   socketService.on('gm:force_view', handleGMForceView);

@@ -219,6 +219,17 @@ export default {
         smoke: 'Fumaça',
         electric: 'Elétrico',
       },
+      // AFK System translations
+      notifications: {
+        afk: ':name está ausente (AFK)',
+        active: ':name retornou',
+      },
+      afk: {
+        title: 'Você está Ausente',
+        desc: 'Mexa o mouse ou interaja com a tela para retornar.',
+        warning_title: 'Inatividade Detectada!',
+        warning_desc: 'Você será desconectado em :seconds segundos.',
+      },
     },
     tools: {
       toolbar: {
@@ -848,6 +859,26 @@ export default {
         conditions: {
           label: 'Condições',
         },
+      },
+      notifications: {
+        afk: ':name está ausente (AFK)',
+        active: ':name retornou',
+      },
+      afk: {
+        title: 'Você está Ausente',
+        desc: 'Mexa o mouse ou interaja com a tela para retornar.',
+        warning_title: 'Inatividade Detectada!',
+        warning_desc: 'Você será desconectado em :seconds segundos.',
+      },
+      context_menu: {
+        token: {
+          move_to_front: 'Mover para Frente',
+        },
+        pcs: 'PCs: :count',
+        npcs: 'NPCs: :count',
+        rollNpcs: 'Rolar Todos os NPCs',
+        rollAll: 'Rolar Todos',
+        settings: 'Configurações',
       },
     },
     combat: {
@@ -3098,6 +3129,11 @@ export default {
       },
       notification: {
         handoutSaved: 'Recurso salvo.',
+        token_added: 'Token adicionado',
+        token_removed: 'Token removido',
+        active: ':name voltou',
+        afk: ':name está ausente (AFK)',
+        permission_denied: 'Permissão negada',
         zoneDuplicated: 'Zona duplicada!',
         zoneRemoved: 'Zona removida!',
         zoneUpdated: 'Zona atualizada!',

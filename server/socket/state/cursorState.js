@@ -46,7 +46,7 @@ class CursorStateManager {
    * Update cursor state with new position data
    * Returns the updated state with server enrichment
    */
-  updateState(campaignId, userId, payload) {
+  updateState(campaignId, userId, payload, socketId = null) {
     // Ensure campaign map exists
     if (!this.states.has(campaignId)) {
       this.states.set(campaignId, new Map());
@@ -60,6 +60,21 @@ class CursorStateManager {
       estimatedLatency: 50,
       lastUpdate: 0,
     };
+
+    // Jitter/Redundant Filter:
+    // If position is identical to last known position, ignore update to prevent AFK resetting
+    const lastPos = existing.history[existing.history.length - 1];
+    if (lastPos && Math.abs(lastPos.x - payload.x) < 0.1 && Math.abs(lastPos.y - payload.y) < 0.1) {
+      // Position hasn't changed significantly - return existing with required fields for handler
+      return {
+        ...existing,
+        wasAfk: false,
+        serverTimestamp: existing.serverTimestamp || Date.now()
+      };
+    }
+
+    // Track if user was previously AFK
+    const wasAfk = existing.isAfk || false;
 
     // Calculate latency if client timestamp provided
     let latency = existing.estimatedLatency;
@@ -98,9 +113,23 @@ class CursorStateManager {
       estimatedLatency: latency,
       lastUpdate: now,
       serverTimestamp: now,
+      warningSent: false, // Reset warning on movement
+      isAfk: false,       // Force reset AFK on movement
     };
 
+    if (socketId) updatedState.socketId = socketId;
+
     campaignCursors.set(userId, updatedState);
+
+    // Auto-clear hidden/afk flags if we receive a fresh active update
+    // But preserve them if the payload explicitly sets them (e.g. user manually went AFK)
+    // Note: If client sends isHidden=false, we trust it. If client doesn't send it, we assume false on movement? 
+    // Actually, client sends full state in cursor:move. 
+    // However, for KEEP ALIVE, we might just bump the timestamp.
+
+    // Return wasAfk so handlers can react (send notifications)
+    updatedState.wasAfk = wasAfk;
+
     return updatedState;
   }
 
@@ -220,6 +249,107 @@ class CursorStateManager {
       };
     }
     return info;
+  }
+
+  /**
+   * Reset activity for a user (called on Click, etc)
+   */
+  resetActivity(campaignId, userId) {
+    const state = this.getState(campaignId, userId);
+    if (state) {
+      const wasAfk = state.isAfk;
+      state.lastUpdate = Date.now();
+      state.warningSent = false;
+      state.isAfk = false;
+      return wasAfk;
+    }
+    return false;
+  }
+
+  /**
+   * Check for presence (Heartbeat Watchdog)
+   * Detects if users have stopped sending updates (frozen tab)
+   * Stages:
+   * 1. 30s: Mark AFK
+   * 2. 2m: Warning Kick
+   * 3. 5m: Kick
+   */
+  checkPresence(io) {
+    const now = Date.now();
+    const AFK_TIMEOUT = 30000;     // 30s
+    const WARN_TIMEOUT = 120000;   // 2m
+    const KICK_TIMEOUT = 300000;   // 5m
+
+    for (const [campaignId, userStates] of this.states) {
+      for (const [userId, state] of userStates) {
+        const timeSinceLastUpdate = now - state.lastUpdate;
+
+        // Stage 3: Kick (5m)
+        if (timeSinceLastUpdate > KICK_TIMEOUT) {
+          console.log(`[Presence] Kicking user ${userId} (Inactive > 5m)`);
+
+          // 1. Notify EVERYONE (Public Kick Notification)
+          io.to(campaignId).emit('system:notification', {
+            message: `${state.userName || 'Um jogador'} foi desconectado por inatividade.`,
+            type: 'warning'
+          });
+
+          if (state.socketId) {
+            const socket = io.sockets.sockets.get(state.socketId);
+            if (socket) {
+              socket.emit('error', { message: 'Você foi desconectado por inatividade (5min).' });
+              socket.disconnect(true);
+            }
+          }
+          this.removeUser(campaignId, userId);
+          io.to(campaignId).emit('player:leave', { userId, userName: state.userName || 'Jogador (AFK)' });
+          continue; // User removed
+        }
+
+        // Stage 2: Warning (2m)
+        if (timeSinceLastUpdate > WARN_TIMEOUT && !state.warningSent) {
+          state.warningSent = true;
+          io.to(campaignId).emit('system:notification', {
+            message: `ATENÇÃO: ${state.userName || 'Um jogador'} será desconectado em 3 minutos por inatividade.`,
+            type: 'warning'
+          });
+
+          // Private Warning to User (MUST use sockets.get, not io.to)
+          if (state.socketId) {
+            const userSocket = io.sockets.sockets.get(state.socketId);
+            if (userSocket) {
+              userSocket.emit('me:afk_status', {
+                status: 'warning',
+                timeLeft: Math.round((KICK_TIMEOUT - timeSinceLastUpdate) / 1000)
+              });
+            }
+          }
+        }
+
+        // Stage 1: AFK (30s)
+        if (timeSinceLastUpdate > AFK_TIMEOUT && !state.isAfk) {
+          state.isAfk = true;
+          io.to(campaignId).emit('cursor:move', {
+            userId,
+            userName: state.userName,
+            userColor: state.userColor,
+            x: state.x,
+            y: state.y,
+            isAfk: true,
+            serverTimestamp: now
+          });
+
+          // Private AFK Status to User (MUST use sockets.get, not io.to)
+          if (state.socketId) {
+            const userSocket = io.sockets.sockets.get(state.socketId);
+            if (userSocket) {
+              userSocket.emit('me:afk_status', { status: 'afk' });
+            }
+          }
+          state.afkNotificationSent = true; // Prevent duplicate notifications
+        }
+      }
+    }
   }
 }
 

@@ -1,0 +1,55 @@
+import React from 'react';
+import { useGameSession } from '../../context/GameSessionContext';
+import { useTranslation } from '../../i18n/TranslationContext';
+
+export const AfkOverlay: React.FC = () => {
+  const { afkStatus, afkTimeLeft } = useGameSession();
+  const { t } = useTranslation();
+
+  console.log('[AfkOverlay] Render:', { afkStatus, afkTimeLeft });
+
+  if (!afkStatus || afkStatus === 'active') return null;
+
+  const isWarning = afkStatus === 'warning';
+
+  return (
+    <div className={`fixed inset-0 z-[9999] pointer-events-none flex items-start justify-center pt-24 transition-opacity duration-300 ${isWarning ? 'bg-red-900/20' : 'bg-yellow-900/10'}`}>
+      <div className={`pointer-events-auto max-w-md w-full mx-4 p-6 rounded-lg shadow-2xl border-2 backdrop-blur-md transform transition-all duration-300 animate-in fade-in slide-in-from-top-4
+        ${isWarning
+          ? 'bg-red-950/90 border-red-500 text-red-100'
+          : 'bg-yellow-950/90 border-yellow-500 text-yellow-100'
+        }`}
+      >
+        <div className="flex items-center gap-4">
+          <div className={`text-4xl ${isWarning ? 'animate-pulse' : ''}`}>
+            {isWarning ? '⚠️' : '💤'}
+          </div>
+          <div className="flex-1">
+            <h3 className="text-xl font-bold mb-1">
+              {isWarning
+                ? (t('vtt.cursor.afk.warning_title') || 'Inatividade Detectada!')
+                : (t('vtt.cursor.afk.title') || 'Você está Ausente')
+              }
+            </h3>
+            <p className="text-sm opacity-90">
+              {isWarning
+                ? (t('vtt.cursor.afk.warning_desc', { seconds: afkTimeLeft || 0 }) || `Você será desconectado em ${afkTimeLeft || 0} segundos.`)
+                : (t('vtt.cursor.afk.desc') || 'Mexa o mouse ou interaja com a tela para retornar.')
+              }
+            </p>
+          </div>
+        </div>
+
+        {isWarning && (
+          <div className="mt-4 w-full bg-red-900/50 rounded-full h-2 overflow-hidden">
+            <div
+              className="bg-red-500 h-full transition-all duration-1000 ease-linear"
+              style={{ width: `${((afkTimeLeft || 0) / 180) * 100}%` }}
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+

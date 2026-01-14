@@ -31,54 +31,27 @@ export const useTokenActions = (
   const isContextingRef = useRef<boolean>(false);
   // Chat typing state tracking
   const isChattingRef = useRef<boolean>(false);
-  // AFK & Hidden state tracking
-  const isAfkRef = useRef<boolean>(false);
-  const isHiddenRef = useRef<boolean>(false);
   // Dragging state tracking (hide cursor when dragging tokens)
   const isDraggingRef = useRef<boolean>(false);
-  const afkTimerRef = useRef<any>(null);
 
   // Helper to force update state
   const forceEmitState = useCallback(() => {
-    if (lastCursorEmitRef.current > 0 && prevCursorPosRef.current) {
-      emitCursorMove(prevCursorPosRef.current.x, prevCursorPosRef.current.y);
-    }
+    // Force emit even if we don't have a previous position yet (use 0,0 or last cursor default)
+    // The key is to propagate the status flags (isHidden, isAfk)
+    const pos = prevCursorPosRef.current || { x: 0, y: 0, time: Date.now() };
+    emitCursorMove(pos.x, pos.y, true);
   }, []);
 
-  // AFK Logic: Reset timer on activity
+  // AFK Logic: Reset timer on activity (Legacy: Server now handles AFK)
   const resetAfkTimer = useCallback(() => {
-    if (afkTimerRef.current) clearTimeout(afkTimerRef.current);
+    // No-op: Server handles AFK logic based on cursor movement and keep_alive
+  }, []);
 
-    if (isAfkRef.current) {
-      isAfkRef.current = false;
-      forceEmitState(); // Notify exit of AFK
-    }
-
-    afkTimerRef.current = setTimeout(() => {
-      isAfkRef.current = true;
-      forceEmitState(); // Notify entry of AFK
-    }, 60000); // 60s inactive = AFK
-  }, [forceEmitState]);
-
-  // Hidden/Tab Logic
+  // Heartbeat removed to allow AFK detection
+  // Socket.IO handles connection keep-alive internally
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      const hidden = document.hidden;
-      if (isHiddenRef.current !== hidden) {
-        isHiddenRef.current = hidden;
-        forceEmitState(); // Notify visibility change
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    // Initialize AFK timer on mount
-    resetAfkTimer();
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      if (afkTimerRef.current) clearTimeout(afkTimerRef.current);
-    };
-  }, [forceEmitState, resetAfkTimer]);
+    return () => { };
+  }, []);
 
   const moveToken = useCallback((tokenId: string, newX: number, newY: number) => {
     resetAfkTimer(); // Token movement counts as activity
@@ -334,7 +307,7 @@ export const useTokenActions = (
     socketService.emit('token:drag', { userId: user?.id || '', tokenId: id, x, y, path });
   };
 
-  const emitCursorMove = (x: number, y: number) => {
+  const emitCursorMove = (x: number, y: number, forceImmediate = false) => {
     resetAfkTimer();
     const now = Date.now();
 
@@ -353,7 +326,6 @@ export const useTokenActions = (
       }
     }
 
-    // Add to movement buffer (history since last emit)
     // Add to movement buffer (history since last emit)
     movementBufferRef.current.push({ x, y, time: now });
 
@@ -377,15 +349,14 @@ export const useTokenActions = (
         isClicking: isClickingRef.current, // For remote click feedback
 
         // BATCH REPLAY: Send full path history
-        // BATCH REPLAY: Send full path history
         path: [...movementBufferRef.current],
 
         // New Trail/Status Fields with Privacy Checks
         activeTool: (settings as any).showToolActivity !== false ? state.activeTool : null,
         isContexting: (settings as any).showStatusActivity !== false ? isContextingRef.current : false,
         isChatting: (settings as any).showStatusActivity !== false ? isChattingRef.current : false,
-        isAfk: isAfkRef.current,
-        isHidden: isHiddenRef.current,
+
+        // isAfk and isHidden removed (Server Authoritative)
 
         healthStatus: (() => {
           const char = state.campaignCharacters.find(c => c.ownerId === userId);
@@ -406,8 +377,8 @@ export const useTokenActions = (
       return payload;
     };
 
-    // If enough time has passed since last emit, send immediately
-    if (now - lastCursorEmitRef.current >= CURSOR_THROTTLE_MS) {
+    // If forceImmediate OR enough time passed, send immediately
+    if (forceImmediate || now - lastCursorEmitRef.current >= CURSOR_THROTTLE_MS) {
       socketService.emit('cursor:move', buildPayload(x, y, velocityX, velocityY));
 
       // Update tracking refs

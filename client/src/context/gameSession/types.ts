@@ -69,6 +69,10 @@ export interface GameSessionState {
   isConnected: boolean;
   isLoading: boolean;
 
+  // AFK Status
+  afkStatus?: 'active' | 'afk' | 'warning';
+  afkTimeLeft?: number;
+
   // Settings
   cursorSettings: {
     color: string;

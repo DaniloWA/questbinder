@@ -9,6 +9,7 @@ export { registerAudioListeners } from './audioListeners';
 export { registerCharacterListeners } from './characterListeners';
 export { registerPlayerListeners } from './playerListeners';
 export { registerAttackZoneListeners } from './attackZoneListeners';
+export { registerSystemListeners } from './systemListeners';
 
 // Export types
 export type { ListenerDeps, ListenerCleanup } from './types';

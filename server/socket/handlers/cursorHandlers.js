@@ -51,7 +51,7 @@ export const registerCursorHandlers = (socket, client, utils) => {
     }
 
     // Update server-side state
-    const updatedState = cursorState.updateState(client.campaignId, client.userId, payload);
+    const updatedState = cursorState.updateState(client.campaignId, client.userId, payload, socket.id);
 
     // Broadcast to other clients with server enrichment
     socket.to(client.campaignId).emit('cursor:move', {
@@ -60,6 +60,15 @@ export const registerCursorHandlers = (socket, client, utils) => {
       serverTimestamp: updatedState.serverTimestamp,
       estimatedLatency: updatedState.estimatedLatency,
     });
+
+    // Handle Return from AFK (Notify Sender)
+    if (updatedState.wasAfk) {
+      socket.emit('me:afk_status', { status: 'active' });
+      socket.to(client.campaignId).emit('system:notification', {
+        message: `${updatedState.userName || 'Jogador'} retornou.`,
+        type: 'success'
+      });
+    }
   });
 
   /**
@@ -70,6 +79,9 @@ export const registerCursorHandlers = (socket, client, utils) => {
 
     const now = Date.now();
     const { timestamp, x, y, color, style } = payload;
+
+    // Reset AFK/Timer on click
+    cursorState.resetActivity(client.campaignId, client.userId);
 
     // Default to provided position
     let compensatedPosition = { x, y };
@@ -123,6 +135,39 @@ export const registerCursorHandlers = (socket, client, utils) => {
       pressing: !!pressing,
       timestamp: Date.now(),
     });
+  });
+
+  /**
+   * cursor:keep_alive - Lightweight heartbeat
+   * Updates lastUpdate timestamp to prevent "Auto-Hidden"
+   */
+  socket.on('cursor:keep_alive', () => {
+    if (!client.campaignId || !client.userId) return;
+
+    // Update timestamp in state manager
+    // If user was AFK, return them to active
+    // Using resetActivity helper to ensure consistency
+    const wasAfk = cursorState.resetActivity(client.campaignId, client.userId);
+    const state = cursorState.getState(client.campaignId, client.userId);
+
+    if (wasAfk && state) {
+      // Broadcast return
+      socket.to(client.campaignId).emit('cursor:move', {
+        userId: client.userId,
+        x: state.x,
+        y: state.y,
+        isAfk: false,
+        serverTimestamp: Date.now()
+      });
+
+      // Notify user locally to clear overlay
+      socket.emit('me:afk_status', { status: 'active' });
+
+      socket.to(client.campaignId).emit('system:notification', {
+        message: `${state.userName || 'Jogador'} retornou.`,
+        type: 'success'
+      });
+    }
   });
 
   /**

@@ -110,6 +110,7 @@ export const setupSocket = (server) => {
 
         // Fetch User for self-info
         const user = await db.getById('users', userId);
+        console.log(`[WS] User lookup for ${userId}:`, user ? user.name : 'NOT FOUND');
         client.subscriptionTier = user?.subscriptionTier || 'free';
 
         client.isGM = isRefGM;
@@ -121,6 +122,7 @@ export const setupSocket = (server) => {
 
         const playerInfo = user || { id: userId, name: 'Unknown', color: '#ffffff', role: client.gameRole };
         client.userName = playerInfo.name || 'Unknown';
+        console.log(`[WS] Final userName for ${userId}: ${client.userName}`);
 
         const role = client.gameRole;
         const playerPayload = { ...playerInfo, role };
@@ -137,6 +139,16 @@ export const setupSocket = (server) => {
 
         const roomSize = io.sockets.adapter.rooms.get(campaignId)?.size || 0;
         console.log(`[WS] ${userId} joined campaign ${campaignId} | GM: ${client.isGM} | Players: ${roomSize}/${maxPlayers}`);
+
+        // Initialize Cursor State for AFK Tracking immediately
+        // This ensures the user has a socketId registered for private notifications (me:afk_status)
+        // and a userName for public notifications, even if they never move their mouse.
+        cursorState.updateState(campaignId, userId, {
+          x: 0, y: 0, // Default position (hidden?), will be updated on first move
+          userName: client.userName,
+          userColor: playerInfo.color || '#ffffff',
+          timestamp: Date.now()
+        }, socket.id);
       } catch (err) {
         console.error('[WS] room:join error:', err);
         socket.disconnect(true);
@@ -159,7 +171,8 @@ export const setupSocket = (server) => {
     const lastEmitTimes = {};
 
     // cursor:move and cursor:click now handled by cursorHandlers.js
-    const ephemeralEvents = ['token:drag', 'chat:reaction', 'viewport:update'];
+    // These are HIGH-FREQUENCY events that should NOT be logged
+    const ephemeralEvents = ['cursor:move', 'cursor:pressing', 'cursor:click', 'cursor:keep_alive', 'token:drag', 'chat:reaction', 'viewport:update'];
 
     ephemeralEvents.forEach(event => {
       socket.on(event, (payload) => {
@@ -269,14 +282,36 @@ export const setupSocket = (server) => {
           console.log(`[WS] Saved viewport for ${client.userId}:`, client.lastViewport);
         }
 
+        // Save cursor position
+        const cursorStateData = cursorState.getState(client.campaignId, client.userId);
+        if (cursorStateData) {
+          // We could save this to a DB or memory. For now, let's keep it in memory associated with the campaign/user
+          // Actually, cursorState is already in memory. But we remove the user below.
+          // We need a persistent store if we want it to survive 'removeUser'. 
+          // BUT, 'removeUser' deletes it from cursorState.
+          // Let's reuse 'playerViewports' or a similar structure for 'savedCursors'.
+          if (!client.savedCursors) client.savedCursors = new Map(); // Global scope? No attached to what?
+          // Let's just use a new global map for now alongside playerViewports
+        }
+
         // Emit leave with user name for notification
         io.to(client.campaignId).emit('player:leave', {
           userId: client.userId,
           userName: client.userName || 'Jogador'
         });
       }
+
+      // Cleanup
+      if (client.campaignId && client.userId) {
+        cursorState.removeUser(client.campaignId, client.userId);
+      }
     });
   });
+
+  // Start Presence Check Loop (AFK/Kick)
+  setInterval(() => {
+    cursorState.checkPresence(io);
+  }, 10000); // Check every 10 seconds
 
   return io;
 };
