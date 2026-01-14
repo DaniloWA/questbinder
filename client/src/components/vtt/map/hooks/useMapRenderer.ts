@@ -475,8 +475,10 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
 
       renderPingAnimations(ctx, pings, gridSize, z);
 
+      const cursorsToRender = remoteCursorsRef?.current ? remoteCursorsRef.current : remoteCursors;
+
       if (remoteViewports) {
-        renderRemoteViewports(ctx, remoteViewports, remoteCursors, currentUser?.id, permissions, effectiveIsGM, z);
+        renderRemoteViewports(ctx, remoteViewports, cursorsToRender, currentUser?.id, permissions, effectiveIsGM, z, players);
       }
 
       // --- CURSORS (Physics Engine) ---
@@ -519,7 +521,6 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
       }
 
 
-      const cursorsToRender = remoteCursorsRef?.current ? remoteCursorsRef.current : remoteCursors;
 
       if (cursorsToRender) {
         Object.values(cursorsToRender).forEach((cursor: any) => {

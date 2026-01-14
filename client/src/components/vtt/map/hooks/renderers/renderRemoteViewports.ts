@@ -3,6 +3,8 @@
 
 import { getContrastColor } from '../../../../../utils/colors';
 
+import { User } from '../../../../../types';
+
 export const renderRemoteViewports = (
   ctx: CanvasRenderingContext2D,
   remoteViewports: Record<string, { x: number, y: number, zoom: number, w: number, h: number; }>,
@@ -10,7 +12,8 @@ export const renderRemoteViewports = (
   currentUserId: string | undefined, // or User | null
   permissions: any,
   isGM: boolean,
-  zoom: number
+  zoom: number,
+  players: User[] | undefined
 ) => {
   if (!remoteViewports) return;
 
@@ -56,8 +59,14 @@ export const renderRemoteViewports = (
     const ww = vp.w / vp.zoom;
     const wh = vp.h / vp.zoom;
 
+    // Resolve Leader Color
     const cursor = remoteCursors ? remoteCursors[leaderId] : null;
-    const color = cursor?.userColor || '#808080';
+    let color = cursor?.userColor;
+    if (!color && players) {
+      const p = players.find(u => u.id === leaderId);
+      if (p) color = p.color;
+    }
+    color = color || '#808080';
 
     ctx.save();
     ctx.strokeStyle = color;
@@ -69,16 +78,35 @@ export const renderRemoteViewports = (
     const fontSize = 12 / zoom;
     ctx.font = `bold ${fontSize}px sans-serif`;
     const padding = 4 / zoom;
+    let currentXOffset = 0;
 
-    uids.forEach((uid, index) => {
+    uids.forEach((uid) => {
       const uCursor = remoteCursors ? remoteCursors[uid] : null;
-      const uName = uCursor?.userName || 'Player';
-      const uColor = uCursor?.userColor || '#808080';
+
+      let uName = uCursor?.userName;
+      let uColor = uCursor?.userColor;
+
+      // Fallback to players list if cursor data is missing
+      if ((!uName || !uColor) && players) {
+        const p = players.find(u => u.id === uid);
+        if (p) {
+          if (!uName) uName = p.name;
+          if (!uColor) uColor = p.color;
+        }
+      }
+
+      uName = uName || 'Player';
+      uColor = uColor || '#808080';
 
       const textMetrics = ctx.measureText(uName);
       const tagW = textMetrics.width + padding * 2;
       const tagH = fontSize + padding * 2;
-      const tagX = wx + (index * (tagW + 5 / zoom));
+
+      // Position accumulating offset
+      const tagX = wx + currentXOffset;
+
+      // Update offset for next label
+      currentXOffset += tagW + (5 / zoom);
 
       ctx.fillStyle = uColor;
       ctx.fillRect(tagX, wy, tagW, tagH);
