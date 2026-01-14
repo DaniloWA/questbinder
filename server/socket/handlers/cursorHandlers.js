@@ -59,6 +59,7 @@ export const registerCursorHandlers = (socket, client, utils) => {
       userId: client.userId,
       serverTimestamp: updatedState.serverTimestamp,
       estimatedLatency: updatedState.estimatedLatency,
+      isAfk: updatedState.isAfk // Explicitly broadcast updated AFK state (false if returning)
     });
 
     // Handle Return from AFK (Notify Sender)

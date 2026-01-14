@@ -62,14 +62,44 @@ class CursorStateManager {
     };
 
     // Jitter/Redundant Filter:
-    // If position is identical to last known position, ignore update to prevent AFK resetting
+    // If position is identical to last known position, detect if this is a "Stationary" update
     const lastPos = existing.history[existing.history.length - 1];
-    if (lastPos && Math.abs(lastPos.x - payload.x) < 0.1 && Math.abs(lastPos.y - payload.y) < 0.1) {
-      // Position hasn't changed significantly - return existing with required fields for handler
+
+    // Check for significant state changes (Tool change, chat, context menu)
+    // If these changed, we treat it as ACTIVE regardless of position
+    const hasStateChange = (
+      (payload.activeTool && payload.activeTool !== existing.activeTool) ||
+      (payload.isContexting !== undefined && payload.isContexting !== existing.isContexting) ||
+      (payload.isChatting !== undefined && payload.isChatting !== existing.isChatting) ||
+      (payload.isClicking !== undefined && payload.isClicking !== existing.isClicking)
+    );
+
+    // Calculate movement delta
+    const deltaX = lastPos ? Math.abs(lastPos.x - payload.x) : 0;
+    const deltaY = lastPos ? Math.abs(lastPos.y - payload.y) : 0;
+
+    // Definition of Stationary: Tiny movement (< 0.1) AND No State Change
+    const isStationary = lastPos && deltaX < 0.1 && deltaY < 0.1 && !hasStateChange;
+
+    if (isStationary) {
+      // If Stationary, we treat this as a "Keep Alive" heartbeat.
+      // It proves the user is connected, so we update the timestamp.
+      existing.lastUpdate = now;
+      existing.serverTimestamp = now;
+
+      // CRITICAL LOGIC: 
+      // If user is ALREADY AFK, a stationary packet (jitter/heartbeat) should NOT wake them up.
+      // They must move significantly or change state to wake up.
+      if (existing.isAfk) {
+        // Return existing state (still AFK)
+        return existing;
+      }
+
+      // If user is ACTIVE, this packet keeps them active (prevents timeout).
       return {
         ...existing,
         wasAfk: false,
-        serverTimestamp: existing.serverTimestamp || Date.now()
+        serverTimestamp: now
       };
     }
 
@@ -270,13 +300,13 @@ class CursorStateManager {
    * Check for presence (Heartbeat Watchdog)
    * Detects if users have stopped sending updates (frozen tab)
    * Stages:
-   * 1. 30s: Mark AFK
+   * 1. 1m: Mark AFK
    * 2. 2m: Warning Kick
    * 3. 5m: Kick
    */
   checkPresence(io) {
     const now = Date.now();
-    const AFK_TIMEOUT = 30000;     // 30s
+    const AFK_TIMEOUT = 60000;     // 1m
     const WARN_TIMEOUT = 120000;   // 2m
     const KICK_TIMEOUT = 300000;   // 5m
 
@@ -301,7 +331,7 @@ class CursorStateManager {
               socket.emit('me:kicked', {
                 reason: 'afk',
                 message: 'Você foi desconectado por inatividade (5 minutos).',
-                redirectTo: '/dashboard'
+                redirectTo: `/join/${campaignId}`
               });
               // Slight delay to ensure the event is received
               setTimeout(() => socket.disconnect(true), 100);

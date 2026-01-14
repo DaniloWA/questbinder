@@ -10,7 +10,7 @@ interface NotificationContextType {
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
-export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const NotificationProvider: React.FC<{ children: ReactNode; }> = ({ children }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const dismiss = useCallback((id: string) => {
@@ -19,10 +19,10 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
 
   const show = useCallback((input: NotificationInput) => {
     const id = Math.random().toString(36).substring(2, 9);
-    const duration = input.duration || 5000;
-    
+    const duration = input.duration || 15000;
+
     const newNotification: Notification = { ...input, id, duration };
-    
+
     setNotifications((prev) => [...prev, newNotification]);
 
     if (duration > 0) {

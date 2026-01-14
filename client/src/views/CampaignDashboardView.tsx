@@ -176,6 +176,23 @@ export const CampaignDashboardView: React.FC = () => {
         loadData(campaignId);
     }, [campaignId]);
 
+    useEffect(() => {
+        // Check for kick message from redirection
+        const kickMessage = sessionStorage.getItem('kickMessage');
+
+        if (kickMessage) {
+            show({
+                type: 'error',
+                message: kickMessage,
+                duration: 999999
+            });
+
+            // Clear storage
+            sessionStorage.removeItem('kickMessage');
+            sessionStorage.removeItem('kickReason');
+        }
+    }, []);
+
     const isOwner = campaign?.ownerId === user?.id;
     const isMember = campaign?.players.list.includes(user?.id || '') || isOwner;
 
