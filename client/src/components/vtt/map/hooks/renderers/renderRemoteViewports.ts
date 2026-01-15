@@ -68,7 +68,11 @@ export const renderRemoteViewports = (
     }
     color = color || '#808080';
 
+    // Check if leader is AFK - apply fade to viewport
+    const isAfk = cursor?.isAfk ?? false;
+
     ctx.save();
+    ctx.globalAlpha = isAfk ? 0.25 : 1.0; // Fade when AFK
     ctx.strokeStyle = color;
     ctx.lineWidth = 2 / zoom;
     ctx.setLineDash([10 / zoom, 5 / zoom]);

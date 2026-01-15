@@ -1,119 +1,609 @@
 {
-  "filePath": "client/src/components/vtt/Sidebar.tsx",
-  "timestamp": "2026-01-10T22:37:12.632Z",
-  "componentName": "Sidebar.tsx",
-  "totalFound": 11,
-  "userFacingCount": 11,
+  "filePath": "client/src/components/vtt/CursorEditor.tsx",
+  "timestamp": "2026-01-15T02:17:28.790Z",
+  "componentName": "CursorEditor.tsx",
+  "totalFound": 62,
+  "userFacingCount": 60,
   "strings": [
     {
-      "original": "party",
-      "line": 104,
-      "context": "const { t } = useTranslation();\r\n  const [activeTab, setActiveTab] = useState<'combat' | 'chat' | 'party'>('chat');\r\n  const [isPoppedOut, setIsPoppedOut] = useState(false);",
-      "suggestedKey": "vtt.sidebar.main.party.label",
+      "original": "options",
+      "line": 682,
+      "context": "{activeTab === 'options' && (\r\n          <div className=\"space-y-3\">",
+      "suggestedKey": "vtt.cursor.editor.options.label",
       "contentType": "label",
       "confidence": "high",
-      "start": 4974,
-      "end": 4981
+      "start": 33275,
+      "end": 33284
     },
     {
-      "original": "combat",
-      "line": 104,
-      "context": "const { t } = useTranslation();\r\n  const [activeTab, setActiveTab] = useState<'combat' | 'chat' | 'party'>('chat');\r\n  const [isPoppedOut, setIsPoppedOut] = useState(false);",
-      "suggestedKey": "vtt.sidebar.main.combat.label",
+      "original": "electric",
+      "line": 623,
+      "context": "<div className=\"grid grid-cols-2 gap-1\">\r\n                    {['line', 'particles', 'dice', 'sparkles', 'smoke', 'electric'].map(style => (\r\n                      <button",
+      "suggestedKey": "vtt.cursor.editor.electric.label",
       "contentType": "label",
       "confidence": "high",
-      "start": 4954,
-      "end": 4962
+      "start": 29989,
+      "end": 29999
     },
     {
-      "original": "party",
-      "line": 94,
-      "context": "{activeTab === 'combat' && <CombatTrackerEnhanced />}\r\n        {activeTab === 'party' && <PartyList />}\r\n      </div>",
-      "suggestedKey": "vtt.sidebar.main.party.label",
+      "original": "smoke",
+      "line": 623,
+      "context": "<div className=\"grid grid-cols-2 gap-1\">\r\n                    {['line', 'particles', 'dice', 'sparkles', 'smoke', 'electric'].map(style => (\r\n                      <button",
+      "suggestedKey": "vtt.cursor.editor.smoke.label",
       "contentType": "label",
       "confidence": "high",
-      "start": 4676,
-      "end": 4683
+      "start": 29980,
+      "end": 29987
     },
     {
-      "original": "combat",
-      "line": 93,
-      "context": "{activeTab === 'combat' && <CombatTrackerEnhanced />}\r\n        {activeTab === 'party' && <PartyList />}",
-      "suggestedKey": "vtt.sidebar.main.combat.label",
+      "original": "sparkles",
+      "line": 623,
+      "context": "<div className=\"grid grid-cols-2 gap-1\">\r\n                    {['line', 'particles', 'dice', 'sparkles', 'smoke', 'electric'].map(style => (\r\n                      <button",
+      "suggestedKey": "vtt.cursor.editor.sparkles.label",
       "contentType": "label",
       "confidence": "high",
-      "start": 4613,
-      "end": 4621
+      "start": 29968,
+      "end": 29978
     },
     {
-      "original": "party",
-      "line": 53,
-      "context": "<button\r\n              onClick={() => setActiveTab('party')}\r\n              className={`p-2 rounded-md transition-all ${activeTab === 'party' ? 'bg-zinc-800 text-green-400 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}",
-      "suggestedKey": "vtt.sidebar.main.party.label",
+      "original": "dice",
+      "line": 623,
+      "context": "<div className=\"grid grid-cols-2 gap-1\">\r\n                    {['line', 'particles', 'dice', 'sparkles', 'smoke', 'electric'].map(style => (\r\n                      <button",
+      "suggestedKey": "vtt.cursor.editor.dice.label",
       "contentType": "label",
       "confidence": "high",
-      "start": 2857,
-      "end": 2864
+      "start": 29960,
+      "end": 29966
     },
     {
-      "original": "combat",
-      "line": 45,
-      "context": "<button\r\n              onClick={() => setActiveTab('combat')}\r\n              className={`p-2 rounded-md transition-all ${activeTab === 'combat' ? 'bg-zinc-800 text-red-400 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}",
-      "suggestedKey": "vtt.sidebar.main.combat.label",
+      "original": "particles",
+      "line": 623,
+      "context": "<div className=\"grid grid-cols-2 gap-1\">\r\n                    {['line', 'particles', 'dice', 'sparkles', 'smoke', 'electric'].map(style => (\r\n                      <button",
+      "suggestedKey": "vtt.cursor.editor.particles.label",
       "contentType": "label",
       "confidence": "high",
-      "start": 2436,
-      "end": 2444
+      "start": 29947,
+      "end": 29958
     },
     {
-      "original": "sidebar",
-      "line": 25,
-      "context": "// Chat view mode inside the sidebar is always 'sidebar' or 'fullscreen', actually inside the small container it behaves like sidebar\r\n  const [chatMode, setChatMode] = useState<ChatViewMode>('sidebar');",
-      "suggestedKey": "vtt.sidebar.main.sidebar.label",
+      "original": "line",
+      "line": 623,
+      "context": "<div className=\"grid grid-cols-2 gap-1\">\r\n                    {['line', 'particles', 'dice', 'sparkles', 'smoke', 'electric'].map(style => (\r\n                      <button",
+      "suggestedKey": "vtt.cursor.editor.line.label",
       "contentType": "label",
       "confidence": "high",
-      "start": 1292,
-      "end": 1301
+      "start": 29939,
+      "end": 29945
     },
     {
-      "original": "party",
-      "line": 16,
-      "context": "activeTab: 'combat' | 'chat' | 'party';\r\n  setActiveTab: (t: 'combat' | 'chat' | 'party') => void;\r\n  onClose?: () => void;",
-      "suggestedKey": "vtt.sidebar.main.party.label",
+      "original": "trail",
+      "line": 601,
+      "context": ")}\r\n        {activeTab === 'trail' && (\r\n          <div className={!canEdit.trail ? 'opacity-60' : ''}>",
+      "suggestedKey": "vtt.cursor.editor.trail.label",
       "contentType": "label",
       "confidence": "high",
-      "start": 816,
-      "end": 823
+      "start": 28643,
+      "end": 28650
     },
     {
-      "original": "combat",
-      "line": 16,
-      "context": "activeTab: 'combat' | 'chat' | 'party';\r\n  setActiveTab: (t: 'combat' | 'chat' | 'party') => void;\r\n  onClose?: () => void;",
-      "suggestedKey": "vtt.sidebar.main.combat.label",
+      "original": "cross",
+      "line": 561,
+      "context": "{ id: 'diamond', label: t('vtt.cursor.pings.diamond'), icon: Triangle },\r\n                  { id: 'cross', label: t('vtt.cursor.pings.cross'), icon: Wind },\r\n                ].map(a => (",
+      "suggestedKey": "vtt.cursor.editor.cross.label",
       "contentType": "label",
       "confidence": "high",
-      "start": 796,
-      "end": 804
+      "start": 26418,
+      "end": 26425
     },
     {
-      "original": "party",
-      "line": 15,
-      "context": "const SidebarContent: React.FC<{\r\n  activeTab: 'combat' | 'chat' | 'party';\r\n  setActiveTab: (t: 'combat' | 'chat' | 'party') => void;",
-      "suggestedKey": "vtt.sidebar.main.party.label",
+      "original": "diamond",
+      "line": 560,
+      "context": "{ id: 'flare', label: t('vtt.cursor.pings.flare'), icon: Sun },\r\n                  { id: 'diamond', label: t('vtt.cursor.pings.diamond'), icon: Triangle },\r\n                  { id: 'cross', label: t('vtt.cursor.pings.cross'), icon: Wind },",
+      "suggestedKey": "vtt.cursor.editor.diamond.label",
       "contentType": "label",
       "confidence": "high",
-      "start": 766,
-      "end": 773
+      "start": 26326,
+      "end": 26335
     },
     {
-      "original": "combat",
-      "line": 15,
-      "context": "const SidebarContent: React.FC<{\r\n  activeTab: 'combat' | 'chat' | 'party';\r\n  setActiveTab: (t: 'combat' | 'chat' | 'party') => void;",
-      "suggestedKey": "vtt.sidebar.main.combat.label",
+      "original": "flare",
+      "line": 559,
+      "context": "{ id: 'ripple', label: t('vtt.cursor.animations.ripple'), icon: CircleDot },\r\n                  { id: 'flare', label: t('vtt.cursor.pings.flare'), icon: Sun },\r\n                  { id: 'diamond', label: t('vtt.cursor.pings.diamond'), icon: Triangle },",
+      "suggestedKey": "vtt.cursor.editor.flare.label",
       "contentType": "label",
       "confidence": "high",
-      "start": 746,
-      "end": 754
+      "start": 26243,
+      "end": 26250
+    },
+    {
+      "original": "ripple",
+      "line": 558,
+      "context": "{ id: 'target', label: t('vtt.cursor.pings.target'), icon: Target },\r\n                  { id: 'ripple', label: t('vtt.cursor.animations.ripple'), icon: CircleDot },\r\n                  { id: 'flare', label: t('vtt.cursor.pings.flare'), icon: Sun },",
+      "suggestedKey": "vtt.cursor.editor.ripple.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 26147,
+      "end": 26155
+    },
+    {
+      "original": "target",
+      "line": 557,
+      "context": "{ id: 'pulse', label: t('vtt.cursor.animations.pulse'), icon: Activity },\r\n                  { id: 'target', label: t('vtt.cursor.pings.target'), icon: Target },\r\n                  { id: 'ripple', label: t('vtt.cursor.animations.ripple'), icon: CircleDot },",
+      "suggestedKey": "vtt.cursor.editor.target.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 26059,
+      "end": 26067
+    },
+    {
+      "original": "pulse",
+      "line": 556,
+      "context": "{ id: 'sonar', label: t('vtt.cursor.pings.sonar'), icon: Podcast },\r\n                  { id: 'pulse', label: t('vtt.cursor.animations.pulse'), icon: Activity },\r\n                  { id: 'target', label: t('vtt.cursor.pings.target'), icon: Target },",
+      "suggestedKey": "vtt.cursor.editor.pulse.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 25966,
+      "end": 25973
+    },
+    {
+      "original": "sonar",
+      "line": 555,
+      "context": "{ id: 'beacon', label: t('vtt.cursor.pings.beacon'), icon: Zap },\r\n                  { id: 'sonar', label: t('vtt.cursor.pings.sonar'), icon: Podcast },\r\n                  { id: 'pulse', label: t('vtt.cursor.animations.pulse'), icon: Activity },",
+      "suggestedKey": "vtt.cursor.editor.sonar.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 25879,
+      "end": 25886
+    },
+    {
+      "original": "beacon",
+      "line": 554,
+      "context": "{ id: 'radar', label: t('vtt.cursor.pings.radar'), icon: Radio },\r\n                  { id: 'beacon', label: t('vtt.cursor.pings.beacon'), icon: Zap },\r\n                  { id: 'sonar', label: t('vtt.cursor.pings.sonar'), icon: Podcast },",
+      "suggestedKey": "vtt.cursor.editor.beacon.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 25794,
+      "end": 25802
+    },
+    {
+      "original": "radar",
+      "line": 553,
+      "context": "{[\r\n                  { id: 'radar', label: t('vtt.cursor.pings.radar'), icon: Radio },\r\n                  { id: 'beacon', label: t('vtt.cursor.pings.beacon'), icon: Zap },",
+      "suggestedKey": "vtt.cursor.editor.radar.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 25709,
+      "end": 25716
+    },
+    {
+      "original": "ping",
+      "line": 540,
+      "context": "<div className=\"flex flex-col items-center gap-1\">\r\n                <AnimationPreview style={values.pingAnimation} color={values.pingColor} size={100} isVisible={isVisible && activeTab === 'ping'} />\r\n                <span className=\"text-[9px] text-zinc-500\">{t('vtt.cursor.editor.preview.ping')}</span>",
+      "suggestedKey": "vtt.cursor.editor.ping.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 24929,
+      "end": 24935
+    },
+    {
+      "original": "ping",
+      "line": 534,
+      "context": "{/* Ping Tab */}\r\n        {activeTab === 'ping' && (\r\n          <>",
+      "suggestedKey": "vtt.cursor.editor.ping.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 24309,
+      "end": 24315
+    },
+    {
+      "original": "orb",
+      "line": 484,
+      "context": "{ id: 'echo', label: t('vtt.cursor.animations.echo'), icon: Radio },\r\n                  { id: 'orb', label: t('vtt.cursor.animations.orb'), icon: Zap },\r\n                ].map(a => (",
+      "suggestedKey": "vtt.cursor.editor.orb.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 21677,
+      "end": 21682
+    },
+    {
+      "original": "echo",
+      "line": 483,
+      "context": "{ id: 'ring', label: t('vtt.cursor.animations.ring'), icon: Podcast },\r\n                  { id: 'echo', label: t('vtt.cursor.animations.echo'), icon: Radio },\r\n                  { id: 'orb', label: t('vtt.cursor.animations.orb'), icon: Zap },",
+      "suggestedKey": "vtt.cursor.editor.echo.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 21589,
+      "end": 21595
+    },
+    {
+      "original": "shard",
+      "line": 481,
+      "context": "{ id: 'vortex', label: t('vtt.cursor.animations.vortex'), icon: Disc },\r\n                  { id: 'shard', label: t('vtt.cursor.animations.shard'), icon: Sun },\r\n                  { id: 'ring', label: t('vtt.cursor.animations.ring'), icon: Podcast },",
+      "suggestedKey": "vtt.cursor.editor.shard.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 21411,
+      "end": 21418
+    },
+    {
+      "original": "vortex",
+      "line": 480,
+      "context": "{ id: 'pulse', label: t('vtt.cursor.animations.pulse'), icon: Target },\r\n                  { id: 'vortex', label: t('vtt.cursor.animations.vortex'), icon: Disc },\r\n                  { id: 'shard', label: t('vtt.cursor.animations.shard'), icon: Sun },",
+      "suggestedKey": "vtt.cursor.editor.vortex.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 21320,
+      "end": 21328
+    },
+    {
+      "original": "pulse",
+      "line": 479,
+      "context": "{ id: 'sparkle', label: t('vtt.cursor.animations.sparkle'), icon: Stars },\r\n                  { id: 'pulse', label: t('vtt.cursor.animations.pulse'), icon: Target },\r\n                  { id: 'vortex', label: t('vtt.cursor.animations.vortex'), icon: Disc },",
+      "suggestedKey": "vtt.cursor.editor.pulse.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 21229,
+      "end": 21236
+    },
+    {
+      "original": "sparkle",
+      "line": 478,
+      "context": "{ id: 'burst', label: t('vtt.cursor.animations.burst'), icon: Activity },\r\n                  { id: 'sparkle', label: t('vtt.cursor.animations.sparkle'), icon: Stars },\r\n                  { id: 'pulse', label: t('vtt.cursor.animations.pulse'), icon: Target },",
+      "suggestedKey": "vtt.cursor.editor.sparkle.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 21135,
+      "end": 21144
+    },
+    {
+      "original": "burst",
+      "line": 477,
+      "context": "{ id: 'ripple', label: t('vtt.cursor.animations.ripple'), icon: CircleDot },\r\n                  { id: 'burst', label: t('vtt.cursor.animations.burst'), icon: Activity },\r\n                  { id: 'sparkle', label: t('vtt.cursor.animations.sparkle'), icon: Stars },",
+      "suggestedKey": "vtt.cursor.editor.burst.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 21042,
+      "end": 21049
+    },
+    {
+      "original": "ripple",
+      "line": 476,
+      "context": "{[\r\n                  { id: 'ripple', label: t('vtt.cursor.animations.ripple'), icon: CircleDot },\r\n                  { id: 'burst', label: t('vtt.cursor.animations.burst'), icon: Activity },",
+      "suggestedKey": "vtt.cursor.editor.ripple.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 20946,
+      "end": 20954
+    },
+    {
+      "original": "animations",
+      "line": 462,
+      "context": "<div className=\"flex flex-col items-center gap-1\">\r\n                  <AnimationPreview style={values.clickAnimation} color={values.clickColorRight} size={80} isVisible={isVisible && activeTab === 'animations'} />\r\n                  <span className=\"text-[9px] text-zinc-500\">{t('vtt.cursor.editor.preview.right')}</span>",
+      "suggestedKey": "vtt.cursor.editor.animations.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 20140,
+      "end": 20152
+    },
+    {
+      "original": "animations",
+      "line": 458,
+      "context": "<div className=\"flex flex-col items-center gap-1\">\r\n                  <AnimationPreview style={values.clickAnimation} color={values.clickColorLeft} size={80} isVisible={isVisible && activeTab === 'animations'} />\r\n                  <span className=\"text-[9px] text-zinc-500\">{t('vtt.cursor.editor.preview.left')}</span>",
+      "suggestedKey": "vtt.cursor.editor.animations.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 19778,
+      "end": 19790
+    },
+    {
+      "original": "animations",
+      "line": 451,
+      "context": "{/* Animations Tab */}\r\n        {activeTab === 'animations' && (\r\n          <>",
+      "suggestedKey": "vtt.cursor.editor.animations.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 19081,
+      "end": 19093
+    },
+    {
+      "original": "color",
+      "line": 443,
+      "context": "value={values.color}\r\n                onChange={(c) => canEdit.color && onChange('color', c)}\r\n                disabled={!canEdit.color}",
+      "suggestedKey": "vtt.cursor.editor.color.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 18902,
+      "end": 18909
+    },
+    {
+      "original": "color",
+      "line": 434,
+      "context": "key={c}\r\n                    onClick={() => canEdit.color && onChange('color', c)}\r\n                    disabled={!canEdit.color}",
+      "suggestedKey": "vtt.cursor.editor.color.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 18375,
+      "end": 18382
+    },
+    {
+      "original": "general",
+      "line": 383,
+      "context": "{/* General Tab */}\r\n        {activeTab === 'general' && (\r\n          <>",
+      "suggestedKey": "vtt.cursor.editor.general.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 15186,
+      "end": 15195
+    },
+    {
+      "original": "options",
+      "line": 373,
+      "context": "<button\r\n          onClick={() => setActiveTab('options')}\r\n          className={`flex-1 text-[10px] py-1 rounded transition-all ${activeTab === 'options' ? 'bg-zinc-700 text-white shadow font-bold' : 'text-zinc-500 hover:text-zinc-300'}`}",
+      "suggestedKey": "vtt.cursor.editor.options.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 14696,
+      "end": 14705
+    },
+    {
+      "original": "trail",
+      "line": 367,
+      "context": "<button\r\n          onClick={() => setActiveTab('trail')}\r\n          className={`flex-1 text-[10px] py-1 rounded transition-all ${activeTab === 'trail' ? 'bg-zinc-700 text-white shadow font-bold' : 'text-zinc-500 hover:text-zinc-300'}`}",
+      "suggestedKey": "vtt.cursor.editor.trail.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 14374,
+      "end": 14381
+    },
+    {
+      "original": "ping",
+      "line": 361,
+      "context": "<button\r\n          onClick={() => setActiveTab('ping')}\r\n          className={`flex-1 text-[10px] py-1 rounded transition-all ${activeTab === 'ping' ? 'bg-zinc-700 text-white shadow font-bold' : 'text-zinc-500 hover:text-zinc-300'}`}",
+      "suggestedKey": "vtt.cursor.editor.ping.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 14055,
+      "end": 14061
+    },
+    {
+      "original": "animations",
+      "line": 355,
+      "context": "<button\r\n          onClick={() => setActiveTab('animations')}\r\n          className={`flex-1 text-[10px] py-1 rounded transition-all ${activeTab === 'animations' ? 'bg-zinc-700 text-white shadow font-bold' : 'text-zinc-500 hover:text-zinc-300'}`}",
+      "suggestedKey": "vtt.cursor.editor.animations.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 13718,
+      "end": 13730
+    },
+    {
+      "original": "general",
+      "line": 349,
+      "context": "<button\r\n          onClick={() => setActiveTab('general')}\r\n          className={`flex-1 text-[10px] py-1 rounded transition-all ${activeTab === 'general' ? 'bg-zinc-700 text-white shadow font-bold' : 'text-zinc-500 hover:text-zinc-300'}`}",
+      "suggestedKey": "vtt.cursor.editor.general.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 13390,
+      "end": 13399
+    },
+    {
+      "original": "white",
+      "line": 331,
+      "context": "<g transform={`scale(${selectedShape.scale || 1}) translate(${-selectedShape.hotspot.x}, ${-selectedShape.hotspot.y})`}>\r\n                    <path d={selectedShape.path} fill={values.color} stroke=\"white\" strokeWidth=\"1\" />\r\n                  </g>",
+      "suggestedKey": "vtt.cursor.editor.white.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 12748,
+      "end": 12755
+    },
+    {
+      "original": "translate(30, 30) scale(1.2)",
+      "line": 329,
+      "context": "<svg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" fill=\"none\" style={{ filter: 'drop-shadow(1px 2px 3px rgba(0,0,0,0.3))' }}>\r\n                <g transform=\"translate(30, 30) scale(1.2)\">\r\n                  <g transform={`scale(${selectedShape.scale || 1}) translate(${-selectedShape.hotspot.x}, ${-selectedShape.hotspot.y})`}>",
+      "suggestedKey": "vtt.cursor.editor.translate3030Scale12.text",
+      "contentType": "text",
+      "confidence": "high",
+      "start": 12499,
+      "end": 12529
+    },
+    {
+      "original": "options",
+      "line": 310,
+      "context": "const { t } = useTranslation();\r\n  const [activeTab, setActiveTab] = useState<'general' | 'animations' | 'ping' | 'trail' | 'options'>('general');",
+      "suggestedKey": "vtt.cursor.editor.options.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 11526,
+      "end": 11535
+    },
+    {
+      "original": "trail",
+      "line": 310,
+      "context": "const { t } = useTranslation();\r\n  const [activeTab, setActiveTab] = useState<'general' | 'animations' | 'ping' | 'trail' | 'options'>('general');",
+      "suggestedKey": "vtt.cursor.editor.trail.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 11516,
+      "end": 11523
+    },
+    {
+      "original": "ping",
+      "line": 310,
+      "context": "const { t } = useTranslation();\r\n  const [activeTab, setActiveTab] = useState<'general' | 'animations' | 'ping' | 'trail' | 'options'>('general');",
+      "suggestedKey": "vtt.cursor.editor.ping.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 11507,
+      "end": 11513
+    },
+    {
+      "original": "animations",
+      "line": 310,
+      "context": "const { t } = useTranslation();\r\n  const [activeTab, setActiveTab] = useState<'general' | 'animations' | 'ping' | 'trail' | 'options'>('general');",
+      "suggestedKey": "vtt.cursor.editor.animations.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 11492,
+      "end": 11504
+    },
+    {
+      "original": "general",
+      "line": 310,
+      "context": "const { t } = useTranslation();\r\n  const [activeTab, setActiveTab] = useState<'general' | 'animations' | 'ping' | 'trail' | 'options'>('general');",
+      "suggestedKey": "vtt.cursor.editor.general.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 11480,
+      "end": 11489
+    },
+    {
+      "original": "Nome",
+      "line": 306,
+      "context": "showPreview = true,\r\n  userName = 'Nome',\r\n  isGMMode = false,",
+      "suggestedKey": "vtt.cursor.editor.nome.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 11361,
+      "end": 11367
+    },
+    {
+      "original": "cross",
+      "line": 178,
+      "context": "ctx.strokeRect(-r / 2, -r / 2, r, r);\r\n        } else if (style === 'cross') {\r\n          const s = 1 + easeOut;",
+      "suggestedKey": "vtt.cursor.editor.cross.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 7625,
+      "end": 7632
+    },
+    {
+      "original": "diamond",
+      "line": 170,
+      "context": "ctx.beginPath(); ctx.arc(0, 0, 3, 0, Math.PI * 2); ctx.fill();\r\n        } else if (style === 'diamond') {\r\n          ctx.rotate(progress * Math.PI);",
+      "suggestedKey": "vtt.cursor.editor.diamond.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 7256,
+      "end": 7265
+    },
+    {
+      "original": "flare",
+      "line": 164,
+      "context": "ctx.moveTo(0, -size / 4); ctx.lineTo(0, size / 4); ctx.stroke();\r\n        } else if (style === 'flare') {\r\n          ctx.globalAlpha = Math.pow(1 - progress, 5);",
+      "suggestedKey": "vtt.cursor.editor.flare.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 6924,
+      "end": 6931
+    },
+    {
+      "original": "target",
+      "line": 155,
+      "context": "}\r\n        } else if (style === 'target') {\r\n          const r = size * scale * 1.5 * (1 - easeOut);",
+      "suggestedKey": "vtt.cursor.editor.target.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 6403,
+      "end": 6411
+    },
+    {
+      "original": "sonar",
+      "line": 147,
+      "context": "}\r\n        } else if (style === 'sonar') {\r\n          for (let i = 0; i < 3; i++) {",
+      "suggestedKey": "vtt.cursor.editor.sonar.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 6010,
+      "end": 6017
+    },
+    {
+      "original": "beacon",
+      "line": 136,
+      "context": "ctx.fillStyle = color; ctx.globalAlpha = 0.5; ctx.fill();\r\n        } else if (style === 'beacon') {\r\n          ctx.globalAlpha = 1 - progress;",
+      "suggestedKey": "vtt.cursor.editor.beacon.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 5507,
+      "end": 5515
+    },
+    {
+      "original": "radar",
+      "line": 130,
+      "context": "ctx.beginPath(); ctx.arc(0, 0, size * scale * 0.4 * easeOut, 0, Math.PI * 2); ctx.stroke();\r\n        } else if (style === 'radar') {\r\n          ctx.rotate(progress * Math.PI * 4);",
+      "suggestedKey": "vtt.cursor.editor.radar.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 5209,
+      "end": 5216
+    },
+    {
+      "original": "echo",
+      "line": 126,
+      "context": "ctx.beginPath(); ctx.arc(0, 0, size * scale * 0.8 * easeOut, 0, Math.PI * 2); ctx.fill();\r\n        } else if (style === 'ring' || style === 'echo') {\r\n          ctx.strokeStyle = color; ctx.lineWidth = 2;",
+      "suggestedKey": "vtt.cursor.editor.echo.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 4908,
+      "end": 4914
+    },
+    {
+      "original": "orb",
+      "line": 123,
+      "context": "}\r\n        } else if (style === 'pulse' || style === 'orb') {\r\n          ctx.fillStyle = color;",
+      "suggestedKey": "vtt.cursor.editor.orb.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 4714,
+      "end": 4719
+    },
+    {
+      "original": "pulse",
+      "line": 123,
+      "context": "}\r\n        } else if (style === 'pulse' || style === 'orb') {\r\n          ctx.fillStyle = color;",
+      "suggestedKey": "vtt.cursor.editor.pulse.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 4693,
+      "end": 4700
+    },
+    {
+      "original": "shard",
+      "line": 112,
+      "context": "}\r\n        } else if (style === 'shard') {\r\n          const dist = size * scale * 0.8 * easeOut;",
+      "suggestedKey": "vtt.cursor.editor.shard.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 4174,
+      "end": 4181
+    },
+    {
+      "original": "vortex",
+      "line": 98,
+      "context": "}\r\n        } else if (style === 'vortex') {\r\n          const maxR = size * scale;",
+      "suggestedKey": "vtt.cursor.editor.vortex.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 3547,
+      "end": 3555
+    },
+    {
+      "original": "sparkle",
+      "line": 89,
+      "context": "}\r\n        } else if (style === 'sparkle') {\r\n          const maxDist = size * scale * 0.8;",
+      "suggestedKey": "vtt.cursor.editor.sparkle.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 3094,
+      "end": 3103
+    },
+    {
+      "original": "burst",
+      "line": 76,
+      "context": "// Full animation rendering based on style\r\n        if (style === 'burst') {\r\n          const maxR = size * scale;",
+      "suggestedKey": "vtt.cursor.editor.burst.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 2530,
+      "end": 2537
     }
   ]
 }

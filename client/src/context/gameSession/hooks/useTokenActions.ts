@@ -369,6 +369,9 @@ export const useTokenActions = (
         trailColor: (override as any).trailColor || (settings as any).trailColor,
         trailEnabled: (override as any).trailEnabled ?? (settings as any).trailEnabled,
         trailCustomImage: (override as any).trailCustomImage || (settings as any).trailCustomImage,
+        trailLength: (override as any).trailLength ?? (settings as any).trailLength ?? 20,
+        trailThickness: (override as any).trailThickness ?? (settings as any).trailThickness ?? 1,
+        trailSize: (override as any).trailSize ?? (settings as any).trailSize ?? 4,
         isDragging: isDraggingRef.current, // Hide cursor when dragging tokens
       };
 
@@ -447,7 +450,7 @@ export const useTokenActions = (
       emitCursorMove(prevCursorPosRef.current.x, prevCursorPosRef.current.y);
       resetAfkTimer();
     }
-  }, [state.activeTool, emitCursorMove, resetAfkTimer]);
+  }, [state.activeTool, state.cursorSettings, emitCursorMove, resetAfkTimer]);
 
   // Update chat state
   const setCursorChatState = useCallback((isChatting: boolean) => {

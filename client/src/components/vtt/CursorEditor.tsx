@@ -251,6 +251,7 @@ export interface CursorEditorValues {
   trailColor: string;
   trailAnimation: string;
   trailLength: number;
+  trailThickness: number;
   // Options
   showOthersTrails: boolean;
   showMyTrail: boolean;
@@ -270,6 +271,8 @@ export interface CursorEditorPermissions {
   pingColor: boolean;
   pingAnimation: boolean;
   trail: boolean; // Grouped permission/validation for all trail settings
+  trailLength?: boolean;
+  trailThickness?: boolean;
 }
 
 export interface CursorEditorOverrides {
@@ -282,6 +285,8 @@ export interface CursorEditorOverrides {
   pingColor?: boolean;
   pingAnimation?: boolean;
   trail?: boolean;
+  trailLength?: boolean;
+  trailThickness?: boolean;
 }
 
 export interface CursorEditorProps {
@@ -642,15 +647,44 @@ export const CursorEditor: React.FC<CursorEditorProps> = ({
                   <ColorPicker value={values.trailColor} onChange={c => canEdit.trail && onChange('trailColor', c)} disabled={!canEdit.trail} />
                 </div>
 
-                {/* Trail Length/Size */}
-                <div>
-                  <label className="text-[10px] font-medium text-muted-foreground mb-1 block">{t('vtt.cursor.editor.trail.length')}</label>
+                {/* Trail Length */}
+                <div className="mb-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[10px] font-medium text-muted-foreground">{t('vtt.cursor.editor.trail.length')}</label>
+                    {!isGMMode && overrides?.trailLength && <div className="w-1.5 h-1.5 rounded-full bg-amber-500" title={t('vtt.cursor.settings.overrideActive')} />}
+                  </div>
                   <input
                     type="range" min="5" max="50"
                     value={values.trailLength}
-                    onChange={e => canEdit.trail && onChange('trailLength', e.target.value)}
+                    onChange={e => (canEdit.trailLength ?? canEdit.trail) && onChange('trailLength', e.target.value)}
+                    disabled={!(canEdit.trailLength ?? canEdit.trail)}
                     className="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer"
                   />
+                  <div className="flex justify-between text-[8px] text-zinc-500">
+                    <span>{t('vtt.cursor.editor.trail.short')}</span>
+                    <span>{values.trailLength}</span>
+                    <span>{t('vtt.cursor.editor.trail.long')}</span>
+                  </div>
+                </div>
+
+                {/* Trail Thickness */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[10px] font-medium text-muted-foreground">{t('vtt.cursor.editor.trail.thickness')}</label>
+                    {!isGMMode && overrides?.trailThickness && <div className="w-1.5 h-1.5 rounded-full bg-amber-500" title={t('vtt.cursor.settings.overrideActive')} />}
+                  </div>
+                  <input
+                    type="range" min="0.5" max="3" step="0.1"
+                    value={values.trailThickness}
+                    onChange={e => (canEdit.trailThickness ?? canEdit.trail) && onChange('trailThickness', e.target.value)}
+                    disabled={!(canEdit.trailThickness ?? canEdit.trail)}
+                    className="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[8px] text-zinc-500">
+                    <span>{t('vtt.cursor.editor.trail.thin')}</span>
+                    <span>{values.trailThickness}</span>
+                    <span>{t('vtt.cursor.editor.trail.thick')}</span>
+                  </div>
                 </div>
               </>
             )}

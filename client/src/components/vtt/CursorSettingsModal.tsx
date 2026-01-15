@@ -36,6 +36,7 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
     trailColor: '#fbbf24',
     trailAnimation: 'line',
     trailLength: 20,
+    trailThickness: 1,
     // Options
     showOthersTrails: true,
     showMyTrail: true,
@@ -63,7 +64,7 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
   // Check permissions for self - Server uses 'shape' not 'shapeId'
   type ServerOverride = {
     shape?: string; color?: string; name?: string; clickAnimation?: string; clickColorLeft?: string; clickColorRight?: string; pingColor?: string; pingAnimation?: string;
-    trailEnabled?: boolean; trailSize?: number; trailColor?: string; trailAnimation?: string; trailLength?: number;
+    trailEnabled?: boolean; trailSize?: number; trailColor?: string; trailAnimation?: string; trailLength?: number; trailThickness?: number;
     showOthersTrails?: boolean; showMyTrail?: boolean; useAppCursor?: boolean; explosionOnCollision?: boolean;
   };
   const myOverride = (permissions?.cursorOverrides?.[user?.id || ''] || {}) as ServerOverride;
@@ -91,6 +92,7 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
         trailColor: cursorSettings?.trailColor || '#fbbf24',
         trailAnimation: cursorSettings?.trailAnimation || 'line',
         trailLength: cursorSettings?.trailLength ?? 20,
+        trailThickness: cursorSettings?.trailThickness ?? 1,
         showOthersTrails: cursorSettings?.showOthersTrails ?? true,
         showMyTrail: cursorSettings?.showMyTrail ?? true,
         useAppCursor: cursorSettings?.useAppCursor ?? true,
@@ -127,6 +129,7 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
       trailColor: updates.trailColor,
       trailAnimation: updates.trailAnimation,
       trailLength: Number(updates.trailLength),
+      trailThickness: Number(updates.trailThickness),
       showOthersTrails: updates.showOthersTrails === 'true' || updates.showOthersTrails === true,
       showMyTrail: updates.showMyTrail === 'true' || updates.showMyTrail === true,
       useAppCursor: updates.useAppCursor === 'true' || updates.useAppCursor === true,
@@ -204,7 +207,9 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
     rightColor: canChangeAnimationColor && !myOverride.clickColorRight,
     pingColor: canChangeColor && !myOverride.pingColor,
     pingAnimation: canChangeAnimation && !myOverride.pingAnimation,
-    trail: canChangeTrail && !myOverride.trailEnabled, // Simplified check
+    trail: canChangeTrail && !myOverride.trailEnabled,
+    trailLength: canChangeTrail && !myOverride.trailLength,
+    trailThickness: canChangeTrail && !myOverride.trailThickness,
   };
 
   const selfOverrides = {
@@ -216,14 +221,16 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
     rightColor: !!myOverride.clickColorRight,
     pingColor: !!myOverride.pingColor,
     pingAnimation: !!myOverride.pingAnimation,
-    trail: !!myOverride.trailEnabled
+    trail: !!myOverride.trailEnabled,
+    trailLength: !!myOverride.trailLength,
+    trailThickness: !!myOverride.trailThickness,
   };
 
   // GM can edit everything for players
   const gmCanEdit = {
     shape: true, color: true, name: true, animation: true,
     leftColor: true, rightColor: true, pingColor: true, pingAnimation: true,
-    trail: true,
+    trail: true, trailLength: true, trailThickness: true,
   };
 
   // Get effective values for override (merge existing + local changes)
@@ -247,6 +254,7 @@ export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen
       trailColor: override.trailColor || existing.trailColor || '#fbbf24',
       trailAnimation: override.trailAnimation || existing.trailAnimation || 'line',
       trailLength: override.trailLength ?? existing.trailLength ?? 20,
+      trailThickness: override.trailThickness ?? existing.trailThickness ?? 1,
       showOthersTrails: override.showOthersTrails ?? existing.showOthersTrails ?? true,
       showMyTrail: override.showMyTrail ?? existing.showMyTrail ?? true,
       useAppCursor: override.useAppCursor ?? existing.useAppCursor ?? true,

@@ -1,85 +1,155 @@
 {
-  "filePath": "src/components/vtt/AttackZoneConfigModal.tsx",
+  "filePath": "src/components/vtt/CursorEditor.tsx",
   "strings": [
     {
-      "original": "objects",
-      "line": 138,
-      "context": "{ value: 'enemies', label: t('vtt.attack.zoneconfigmodal.inimigos.label'), icon: Target },\r\n    { value: 'objects', label: t('vtt.attack.zoneconfigmodal.objetos.label'), icon: Target },\r\n  ];",
-      "suggestedKey": "vtt.attack.zoneconfigmodal.objects.label",
+      "original": "electric",
+      "line": 623,
+      "context": "<div className=\"grid grid-cols-2 gap-1\">\r\n                    {['line', 'particles', 'dice', 'sparkles', 'smoke', 'electric'].map(style => (\r\n                      <button",
+      "suggestedKey": "vtt.cursor.editor.electric.label",
       "contentType": "label",
       "confidence": "high",
-      "start": 5000,
-      "end": 5009
+      "start": 29989,
+      "end": 29999
     },
     {
-      "original": "enemies",
-      "line": 137,
-      "context": "{ value: 'allies', label: t('vtt.attack.zoneconfigmodal.aliados.label'), icon: Target },\r\n    { value: 'enemies', label: t('vtt.attack.zoneconfigmodal.inimigos.label'), icon: Target },\r\n    { value: 'objects', label: t('vtt.attack.zoneconfigmodal.objetos.label'), icon: Target },",
-      "suggestedKey": "vtt.attack.zoneconfigmodal.enemies.label",
+      "original": "smoke",
+      "line": 623,
+      "context": "<div className=\"grid grid-cols-2 gap-1\">\r\n                    {['line', 'particles', 'dice', 'sparkles', 'smoke', 'electric'].map(style => (\r\n                      <button",
+      "suggestedKey": "vtt.cursor.editor.smoke.label",
       "contentType": "label",
       "confidence": "high",
-      "start": 4904,
-      "end": 4913
+      "start": 29980,
+      "end": 29987
     },
     {
-      "original": "allies",
-      "line": 136,
-      "context": "{ value: 'all', label: t('vtt.attack.zoneconfigmodal.todos.label'), icon: Target },\r\n    { value: 'allies', label: t('vtt.attack.zoneconfigmodal.aliados.label'), icon: Target },\r\n    { value: 'enemies', label: t('vtt.attack.zoneconfigmodal.inimigos.label'), icon: Target },",
-      "suggestedKey": "vtt.attack.zoneconfigmodal.allies.label",
+      "original": "sparkles",
+      "line": 623,
+      "context": "<div className=\"grid grid-cols-2 gap-1\">\r\n                    {['line', 'particles', 'dice', 'sparkles', 'smoke', 'electric'].map(style => (\r\n                      <button",
+      "suggestedKey": "vtt.cursor.editor.sparkles.label",
       "contentType": "label",
       "confidence": "high",
-      "start": 4810,
-      "end": 4818
+      "start": 29968,
+      "end": 29978
     },
     {
-      "original": "spreading",
-      "line": 131,
-      "context": "{ value: 'penetrating', label: t('vtt.attack.zoneconfigmodal.penetrante.label'), description: t('vtt.attack.zoneconfigmodal.atravessaTudo.text') },\r\n    { value: 'spreading', label: t('vtt.attack.zoneconfigmodal.espalhamento.label'), description: t('vtt.attack.zoneconfigmodal.contornaObstculos.text') },\r\n  ];",
-      "suggestedKey": "vtt.attack.zoneconfigmodal.spreading.label",
+      "original": "dice",
+      "line": 623,
+      "context": "<div className=\"grid grid-cols-2 gap-1\">\r\n                    {['line', 'particles', 'dice', 'sparkles', 'smoke', 'electric'].map(style => (\r\n                      <button",
+      "suggestedKey": "vtt.cursor.editor.dice.label",
       "contentType": "label",
       "confidence": "high",
-      "start": 4471,
-      "end": 4482
+      "start": 29960,
+      "end": 29966
     },
     {
-      "original": "penetrating",
-      "line": 130,
-      "context": "{ value: 'blocked', label: t('vtt.attack.zoneconfigmodal.bloqueado.label'), description: t('vtt.attack.zoneconfigmodal.paraEmParedes.text') },\r\n    { value: 'penetrating', label: t('vtt.attack.zoneconfigmodal.penetrante.label'), description: t('vtt.attack.zoneconfigmodal.atravessaTudo.text') },\r\n    { value: 'spreading', label: t('vtt.attack.zoneconfigmodal.espalhamento.label'), description: t('vtt.attack.zoneconfigmodal.contornaObstculos.text') },",
-      "suggestedKey": "vtt.attack.zoneconfigmodal.penetrating.label",
+      "original": "particles",
+      "line": 623,
+      "context": "<div className=\"grid grid-cols-2 gap-1\">\r\n                    {['line', 'particles', 'dice', 'sparkles', 'smoke', 'electric'].map(style => (\r\n                      <button",
+      "suggestedKey": "vtt.cursor.editor.particles.label",
       "contentType": "label",
       "confidence": "high",
-      "start": 4318,
-      "end": 4331
-    },
-    {
-      "original": "rectangle",
-      "line": 125,
-      "context": "{ value: 'square', label: t('vtt.attack.zoneconfigmodal.quadrado.label'), icon: Square },\r\n    { value: 'rectangle', label: t('vtt.attack.zoneconfigmodal.retngulo.label'), icon: Maximize2 },\r\n  ];",
-      "suggestedKey": "vtt.attack.zoneconfigmodal.rectangle.label",
-      "contentType": "label",
-      "confidence": "high",
-      "start": 3962,
-      "end": 3973
+      "start": 29947,
+      "end": 29958
     },
     {
       "original": "line",
-      "line": 123,
-      "context": "{ value: 'cone', label: t('vtt.attack.zoneconfigmodal.cone.label'), icon: Triangle },\r\n    { value: 'line', label: t('vtt.attack.zoneconfigmodal.line.label'), icon: Minus },\r\n    { value: 'square', label: t('vtt.attack.zoneconfigmodal.quadrado.label'), icon: Square },",
-      "suggestedKey": "vtt.attack.zoneconfigmodal.line.label",
+      "line": 623,
+      "context": "<div className=\"grid grid-cols-2 gap-1\">\r\n                    {['line', 'particles', 'dice', 'sparkles', 'smoke', 'electric'].map(style => (\r\n                      <button",
+      "suggestedKey": "vtt.cursor.editor.line.label",
       "contentType": "label",
       "confidence": "high",
-      "start": 3779,
-      "end": 3785
+      "start": 29939,
+      "end": 29945
     },
     {
-      "original": "cone",
-      "line": 122,
-      "context": "{ value: 'circle', label: t('vtt.attack.zoneconfigmodal.crculo.label'), icon: Circle },\r\n    { value: 'cone', label: t('vtt.attack.zoneconfigmodal.cone.label'), icon: Triangle },\r\n    { value: 'line', label: t('vtt.attack.zoneconfigmodal.line.label'), icon: Minus },",
-      "suggestedKey": "vtt.attack.zoneconfigmodal.cone.label",
+      "original": "color",
+      "line": 443,
+      "context": "value={values.color}\r\n                onChange={(c) => canEdit.color && onChange('color', c)}\r\n                disabled={!canEdit.color}",
+      "suggestedKey": "vtt.cursor.editor.color.label",
       "contentType": "label",
       "confidence": "high",
-      "start": 3688,
-      "end": 3694
+      "start": 18902,
+      "end": 18909
+    },
+    {
+      "original": "color",
+      "line": 434,
+      "context": "key={c}\r\n                    onClick={() => canEdit.color && onChange('color', c)}\r\n                    disabled={!canEdit.color}",
+      "suggestedKey": "vtt.cursor.editor.color.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 18375,
+      "end": 18382
+    },
+    {
+      "original": "white",
+      "line": 331,
+      "context": "<g transform={`scale(${selectedShape.scale || 1}) translate(${-selectedShape.hotspot.x}, ${-selectedShape.hotspot.y})`}>\r\n                    <path d={selectedShape.path} fill={values.color} stroke=\"white\" strokeWidth=\"1\" />\r\n                  </g>",
+      "suggestedKey": "vtt.cursor.editor.white.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 12748,
+      "end": 12755
+    },
+    {
+      "original": "translate(30, 30) scale(1.2)",
+      "line": 329,
+      "context": "<svg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" fill=\"none\" style={{ filter: 'drop-shadow(1px 2px 3px rgba(0,0,0,0.3))' }}>\r\n                <g transform=\"translate(30, 30) scale(1.2)\">\r\n                  <g transform={`scale(${selectedShape.scale || 1}) translate(${-selectedShape.hotspot.x}, ${-selectedShape.hotspot.y})`}>",
+      "suggestedKey": "vtt.cursor.editor.translate3030Scale12.text",
+      "contentType": "text",
+      "confidence": "high",
+      "start": 12499,
+      "end": 12529
+    },
+    {
+      "original": "options",
+      "line": 310,
+      "context": "const { t } = useTranslation();\r\n  const [activeTab, setActiveTab] = useState<'general' | 'animations' | 'ping' | 'trail' | 'options'>('general');",
+      "suggestedKey": "vtt.cursor.editor.options.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 11526,
+      "end": 11535
+    },
+    {
+      "original": "trail",
+      "line": 310,
+      "context": "const { t } = useTranslation();\r\n  const [activeTab, setActiveTab] = useState<'general' | 'animations' | 'ping' | 'trail' | 'options'>('general');",
+      "suggestedKey": "vtt.cursor.editor.trail.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 11516,
+      "end": 11523
+    },
+    {
+      "original": "ping",
+      "line": 310,
+      "context": "const { t } = useTranslation();\r\n  const [activeTab, setActiveTab] = useState<'general' | 'animations' | 'ping' | 'trail' | 'options'>('general');",
+      "suggestedKey": "vtt.cursor.editor.ping.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 11507,
+      "end": 11513
+    },
+    {
+      "original": "animations",
+      "line": 310,
+      "context": "const { t } = useTranslation();\r\n  const [activeTab, setActiveTab] = useState<'general' | 'animations' | 'ping' | 'trail' | 'options'>('general');",
+      "suggestedKey": "vtt.cursor.editor.animations.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 11492,
+      "end": 11504
+    },
+    {
+      "original": "Nome",
+      "line": 306,
+      "context": "showPreview = true,\r\n  userName = 'Nome',\r\n  isGMMode = false,",
+      "suggestedKey": "vtt.cursor.editor.nome.label",
+      "contentType": "label",
+      "confidence": "high",
+      "start": 11361,
+      "end": 11367
     }
   ]
 }

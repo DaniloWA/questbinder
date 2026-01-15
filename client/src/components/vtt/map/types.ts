@@ -38,11 +38,12 @@ export interface MapCanvasProps {
     pingAnimation?: string;
     // Trail
     trailEnabled?: boolean;
-    trailSize?: number;
     trailColor?: string;
     trailAnimation?: string;
     trailLength?: number;
+    trailThickness?: number;
     trailCustomImage?: string;
+    trailSize?: number;
     // Options
     showOthersTrails?: boolean;
     showMyTrail?: boolean;

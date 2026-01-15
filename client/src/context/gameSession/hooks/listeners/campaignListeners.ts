@@ -131,6 +131,35 @@ export const registerCampaignListeners = ({
         permissions: payload.permissions
       };
     });
+
+    // Sync cursorOverrides to localStorage for current user
+    // This prevents flickering between user settings and GM overrides on reconnect
+    const myOverride = payload.permissions?.cursorOverrides?.[user?.id];
+    if (myOverride && Object.keys(myOverride).length > 0) {
+      try {
+        const stored = JSON.parse(localStorage.getItem('qb_cursor_settings') || '{}');
+        const merged = { ...stored };
+
+        // Sync all cursor override fields
+        if (myOverride.color !== undefined) merged.color = myOverride.color;
+        if (myOverride.shape !== undefined) merged.shape = myOverride.shape;
+        if (myOverride.name !== undefined) merged.name = myOverride.name;
+        if (myOverride.clickAnimation !== undefined) merged.clickAnimation = myOverride.clickAnimation;
+        if (myOverride.clickColorLeft !== undefined) merged.clickColorLeft = myOverride.clickColorLeft;
+        if (myOverride.clickColorRight !== undefined) merged.clickColorRight = myOverride.clickColorRight;
+        if (myOverride.trailEnabled !== undefined) merged.trailEnabled = myOverride.trailEnabled;
+        if (myOverride.trailColor !== undefined) merged.trailColor = myOverride.trailColor;
+        if (myOverride.trailAnimation !== undefined) merged.trailAnimation = myOverride.trailAnimation;
+        if (myOverride.trailCustomImage !== undefined) merged.trailCustomImage = myOverride.trailCustomImage;
+        if (myOverride.trailLength !== undefined) merged.trailLength = myOverride.trailLength;
+        if (myOverride.trailThickness !== undefined) merged.trailThickness = myOverride.trailThickness;
+
+        localStorage.setItem('qb_cursor_settings', JSON.stringify(merged));
+        console.log('[Permissions] Synced cursor overrides to localStorage');
+      } catch (e) {
+        console.warn('[Permissions] Failed to sync cursor overrides to localStorage:', e);
+      }
+    }
   };
 
 

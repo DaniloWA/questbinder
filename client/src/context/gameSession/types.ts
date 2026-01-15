@@ -91,6 +91,7 @@ export interface GameSessionState {
     trailColor?: string;
     trailAnimation?: 'line' | 'water' | 'fire' | 'particles' | 'dice' | 'rainbow' | 'smoke' | 'electric';
     trailLength?: number;
+    trailThickness?: number;
     trailCustomImage?: string; // URL for custom particles (e.g. dice)
 
     // Visualization Config
@@ -257,6 +258,7 @@ export interface GameSessionContextType extends GameSessionState {
     trailColor?: string;
     trailAnimation?: 'line' | 'water' | 'fire' | 'particles' | 'dice' | 'rainbow' | 'smoke' | 'electric';
     trailLength?: number;
+    trailThickness?: number;
     trailCustomImage?: string;
     showOthersTrails?: boolean;
     showMyTrail?: boolean;

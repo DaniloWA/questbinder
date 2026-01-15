@@ -34,6 +34,7 @@ export const useGameState = (campaignId: string) => {
         trailColor: initialCursor.trailColor || '#fbbf24',
         trailAnimation: initialCursor.trailAnimation || 'line',
         trailLength: initialCursor.trailLength ?? 20,
+        trailThickness: initialCursor.trailThickness ?? 1,
         // Options
         showOthersTrails: initialCursor.showOthersTrails ?? true,
         showMyTrail: initialCursor.showMyTrail ?? true,

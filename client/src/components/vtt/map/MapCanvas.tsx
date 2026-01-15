@@ -110,6 +110,9 @@ export const MapCanvas = (props: MapCanvasProps) => {
       trailAnimation?: string;
       trailColor?: string;
       trailLength?: number;
+      trailThickness?: number;
+      trailCustomImage?: string;
+      trailSize?: number;
       showMyTrail?: boolean;
     };
     const settings = props.cursorSettings;
@@ -123,6 +126,9 @@ export const MapCanvas = (props: MapCanvasProps) => {
       trailAnimation: overrides.trailAnimation || settings?.trailAnimation || 'line',
       trailColor: overrides.trailColor || settings?.trailColor || settings?.color || '#fbbf24',
       trailLength: overrides.trailLength ?? settings?.trailLength ?? 20,
+      trailThickness: overrides.trailThickness ?? settings?.trailThickness ?? 1,
+      trailCustomImage: overrides.trailCustomImage || settings?.trailCustomImage,
+      trailSize: overrides.trailSize ?? settings?.trailSize ?? 4,
       showMyTrail: overrides.showMyTrail ?? settings?.showMyTrail ?? true,
     };
   }, [
@@ -134,6 +140,9 @@ export const MapCanvas = (props: MapCanvasProps) => {
     props.cursorSettings?.trailAnimation,
     props.cursorSettings?.trailColor,
     props.cursorSettings?.trailLength,
+    props.cursorSettings?.trailThickness,
+    props.cursorSettings?.trailCustomImage,
+    props.cursorSettings?.trailSize,
     props.cursorSettings?.showMyTrail,
   ]);
 
@@ -202,7 +211,7 @@ export const MapCanvas = (props: MapCanvasProps) => {
           }
         }}
         onMouseLeave={() => {
-          if (!mapState.hoverCloseTimerRef.current) {
+          if (mapState.hoverCloseTimerRef.current) {
             mapState.hoverCloseTimerRef.current = setTimeout(() => {
               mapState.setHoveredTokenId(null);
               mapState.hoverCloseTimerRef.current = null;
@@ -253,6 +262,9 @@ export const MapCanvas = (props: MapCanvasProps) => {
         trailAnimation={cursorConfig.trailAnimation}
         trailColor={cursorConfig.trailColor}
         trailLength={cursorConfig.trailLength}
+        trailThickness={cursorConfig.trailThickness}
+        trailCustomImage={cursorConfig.trailCustomImage}
+        trailSize={cursorConfig.trailSize}
         activeTool={props.activeTool}
         isContexting={props.isContexting}
         isChatting={props.isChatting}

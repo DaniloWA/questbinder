@@ -660,6 +660,8 @@ export interface PermissionSet {
     trailColor?: string;
     trailAnimation?: 'line' | 'water' | 'fire' | 'particles' | 'dice' | 'rainbow' | 'smoke' | 'electric';
     trailCustomImage?: string;
+    trailLength?: number;
+    trailThickness?: number;
   }>;
 
   // Chat Permissions

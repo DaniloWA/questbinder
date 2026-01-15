@@ -33,6 +33,12 @@ export interface TrailConfig {
   color?: string;
   animation?: TrailAnimation;
   customImage?: string;
+  /** Trail length/duration multiplier (1-100, default 20). Higher = longer visible trail */
+  length?: number;
+  /** Trail thickness multiplier (0.5-3.0, default 1). Higher = thicker lines/particles */
+  thickness?: number;
+  /** Base size for particles (default 4). Used as starting reference for size calc. */
+  size?: number;
 }
 
 export interface TrailRenderOptions {
@@ -121,7 +127,8 @@ const renderLineTrail = (
   points: TrailPoint[],
   currentPosition: { x: number; y: number; },
   color: string,
-  zoom: number
+  zoom: number,
+  thickness: number = 1
 ): void => {
   if (points.length < 3) return;
 
@@ -143,12 +150,12 @@ const renderLineTrail = (
   ctx.lineJoin = 'round';
 
   // Outer glow
-  ctx.lineWidth = 4 / zoom;
+  ctx.lineWidth = (4 / zoom) * thickness;
   ctx.strokeStyle = adjustAlpha(color, 0.4);
   ctx.stroke();
 
   // Inner core
-  ctx.lineWidth = 1 / zoom;
+  ctx.lineWidth = (1 / zoom) * thickness;
   ctx.strokeStyle = adjustAlpha(color, 0.8);
   ctx.stroke();
 
@@ -161,7 +168,9 @@ const renderParticleTrail = (
   color: string,
   zoom: number,
   maxAge: number,
-  now: number
+  now: number,
+  thickness: number = 1,
+  baseSize: number = 4
 ): void => {
   for (let i = 0; i < points.length; i++) {
     const point = points[i];
@@ -170,7 +179,9 @@ const renderParticleTrail = (
 
     const progress = age / maxAge;
     const alpha = 1 - progress;
-    const size = ((4 + (i * 0.2)) * (1 - progress * 0.5)) / zoom;
+    // Fix: Size based on age (progress), not index `i`.
+    // Younger points (small progress) are larger.
+    const size = ((baseSize * (1 - progress * 0.5)) + 2) / zoom * thickness;
 
     ctx.save();
     ctx.translate(point.x, point.y);
@@ -186,7 +197,9 @@ const renderSparkleTrail = (
   color: string,
   zoom: number,
   maxAge: number,
-  now: number
+  now: number,
+  thickness: number = 1,
+  baseSize: number = 4
 ): void => {
   for (let i = 0; i < points.length; i++) {
     const point = points[i];
@@ -195,11 +208,12 @@ const renderSparkleTrail = (
 
     const progress = age / maxAge;
     const alpha = 1 - progress;
-    const size = ((4 + (i * 0.2)) * (1 - progress * 0.5)) / zoom;
+    const size = ((baseSize * (1 - progress * 0.5)) + 2) / zoom * thickness;
 
     ctx.save();
     ctx.translate(point.x, point.y);
-    ctx.rotate(progress * Math.PI);
+    // Rotate based on time to make it sparkle
+    ctx.rotate((progress * Math.PI) + (point.time * 0.01));
     ctx.fillStyle = color;
     ctx.globalAlpha = alpha * 0.6;
 
@@ -226,7 +240,9 @@ const renderSmokeTrail = (
   points: TrailPoint[],
   zoom: number,
   maxAge: number,
-  now: number
+  now: number,
+  thickness: number = 1,
+  baseSize: number = 4
 ): void => {
   for (let i = 0; i < points.length; i++) {
     const point = points[i];
@@ -235,7 +251,8 @@ const renderSmokeTrail = (
 
     const progress = age / maxAge;
     const alpha = 1 - progress;
-    const size = ((4 + (i * 0.2)) * (1 - progress * 0.5)) / zoom;
+    // Smoke grows as it ages
+    const size = ((baseSize + (progress * 8))) / zoom * thickness;
     const driftY = -age * 0.05 / zoom;
 
     ctx.save();
@@ -251,7 +268,9 @@ const renderElectricTrail = (
   points: TrailPoint[],
   zoom: number,
   maxAge: number,
-  now: number
+  now: number,
+  thickness: number = 1,
+  baseSize: number = 4
 ): void => {
   for (let i = 0; i < points.length; i++) {
     const point = points[i];
@@ -260,7 +279,7 @@ const renderElectricTrail = (
 
     const progress = age / maxAge;
     const alpha = 1 - progress;
-    const size = ((4 + (i * 0.2)) * (1 - progress * 0.5)) / zoom;
+    const size = ((baseSize * (1 - progress * 0.5))) / zoom * thickness;
 
     // Jitter effect (random each frame for electric feel)
     const jitterX = (Math.random() - 0.5) * 10 / zoom;
@@ -380,28 +399,32 @@ export const renderTrail = (
   const { zoom, currentPosition, healthStatus } = options;
   const color = config.color || '#fbbf24';
   const animation = getEffectiveAnimation(config.animation, healthStatus);
-  const maxAge = getEffectiveMaxAge(healthStatus);
+  const lengthMultiplier = Math.max(0.1, Math.min(5, (config.length ?? 20) / 20)); // Normalize to 0.1-5x
+  const thickness = Math.max(0.5, Math.min(3, config.thickness ?? 1));
+  const baseSize = config.size ?? 4; // Default particle size
+  const baseMaxAge = getEffectiveMaxAge(healthStatus);
+  const maxAge = baseMaxAge * lengthMultiplier;
   const now = performance.now();
 
   switch (animation) {
     case 'line':
-      renderLineTrail(ctx, points, currentPosition, color, zoom);
+      renderLineTrail(ctx, points, currentPosition, color, zoom, thickness);
       break;
 
     case 'particles':
-      renderParticleTrail(ctx, points, color, zoom, maxAge, now);
+      renderParticleTrail(ctx, points, color, zoom, maxAge, now, thickness, baseSize);
       break;
 
     case 'sparkles':
-      renderSparkleTrail(ctx, points, color, zoom, maxAge, now);
+      renderSparkleTrail(ctx, points, color, zoom, maxAge, now, thickness, baseSize);
       break;
 
     case 'smoke':
-      renderSmokeTrail(ctx, points, zoom, maxAge, now);
+      renderSmokeTrail(ctx, points, zoom, maxAge, now, thickness, baseSize);
       break;
 
     case 'electric':
-      renderElectricTrail(ctx, points, zoom, maxAge, now);
+      renderElectricTrail(ctx, points, zoom, maxAge, now, thickness, baseSize);
       break;
 
     case 'dice':
@@ -414,7 +437,7 @@ export const renderTrail = (
 
     default:
       // Fallback to line
-      renderLineTrail(ctx, points, currentPosition, color, zoom);
+      renderLineTrail(ctx, points, currentPosition, color, zoom, thickness);
       break;
   }
 };
@@ -454,9 +477,11 @@ export const addTrailPoint = (
  */
 export const cleanupTrailHistory = (
   history: TrailPoint[],
-  healthStatus?: HealthStatus
+  healthStatus?: HealthStatus,
+  lengthMultiplier: number = 1.0
 ): TrailPoint[] => {
-  const maxAge = getEffectiveMaxAge(healthStatus) * 2; // Keep points a bit longer for smooth fade
+  const baseMaxAge = getEffectiveMaxAge(healthStatus);
+  const maxAge = baseMaxAge * lengthMultiplier * 2; // Keep points a bit longer for smooth fade
   const now = performance.now();
   return history.filter(point => now - point.time < maxAge);
 };

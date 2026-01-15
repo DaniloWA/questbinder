@@ -1,44 +1,74 @@
 {
   "translations": [
     {
-      "key": "vtt.attack.zoneconfigmodal.objects.label",
-      "en": "objects",
-      "pt": "objects"
+      "key": "vtt.cursor.editor.electric.label",
+      "en": "electric",
+      "pt": "electric"
     },
     {
-      "key": "vtt.attack.zoneconfigmodal.enemies.label",
-      "en": "enemies",
-      "pt": "enemies"
+      "key": "vtt.cursor.editor.smoke.label",
+      "en": "smoke",
+      "pt": "smoke"
     },
     {
-      "key": "vtt.attack.zoneconfigmodal.allies.label",
-      "en": "allies",
-      "pt": "allies"
+      "key": "vtt.cursor.editor.sparkles.label",
+      "en": "sparkles",
+      "pt": "sparkles"
     },
     {
-      "key": "vtt.attack.zoneconfigmodal.spreading.label",
-      "en": "spreading",
-      "pt": "spreading"
+      "key": "vtt.cursor.editor.dice.label",
+      "en": "dice",
+      "pt": "dice"
     },
     {
-      "key": "vtt.attack.zoneconfigmodal.penetrating.label",
-      "en": "penetrating",
-      "pt": "penetrating"
+      "key": "vtt.cursor.editor.particles.label",
+      "en": "particles",
+      "pt": "particles"
     },
     {
-      "key": "vtt.attack.zoneconfigmodal.rectangle.label",
-      "en": "rectangle",
-      "pt": "rectangle"
-    },
-    {
-      "key": "vtt.attack.zoneconfigmodal.line.label",
+      "key": "vtt.cursor.editor.line.label",
       "en": "line",
       "pt": "line"
     },
     {
-      "key": "vtt.attack.zoneconfigmodal.cone.label",
-      "en": "cone",
-      "pt": "cone"
+      "key": "vtt.cursor.editor.color.label",
+      "en": "color",
+      "pt": "color"
+    },
+    {
+      "key": "vtt.cursor.editor.white.label",
+      "en": "white",
+      "pt": "white"
+    },
+    {
+      "key": "vtt.cursor.editor.translate3030Scale12.text",
+      "en": "translate(30, 30) scale(1.2)",
+      "pt": "translate(30, 30) scale(1.2)"
+    },
+    {
+      "key": "vtt.cursor.editor.options.label",
+      "en": "options",
+      "pt": "options"
+    },
+    {
+      "key": "vtt.cursor.editor.trail.label",
+      "en": "trail",
+      "pt": "trail"
+    },
+    {
+      "key": "vtt.cursor.editor.ping.label",
+      "en": "ping",
+      "pt": "ping"
+    },
+    {
+      "key": "vtt.cursor.editor.animations.label",
+      "en": "animations",
+      "pt": "animations"
+    },
+    {
+      "key": "vtt.cursor.editor.nome.label",
+      "en": "Nome",
+      "pt": "Nome"
     }
   ]
 }

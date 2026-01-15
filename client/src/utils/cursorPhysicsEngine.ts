@@ -35,6 +35,7 @@ import {
   TRAIL_MIN_DISTANCE,
   TRAIL_THROTTLE_MS,
 } from '../constants/cursorConstants';
+import { cleanupTrailHistory, HealthStatus } from './trailRenderer';
 
 // ============================================================================
 // CONSTANTS (Local only - not shared)
@@ -83,6 +84,9 @@ export interface CursorState {
   trailColor?: string;
   trailEnabled?: boolean;
   trailCustomImage?: string;
+  trailLength?: number;
+  trailThickness?: number;
+  trailSize?: number;
 
   // Visual Decoupling State (The "Ghost" Cursor)
   visualX: number;
@@ -128,6 +132,9 @@ export interface CursorUpdatePayload {
   trailColor?: string;
   trailEnabled?: boolean;
   trailCustomImage?: string;
+  trailLength?: number;
+  trailThickness?: number;
+  trailSize?: number;
 }
 
 // ============================================================================
@@ -360,6 +367,9 @@ export class CursorPhysicsEngine {
     if (update.trailColor) state.trailColor = update.trailColor;
     if (update.trailAnimation) state.trailAnimation = update.trailAnimation;
     if (update.trailCustomImage) state.trailCustomImage = update.trailCustomImage;
+    if (update.trailLength !== undefined) state.trailLength = update.trailLength;
+    if (update.trailThickness !== undefined) state.trailThickness = update.trailThickness;
+    if (update.trailSize !== undefined) state.trailSize = update.trailSize;
 
     // Note: Trail points are now added in tick() for consistency with local cursor
 
@@ -554,6 +564,12 @@ export class CursorPhysicsEngine {
       }
     }
 
+
+    // Cleanup old trail points (matching local cursor behavior)
+    // Default length is 20, so multiplier is trailLength / 20
+    const lengthMultiplier = Math.max(0.1, Math.min(5, (state.trailLength || 20) / 20));
+    state.trailHistory = cleanupTrailHistory(state.trailHistory, state.healthStatus as HealthStatus, lengthMultiplier);
+
     // Return the PHYSICAL position for logic/collisions, but rendering uses visual...
     // Actually, getRenderData should return VISUAL props.
     return { x: state.x, y: state.y };
@@ -587,7 +603,9 @@ export class CursorPhysicsEngine {
         enabled: state.trailEnabled,
         animation: state.trailAnimation,
         color: state.trailColor,
-        image: state.trailCustomImage
+        image: state.trailCustomImage,
+        length: state.trailLength,
+        thickness: state.trailThickness,
       }
     };
   }
@@ -635,6 +653,8 @@ export const createCursorUpdateFromPayload = (payload: any) => ({
     trailColor: payload.trailColor,
     trailEnabled: payload.trailEnabled,
     trailCustomImage: payload.trailCustomImage,
+    trailLength: payload.trailLength,
+    trailThickness: payload.trailThickness,
     path: payload.path,
     isAfk: payload.isAfk,
   },

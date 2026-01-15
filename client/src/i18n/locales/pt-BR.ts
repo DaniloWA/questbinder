@@ -131,7 +131,6 @@ export default {
     roleRequired: 'Requer função :role',
     clickToUpgrade: 'Clique para ver planos',
   },
-
   vtt: {
     cursor: {
       settings: {
@@ -153,18 +152,34 @@ export default {
           options: 'Opções',
         },
         general: {
-          shape: { label: 'Formato' },
-          name: { label: 'Nome de Exibição' },
-          color: { label: 'Cor Principal' },
+          shape: {
+            label: 'Formato',
+          },
+          name: {
+            label: 'Nome de Exibição',
+          },
+          color: {
+            label: 'Cor Principal',
+          },
         },
         animations: {
-          style: { label: 'Estilo do Clique' },
-          leftColor: { label: 'Botão Esquerdo' },
-          rightColor: { label: 'Botão Direito' },
+          style: {
+            label: 'Estilo do Clique',
+          },
+          leftColor: {
+            label: 'Botão Esquerdo',
+          },
+          rightColor: {
+            label: 'Botão Direito',
+          },
         },
         ping: {
-          style: { label: 'Estilo do Ping' },
-          color: { label: 'Cor do Ping' },
+          style: {
+            label: 'Estilo do Ping',
+          },
+          color: {
+            label: 'Cor do Ping',
+          },
         },
         preview: {
           left: 'Clique Esq.',
@@ -176,6 +191,11 @@ export default {
           style: 'Estilo do Rastro',
           color: 'Cor do Rastro',
           length: 'Comprimento',
+          thickness: 'Grossura',
+          thin: 'Fino',
+          thick: 'Grosso',
+          short: 'Curto',
+          long: 'Longo',
         },
         options: {
           showOthersTrails: 'Ver Rastros de Outros',
@@ -219,7 +239,6 @@ export default {
         smoke: 'Fumaça',
         electric: 'Elétrico',
       },
-      // AFK System translations
       notifications: {
         afk: ':name está ausente (AFK)',
         active: ':name retornou',
@@ -448,7 +467,6 @@ export default {
             },
           },
         },
-
         gmTools: {
           group: {
             label: 'Mestre',

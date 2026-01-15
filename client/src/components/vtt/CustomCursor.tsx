@@ -29,6 +29,9 @@ interface CustomCursorProps {
   trailAnimation?: string;
   trailColor?: string;
   trailLength?: number;
+  trailThickness?: number;
+  trailSize?: number;
+  trailCustomImage?: string;
   healthStatus?: HealthStatus;
   activeTool?: string;
   isContexting?: boolean;
@@ -51,6 +54,9 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
   trailAnimation = 'line',
   trailColor,
   trailLength = 20,
+  trailThickness = 1,
+  trailSize = 4,
+  trailCustomImage,
   healthStatus = 'healthy',
   activeTool,
   isContexting,
@@ -166,6 +172,10 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
                 enabled: true,
                 color: effectiveTrailColor,
                 animation: trailAnimation as TrailAnimation,
+                length: trailLength,
+                thickness: trailThickness,
+                customImage: trailCustomImage,
+                size: trailSize,
               },
               {
                 zoom: 1, // Screen coordinates, no zoom
@@ -175,8 +185,10 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
             );
           }
 
-          // Cleanup old trail points
-          trailHistory.current = cleanupTrailHistory(trailHistory.current, healthStatus);
+          // Cleanup old trail points (zoomed out length adjustment)
+          // Default length is 20, so multiplier is trailLength / 20
+          const lengthMultiplier = Math.max(0.1, Math.min(5, (trailLength || 20) / 20));
+          trailHistory.current = cleanupTrailHistory(trailHistory.current, healthStatus, lengthMultiplier);
         }
       }
 
@@ -200,7 +212,7 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
       document.removeEventListener('mousedown', handleMouseDown);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [enabled, handleMouseMove, handleMouseDown, handleMouseUp, trailEnabled, trailAnimation, effectiveTrailColor, trailLength, healthStatus]);
+  }, [enabled, handleMouseMove, handleMouseDown, handleMouseUp, trailEnabled, trailAnimation, effectiveTrailColor, trailLength, trailThickness, healthStatus]);
 
   if (!enabled || !svgContent) return null;
 

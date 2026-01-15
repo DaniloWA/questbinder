@@ -64,7 +64,7 @@ export const MAX_CORRECTION_PER_FRAME = 20;
 export const TRAIL_MAX_AGE_MS = 400;
 
 /** Maximum trail history points */
-export const TRAIL_MAX_POINTS = 40;
+export const TRAIL_MAX_POINTS = 120;
 
 /** Minimum movement to add trail point (pixels) */
 export const TRAIL_MIN_DISTANCE = 2;

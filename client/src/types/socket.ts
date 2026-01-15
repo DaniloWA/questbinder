@@ -159,6 +159,9 @@ export interface CursorMovePayload {
   trailAnimation?: 'line' | 'water' | 'fire' | 'particles' | 'dice' | 'rainbow' | 'smoke' | 'electric';
   trailColor?: string;
   trailEnabled?: boolean;
+  trailLength?: number;
+  trailThickness?: number;
+  trailSize?: number;
   trailCustomImage?: string;
   isDragging?: boolean; // Hide cursor when user is dragging a token
 }
