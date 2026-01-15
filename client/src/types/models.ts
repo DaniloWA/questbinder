@@ -662,6 +662,7 @@ export interface PermissionSet {
     trailCustomImage?: string;
     trailLength?: number;
     trailThickness?: number;
+    trailSize?: number;
   }>;
 
   // Chat Permissions

@@ -498,7 +498,10 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
         trailEnabled: currentUserOverride.trailEnabled ?? localSettings.trailEnabled,
         trailColor: currentUserOverride.trailColor || localSettings.trailColor || localSettings.color,
         trailAnimation: currentUserOverride.trailAnimation || localSettings.trailAnimation,
-        trailCustomImage: currentUserOverride.trailCustomImage || localSettings.trailCustomImage
+        trailCustomImage: currentUserOverride.trailCustomImage || localSettings.trailCustomImage,
+        trailLength: currentUserOverride.trailLength ?? localSettings.trailLength,
+        trailThickness: currentUserOverride.trailThickness ?? localSettings.trailThickness,
+        trailSize: currentUserOverride.trailSize ?? localSettings.trailSize
       };
 
       // Feed local data into physics engine for collision detection (trail rendered by CustomCursor.tsx)
@@ -510,12 +513,20 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
         trailColor: effectiveLocalSettings.trailColor,
         trailAnimation: effectiveLocalSettings.trailAnimation,
         trailCustomImage: effectiveLocalSettings.trailCustomImage,
+        trailLength: effectiveLocalSettings.trailLength,
+        trailThickness: effectiveLocalSettings.trailThickness,
+        trailSize: effectiveLocalSettings.trailSize,
         healthStatus: 'healthy',
       });
 
-      // Tick physics - no local trail render (CustomCursor.tsx handles it)
+      // Tick physics
       cursorEngine.tick(LOCAL_ID, deltaMs);
 
+      // Render Local Trail (Unified Logic)
+      const localRenderData = cursorEngine.getRenderData(LOCAL_ID);
+      if (localRenderData && (localRenderData.trailConfig?.enabled || localRenderData.healthStatus !== 'healthy')) {
+        renderCursorTrails(ctx, localRenderData as any, effectiveLocalSettings.color, z);
+      }
 
 
       if (cursorsToRender) {
@@ -539,6 +550,9 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
               isChatting: cursor.isChatting, trailAnimation: cursor.trailAnimation as any,
               trailColor: cursor.trailColor, trailEnabled: cursor.trailEnabled,
               trailCustomImage: cursor.trailCustomImage,
+              trailLength: cursor.trailLength,
+              trailThickness: cursor.trailThickness,
+              trailSize: cursor.trailSize,
               isAfk: cursor.isAfk,
             });
             lastProcessedCursorsRef.current[cursor.userId] = {

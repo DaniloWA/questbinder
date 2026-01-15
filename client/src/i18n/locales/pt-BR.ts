@@ -196,6 +196,9 @@ export default {
           thick: 'Grosso',
           short: 'Curto',
           long: 'Longo',
+          size: 'Tamanho',
+          small: 'Pequeno',
+          large: 'Grande',
         },
         options: {
           showOthersTrails: 'Ver Rastros de Outros',

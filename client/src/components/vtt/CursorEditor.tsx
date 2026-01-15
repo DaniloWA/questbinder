@@ -273,6 +273,7 @@ export interface CursorEditorPermissions {
   trail: boolean; // Grouped permission/validation for all trail settings
   trailLength?: boolean;
   trailThickness?: boolean;
+  trailSize?: boolean;
 }
 
 export interface CursorEditorOverrides {
@@ -287,6 +288,7 @@ export interface CursorEditorOverrides {
   trail?: boolean;
   trailLength?: boolean;
   trailThickness?: boolean;
+  trailSize?: boolean;
 }
 
 export interface CursorEditorProps {
@@ -654,7 +656,7 @@ export const CursorEditor: React.FC<CursorEditorProps> = ({
                     {!isGMMode && overrides?.trailLength && <div className="w-1.5 h-1.5 rounded-full bg-amber-500" title={t('vtt.cursor.settings.overrideActive')} />}
                   </div>
                   <input
-                    type="range" min="5" max="50"
+                    type="range" min="5" max="15"
                     value={values.trailLength}
                     onChange={e => (canEdit.trailLength ?? canEdit.trail) && onChange('trailLength', e.target.value)}
                     disabled={!(canEdit.trailLength ?? canEdit.trail)}
@@ -684,6 +686,26 @@ export const CursorEditor: React.FC<CursorEditorProps> = ({
                     <span>{t('vtt.cursor.editor.trail.thin')}</span>
                     <span>{values.trailThickness}</span>
                     <span>{t('vtt.cursor.editor.trail.thick')}</span>
+                  </div>
+                </div>
+
+                {/* Trail Size (Particle Size) */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[10px] font-medium text-muted-foreground">{t('vtt.cursor.editor.trail.size')}</label>
+                    {!isGMMode && overrides?.trailSize && <div className="w-1.5 h-1.5 rounded-full bg-amber-500" title={t('vtt.cursor.settings.overrideActive')} />}
+                  </div>
+                  <input
+                    type="range" min="0.5" max="5" step="0.5"
+                    value={values.trailSize}
+                    onChange={e => (canEdit.trail) && onChange('trailSize', e.target.value)}
+                    disabled={!canEdit.trail}
+                    className="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[8px] text-zinc-500">
+                    <span>{t('vtt.cursor.editor.trail.small')}</span>
+                    <span>{values.trailSize}</span>
+                    <span>{t('vtt.cursor.editor.trail.large')}</span>
                   </div>
                 </div>
               </>

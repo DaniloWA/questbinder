@@ -603,9 +603,10 @@ export class CursorPhysicsEngine {
         enabled: state.trailEnabled,
         animation: state.trailAnimation,
         color: state.trailColor,
-        image: state.trailCustomImage,
+        customImage: state.trailCustomImage,
         length: state.trailLength,
         thickness: state.trailThickness,
+        size: state.trailSize,
       }
     };
   }

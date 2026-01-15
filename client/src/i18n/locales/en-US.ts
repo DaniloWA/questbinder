@@ -196,6 +196,9 @@ export default {
           thick: 'Thick',
           short: 'Short',
           long: 'Long',
+          size: 'Size',
+          small: 'Small',
+          large: 'Large',
         },
         options: {
           showOthersTrails: 'Show Others Trails',

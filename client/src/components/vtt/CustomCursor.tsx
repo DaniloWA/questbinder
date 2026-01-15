@@ -2,29 +2,20 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { getCursorShape } from './constants/cursorShapes';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { getToolIcon } from '../../constants/toolIcons';
-import {
-  renderTrail,
-  TrailPoint,
-  TrailAnimation,
-  HealthStatus,
-  cleanupTrailHistory,
-} from '../../utils/trailRenderer';
+import { HealthStatus } from '../../utils/trailRenderer';
 import {
   getDynamicCursorSize,
   VISUAL_LERP_SPEED,
   STRETCH_FACTOR,
   MAX_STRETCH,
   MAX_SQUASH,
-  TRAIL_MAX_POINTS,
-  TRAIL_MIN_DISTANCE,
-  TRAIL_THROTTLE_MS,
 } from '../../constants/cursorConstants';
 
 interface CustomCursorProps {
   shapeId: string;
   color: string;
   enabled?: boolean;
-  // Trail settings
+  // Trail settings (Legacy/Ignored - trail is now rendered in useMapRenderer)
   trailEnabled?: boolean;
   trailAnimation?: string;
   trailColor?: string;
@@ -44,40 +35,25 @@ interface CustomCursorProps {
  * - Rotation based on movement direction
  * - Velocity-based stretch (squash & stretch)
  * - Click feedback (pulse/shrink)
- * - Trail animations using shared trailRenderer module
+ * 
+ * NOTE: Trail rendering has been moved to useMapRenderer.ts (Canvas) for performance and unification.
  */
 export const CustomCursor: React.FC<CustomCursorProps> = ({
   shapeId = 'default',
   color = '#fbbf24',
   enabled = true,
-  trailEnabled = false,
-  trailAnimation = 'line',
-  trailColor,
-  trailLength = 20,
-  trailThickness = 1,
-  trailSize = 4,
-  trailCustomImage,
-  healthStatus = 'healthy',
   activeTool,
   isContexting,
   isChatting,
 }) => {
   const cursorRef = useRef<HTMLDivElement>(null);
-  const trailCanvasRef = useRef<HTMLCanvasElement>(null);
   const [isClicking, setIsClicking] = useState(false);
-
-  // Use trailColor or default to cursor color
-  const effectiveTrailColor = trailColor || color;
 
   // Animation state (refs to avoid re-renders)
   const mousePos = useRef({ x: 0, y: 0 });
   const cursorPos = useRef({ x: 0, y: 0 });
   const angle = useRef(0);
   const animationRef = useRef<number>(0);
-
-  // Trail history storage
-  const trailHistory = useRef<TrailPoint[]>([]);
-  const lastTrailTime = useRef(0);
 
   // Dynamic cursor size (from shared constants)
   const CURSOR_SIZE = getDynamicCursorSize();
@@ -108,7 +84,6 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
 
     const animate = () => {
       const cursor = cursorRef.current;
-      const trailCanvas = trailCanvasRef.current;
 
       if (!cursor) {
         animationRef.current = requestAnimationFrame(animate);
@@ -139,59 +114,6 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
       const halfSize = CURSOR_SIZE / 2;
       cursor.style.transform = `translate3d(${cursorPos.current.x - halfSize}px, ${cursorPos.current.y - halfSize}px, 0) rotate(${angle.current}deg) scale(${scaleX}, ${scaleY})`;
 
-      // Trail Logic - Using shared trailRenderer module
-      if (trailEnabled && trailCanvas) {
-        const ctx = trailCanvas.getContext('2d');
-        if (ctx) {
-          const now = performance.now();
-
-          // Add point to trail history if moving fast enough (using shared constants)
-          if (velocity > TRAIL_MIN_DISTANCE && now - lastTrailTime.current > TRAIL_THROTTLE_MS) {
-            trailHistory.current.push({
-              x: cursorPos.current.x,
-              y: cursorPos.current.y,
-              time: now,
-            });
-            lastTrailTime.current = now;
-
-            // Limit trail length (using shared constant)
-            if (trailHistory.current.length > TRAIL_MAX_POINTS) {
-              trailHistory.current = trailHistory.current.slice(-TRAIL_MAX_POINTS);
-            }
-          }
-
-          // Clear canvas
-          ctx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
-
-          // Render trail using shared module (zoom=1 for screen coordinates)
-          if (trailHistory.current.length > 0) {
-            renderTrail(
-              ctx,
-              trailHistory.current,
-              {
-                enabled: true,
-                color: effectiveTrailColor,
-                animation: trailAnimation as TrailAnimation,
-                length: trailLength,
-                thickness: trailThickness,
-                customImage: trailCustomImage,
-                size: trailSize,
-              },
-              {
-                zoom: 1, // Screen coordinates, no zoom
-                currentPosition: cursorPos.current,
-                healthStatus,
-              }
-            );
-          }
-
-          // Cleanup old trail points (zoomed out length adjustment)
-          // Default length is 20, so multiplier is trailLength / 20
-          const lengthMultiplier = Math.max(0.1, Math.min(5, (trailLength || 20) / 20));
-          trailHistory.current = cleanupTrailHistory(trailHistory.current, healthStatus, lengthMultiplier);
-        }
-      }
-
       animationRef.current = requestAnimationFrame(animate);
     };
 
@@ -212,28 +134,12 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
       document.removeEventListener('mousedown', handleMouseDown);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [enabled, handleMouseMove, handleMouseDown, handleMouseUp, trailEnabled, trailAnimation, effectiveTrailColor, trailLength, trailThickness, healthStatus]);
+  }, [enabled, handleMouseMove, handleMouseDown, handleMouseUp]);
 
   if (!enabled || !svgContent) return null;
 
   return (
     <>
-      {/* Trail Canvas - below cursor */}
-      {trailEnabled && (
-        <canvas
-          ref={trailCanvasRef}
-          width={window.innerWidth}
-          height={window.innerHeight}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            pointerEvents: 'none',
-            zIndex: 99998,
-          }}
-        />
-      )}
-
       {/* Custom cursor element */}
       <div
         ref={cursorRef}
@@ -284,5 +190,4 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
     </>
   );
 };
-
 export default CustomCursor;

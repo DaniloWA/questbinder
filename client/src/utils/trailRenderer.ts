@@ -179,14 +179,19 @@ const renderParticleTrail = (
 
     const progress = age / maxAge;
     const alpha = 1 - progress;
-    // Fix: Size based on age (progress), not index `i`.
-    // Younger points (small progress) are larger.
-    const size = ((baseSize * (1 - progress * 0.5)) + 2) / zoom * thickness;
+    // Particles shrink faster than smoke
+    const size = ((baseSize * (1 - progress)) + 2) / zoom * thickness;
+
+    // Deterministic random rotation based on time/index
+    const rotation = (point.time * 0.01) + (progress * Math.PI);
 
     ctx.save();
     ctx.translate(point.x, point.y);
-    ctx.globalAlpha = alpha * 0.6;
-    drawCircle(ctx, 0, 0, size, color);
+    ctx.rotate(rotation);
+    ctx.globalAlpha = alpha * 0.8;
+    ctx.fillStyle = color;
+    // Draw a small square instead of circle for distinct look
+    ctx.fillRect(-size / 2, -size / 2, size, size);
     ctx.restore();
   }
 };
@@ -238,6 +243,7 @@ const renderSparkleTrail = (
 const renderSmokeTrail = (
   ctx: CanvasRenderingContext2D,
   points: TrailPoint[],
+  color: string,
   zoom: number,
   maxAge: number,
   now: number,
@@ -258,7 +264,7 @@ const renderSmokeTrail = (
     ctx.save();
     ctx.translate(point.x, point.y + driftY);
     ctx.globalAlpha = alpha * 0.6;
-    drawCircle(ctx, 0, 0, size * 2, '#666666');
+    drawCircle(ctx, 0, 0, size * 2, color);
     ctx.restore();
   }
 };
@@ -266,6 +272,7 @@ const renderSmokeTrail = (
 const renderElectricTrail = (
   ctx: CanvasRenderingContext2D,
   points: TrailPoint[],
+  color: string,
   zoom: number,
   maxAge: number,
   now: number,
@@ -288,7 +295,7 @@ const renderElectricTrail = (
     ctx.save();
     ctx.translate(point.x + jitterX, point.y + jitterY);
     ctx.globalAlpha = alpha * 0.6;
-    ctx.strokeStyle = '#00ffff';
+    ctx.strokeStyle = color;
     ctx.lineWidth = 1 / zoom;
     ctx.beginPath();
     ctx.moveTo(-size, -size);
@@ -304,7 +311,8 @@ const renderDiceTrail = (
   color: string,
   zoom: number,
   maxAge: number,
-  now: number
+  now: number,
+  baseSize: number = 4
 ): void => {
   const diceMaxAge = maxAge * 1.5;
 
@@ -316,7 +324,8 @@ const renderDiceTrail = (
     const progress = age / diceMaxAge;
     const alpha = 1 - Math.pow(progress, 3);
     const diceVal = Math.floor((point.time % 20)) + 1;
-    const diceSize = 16 / zoom;
+    // Default was 16, baseSize default is 4, so multiplier is 4.0
+    const diceSize = (baseSize * 4) / zoom;
 
     ctx.save();
     ctx.translate(point.x, point.y);
@@ -352,9 +361,11 @@ const renderDiceTrail = (
 const renderBloodTrail = (
   ctx: CanvasRenderingContext2D,
   points: TrailPoint[],
+  color: string,
   zoom: number,
   maxAge: number,
-  now: number
+  now: number,
+  baseSize: number = 4
 ): void => {
   const bloodMaxAge = maxAge * 2;
 
@@ -368,12 +379,14 @@ const renderBloodTrail = (
 
     // Deterministic randomness based on time
     const rand = (point.time % 100) / 100;
-    const size = (3 + (rand * 4)) / zoom;
+    // Default was 3 + rand*4 (roughly 3-7). baseSize default 4.
+    // Let's us baseSize as the base, plus variance.
+    const size = (baseSize + (rand * baseSize)) / zoom;
 
     ctx.save();
     ctx.translate(point.x, point.y);
     ctx.globalAlpha = alpha * 0.8;
-    drawCircle(ctx, 0, 0, size, '#8a0b0b');
+    drawCircle(ctx, 0, 0, size, color);
     ctx.restore();
   }
 };
@@ -420,19 +433,19 @@ export const renderTrail = (
       break;
 
     case 'smoke':
-      renderSmokeTrail(ctx, points, zoom, maxAge, now, thickness, baseSize);
+      renderSmokeTrail(ctx, points, color, zoom, maxAge, now, thickness, baseSize);
       break;
 
     case 'electric':
-      renderElectricTrail(ctx, points, zoom, maxAge, now, thickness, baseSize);
+      renderElectricTrail(ctx, points, color, zoom, maxAge, now, thickness, baseSize);
       break;
 
     case 'dice':
-      renderDiceTrail(ctx, points, color, zoom, maxAge, now);
+      renderDiceTrail(ctx, points, color, zoom, maxAge, now, baseSize);
       break;
 
     case 'blood':
-      renderBloodTrail(ctx, points, zoom, maxAge, now);
+      renderBloodTrail(ctx, points, color, zoom, maxAge, now, baseSize);
       break;
 
     default:
