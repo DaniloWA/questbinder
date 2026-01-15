@@ -523,8 +523,9 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
       cursorEngine.tick(LOCAL_ID, deltaMs);
 
       // Render Local Trail (Unified Logic)
+      // Precision Mode: Skip trail when grid align tools are active
       const localRenderData = cursorEngine.getRenderData(LOCAL_ID);
-      if (localRenderData && (localRenderData.trailConfig?.enabled || localRenderData.healthStatus !== 'healthy')) {
+      if (localRenderData && !activeTool.startsWith('map-align') && (localRenderData.trailConfig?.enabled || localRenderData.healthStatus !== 'healthy')) {
         renderCursorTrails(ctx, localRenderData as any, effectiveLocalSettings.color, z);
       }
 
@@ -574,8 +575,8 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
           ctx.save();
 
 
-          // Trails
-          if (showTrails && (renderData.trailConfig?.enabled || renderData.healthStatus !== 'healthy')) {
+          // Trails - Precision Mode: Skip when grid align tools are active
+          if (showTrails && !activeTool.startsWith('map-align') && (renderData.trailConfig?.enabled || renderData.healthStatus !== 'healthy')) {
             renderCursorTrails(ctx, renderData as any, cursorColor, z);
           }
 

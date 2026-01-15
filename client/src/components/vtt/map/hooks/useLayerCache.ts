@@ -25,10 +25,10 @@ export const useLayerCache = (config: LayerCacheConfig) => {
   const gridCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const cacheVersionRef = useRef<string>('');
 
-  // Generate version key from grid settings
+  // Generate version key from grid settings (including offsets for grid alignment)
   const currentVersion = useMemo(() => {
     const { grid, mapWidth, mapHeight, showCoordinates } = config;
-    return `${grid.size}_${grid.cols}_${grid.rows}_${grid.color}_${grid.alpha}_${mapWidth}_${mapHeight}_${showCoordinates ? '1' : '0'}`;
+    return `${grid.size}_${grid.cols}_${grid.rows}_${grid.color}_${grid.alpha}_${mapWidth}_${mapHeight}_${showCoordinates ? '1' : '0'}_${grid.offsetX || 0}_${grid.offsetY || 0}`;
   }, [config]);
 
   // Check if cache is valid
@@ -62,7 +62,8 @@ export const useLayerCache = (config: LayerCacheConfig) => {
     ctx.clearRect(0, 0, mapWidth, mapHeight);
 
     // Render at zoom 1 - the main canvas will handle scaling
-    drawGrid(ctx, mapWidth, mapHeight, grid.size, grid.color, grid.alpha, 1, showCoordinates);
+    // Pass offsetX/offsetY for grid alignment with pre-baked map grids
+    drawGrid(ctx, mapWidth, mapHeight, grid.size, grid.color, grid.alpha, 1, showCoordinates, grid.offsetX || 0, grid.offsetY || 0);
 
     // Update version
     cacheVersionRef.current = currentVersion;

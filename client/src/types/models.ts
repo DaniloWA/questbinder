@@ -232,6 +232,8 @@ export interface GridOptions {
   cols: number;
   rows: number;
   unitsPerSquare: number;
+  offsetX?: number;  // Grid offset in pixels (for aligning with pre-baked grids)
+  offsetY?: number;
 }
 
 export type ObstacleType = 'wall' | 'door' | 'window';
@@ -733,7 +735,7 @@ export interface SoundEffect {
 }
 
 // --- MISC ---
-export type VTTTool = 'select' | 'pan' | 'measure-path' | 'fog-poly' | 'fog-rect' | 'draw-wall' | 'freehand-wall' | 'smart-wall' | 'draw-door' | 'draw-window' | 'draw-light-rect' | 'draw-light-poly' | 'draw-audio-rect' | 'draw-audio-poly' | 'draw-trigger-rect' | 'draw-trigger-poly' | 'eraser' | 'eraser-audio' | 'eraser-trigger' | 'brush' | 'eraser-drawing';
+export type VTTTool = 'select' | 'pan' | 'measure-path' | 'fog-poly' | 'fog-rect' | 'draw-wall' | 'freehand-wall' | 'smart-wall' | 'draw-door' | 'draw-window' | 'draw-light-rect' | 'draw-light-poly' | 'draw-audio-rect' | 'draw-audio-poly' | 'draw-trigger-rect' | 'draw-trigger-poly' | 'eraser' | 'eraser-audio' | 'eraser-trigger' | 'brush' | 'eraser-drawing' | 'map-align' | 'map-align-drag' | 'map-align-3point';
 
 export interface JournalEntry {
   id: string;

@@ -61,9 +61,13 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
 
   const {
     removeObstacle, ui, audioSettings, removeAudioZone, handouts, addDrawing, removeDrawing, drawingSettings,
-    rulerSettings, permissionHelper, setCursorClickState, setDragging
-  } = useGameSession();
+    rulerSettings, permissionHelper, setCursorClickState, setDragging, updateMapSettings
+  } = useGameSession(); // Added updateMapSettings
   const { openModal, closeModal } = useModal();
+
+  // Grid Alignment Refs
+  const gridDragState = React.useRef({ isDragging: false, startX: 0, startY: 0, startOffsetX: 0, startOffsetY: 0 });
+  const alignPointsRef = React.useRef<{ x: number, y: number; }[]>([]);
 
   // Timer for delayed "pressing" state (distinguish click vs hold)
   const pressingTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -240,6 +244,26 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
       return;
     }
 
+    // Grid Alignment Drag Logic
+    if (activeTool === 'map-align-drag' && gridDragState.current.isDragging && scene) {
+      const dx = worldPos.x - gridDragState.current.startX;
+      const dy = worldPos.y - gridDragState.current.startY;
+      const newOffsetX = gridDragState.current.startOffsetX + dx;
+      const newOffsetY = gridDragState.current.startOffsetY + dy;
+
+      // EMIT LOCAL UPDATE to UI (MapAlignerTool) which will then emit PREVIEW to Renderer
+      // This keeps UI in sync and Renderer updating at 60fps without Network lag.
+      window.dispatchEvent(new CustomEvent('questbinder:grid-local-update', {
+        detail: { offsetX: newOffsetX, offsetY: newOffsetY }
+      }));
+
+      // Also emit preview directly to ensure smoothness if UI reacts slowly
+      window.dispatchEvent(new CustomEvent('questbinder:grid-preview', {
+        detail: { size: scene.grid.size, offsetX: newOffsetX, offsetY: newOffsetY }
+      }));
+      return;
+    }
+
     const now = Date.now();
     if (now - lastCursorEmit.current > 50) {
       emitCursorMove(worldPos.x, worldPos.y);
@@ -324,7 +348,8 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
     let worldPos = screenToWorld(pos.x, pos.y);
 
     // --- TRIGGER CLICK ANIMATION ---
-    if ((e.button === 0 || e.button === 2) && props.clickAnimationsRef) {
+    // Precision Mode: Skip click animations when grid align tools are active
+    if ((e.button === 0 || e.button === 2) && props.clickAnimationsRef && !activeTool.startsWith('map-align')) {
       const isLeft = e.button === 0;
       const defaultColor = isLeft ? '#3b82f6' : '#f59e0b';
 
@@ -362,6 +387,28 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
       const gx = Math.floor(worldPos.x / gridSize);
       const gy = Math.floor(worldPos.y / gridSize);
       worldPos = { x: gx * gridSize + gridSize / 2, y: gy * gridSize + gridSize / 2 };
+    }
+
+    // Grid Alignment Interactions
+    if (activeTool === 'map-align-drag') {
+      if (scene) {
+        gridDragState.current = {
+          isDragging: true,
+          startX: worldPos.x,
+          startY: worldPos.y,
+          startOffsetX: scene.grid.offsetX || 0,
+          startOffsetY: scene.grid.offsetY || 0
+        };
+      }
+      return;
+    }
+
+    if (activeTool === 'map-align-3point') {
+      // If we already have 3 points, we are waiting for confirmation. Do not add more points.
+      if (alignPointsRef.current.length < 3) {
+        alignPointsRef.current.push(worldPos);
+      }
+      return;
     }
 
     const clickedToken = findTokenAt(worldPos.x, worldPos.y);
@@ -602,6 +649,12 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
       return;
     }
 
+    // Grid Alignment Logic (Commit)
+    if (activeTool === 'map-align-drag' && gridDragState.current.isDragging) {
+      gridDragState.current.isDragging = false;
+      return;
+    }
+
     // Commit Brush/Freehand
     if (activeTool === 'brush' || activeTool === 'freehand-wall') {
       isDrawingRef.current = false;
@@ -671,6 +724,38 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
     } else if (activeTool === 'measure-path') { setMovementPath([]); setActiveTool('select'); }
   };
 
+  // 3-Point Calibration Actions
+  const confirm3PointCalibration = () => {
+    if (alignPointsRef.current.length !== 3) return;
+    const [p1, p2, p3] = alignPointsRef.current;
+
+    // P1: Top-Left (Original Offset) -> P2: Top-Right -> P3: Bottom-Left
+    const distP1P2 = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+    // const distP1P3 = Math.hypot(p3.x - p1.x, p3.y - p1.y); // Height check optional
+
+    const computedSize = Math.round(distP1P2);
+
+    // Offset calculation: P1 should be an intersection point.
+    // So P1 = (N * size) + Offset
+    // Offset = P1 % size
+    // We need positive modulo behavior
+    const newOffsetX = ((p1.x % computedSize) + computedSize) % computedSize;
+    const newOffsetY = ((p1.y % computedSize) + computedSize) % computedSize;
+
+    // LOCAL UPDATE ONLY (No Server Commit)
+    window.dispatchEvent(new CustomEvent('questbinder:grid-local-update', {
+      detail: { size: computedSize, offsetX: newOffsetX, offsetY: newOffsetY }
+    }));
+
+    // Switch back to inspector to review visual change
+    setActiveTool('map-align');
+    alignPointsRef.current = [];
+  };
+
+  const cancel3PointCalibration = () => {
+    alignPointsRef.current = [];
+  };
+
   const handleWheel = (e: React.WheelEvent) => {
     setHoveredTokenId(null);
     if (hoverCloseTimerRef.current) clearTimeout(hoverCloseTimerRef.current);
@@ -710,6 +795,9 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
     handleMouseUp,
     handleDoubleLeftClick,
     handleMouseLeave,
-    handleWheel
+    handleWheel,
+    alignPointsRef, // Expose for UI visualization
+    confirm3PointCalibration,
+    cancel3PointCalibration
   };
 };

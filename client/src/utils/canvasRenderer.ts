@@ -27,20 +27,43 @@ export const drawGrid = (
     color: string,
     alpha: number,
     zoom: number,
-    showCoordinates: boolean = false
+    showCoordinates: boolean = false,
+    offsetX: number = 0,
+    offsetY: number = 0
 ) => {
     ctx.strokeStyle = color;
     ctx.globalAlpha = alpha;
     ctx.lineWidth = 1 / zoom;
     ctx.beginPath();
-    for (let x = 0; x <= mapWidth; x += gridSize) { ctx.moveTo(x, 0); ctx.lineTo(x, mapHeight); }
-    for (let y = 0; y <= mapHeight; y += gridSize) { ctx.moveTo(0, y); ctx.lineTo(mapWidth, y); }
+
+    // Apply offset: Normalize offset within one cell to ensure seamless wrapping
+    // If offset is 50 and gridSize is 70, we start at 50
+    // If offset is 80 and gridSize is 70, we start at 10 (80 % 70)
+    // Handle negative offsets: -20 with gridSize 70 = 50 (gridSize - 20)
+    const normalizeOffset = (offset: number, size: number): number => {
+        const mod = offset % size;
+        return mod < 0 ? mod + size : mod;
+    };
+
+    const startX = normalizeOffset(offsetX, gridSize);
+    const startY = normalizeOffset(offsetY, gridSize);
+
+    // Draw vertical lines (from offset)
+    for (let x = startX; x <= mapWidth; x += gridSize) {
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, mapHeight);
+    }
+    // Draw horizontal lines (from offset)
+    for (let y = startY; y <= mapHeight; y += gridSize) {
+        ctx.moveTo(0, y);
+        ctx.lineTo(mapWidth, y);
+    }
     ctx.stroke();
     ctx.globalAlpha = 1.0;
 
     // Draw coordinates if enabled
     if (showCoordinates) {
-        drawGridCoordinates(ctx, mapWidth, mapHeight, gridSize, zoom);
+        drawGridCoordinates(ctx, mapWidth, mapHeight, gridSize, zoom, offsetX, offsetY);
     }
 };
 
@@ -61,10 +84,22 @@ const drawGridCoordinates = (
     mapWidth: number,
     mapHeight: number,
     gridSize: number,
-    zoom: number
+    zoom: number,
+    offsetX: number = 0,
+    offsetY: number = 0
 ) => {
-    const cols = Math.floor(mapWidth / gridSize);
-    const rows = Math.floor(mapHeight / gridSize);
+    // Normalize offsets for consistent coordinate positioning
+    const normalizeOffset = (offset: number, size: number): number => {
+        const mod = offset % size;
+        return mod < 0 ? mod + size : mod;
+    };
+
+    const startX = normalizeOffset(offsetX, gridSize);
+    const startY = normalizeOffset(offsetY, gridSize);
+
+    // Calculate effective number of columns and rows based on offset
+    const cols = Math.ceil((mapWidth - startX) / gridSize) + (startX > 0 ? 1 : 0);
+    const rows = Math.ceil((mapHeight - startY) / gridSize) + (startY > 0 ? 1 : 0);
 
     // Border label size (responsive to zoom)
     const borderLabelSize = Math.max(10, Math.min(16, gridSize * 0.25)) / zoom;
@@ -90,7 +125,10 @@ const drawGridCoordinates = (
     ctx.fillStyle = '#ffffff';
 
     for (let col = 0; col < cols; col++) {
-        const x = col * gridSize + gridSize / 2;
+        // Calculate x position accounting for offset
+        const x = (col === 0 && startX > 0) ? startX / 2 : startX + (col - (startX > 0 ? 1 : 0)) * gridSize + gridSize / 2;
+        if (x > mapWidth) continue;
+
         const y = -borderWidth / 2;
         const letter = columnToLetter(col);
 
@@ -102,7 +140,10 @@ const drawGridCoordinates = (
     // Draw row numbers (1, 2, 3, ...) on left border
     for (let row = 0; row < rows; row++) {
         const x = -borderWidth / 2;
-        const y = row * gridSize + gridSize / 2;
+        // Calculate y position accounting for offset
+        const y = (row === 0 && startY > 0) ? startY / 2 : startY + (row - (startY > 0 ? 1 : 0)) * gridSize + gridSize / 2;
+        if (y > mapHeight) continue;
+
         const rowNum = (row + 1).toString();
 
         // Alternate colors for readability
@@ -117,8 +158,14 @@ const drawGridCoordinates = (
 
     for (let col = 0; col < cols; col++) {
         for (let row = 0; row < rows; row++) {
-            const x = col * gridSize + 2 / zoom;
-            const y = row * gridSize + 2 / zoom;
+            // Calculate positions accounting for offset
+            const xPos = (col === 0 && startX > 0) ? 0 : startX + (col - (startX > 0 ? 1 : 0)) * gridSize;
+            const yPos = (row === 0 && startY > 0) ? 0 : startY + (row - (startY > 0 ? 1 : 0)) * gridSize;
+
+            if (xPos >= mapWidth || yPos >= mapHeight) continue;
+
+            const x = xPos + 2 / zoom;
+            const y = yPos + 2 / zoom;
             const coord = `${columnToLetter(col)}${row + 1}`;
 
             // Semi-transparent background for readability

@@ -544,6 +544,13 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                         onClick: toggleGridCoordinates
                     },
                     {
+                        id: 'map-align',
+                        type: 'tool',
+                        label: t('vtt.grid.inspector.title'),
+                        icon: <Magnet />,
+                        shortcut: 'G'
+                    },
+                    {
                         id: 'settings',
                         type: 'action',
                         label: t('vtt.tools.toolbar.gmTools.mapSettings.button.label'),

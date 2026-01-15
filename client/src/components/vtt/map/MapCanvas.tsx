@@ -10,6 +10,7 @@ import { useMapInteraction } from './hooks/useMapInteraction';
 import { useMapRenderer } from './hooks/useMapRenderer';
 import { TokenHoverCard } from './TokenHoverCard';
 import { CustomCursor } from '../CustomCursor';
+import { PrecisionCursor } from '../PrecisionCursor';
 // ...
 export const MapCanvas = (props: MapCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -57,6 +58,8 @@ export const MapCanvas = (props: MapCanvasProps) => {
   useEffect(() => {
     const handleRemoteClick = (payload: CursorClickPayload) => {
       if (payload.userId === props.currentUser?.id) return; // Already handled locally
+      // Precision Mode: Skip click animations when grid align tools are active
+      if (props.activeTool.startsWith('map-align')) return;
       clickAnimationsRef.current.push({
         x: payload.x,
         y: payload.y,
@@ -70,7 +73,7 @@ export const MapCanvas = (props: MapCanvasProps) => {
     return () => {
       socketService.off('cursor:click', handleRemoteClick);
     };
-  }, [props.currentUser?.id]);
+  }, [props.currentUser?.id, props.activeTool]);
 
   // 5. Map Interaction (Event Handlers)
   const interaction = useMapInteraction({
@@ -150,6 +153,8 @@ export const MapCanvas = (props: MapCanvasProps) => {
 
   // Render TokenHoverCard with reactive key pattern (from old implementation)
   const renderHoverCard = () => {
+    // Precision Mode: Hide hover card when grid align tools are active
+    if (props.activeTool.startsWith('map-align')) return null;
     // Hide hover card when dragging to prevent mouse interference
     if (dragState.current.isDragging) return null;
     if (!hoveredTokenId || !props.scene) return null;
@@ -227,7 +232,12 @@ export const MapCanvas = (props: MapCanvasProps) => {
       className="relative w-full h-full overflow-hidden bg-black select-none"
       // Logic: Show custom cursor (hide mouse) when over VTT OR Dragging, UNLESS hovering a token (show normal mouse)
       // If dragging, we force hide mouse (cursor: none)
-      style={{ cursor: (isMouseOverVTT && !mapState.hoveredTokenId) || mapState.isTokenDragging ? 'none' : 'auto' }}
+      // Precision Mode: Hide cursor when grid align tools are active (PrecisionCursor handles display)
+      style={{
+        cursor: props.activeTool.startsWith('map-align')
+          ? 'none'
+          : ((isMouseOverVTT && !mapState.hoveredTokenId) || mapState.isTokenDragging ? 'none' : 'auto')
+      }}
       onContextMenu={e => e.preventDefault()}
       onMouseEnter={() => setIsMouseOverVTT(true)}
       onMouseLeave={() => setIsMouseOverVTT(false)}
@@ -252,13 +262,15 @@ export const MapCanvas = (props: MapCanvasProps) => {
       {renderHoverCard()}
 
       {/* DOM-based Custom Cursor with Physics Animation - only when over VTT */}
+      {/* Precision Mode: Disable custom cursor when grid align tools are active for accurate positioning */}
       <CustomCursor
         shapeId={cursorConfig.shapeId}
         color={cursorConfig.color}
         // Disable custom cursor when hovering a token so we don't overlapping cursors
         // Also disable when dragging (user requested cursor to disappear)
-        enabled={isMouseOverVTT && !mapState.hoveredTokenId && !mapState.isTokenDragging}
-        trailEnabled={cursorConfig.trailEnabled && cursorConfig.showMyTrail}
+        // Also disable during grid alignment for precision mode
+        enabled={isMouseOverVTT && !mapState.hoveredTokenId && !mapState.isTokenDragging && !props.activeTool.startsWith('map-align')}
+        trailEnabled={cursorConfig.trailEnabled && cursorConfig.showMyTrail && !props.activeTool.startsWith('map-align')}
         trailAnimation={cursorConfig.trailAnimation}
         trailColor={cursorConfig.trailColor}
         trailLength={cursorConfig.trailLength}
@@ -276,6 +288,22 @@ export const MapCanvas = (props: MapCanvasProps) => {
           if (char.hpCurrent <= (char.hpMax / 2)) return 'bloodied';
           return 'healthy';
         })()}
+      />
+
+      {/* Precision Cursor for Grid Alignment - shows crosshair with smart HUD */}
+      <PrecisionCursor
+        enabled={props.activeTool.startsWith('map-align')}
+        mode={props.activeTool === 'map-align' ? 'inspect' : (props.activeTool.replace('map-align-', '') as any)}
+        gridSize={props.scene?.grid.size || 70}
+        offsetX={props.scene?.grid.offsetX || 0}
+        offsetY={props.scene?.grid.offsetY || 0}
+        cols={props.scene?.grid.cols || 30}
+        rows={props.scene?.grid.rows || 20}
+        viewport={props.viewport}
+        activeCalibrationRef={interaction.alignPointsRef}
+        onConfirmCalibration={interaction.confirm3PointCalibration}
+        onCancelCalibration={interaction.cancel3PointCalibration}
+        canvasRef={canvasRef}
       />
     </div>
   );

@@ -13,6 +13,7 @@ import { VTTToolbar } from '../components/vtt/VTTToolbar';
 import { MobileVTTToolbar } from '../modules/vtt/map3d/ui/mobile/MobileVTTToolbar';
 import { DrawingToolbar } from '../components/vtt/DrawingToolbar';
 import { RulerToolbar } from '../components/vtt/RulerToolbar';
+import { MapAlignerTool } from '../components/vtt/map/MapAlignerTool';
 import { TokenContextMenu } from '../components/vtt/TokenContextMenu';
 import { TokenEditModal } from '../components/vtt/TokenEditModal';
 import { MapSettingsModal } from '../components/vtt/MapSettingsModal';
@@ -583,6 +584,8 @@ const GameSessionUI: React.FC = () => {
                     <DrawingToolbar />
                     {/* Render Ruler Toolbar if active */}
                     <RulerToolbar />
+                    {/* Render Grid Aligner Tool if active */}
+                    <MapAlignerTool />
 
                     {/* Desktop Toolbar (hidden on mobile) */}
                     <div className="hidden md:block">
