@@ -103,17 +103,27 @@ export const MapCanvas = (props: MapCanvasProps) => {
   // Priority: GM cursorOverrides > user cursorSettings > defaults
   const cursorConfig = useMemo(() => {
     const userId = props.currentUser?.id || '';
-    const overrides = props.permissions?.cursorOverrides?.[userId] || {};
+    const overrides = (props.permissions?.cursorOverrides?.[userId] || {}) as {
+      shape?: string;
+      color?: string;
+      trailEnabled?: boolean;
+      trailAnimation?: string;
+      trailColor?: string;
+      trailLength?: number;
+      showMyTrail?: boolean;
+    };
+    const settings = props.cursorSettings;
 
     return {
-      shapeId: overrides.shape || props.cursorSettings?.shape || 'default',
-      color: overrides.color || props.cursorSettings?.color || '#fbbf24',
-      // Trail settings
-      trailEnabled: props.cursorSettings?.trailEnabled ?? false,
-      trailAnimation: props.cursorSettings?.trailAnimation || 'line',
-      trailColor: props.cursorSettings?.trailColor || props.cursorSettings?.color || '#fbbf24',
-      trailLength: props.cursorSettings?.trailLength ?? 20,
-      showMyTrail: props.cursorSettings?.showMyTrail ?? true,
+      // Basic cursor settings
+      shapeId: overrides.shape || settings?.shape || 'default',
+      color: overrides.color || settings?.color || '#fbbf24',
+      // Trail settings - now respecting GM overrides
+      trailEnabled: overrides.trailEnabled ?? settings?.trailEnabled ?? false,
+      trailAnimation: overrides.trailAnimation || settings?.trailAnimation || 'line',
+      trailColor: overrides.trailColor || settings?.trailColor || settings?.color || '#fbbf24',
+      trailLength: overrides.trailLength ?? settings?.trailLength ?? 20,
+      showMyTrail: overrides.showMyTrail ?? settings?.showMyTrail ?? true,
     };
   }, [
     props.currentUser?.id,

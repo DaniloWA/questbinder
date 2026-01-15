@@ -2,6 +2,7 @@ import { renderCursorToImage } from '../../../../../utils/cursorRenderer';
 import { getCursorShape } from '../../../constants/cursorShapes';
 import { getContrastColor } from '../../../../../utils/colors';
 import { drawBadge } from './canvasHelpers';
+import { getDynamicCursorSize } from '../../../../../constants/cursorConstants';
 
 export const renderCursor = (
   ctx: CanvasRenderingContext2D,
@@ -30,9 +31,8 @@ export const renderCursor = (
   // Apply Stretch
   ctx.scale(scaleX, scaleY);
 
-  const screenMin = Math.min(window.innerWidth, window.innerHeight);
-  const dynamicSize = Math.max(48, Math.min(64, Math.round(screenMin * 0.04)));
-  const renderSize = dynamicSize;
+  // Dynamic cursor size (from shared constants)
+  const renderSize = getDynamicCursorSize();
 
   if (shape.Component) {
     const cacheKey = `${cursorShape || 'default'}_${cursorColor}_${renderSize}`;

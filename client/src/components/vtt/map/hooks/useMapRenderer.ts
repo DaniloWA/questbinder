@@ -110,9 +110,11 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
       cursorEngine.processServerUpdate(userId, update);
     });
 
+    // Clean up cursors that are no longer in remoteCursors
+    // BUT preserve: currentUser's cursor AND the special 'local_user_cursor' ID used for collision detection
     const engineIds = cursorEngine.getCursorIds();
     engineIds.forEach(id => {
-      if (!remoteCursors[id] && id !== currentUser?.id) {
+      if (!remoteCursors[id] && id !== currentUser?.id && id !== 'local_user_cursor') {
         cursorEngine.removeCursor(id);
       }
     });
@@ -485,7 +487,8 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
       const deltaMs = frameTimer.current.tick();
       localCursorRef.current = { x: mouseWorldPos.x, y: mouseWorldPos.y };
 
-      // --- LOCAL TRAIL RENDERING (Using Engine for Parity) ---
+      // --- LOCAL CURSOR PHYSICS (for collisions) ---
+      // Note: Local trail is rendered by CustomCursor.tsx (DOM overlay), not here.
       const LOCAL_ID = 'local_user_cursor';
       const currentUserOverride = props.permissions?.cursorOverrides?.[currentUser?.id || ''] || {};
       const localSettings = (props.cursorSettings || {}) as any;
@@ -498,33 +501,30 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
         trailCustomImage: currentUserOverride.trailCustomImage || localSettings.trailCustomImage
       };
 
-      // Feed local data into physics engine to get exact same trail behavior
+      // Feed local data into physics engine for collision detection (trail rendered by CustomCursor.tsx)
       cursorEngine.processServerUpdate(LOCAL_ID, {
         x: mouseWorldPos.x,
         y: mouseWorldPos.y,
         timestamp: performance.now(),
-        // Pass effective settings to engine in case it uses them for filtering
         trailEnabled: effectiveLocalSettings.trailEnabled,
         trailColor: effectiveLocalSettings.trailColor,
         trailAnimation: effectiveLocalSettings.trailAnimation,
         trailCustomImage: effectiveLocalSettings.trailCustomImage,
-        healthStatus: 'healthy', // Local user always sees themselves healthy for cursor purposes usually
-
+        healthStatus: 'healthy',
       });
 
-      // Tick and Render
+      // Tick physics - no local trail render (CustomCursor.tsx handles it)
       cursorEngine.tick(LOCAL_ID, deltaMs);
-      const localRenderData = cursorEngine.getRenderData(LOCAL_ID);
-
-      if (localRenderData && effectiveLocalSettings.trailEnabled) {
-        renderCursorTrails(ctx, localRenderData as any, effectiveLocalSettings.color, z);
-      }
 
 
 
       if (cursorsToRender) {
+        // Get current user ID with fallback to prevent undefined comparison issues
+        const localUserId = currentUser?.id;
+
         Object.values(cursorsToRender).forEach((cursor: any) => {
-          if (cursor.userId === currentUser?.id) return;
+          // Skip local user cursor - never render here (CustomCursor.tsx handles it)
+          if (!localUserId || cursor.userId === localUserId) return;
           const showTrails = props.cursorSettings?.showOthersTrails !== false;
 
           const lastProcessed = lastProcessedCursorsRef.current[cursor.userId];

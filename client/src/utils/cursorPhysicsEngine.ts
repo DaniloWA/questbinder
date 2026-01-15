@@ -23,16 +23,25 @@ import {
   lerp,
   debugLog,
 } from './animationEngine';
+import {
+  STOPPED_THRESHOLD_MS,
+  SNAP_THRESHOLD,
+  VELOCITY_DECAY,
+  VISUAL_LERP_SPEED,
+  STRETCH_FACTOR,
+  MAX_STRETCH,
+  MAX_SQUASH,
+  TRAIL_MAX_POINTS,
+  TRAIL_MIN_DISTANCE,
+  TRAIL_THROTTLE_MS,
+} from '../constants/cursorConstants';
 
 // ============================================================================
-// CONSTANTS
+// CONSTANTS (Local only - not shared)
 // ============================================================================
 
 const MAX_HISTORY_SIZE = 10;
 const MAX_LATENCY_SAMPLES = 5;
-const STOPPED_THRESHOLD_MS = 150;
-const SNAP_THRESHOLD = 5;
-const VELOCITY_DECAY = 0.85;
 
 // ============================================================================
 // TYPES
@@ -55,6 +64,7 @@ export interface CursorState {
   angleVelocity: number;
   history: TimestampedPosition[];
   trailHistory: { x: number; y: number; time: number; }[];
+  lastTrailTime: number;
   lastUpdateTime: number;
   lastServerTime: number;
   estimatedLatencyMs: number;
@@ -128,9 +138,7 @@ export class CursorPhysicsEngine {
   private states: Map<string, CursorState> = new Map();
   private springConfig: SpringConfig;
 
-  // Visual Physics Constants (Matching CustomCursor.tsx)
-  private readonly VISUAL_LERP = 0.75;
-  private readonly STRETCH_FACTOR = 0.05;
+  // Visual Physics Constants - now imported from cursorConstants.ts
 
   constructor(springConfig: SpringConfig = CURSOR_SPRING) {
     this.springConfig = springConfig;
@@ -171,6 +179,7 @@ export class CursorPhysicsEngine {
 
       history: [{ ...initialPosition, timestamp: now }],
       trailHistory: [{ x: initialPosition.x, y: initialPosition.y, time: now }],
+      lastTrailTime: now,
       lastUpdateTime: now,
       lastServerTime: now,
       estimatedLatencyMs: 50,
@@ -352,11 +361,7 @@ export class CursorPhysicsEngine {
     if (update.trailAnimation) state.trailAnimation = update.trailAnimation;
     if (update.trailCustomImage) state.trailCustomImage = update.trailCustomImage;
 
-    // Trail particles
-    if (Math.hypot(dx, dy) > 3) {
-      state.trailHistory.push({ x: state.x, y: state.y, time: now });
-      if (state.trailHistory.length > 25) state.trailHistory.shift();
-    }
+    // Note: Trail points are now added in tick() for consistency with local cursor
 
     return state;
   }
@@ -498,14 +503,14 @@ export class CursorPhysicsEngine {
     const distY = state.y - state.visualY;
 
     // 2. Lerp Movement (Standard LERP like local cursor)
-    state.visualX += distX * this.VISUAL_LERP;
-    state.visualY += distY * this.VISUAL_LERP;
+    state.visualX += distX * VISUAL_LERP_SPEED;
+    state.visualY += distY * VISUAL_LERP_SPEED;
 
     // 3. Calculate Visual Velocity (px/frame normalized to ~60fps for consistency)
     // We treat deltaMs as roughly 16ms for the visual feel, but adapt if frames drop significantly
     // CustomCursor just moves per frame, so we normalize to that feel.
-    const visualVelX = distX * this.VISUAL_LERP;
-    const visualVelY = distY * this.VISUAL_LERP;
+    const visualVelX = distX * VISUAL_LERP_SPEED;
+    const visualVelY = distY * VISUAL_LERP_SPEED;
     const visualSpeed = Math.hypot(visualVelX, visualVelY);
 
     // 4. Calculate Visual Angle
@@ -517,8 +522,8 @@ export class CursorPhysicsEngine {
     // 5. Calculate Squash & Stretch
     // CustomCursor: 1 + min(velocity * STRETCH_FACTOR, 0.5)
     // We use visualSpeed which effectively is "distance traveled this frame"
-    const targetStretchY = 1 + Math.min(visualSpeed * this.STRETCH_FACTOR, 0.5);
-    const targetStretchX = 1 - Math.min(visualSpeed * this.STRETCH_FACTOR * 0.5, 0.2);
+    const targetStretchY = 1 + Math.min(visualSpeed * STRETCH_FACTOR, MAX_STRETCH);
+    const targetStretchX = 1 - Math.min(visualSpeed * STRETCH_FACTOR * 0.5, MAX_SQUASH);
 
     // Smooth stretch transition (optional, but good for stability)
     // CustomCursor sets it directly per frame based on velocity. Let's match that.
@@ -529,6 +534,24 @@ export class CursorPhysicsEngine {
     if (state.isClicking) {
       state.stretchX *= 0.6;
       state.stretchY *= 0.6;
+    }
+
+    // =========================================================================
+    // TRAIL GENERATION (Matching CustomCursor.tsx logic)
+    // =========================================================================
+    // Add trail points in tick() to match local cursor frequency
+    if (state.trailEnabled && visualSpeed > TRAIL_MIN_DISTANCE && now - state.lastTrailTime > TRAIL_THROTTLE_MS) {
+      state.trailHistory.push({
+        x: state.visualX,
+        y: state.visualY,
+        time: now
+      });
+      state.lastTrailTime = now;
+
+      // Limit trail length (matching local cursor)
+      if (state.trailHistory.length > TRAIL_MAX_POINTS) {
+        state.trailHistory.shift();
+      }
     }
 
     // Return the PHYSICAL position for logic/collisions, but rendering uses visual...

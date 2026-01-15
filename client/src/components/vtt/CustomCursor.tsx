@@ -2,6 +2,23 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { getCursorShape } from './constants/cursorShapes';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { getToolIcon } from '../../constants/toolIcons';
+import {
+  renderTrail,
+  TrailPoint,
+  TrailAnimation,
+  HealthStatus,
+  cleanupTrailHistory,
+} from '../../utils/trailRenderer';
+import {
+  getDynamicCursorSize,
+  VISUAL_LERP_SPEED,
+  STRETCH_FACTOR,
+  MAX_STRETCH,
+  MAX_SQUASH,
+  TRAIL_MAX_POINTS,
+  TRAIL_MIN_DISTANCE,
+  TRAIL_THROTTLE_MS,
+} from '../../constants/cursorConstants';
 
 interface CustomCursorProps {
   shapeId: string;
@@ -12,7 +29,7 @@ interface CustomCursorProps {
   trailAnimation?: string;
   trailColor?: string;
   trailLength?: number;
-  healthStatus?: 'healthy' | 'bloodied' | 'unconscious';
+  healthStatus?: HealthStatus;
   activeTool?: string;
   isContexting?: boolean;
   isChatting?: boolean;
@@ -24,7 +41,7 @@ interface CustomCursorProps {
  * - Rotation based on movement direction
  * - Velocity-based stretch (squash & stretch)
  * - Click feedback (pulse/shrink)
- * - Trail animations matching remote cursor rendering
+ * - Trail animations using shared trailRenderer module
  */
 export const CustomCursor: React.FC<CustomCursorProps> = ({
   shapeId = 'default',
@@ -53,17 +70,11 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
   const animationRef = useRef<number>(0);
 
   // Trail history storage
-  const trailHistory = useRef<{ x: number, y: number, time: number; }[]>([]);
+  const trailHistory = useRef<TrailPoint[]>([]);
   const lastTrailTime = useRef(0);
 
-  // Config
-  const LERP_SPEED = 0.75;
-  const STRETCH_FACTOR = 0.05;
-  const TRAIL_MAX_AGE = 400; // ms - matching remote cursor
-
-  // Responsive cursor size
-  const screenMin = Math.min(window.innerWidth, window.innerHeight);
-  const CURSOR_SIZE = Math.max(48, Math.min(64, Math.round(screenMin * 0.04)));
+  // Dynamic cursor size (from shared constants)
+  const CURSOR_SIZE = getDynamicCursorSize();
 
   // Generate SVG content
   const svgContent = React.useMemo(() => {
@@ -85,14 +96,6 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
   const handleMouseDown = useCallback(() => setIsClicking(true), []);
   const handleMouseUp = useCallback(() => setIsClicking(false), []);
 
-  // Helper to adjust alpha
-  const adjustAlpha = (hexColor: string, alpha: number): string => {
-    const r = parseInt(hexColor.slice(1, 3), 16);
-    const g = parseInt(hexColor.slice(3, 5), 16);
-    const b = parseInt(hexColor.slice(5, 7), 16);
-    return `rgba(${r},${g},${b},${alpha})`;
-  };
-
   // Animation loop
   useEffect(() => {
     if (!enabled) return;
@@ -110,16 +113,16 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
       const distX = mousePos.current.x - cursorPos.current.x;
       const distY = mousePos.current.y - cursorPos.current.y;
 
-      // Lerp movement
-      cursorPos.current.x += distX * LERP_SPEED;
-      cursorPos.current.y += distY * LERP_SPEED;
+      // Lerp movement (using shared constant)
+      cursorPos.current.x += distX * VISUAL_LERP_SPEED;
+      cursorPos.current.y += distY * VISUAL_LERP_SPEED;
 
       // Calculate velocity
       const velocity = Math.sqrt(distX ** 2 + distY ** 2);
 
-      // Squash & Stretch
-      const scaleY = 1 + Math.min(velocity * STRETCH_FACTOR, 0.5);
-      const scaleX = 1 - Math.min(velocity * STRETCH_FACTOR * 0.5, 0.2);
+      // Squash & Stretch (using shared constants)
+      const scaleY = 1 + Math.min(velocity * STRETCH_FACTOR, MAX_STRETCH);
+      const scaleX = 1 - Math.min(velocity * STRETCH_FACTOR * 0.5, MAX_SQUASH);
 
       // Calculate angle
       if (velocity > 0.5) {
@@ -128,29 +131,16 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
 
       // Apply transform to cursor
       const halfSize = CURSOR_SIZE / 2;
-      cursor.style.transform = `
-        translate3d(${cursorPos.current.x - halfSize}px, ${cursorPos.current.y - halfSize}px, 0)
-        rotate(${angle.current}deg)
-        scale(${scaleX}, ${scaleY})
-      `;
+      cursor.style.transform = `translate3d(${cursorPos.current.x - halfSize}px, ${cursorPos.current.y - halfSize}px, 0) rotate(${angle.current}deg) scale(${scaleX}, ${scaleY})`;
 
-      // Trail Logic
+      // Trail Logic - Using shared trailRenderer module
       if (trailEnabled && trailCanvas) {
         const ctx = trailCanvas.getContext('2d');
         if (ctx) {
           const now = performance.now();
 
-          // Determine effective animation and max age based on health
-          let effectiveAnimation = trailAnimation;
-          let effectiveMaxAge = TRAIL_MAX_AGE;
-
-          if (healthStatus === 'bloodied' || healthStatus === 'unconscious') {
-            effectiveAnimation = 'blood';
-            effectiveMaxAge = healthStatus === 'unconscious' ? 1000 : 800; // Match remote logic
-          }
-
-          // Add point to trail history if moving
-          if (velocity > 2 && now - lastTrailTime.current > 16) { // ~60fps
+          // Add point to trail history if moving fast enough (using shared constants)
+          if (velocity > TRAIL_MIN_DISTANCE && now - lastTrailTime.current > TRAIL_THROTTLE_MS) {
             trailHistory.current.push({
               x: cursorPos.current.x,
               y: cursorPos.current.y,
@@ -158,169 +148,35 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
             });
             lastTrailTime.current = now;
 
-            // Limit trail length
-            const maxPoints = trailLength * 2;
-            if (trailHistory.current.length > maxPoints) {
-              trailHistory.current = trailHistory.current.slice(-maxPoints);
+            // Limit trail length (using shared constant)
+            if (trailHistory.current.length > TRAIL_MAX_POINTS) {
+              trailHistory.current = trailHistory.current.slice(-TRAIL_MAX_POINTS);
             }
           }
 
           // Clear canvas
           ctx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
 
-          // Render trail based on animation type
-          const history = trailHistory.current;
-
-          if (effectiveAnimation === 'line' && history.length > 2) {
-            // Smooth Line (matching remote cursor)
-            ctx.beginPath();
-            ctx.moveTo(history[0].x, history[0].y);
-            for (let i = 1; i < history.length - 1; i++) {
-              const p0 = history[i];
-              const p1 = history[i + 1];
-              const midX = (p0.x + p1.x) / 2;
-              const midY = (p0.y + p1.y) / 2;
-              ctx.quadraticCurveTo(p0.x, p0.y, midX, midY);
-            }
-            ctx.lineTo(cursorPos.current.x, cursorPos.current.y);
-
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            ctx.lineWidth = 4;
-            ctx.strokeStyle = adjustAlpha(effectiveTrailColor, 0.4);
-            ctx.stroke();
-            // Core
-            ctx.lineWidth = 1;
-            ctx.strokeStyle = adjustAlpha(effectiveTrailColor, 0.8);
-            ctx.stroke();
-
-          } else if (effectiveAnimation === 'particles' || effectiveAnimation === 'sparkles' || effectiveAnimation === 'smoke' || effectiveAnimation === 'electric') {
-            // Particle-based trails
-            for (let i = 0; i < history.length; i++) {
-              const trail = history[i];
-              const age = now - trail.time;
-              if (age > effectiveMaxAge) continue;
-
-              const progress = age / effectiveMaxAge;
-              const alpha = 1 - progress;
-              const size = (4 + (i * 0.2)) * (1 - progress * 0.5);
-
-              ctx.save();
-              ctx.translate(trail.x, trail.y);
-              ctx.globalAlpha = alpha * 0.6;
-
-              if (effectiveAnimation === 'sparkles') {
-                // Star shape
-                ctx.fillStyle = effectiveTrailColor;
-                const rot = progress * Math.PI;
-                ctx.rotate(rot);
-                ctx.beginPath();
-                for (let k = 0; k < 5; k++) {
-                  ctx.lineTo(Math.cos((18 + k * 72) / 180 * Math.PI) * size, -Math.sin((18 + k * 72) / 180 * Math.PI) * size);
-                  ctx.lineTo(Math.cos((54 + k * 72) / 180 * Math.PI) * size * 0.4, -Math.sin((54 + k * 72) / 180 * Math.PI) * size * 0.4);
-                }
-                ctx.closePath();
-                ctx.fill();
-              } else if (effectiveAnimation === 'smoke') {
-                // Smoky circles
-                const driftY = -age * 0.05;
-                ctx.translate(0, driftY);
-                ctx.beginPath();
-                ctx.arc(0, 0, size * 2, 0, Math.PI * 2);
-                ctx.fillStyle = '#666666';
-                ctx.fill();
-              } else if (effectiveAnimation === 'electric') {
-                // Jittery lines
-                const jitterX = (Math.random() - 0.5) * 10;
-                const jitterY = (Math.random() - 0.5) * 10;
-                ctx.translate(jitterX, jitterY);
-                ctx.strokeStyle = '#00ffff';
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(-size, -size);
-                ctx.lineTo(size, size);
-                ctx.stroke();
-              } else {
-                // Standard particles
-                ctx.fillStyle = effectiveTrailColor;
-                ctx.beginPath();
-                ctx.arc(0, 0, size, 0, Math.PI * 2);
-                ctx.fill();
+          // Render trail using shared module (zoom=1 for screen coordinates)
+          if (trailHistory.current.length > 0) {
+            renderTrail(
+              ctx,
+              trailHistory.current,
+              {
+                enabled: true,
+                color: effectiveTrailColor,
+                animation: trailAnimation as TrailAnimation,
+              },
+              {
+                zoom: 1, // Screen coordinates, no zoom
+                currentPosition: cursorPos.current,
+                healthStatus,
               }
-
-              ctx.restore();
-            }
-          } else if (effectiveAnimation === 'dice') {
-            // Dice trail
-            for (let i = 0; i < history.length; i++) {
-              const trail = history[i];
-              const age = now - trail.time;
-              if (age > effectiveMaxAge * 1.5) continue;
-
-              const progress = age / (effectiveMaxAge * 1.5);
-              const alpha = 1 - Math.pow(progress, 3);
-              const val = Math.floor((trail.time % 20)) + 1;
-              const size = 16;
-
-              ctx.save();
-              ctx.translate(trail.x, trail.y);
-              ctx.rotate((age * 0.005) + (trail.time % Math.PI));
-              ctx.translate(0, age * 0.05); // Gravity
-
-              ctx.globalAlpha = alpha;
-              ctx.fillStyle = '#FFFFFF';
-              ctx.strokeStyle = effectiveTrailColor;
-              ctx.lineWidth = 1;
-
-              // Hexagon shape
-              ctx.beginPath();
-              for (let s = 0; s < 6; s++) {
-                const angle = 2 * Math.PI / 6 * s;
-                ctx.lineTo(size * Math.cos(angle), size * Math.sin(angle));
-              }
-              ctx.closePath();
-              ctx.fill();
-              ctx.stroke();
-
-              // Number
-              ctx.fillStyle = effectiveTrailColor;
-              ctx.font = `bold 10px sans-serif`;
-              ctx.textAlign = 'center';
-              ctx.textBaseline = 'middle';
-              ctx.fillText(val.toString(), 0, 0);
-
-              ctx.restore();
-            }
-          } else if (effectiveAnimation === 'blood') {
-            // Blood drops
-            for (let i = 0; i < history.length; i++) {
-              const trail = history[i];
-              const age = now - trail.time;
-              const maxAge = effectiveMaxAge * 2; // Stays longer
-              if (age > maxAge) continue;
-
-              const progress = age / maxAge;
-              const alpha = 1 - Math.pow(progress, 0.5); // Fade slow
-
-              // Consistent Random Logic
-              const rand = (trail.time % 100) / 100;
-              const size = (3 + (rand * 4));
-
-              ctx.save();
-              ctx.translate(trail.x, trail.y);
-
-              ctx.globalAlpha = alpha * 0.8;
-              ctx.fillStyle = '#8a0b0b'; // Deep red
-
-              ctx.beginPath();
-              ctx.arc(0, 0, size, 0, Math.PI * 2);
-              ctx.fill();
-              ctx.restore();
-            }
+            );
           }
 
           // Cleanup old trail points
-          trailHistory.current = history.filter(t => now - t.time < effectiveMaxAge * 2);
+          trailHistory.current = cleanupTrailHistory(trailHistory.current, healthStatus);
         }
       }
 
@@ -344,7 +200,7 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
       document.removeEventListener('mousedown', handleMouseDown);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [enabled, handleMouseMove, handleMouseDown, handleMouseUp, trailEnabled, trailAnimation, effectiveTrailColor, trailLength]);
+  }, [enabled, handleMouseMove, handleMouseDown, handleMouseUp, trailEnabled, trailAnimation, effectiveTrailColor, trailLength, healthStatus]);
 
   if (!enabled || !svgContent) return null;
 
@@ -378,8 +234,7 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
           height: CURSOR_SIZE,
           zIndex: 99999,
           transformOrigin: 'center center',
-          // mixBlendMode: 'difference', // Removed to prevent "behind grid" visual effect
-          pointerEvents: 'none', // Ensure it doesn't block interactions
+          pointerEvents: 'none',
         }}
       >
         <div
@@ -394,7 +249,6 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
         />
 
         {/* Status Indicator (Chat or Combat) */}
-        {/* Priority: Chat > Combat */}
         {(isChatting || activeTool === 'combat') && (
           <div className="absolute -top-4 -left-4 text-sm filter drop-shadow-md z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
             {isChatting ? '💬' : '⚔️'}

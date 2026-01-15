@@ -64,10 +64,13 @@ export const MAX_CORRECTION_PER_FRAME = 20;
 export const TRAIL_MAX_AGE_MS = 400;
 
 /** Maximum trail history points */
-export const TRAIL_MAX_POINTS = 25;
+export const TRAIL_MAX_POINTS = 40;
 
 /** Minimum movement to add trail point (pixels) */
-export const TRAIL_MIN_DISTANCE = 3;
+export const TRAIL_MIN_DISTANCE = 2;
+
+/** Minimum time between trail points (ms) - ~60fps */
+export const TRAIL_THROTTLE_MS = 16;
 
 // ============================================================================
 // MOVEMENT DETECTION
@@ -94,6 +97,35 @@ export const MAX_STRETCH = 0.5;
 
 /** Maximum squash multiplier */
 export const MAX_SQUASH = 0.2;
+
+// ============================================================================
+// CURSOR SIZING
+// ============================================================================
+
+/** Minimum cursor size in pixels */
+export const CURSOR_MIN_SIZE = 48;
+
+/** Maximum cursor size in pixels */
+export const CURSOR_MAX_SIZE = 64;
+
+/** Cursor size as ratio of smaller screen dimension */
+export const CURSOR_SIZE_RATIO = 0.04;
+
+/**
+ * Calculates responsive cursor size based on screen dimensions.
+ * Used by both local (CustomCursor) and remote (renderCursor) cursors.
+ */
+export const getDynamicCursorSize = (): number => {
+  const screenMin = Math.min(window.innerWidth, window.innerHeight);
+  return Math.max(CURSOR_MIN_SIZE, Math.min(CURSOR_MAX_SIZE, Math.round(screenMin * CURSOR_SIZE_RATIO)));
+};
+
+// ============================================================================
+// VISUAL PHYSICS (for CustomCursor animation)
+// ============================================================================
+
+/** Lerp speed for cursor following mouse (0-1, higher = faster) */
+export const VISUAL_LERP_SPEED = 0.75;
 
 // ============================================================================
 // LAG COMPENSATION
@@ -149,6 +181,14 @@ export const CURSOR_CONFIG = {
   STRETCH_FACTOR,
   MAX_STRETCH,
   MAX_SQUASH,
+
+  // Cursor Sizing
+  CURSOR_MIN_SIZE,
+  CURSOR_MAX_SIZE,
+  CURSOR_SIZE_RATIO,
+
+  // Visual Physics
+  VISUAL_LERP_SPEED,
 
   // Lag Compensation
   MAX_LAG_COMPENSATION_MS,
