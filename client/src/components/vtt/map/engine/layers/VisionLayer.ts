@@ -26,6 +26,10 @@ export class VisionLayer extends BaseLayer {
   private combinedVisionPath: Path2D | null = null;
   private lastObstacleHash: string = '';
 
+  // Offscreen canvas for fog composition
+  private fogCanvas: HTMLCanvasElement | null = null;
+  private fogCtx: CanvasRenderingContext2D | null = null;
+
   constructor() {
     super('vision', 'Vision', {
       useCache: false, // Complex clipping, handled manually
@@ -35,6 +39,21 @@ export class VisionLayer extends BaseLayer {
 
   computeStateHash(context: RenderContext): string {
     return 'dynamic'; // Vision is always dynamic due to token positions
+  }
+
+  /**
+   * Ensure offscreen canvas exists and is sized correctly.
+   */
+  private ensureFogCanvas(width: number, height: number): void {
+    if (!this.fogCanvas) {
+      this.fogCanvas = document.createElement('canvas');
+      this.fogCtx = this.fogCanvas.getContext('2d');
+    }
+
+    if (this.fogCanvas.width !== width || this.fogCanvas.height !== height) {
+      this.fogCanvas.width = width;
+      this.fogCanvas.height = height;
+    }
   }
 
   /**
@@ -187,24 +206,32 @@ export class VisionLayer extends BaseLayer {
    * Render the fog overlay (darkness outside combined vision).
    */
   private renderFogOverlay(ctx: CanvasRenderingContext2D, context: RenderContext): void {
-    const { scene, mapWidth, mapHeight, zoom } = context;
+    const { scene, mapWidth, mapHeight, zoom, viewport } = context;
     if (!scene || !this.combinedVisionPath) return;
 
-    ctx.save();
+    // Ensure offscreen canvas
+    this.ensureFogCanvas(context.canvas.width, context.canvas.height);
+    if (!this.fogCtx || !this.fogCanvas) return;
 
-    // Draw darkness over the entire map
-    const ambientLevel = Math.max(0, Math.min(1, scene.ambientLight ?? 1.0));
-    const darknessAlpha = 1.0 - ambientLevel;
+    const fogCtx = this.fogCtx;
+    const effectiveViewport = context.viewportRef?.current || viewport;
 
-    // If fully lit (daylight), darkness is invisible, so we don't need to render black overlay
-    // UNLESS we want to support "Fog of War" (explored/unexplored) separate from lighting?
-    // Legacy behavior in drawLightingLayer suggests simple ambient darkness.
-    // If darknessAlpha is 0, we fillRect with 0 alpha.
+    // Clear offscreen canvas
+    fogCtx.setTransform(1, 0, 0, 1, 0, 0);
+    fogCtx.clearRect(0, 0, fogCtx.canvas.width, fogCtx.canvas.height);
 
-    ctx.fillStyle = `rgba(0, 0, 0, ${darknessAlpha})`;
-    ctx.fillRect(0, 0, mapWidth, mapHeight);
+    // Apply viewport transform to offscreen canvas
+    fogCtx.translate(effectiveViewport.x, effectiveViewport.y);
+    fogCtx.scale(effectiveViewport.zoom, effectiveViewport.zoom);
 
-    // Combine with GM-revealed fog if present
+    // 1. Fill entire map with darkness (Opaque to block vision)
+    // VisionLayer handles "Visibility" (seeing things), not "Lighting" (brightness).
+    // Therefore, areas outside the vision polygons must be completely hidden (opaque black).
+    // LightingLayer adds the ambient darkness on top of the *visible* areas.
+    fogCtx.fillStyle = 'rgba(0, 0, 0, 1)';
+    fogCtx.fillRect(0, 0, mapWidth, mapHeight);
+
+    // 2. Cut out the vision area
     let revealPath = this.combinedVisionPath;
 
     if (scene.fogPath) {
@@ -215,14 +242,15 @@ export class VisionLayer extends BaseLayer {
       revealPath = combined;
     }
 
-    // Cut out the visible area
-    ctx.globalCompositeOperation = 'destination-out';
-    ctx.fillStyle = 'rgba(0, 0, 0, 1)';
-    ctx.fill(revealPath);
+    fogCtx.globalCompositeOperation = 'destination-out';
+    fogCtx.fillStyle = 'rgba(0, 0, 0, 1)';
+    fogCtx.fill(revealPath);
+    fogCtx.globalCompositeOperation = 'source-over';
 
-    // Add soft edge to vision (optional)
-    ctx.globalCompositeOperation = 'source-over';
-
+    // 3. Draw the composite fog layer onto the main canvas
+    ctx.save();
+    ctx.resetTransform();
+    ctx.drawImage(this.fogCanvas, 0, 0);
     ctx.restore();
   }
 

@@ -23,6 +23,7 @@ export class ZonesLayer extends BaseLayer {
   constructor() {
     super('zones', 'Zones', {
       useCache: true,
+      cacheStrategy: 'world',
       description: 'Light, audio, and trigger zones',
     });
   }

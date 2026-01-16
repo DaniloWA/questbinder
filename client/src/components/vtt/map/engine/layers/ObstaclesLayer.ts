@@ -23,6 +23,7 @@ export class ObstaclesLayer extends BaseLayer {
   constructor() {
     super('obstacles', 'Obstacles', {
       useCache: true,
+      cacheStrategy: 'world',
       description: 'Walls, doors, and windows',
     });
   }
