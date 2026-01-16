@@ -101,7 +101,7 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
 
     const {
         addObstacles, updateObstacle, removeObstacle, bulkUpdateObstacles, undoLastObstacle, clearAllObstacles
-    } = useObstacleActions(state, setState, campaignId);
+    } = useObstacleActions(state, setState, campaignId, user, permissionHelper);
 
     const {
         addLightZones, addLightToken, addTriggerZones, updateTriggerZone, removeTriggerZone, closeTriggeredHandout

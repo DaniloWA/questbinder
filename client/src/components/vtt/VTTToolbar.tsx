@@ -372,7 +372,7 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                 requirePermission: 'drawings',
                 children: [
                     { id: 'brush', type: 'tool', label: t('vtt.tools.toolbar.drawingTools.brush.button.label'), icon: <PenTool /> },
-                    { id: 'eraser-drawing', type: 'tool', label: t('vtt.tools.toolbar.drawingTools.eraser.button.label'), icon: <Eraser />, danger: true, requirePermission: 'drawingDelete' }
+                    { id: 'eraser-drawing', type: 'tool', label: t('vtt.tools.toolbar.drawingTools.eraser.button.label'), icon: <Eraser />, danger: true }
                 ]
             },
             {

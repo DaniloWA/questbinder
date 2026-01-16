@@ -7,7 +7,9 @@ import { ActionHandlers, StateHelpers } from '../helpers';
 export const useObstacleActions = (
   state: GameSessionState,
   setState: React.Dispatch<React.SetStateAction<GameSessionState>>,
-  campaignId: string
+  campaignId: string,
+  user: any,
+  permissionHelper?: any // REGRA MILENAR
 ) => {
   const addObstacles = (obstaclesData: any[]) => {
     if (!state.activeSceneId) return;
@@ -54,8 +56,38 @@ export const useObstacleActions = (
       state,
       setState,
       campaignId,
+      user,
+      permissionHelper,
       // Allow players with doorControl permission to update obstacles
       requiredPermission: 'doorControl',
+      validate: () => {
+        if (!permissionHelper || permissionHelper.isGameMaster()) return true;
+
+        const scene = state.scenes.find(s => s.id === state.activeSceneId);
+        const obstacle = scene?.obstacles.find(o => o.id === id);
+
+        // 1. Must exist
+        if (!obstacle) return false;
+
+        // 2. Players cannot edit walls (Change type, points, etc)
+        // If the obstacle is a wall, players can ONLY effectively do nothing? 
+        // Actually doorControl applies to doors/windows. 
+        // If target is WALL, strict GM only.
+        if (obstacle.type === 'wall') return false;
+
+        // 3. For doors, allow only specific fields (open, ds, locked, hidden)
+        // We check what fields are present in 'data'.
+        const allowedFields = ['open', 'ds', 'locked', 'hidden'];
+        const keys = Object.keys(data);
+        const isSafe = keys.every(k => allowedFields.includes(k));
+
+        if (!isSafe) {
+          console.warn('[Obstacle] Denied unsafe update by player', keys);
+          return false;
+        }
+
+        return true;
+      },
 
       optimisticUpdate: (prev) => {
         const updatedScenes = StateHelpers.updateItemInSceneList(prev.scenes, prev.activeSceneId, 'obstacles', id, data);

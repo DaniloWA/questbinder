@@ -89,7 +89,7 @@ export const useDrawingActions = (
       campaignId,
       user,
       permissionHelper, // REGRA MILENAR
-      isGMOnly: true,
+      requiredPermission: 'drawingClear', // Changed from isGMOnly to specific permission
 
       optimisticUpdate: (prev) => {
         const updatedScenes = StateHelpers.updateSceneInList(

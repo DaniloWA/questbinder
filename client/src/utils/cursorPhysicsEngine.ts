@@ -330,13 +330,14 @@ export class CursorPhysicsEngine {
       // Append segments
       newSegments.forEach(s => state.replayQueue.push(s));
       state.isReplaying = true;
-    } else {
-      // Legacy update (no path)
-      if (!state.isReplaying) {
-        state.targetX = update.x;
-        state.targetY = update.y;
-      }
+      state.isReplaying = true;
     }
+
+    // ALWAYS update the target (resting) position to the latest server authority
+    // This ensures that when replay finishes, the cursor rests at the correct valid location
+    // instead of snapping back to an old stale target.
+    state.targetX = update.x;
+    state.targetY = update.y;
 
     // History
     state.history.push({ x: update.x, y: update.y, timestamp: update.timestamp ?? now });

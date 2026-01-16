@@ -285,6 +285,13 @@ export const useTokenActions = (
 
     if (!currentScene || !token) return;
 
+    // REGRA MILENAR: Permission Check
+    if (permissionHelper && !permissionHelper.isGameMaster()) {
+      console.warn('[TokenActions] Denied moveTokenToScene (GM Only)');
+      show({ type: 'error', message: 'Apenas o GM pode mover tokens entre cenas.' });
+      return;
+    }
+
     // This is a complex multi-step action, maybe harder to fit into handleOptimisticAction perfectly
     // but we can use the helpers.
 
@@ -304,6 +311,14 @@ export const useTokenActions = (
 
   const emitTokenDrag = (id: string, x: number, y: number, path: { x: number, y: number; }[]) => {
     resetAfkTimer();
+
+    // Validate ownership before emitting drag to prevent spam/spoofing
+    if (permissionHelper) {
+      const activeScene = state.scenes.find(s => s.id === state.activeSceneId);
+      const token = activeScene?.tokens.find(t => t.id === id);
+      if (token && !permissionHelper.canControlToken(token)) return;
+    }
+
     socketService.emit('token:drag', { userId: user?.id || '', tokenId: id, x, y, path });
   };
 
