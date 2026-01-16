@@ -13,6 +13,8 @@
  * - Remote viewports
  */
 
+// Import shared renderer
+import { renderRemoteViewports } from '../../hooks/renderers';
 import { BaseLayer } from '../core/BaseLayer';
 import { RenderContext, AttackZoneResult } from '../core/types';
 
@@ -33,7 +35,8 @@ export class ToolOverlayLayer extends BaseLayer {
 
   render(ctx: CanvasRenderingContext2D, context: RenderContext): void {
     const { activeTool, zoom, scene, localCursorPos, toolState, rulerSettings,
-      attackZoneResults, previewZoneResult, remoteViewports, players, isGM, gmViewMode
+      attackZoneResults, previewZoneResult, remoteViewports, players, isGM, gmViewMode,
+      currentUser, permissions, remoteCursorsRef, remoteCursors
     } = context;
     if (!scene) return;
 
@@ -46,8 +49,20 @@ export class ToolOverlayLayer extends BaseLayer {
     // 1. REMOTE VIEWPORTS (Always visible for GM)
     // =========================================================================
     if (isGM && gmViewMode === 'gm' && Object.keys(remoteViewports).length > 0) {
-      this.renderRemoteViewports(ctx, remoteViewports, players, zoom);
+      // Use shared renderer for full feature parity (AFK, Stacking, Colors)
+      const cursors = remoteCursorsRef?.current || remoteCursors || {};
+      renderRemoteViewports(
+        ctx,
+        remoteViewports,
+        cursors,
+        currentUser?.id,
+        permissions,
+        isGM,
+        zoom,
+        players
+      );
     }
+
 
     // =========================================================================
     // 2. ATTACK ZONES (Persistent + Preview)
@@ -574,42 +589,7 @@ export class ToolOverlayLayer extends BaseLayer {
     }
   }
 
-  // ===========================================================================
-  // REMOTE VIEWPORTS
-  // ===========================================================================
 
-  private renderRemoteViewports(
-    ctx: CanvasRenderingContext2D,
-    viewports: Record<string, { x: number; y: number; zoom: number; w: number; h: number; userId?: string; color?: string; }>,
-    players: any[],
-    zoom: number
-  ): void {
-    for (const [userId, vp] of Object.entries(viewports)) {
-      const player = players.find((p: any) => p.id === userId);
-      const color = vp.color || player?.color || '#fbbf24';
-      const name = player?.name || 'Player';
-
-      // Calculate viewport rect in world space
-      const x = -vp.x / vp.zoom;
-      const y = -vp.y / vp.zoom;
-      const w = vp.w / vp.zoom;
-      const h = vp.h / vp.zoom;
-
-      ctx.save();
-
-      // Viewport border
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 3 / zoom;
-      ctx.setLineDash([10 / zoom, 5 / zoom]);
-      ctx.strokeRect(x, y, w, h);
-      ctx.setLineDash([]);
-
-      // Name label
-      this.renderLabel(ctx, name, x + w / 2, y - 15 / zoom, zoom, color);
-
-      ctx.restore();
-    }
-  }
 
   // ===========================================================================
   // HELPERS

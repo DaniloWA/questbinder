@@ -98,20 +98,6 @@ export class CursorLayer extends BaseLayer {
 
     ctx.save();
 
-    // 1. Remote Viewports (GM only, render under everything)
-    if (isGM && gmViewMode === 'gm' && remoteViewports && Object.keys(remoteViewports).length > 0) {
-      renderRemoteViewports(
-        ctx,
-        remoteViewports,
-        remoteCursors,
-        currentUser?.id,
-        context.permissions,
-        isGM,
-        zoom,
-        players
-      );
-    }
-
     // 2. Pings (Use existing renderer)
     if (pings && pings.length > 0) {
       renderPingAnimations(ctx, pings, gridSize, zoom);
@@ -182,6 +168,10 @@ export class CursorLayer extends BaseLayer {
       }
 
       // Render cursor
+      ctx.save();
+      if (renderData.isAfk) {
+        ctx.globalAlpha = 0.5; // Ghost effect for AFK
+      }
       renderCursor(
         ctx,
         renderData.position.x,
@@ -195,6 +185,7 @@ export class CursorLayer extends BaseLayer {
         renderData.scaleY,
         zoom
       );
+      ctx.restore();
 
       // Render overlays (AFK)
       if (renderData.isAfk) {
