@@ -134,12 +134,19 @@ export class CursorLayer extends BaseLayer {
         const updateWrapper = createCursorUpdateFromPayload({ ...cursor, userId });
         this.physicsEngine.processServerUpdate(userId, updateWrapper.update);
         this.processedTimestamps.set(userId, cursor.timestamp);
-      } else if (!cursor.timestamp) {
-        // Fallback: If for some reason timestamps are missing, we should throttle or check equality?
-        // Safer to skip unless we are sure. But most payloads have timestamps.
-        // If we don't process it, the cursor freezes. If we process dupes, it lags.
-        // Let's assume valid socket protocol always sends timestamps.
+
+        // Ensure status like 'pressing' is synced if it came with the update
+        this.physicsEngine.updateStatus(userId, { isClicking: cursor.isClicking, isAfk: cursor.isAfk });
+      } else {
+        // Even if no new move packet (due to throttle or dedup),
+        // we must sync 'isClicking' because it might have been updated by 'cursor:pressing' event
+        // which updates the ref but doesn't necessarily change the movement timestamp.
+        this.physicsEngine.updateStatus(userId, { isClicking: cursor.isClicking, isAfk: cursor.isAfk });
       }
+
+      // Hide cursor if user is making a drag (ruler handles visualization)
+      const isRemoteDragging = context.remoteDrags && context.remoteDrags[userId];
+      if (isRemoteDragging) continue;
 
       // Advance physics regardless of update
       this.physicsEngine.tick(userId, deltaMs);
@@ -211,7 +218,7 @@ export class CursorLayer extends BaseLayer {
 
     // 6. Local User Trail
     // Render local trail ONLY if enabled. Pointer is handled by CustomCursor (DOM) for zero latency.
-    if (cursorSettings?.trailEnabled !== false && cursorSettings?.showMyTrail !== false && context.localCursorPos) {
+    if (cursorSettings?.trailEnabled !== false && cursorSettings?.showMyTrail !== false && context.localCursorPos && !context.dragState?.isDragging) {
       if (!this.localCursorState) {
         this.localCursorState = this.createLocalPhysicsState({
           x: context.localCursorPos.x,

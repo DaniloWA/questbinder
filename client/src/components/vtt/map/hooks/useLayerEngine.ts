@@ -30,6 +30,7 @@ import {
  * Extended props that includes data from other hooks.
  */
 interface ExtendedProps extends MapCanvasProps {
+  viewportRef?: React.RefObject<{ x: number; y: number; zoom: number; }>;
   visionTokens?: Token[];
   imageCache?: Record<string, HTMLImageElement>;
   hoveredTokenId?: string | null;
@@ -97,9 +98,9 @@ export function useLayerEngine(
     // Define default layer order
     const defaultOrder: Record<string, number> = {
       background: 0,
-      grid: 10,
       fog: 20,
       vision: 25,        // Vision clipping
+      grid: 28,          // Grid (Always visible above fog/vision)
       drawings: 30,
       obstacles: 40,
       zones: 45,
@@ -158,11 +159,25 @@ export function useLayerEngine(
     if (!orchestrator || !props.scene) return;
 
     const gridSize = props.scene.grid.size;
-    const mapWidth = gridSize * props.scene.grid.cols;
-    const mapHeight = gridSize * props.scene.grid.rows;
+    let mapWidth = gridSize * props.scene.grid.cols;
+    let mapHeight = gridSize * props.scene.grid.rows;
+
+    // Fix: If image is loaded, respect its potential natural size if larger/different?
+    // User report: "map isn't loading right when I zoom... always cut off... upload didn't update grid"
+    // Usually we want the map size to match the image size if the grid hasn't been calibrated yet.
+    if (props.scene.imageUrl && props.imageCache && props.imageCache[props.scene.imageUrl]) {
+      const img = props.imageCache[props.scene.imageUrl];
+      if (img.complete && img.naturalWidth > 0) {
+        // If the grid seems "default" or significantly smaller than image, use image size
+        // Or simply force map bounds to be at least image size to prevent clipping
+        mapWidth = Math.max(mapWidth, img.naturalWidth);
+        mapHeight = Math.max(mapHeight, img.naturalHeight);
+      }
+    }
 
     orchestrator.updateContext({
       viewport: props.viewport,
+      viewportRef: props.viewportRef,
       zoom: props.viewport.zoom,
       mapWidth,
       mapHeight,
@@ -225,6 +240,8 @@ export function useLayerEngine(
     props.previewZoneResult,
     props.campaignCharacters,
     props.remoteViewports,
+    props.imageCache, // CRITICAL: Re-run when images load to update map dimensions
+    props.viewportRef, // Safety: Ensure context has ref
   ]);
 
   // API methods

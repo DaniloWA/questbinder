@@ -83,8 +83,9 @@ export class LightingLayer extends BaseLayer {
     lightCtx.clearRect(0, 0, width, height);
 
     // Apply viewport transform
-    lightCtx.translate(viewport.x, viewport.y);
-    lightCtx.scale(viewport.zoom, viewport.zoom);
+    const effectiveViewport = context.viewportRef?.current || viewport;
+    lightCtx.translate(effectiveViewport.x, effectiveViewport.y);
+    lightCtx.scale(effectiveViewport.zoom, effectiveViewport.zoom);
 
     // =========================================================================
     // STEP 1: DARKNESS LAYER

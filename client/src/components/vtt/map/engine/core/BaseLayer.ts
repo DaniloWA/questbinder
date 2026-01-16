@@ -46,6 +46,9 @@ export abstract class BaseLayer {
   /** Blend mode for compositing */
   blendMode: GlobalCompositeOperation = 'source-over';
 
+  /** Caching strategy */
+  cacheStrategy: 'screen' | 'world' = 'screen';
+
   /** Offscreen cache (if enabled) */
   protected cache: LayerCache | null = null;
 
@@ -61,6 +64,7 @@ export abstract class BaseLayer {
     this.description = options.description;
     this.opacity = options.opacity ?? 1;
     this.blendMode = options.blendMode ?? 'source-over';
+    this.cacheStrategy = options.cacheStrategy ?? 'screen';
 
     if (options.useCache) {
       this.initCache();
@@ -90,6 +94,9 @@ export abstract class BaseLayer {
    */
   protected resizeCache(width: number, height: number): void {
     if (!this.cache) return;
+    // Don't resize if dimensions are effectively 0 (prevents clearing valid cache on glitches)
+    if (width <= 0 || height <= 0) return;
+
     if (this.cache.canvas.width !== width || this.cache.canvas.height !== height) {
       this.cache.canvas.width = width;
       this.cache.canvas.height = height;
@@ -129,14 +136,41 @@ export abstract class BaseLayer {
 
     // Using cache
     if (this.cache) {
-      this.resizeCache(context.canvas.width, context.canvas.height);
+      // Determine target cache size based on strategy
+      const targetWidth = this.cacheStrategy === 'world' ? context.mapWidth : context.canvas.width;
+      const targetHeight = this.cacheStrategy === 'world' ? context.mapHeight : context.canvas.height;
+
+      this.resizeCache(targetWidth, targetHeight);
 
       if (hash !== this.cache.hash || hash === 'dynamic') {
-        // Clear and re-render to cache
-        this.cache.ctx.clearRect(0, 0, this.cache.canvas.width, this.cache.canvas.height);
-        this.cache.ctx.save();
-        this.render(this.cache.ctx, context);
-        this.cache.ctx.restore();
+        const cacheCtx = this.cache.ctx;
+        cacheCtx.clearRect(0, 0, this.cache.canvas.width, this.cache.canvas.height);
+
+        cacheCtx.save();
+        // If World strategy, we render at 0,0 world coordinates (identity).
+        // If Screen strategy, mainCtx is ALREADY transformed by orchestrator, 
+        // BUT we are rendering to offscreen, which has identity.
+        // Wait, 'render(ctx)' usually expects transformed coords if it's drawing relative to 0,0?
+        // NO: 'BaseLayer' subclasses assume `render` logic draws in World Space for map layers.
+
+        // ISSUE: Orchestrator applies viewport transform to `mainCtx`.
+        // If we draw to `cacheCtx` (identity), we get world space drawing.
+        // Then we draw `cacheCanvas` to `mainCtx` (transformed). 
+        // This WORKS perfectly for 'world' strategy.
+
+        // But for 'screen' strategy (like UI overlays), we want drawing relative to screen?
+        // If 'screen' strategy, we usually want to draw relative to VIEWPORT.
+        // But subclasses typically draw in World Coordinates.
+
+        // Correction: If 'screen' strategy, we want the cache to capture CURRENT VIEWPORT VIEW.
+        // So we must Apply Transform to cacheCtx same as mainCtx!
+        if (this.cacheStrategy === 'screen') {
+          cacheCtx.translate(context.viewport.x, context.viewport.y);
+          cacheCtx.scale(context.zoom, context.zoom);
+        }
+
+        this.render(cacheCtx, context);
+        cacheCtx.restore();
         this.cache.hash = hash;
         this.cache.lastRenderTime = performance.now();
       }
@@ -145,7 +179,23 @@ export abstract class BaseLayer {
       mainCtx.save();
       mainCtx.globalAlpha = this.opacity;
       mainCtx.globalCompositeOperation = this.blendMode;
-      mainCtx.drawImage(this.cache.canvas, 0, 0);
+
+      if (this.cacheStrategy === 'world') {
+        // World cache is drawn at 0,0 world coordinates.
+        // mainCtx is already transformed, so just draw image at 0,0
+        mainCtx.drawImage(this.cache.canvas, 0, 0);
+      } else {
+        // Screen cache is drawn at 0,0 screen coordinates.
+        // BUT mainCtx is transformed! We need to reset transform to draw screen-space cache?
+        // YES. Screen cache corresponds to the camera view.
+        mainCtx.resetTransform();
+        // Note: resetTransform() clears Orchestrator's viewport transform.
+        mainCtx.drawImage(this.cache.canvas, 0, 0);
+        // Restore handled by mainCtx.restore() below?? No, mainCtx.restore() goes back to transformed state?
+        // Actually mainCtx.restore() at line 149 will pop the save() from line 145.
+        // So resetTransform is strictly local to this block.
+      }
+
       mainCtx.restore();
     } else {
       // Direct render (no caching)

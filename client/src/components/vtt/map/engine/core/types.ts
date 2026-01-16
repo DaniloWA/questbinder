@@ -36,6 +36,7 @@ export interface RenderContext {
 
   // Viewport & Transform
   viewport: Viewport;
+  viewportRef?: React.RefObject<Viewport>; // For high-performance immediate access
   zoom: number;
   mapWidth: number;
   mapHeight: number;
@@ -153,6 +154,9 @@ export interface RenderContext {
 
   // Vision Tokens (filtered for current user)
   visionTokens: Token[];
+
+  // Legacy Visibility Sharing (for TokenLayer checks)
+  visionPolygons?: { x: number; y: number; }[][];
 }
 
 // Attack Zone Result Type
@@ -179,6 +183,8 @@ export interface AttackZoneResult {
 export interface LayerOptions {
   /** Use an offscreen canvas for caching */
   useCache?: boolean;
+  /** Caching strategy: 'screen' (default, matches viewport) or 'world' (matches map dimensions) */
+  cacheStrategy?: 'screen' | 'world';
   /** Initial opacity (0-1) */
   opacity?: number;
   /** Blend mode for compositing */

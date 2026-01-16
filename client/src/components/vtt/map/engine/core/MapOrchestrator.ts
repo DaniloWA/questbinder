@@ -270,10 +270,21 @@ export class MapOrchestrator {
     this.ctx.fillStyle = this.options.backgroundColor;
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
+    // Use immediate viewport ref if available to bypass React render cycle lag
+    if (!this.context.viewportRef && this.context.viewport && this.options.debug) {
+      console.warn('[MapOrchestrator] Missing viewportRef! Dragging may lag.');
+    }
+    const effectiveViewport = this.context.viewportRef?.current || this.context.viewport;
+    const effectiveZoom = effectiveViewport.zoom;
+
     // Apply viewport transform
     this.ctx.save();
-    this.ctx.translate(this.context.viewport.x, this.context.viewport.y);
-    this.ctx.scale(this.context.zoom, this.context.zoom);
+    this.ctx.translate(effectiveViewport.x, effectiveViewport.y);
+    this.ctx.scale(effectiveZoom, effectiveZoom);
+
+    // Update zoom in context for layers that need it (like GridLayer)
+    // Note: We don't mutate this.context.viewport to avoid desync, but layers should trust zoom/transform
+    this.context.zoom = effectiveZoom;
 
     // Render all layers in order
     const layers = this.registry.getLayers();

@@ -7,7 +7,12 @@
 
 import { BaseLayer } from '../core/BaseLayer';
 import { RenderContext } from '../core/types';
-import { Token, Character, Aura } from '../../../../../types';
+import { Token, Character, Aura, Obstacle } from '../../../../../types';
+import { drawToken, drawAuras, drawLabel } from '../../../../../utils/canvasRenderer';
+import { isPositionVisible } from '../../hooks/renderers/visibilityHelpers';
+import { calculateVisibilityPolygon } from '../../../../../utils/geometry';
+import { COLORS } from '../../hooks/renderers';
+import { adjustAlpha } from '../../utils';
 
 /**
  * TokenLayer - Renders all tokens with full visual features.
@@ -46,7 +51,7 @@ export class TokenLayer extends BaseLayer {
 
   render(ctx: CanvasRenderingContext2D, context: RenderContext): void {
     const { scene, tokens, isGM, gmViewMode, currentUser, selectedTokenIds,
-      imageCache, zoom, campaignCharacters, dragState, remoteDrags, players } = context;
+      imageCache, zoom, campaignCharacters, dragState, remoteDrags, players, visionPolygons } = context;
     if (!scene) return;
 
     const gridSize = scene.grid.size;
@@ -88,20 +93,86 @@ export class TokenLayer extends BaseLayer {
       // Get animated position
       const { x: animX, y: animY } = this.getAnimatedPosition(token, renderTime);
 
+      // Legacy Visibility Check (Exact Logic)
+      // If not GM and not Owner, check if position is visible in vision polygons or fog path
+      // IMPORTANT: Only check if NOT dragging (dragged tokens might be visible ghost)
+      if (!effectiveIsGM && !isOwner) {
+        const animToken = { ...token, x: animX, y: animY };
+        // Use the legacy helper
+        if (!isPositionVisible(animToken, gridSize, visionPolygons || [], scene.fogPath, ctx)) {
+          continue;
+        }
+      }
+
+      // GM Vision Ranges (Restored Feature)
+      if (effectiveIsGM && (context.ui.showVisionRanges || selectedTokenIds.includes(token.id))) {
+        const cx = (animX + token.size / 2) * gridSize;
+        const cy = (animY + token.size / 2) * gridSize;
+        const unitsPerSquare = scene.grid.unitsPerSquare || 1.5;
+        const unitScale = gridSize / unitsPerSquare;
+
+        // Darkvision
+        if ((token.darkvisionRange || 0) > 0) {
+          const r = (token.darkvisionRange || 0) * unitScale;
+          const poly = calculateVisibilityPolygon({ x: cx, y: cy }, scene.obstacles, r);
+          if (poly.length > 0) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(poly[0].x, poly[0].y);
+            for (let i = 1; i < poly.length; i++) ctx.lineTo(poly[i].x, poly[i].y);
+            ctx.closePath();
+            ctx.lineWidth = 2 / zoom;
+            ctx.strokeStyle = COLORS.DEFAULT_DARKVISION;
+            ctx.setLineDash([8 / zoom, 4 / zoom]);
+            ctx.stroke();
+            ctx.fillStyle = adjustAlpha(COLORS.DEFAULT_DARKVISION, 0.05);
+            ctx.fill();
+            drawLabel(ctx, `DV: ${token.darkvisionRange}m`, cx, cy + r + (20 / zoom), zoom, COLORS.DEFAULT_DARKVISION.replace(')', ', 0.8)'));
+            ctx.restore();
+          }
+        }
+
+        // Vision
+        if ((token.visionRange || 0) > 0) {
+          const r = (token.visionRange || 0) * unitScale;
+          const poly = calculateVisibilityPolygon({ x: cx, y: cy }, scene.obstacles, r);
+          if (poly.length > 0) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(poly[0].x, poly[0].y);
+            for (let i = 1; i < poly.length; i++) ctx.lineTo(poly[i].x, poly[i].y);
+            ctx.closePath();
+            ctx.lineWidth = 2 / zoom;
+            ctx.strokeStyle = COLORS.DEFAULT_VISION;
+            ctx.setLineDash([]);
+            ctx.stroke();
+            ctx.fillStyle = adjustAlpha(COLORS.DEFAULT_VISION, 0.1);
+            ctx.fill();
+            drawLabel(ctx, `Vis: ${token.visionRange}m`, cx, cy - r - (10 / zoom), zoom, COLORS.DEFAULT_VISION.replace(')', ', 0.8)'));
+            ctx.restore();
+          }
+        }
+      }
+
       // Find linked character for HP bars
       const linkedCharacter = token.linkedId
         ? campaignCharacters.find(c => c.id === token.linkedId)
         : undefined;
 
       // Render auras first (under token)
-      this.renderAuras(ctx, token, animX, animY, gridSize, zoom, effectiveIsGM);
+      drawAuras(ctx, { ...token, x: animX, y: animY }, gridSize, zoom, effectiveIsGM);
 
-      // Render token
-      this.renderToken(ctx, {
-        ...token,
-        x: animX,
-        y: animY,
-      }, gridSize, selectedTokenIds.includes(token.id), zoom, imageCache, renderAsGhost, linkedCharacter);
+      // Render token using legacy renderer
+      drawToken(
+        ctx,
+        { ...token, x: animX, y: animY },
+        gridSize,
+        selectedTokenIds.includes(token.id),
+        zoom,
+        imageCache,
+        renderAsGhost,
+        linkedCharacter
+      );
     }
 
     // Render local drag preview
@@ -161,250 +232,38 @@ export class TokenLayer extends BaseLayer {
   // RENDER HELPERS
   // =========================================================================
 
-  private renderToken(
-    ctx: CanvasRenderingContext2D,
-    token: Token,
-    gridSize: number,
-    isSelected: boolean,
-    zoom: number,
-    imageCache: Record<string, HTMLImageElement>,
-    isGhost: boolean,
-    linkedCharacter?: Character
-  ): void {
-    const px = token.x * gridSize;
-    const py = token.y * gridSize;
-    const sizePx = token.size * gridSize;
-    const halfSize = sizePx / 2;
-    const cx = px + halfSize;
-    const cy = py + halfSize;
-    const isTopDown = token.shape === 'topdown';
-
-    ctx.save();
-    ctx.translate(cx, cy);
-
-    if (token.rotation) {
-      ctx.rotate((token.rotation * Math.PI) / 180);
-    }
-
-    // Shape path
-    ctx.beginPath();
-    const shape = token.shape || 'circle';
-    const padding = 4 / zoom;
-    const drawSize = Math.max(0.1, halfSize - padding);
-
-    if (!isTopDown) {
-      if (shape === 'square') {
-        ctx.rect(-drawSize, -drawSize, drawSize * 2, drawSize * 2);
-      } else if (shape === 'hex') {
-        for (let i = 0; i < 6; i++) {
-          const angle = (Math.PI / 3) * i - Math.PI / 6;
-          const x = Math.cos(angle) * drawSize;
-          const y = Math.sin(angle) * drawSize;
-          if (i === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-        ctx.closePath();
-      } else {
-        ctx.arc(0, 0, drawSize, 0, Math.PI * 2);
-      }
-    }
-
-    // Draw image
-    if (token.displayMode !== 'text') {
-      const tokenImage = imageCache[token.imgUrl];
-      if (tokenImage?.complete) {
-        ctx.save();
-        if (!isTopDown) ctx.clip();
-        if (isGhost) {
-          ctx.globalAlpha = 0.5;
-          ctx.filter = 'grayscale(100%) brightness(150%)';
-        }
-
-        const offsetX = (token.imageX || 0) * sizePx;
-        const offsetY = (token.imageY || 0) * sizePx;
-        ctx.translate(offsetX, offsetY);
-
-        if (token.imageRotation) {
-          ctx.rotate((token.imageRotation * Math.PI) / 180);
-        }
-
-        const imgScale = token.scale || 1;
-        const w = drawSize * 2 * imgScale;
-        const h = drawSize * 2 * imgScale;
-        ctx.drawImage(tokenImage, -w / 2, -h / 2, w, h);
-
-        if (token.tint && !isTopDown) {
-          ctx.fillStyle = token.tint;
-          ctx.fill();
-        }
-        ctx.restore();
-      } else if (!isTopDown) {
-        ctx.fillStyle = '#333';
-        ctx.fill();
-      }
-    } else if (token.textDetails) {
-      ctx.fillStyle = token.textDetails.backgroundColor;
-      if (isGhost) ctx.globalAlpha = 0.6;
-      if (!isTopDown) ctx.fill();
-
-      ctx.fillStyle = token.textDetails.textColor;
-      const fontSize = drawSize * 0.8;
-      ctx.font = `bold ${fontSize}px sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(token.textDetails.text || '?', 0, 0);
-    }
-
-    // Border
-    if (!isTopDown) {
-      const borderColor = isSelected ? '#22d3ee' : (token.border?.color || (token.ownerId ? '#3b82f6' : '#f43f5e'));
-      const borderWidth = isSelected ? 4 : (token.border?.width || 3);
-      ctx.strokeStyle = isGhost ? 'rgba(255, 255, 255, 0.3)' : borderColor;
-      ctx.lineWidth = borderWidth / zoom;
-      if (isGhost) ctx.setLineDash([5 / zoom, 5 / zoom]);
-      ctx.stroke();
-    } else if (isSelected) {
-      ctx.beginPath();
-      ctx.ellipse(0, drawSize * 0.8, drawSize * 0.8, drawSize * 0.3, 0, 0, Math.PI * 2);
-      ctx.strokeStyle = '#22d3ee';
-      ctx.lineWidth = 2 / zoom;
-      ctx.stroke();
-    }
-
-    ctx.restore();
-
-    if (isGhost) return;
-
-    // Conditions
-    this.renderConditions(ctx, token, gridSize, zoom, padding);
-
-    // Bars
-    this.renderBars(ctx, token, gridSize, zoom, linkedCharacter);
-  }
-
-  private renderConditions(ctx: CanvasRenderingContext2D, token: Token, gridSize: number, zoom: number, padding: number): void {
-    const conditions = new Set<string>(token.conditions || []);
-    if (token.effects) {
-      for (const effect of token.effects) {
-        if (effect.conditions) {
-          for (const c of effect.conditions) conditions.add(c);
-        }
-      }
-    }
-    if (conditions.size === 0) return;
-
-    const uniqueConditions = Array.from(conditions);
-    const dotSize = 6 / zoom;
-    const gap = 2 / zoom;
-    const totalWidth = (uniqueConditions.length * dotSize) + ((uniqueConditions.length - 1) * gap);
-    const px = token.x * gridSize;
-    const py = token.y * gridSize;
-    const sizePx = token.size * gridSize;
-    let startX = px + sizePx / 2 - totalWidth / 2 + dotSize / 2;
-
-    const colorMap: Record<string, string> = {
-      dead: '#ef4444', bloodied: '#dc2626', stunned: '#eab308',
-      shielded: '#3b82f6', alert: '#f97316',
-    };
-
-    for (let i = 0; i < uniqueConditions.length; i++) {
-      ctx.beginPath();
-      ctx.arc(startX + i * (dotSize + gap), py + padding + dotSize, dotSize, 0, Math.PI * 2);
-      ctx.fillStyle = colorMap[uniqueConditions[i]] || '#ffffff';
-      ctx.fill();
-      ctx.strokeStyle = 'black';
-      ctx.lineWidth = 1 / zoom;
-      ctx.stroke();
-    }
-  }
-
-  private renderBars(ctx: CanvasRenderingContext2D, token: Token, gridSize: number, zoom: number, linkedCharacter?: Character): void {
-    const bar1 = linkedCharacter
-      ? { value: linkedCharacter.hpCurrent, max: linkedCharacter.hpMax, visible: true, color: '#ef4444' }
-      : token.bars?.bar1;
-
-    const bar2 = linkedCharacter
-      ? { value: (linkedCharacter as any).manaCurrent || 0, max: (linkedCharacter as any).manaMax || 0, visible: true, color: '#3b82f6' }
-      : token.bars?.bar2;
-
-    if (!bar1 && !bar2) return;
-
-    const px = token.x * gridSize;
-    const py = token.y * gridSize;
-    const sizePx = token.size * gridSize;
-    const barHeight = 6 / zoom;
-    const barWidth = sizePx * 0.8;
-    const startX = px + sizePx / 2 - barWidth / 2;
-    let currentY = py + sizePx - barHeight - (4 / zoom);
-
-    const drawBar = (bar: any) => {
-      if (!bar || !bar.visible || bar.max <= 0) return;
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-      ctx.fillRect(startX, currentY, barWidth, barHeight);
-      const fillPct = Math.max(0, Math.min(1, bar.value / bar.max));
-      ctx.fillStyle = bar.color || '#ffffff';
-      ctx.fillRect(startX, currentY, barWidth * fillPct, barHeight);
-      ctx.strokeStyle = 'rgba(0,0,0,0.5)';
-      ctx.lineWidth = 1 / zoom;
-      ctx.strokeRect(startX, currentY, barWidth, barHeight);
-      currentY -= (barHeight + 2 / zoom);
-    };
-
-    drawBar(bar2);
-    drawBar(bar1);
-  }
-
-  private renderAuras(ctx: CanvasRenderingContext2D, token: Token, x: number, y: number, gridSize: number, zoom: number, isGM: boolean): void {
-    if (!token.auras || token.auras.length === 0) return;
-
-    const px = x * gridSize;
-    const py = y * gridSize;
-    const sizePx = token.size * gridSize;
-    const cx = px + sizePx / 2;
-    const cy = py + sizePx / 2;
-
-    for (const aura of token.auras) {
-      if (!aura.active) continue;
-      if (aura.visible === false && !isGM) continue;
-
-      const radiusInSquares = aura.radius / 1.5;
-      const r = radiusInSquares * gridSize;
-
-      ctx.save();
-      ctx.translate(cx, cy);
-
-      ctx.beginPath();
-      if (aura.shape === 'square') {
-        ctx.rect(-r, -r, r * 2, r * 2);
-      } else {
-        ctx.arc(0, 0, r, 0, Math.PI * 2);
-      }
-
-      ctx.fillStyle = aura.color;
-      ctx.globalAlpha = 0.15;
-      ctx.fill();
-
-      ctx.strokeStyle = aura.color;
-      ctx.globalAlpha = 0.4;
-      ctx.lineWidth = 2 / zoom;
-      ctx.setLineDash([5 / zoom, 5 / zoom]);
-      ctx.stroke();
-
-      ctx.restore();
-    }
-  }
-
   private renderRemoteDrags(ctx: CanvasRenderingContext2D, context: RenderContext, gridSize: number, effectiveIsGM: boolean): void {
-    const { remoteDrags, tokens, imageCache, zoom, players } = context;
+    const { remoteDrags, tokens, imageCache, zoom, players, visionPolygons, scene, currentUser } = context;
 
     for (const [uid, drag] of Object.entries(remoteDrags)) {
       const ghostToken = tokens.find(t => t.id === drag.tokenId);
       if (!ghostToken) continue;
 
-      if (!effectiveIsGM && !ghostToken.isVisibleToPlayers) continue;
+      if (!effectiveIsGM) {
+        const isOwner = this.isTokenOwner(ghostToken, currentUser?.id);
+        if (!ghostToken.isVisibleToPlayers && !isOwner) continue;
+        if (!isOwner) {
+          // Check visibility of drag position
+          if (!isPositionVisible(
+            { x: drag.x, y: drag.y, size: ghostToken.size },
+            gridSize,
+            visionPolygons || [],
+            scene?.fogPath,
+            ctx
+          )) continue;
+        }
+      }
 
       ctx.globalAlpha = 0.6;
-      this.renderToken(ctx, { ...ghostToken, x: drag.x, y: drag.y }, gridSize, false, zoom, imageCache, true);
+      drawToken(
+        ctx,
+        { ...ghostToken, x: drag.x, y: drag.y },
+        gridSize,
+        false,
+        zoom,
+        imageCache,
+        true
+      );
       ctx.globalAlpha = 1.0;
 
       // Draw label
@@ -414,15 +273,13 @@ export class TokenLayer extends BaseLayer {
         x: (drag.x + ghostToken.size / 2) * gridSize,
         y: (drag.y + ghostToken.size / 2) * gridSize,
       };
-      this.drawLabel(ctx, labelText, dragPosWorld.x, dragPosWorld.y - 40 / zoom, zoom, drag.color || '#fbbf24');
+      drawLabel(ctx, labelText, dragPosWorld.x, dragPosWorld.y - 40 / zoom, zoom, drag.color || '#fbbf24');
     }
   }
 
   private renderLocalDrag(ctx: CanvasRenderingContext2D, context: RenderContext, gridSize: number): void {
-    const { dragState, tokens, imageCache, zoom, localCursorPos, calculatedPath, cursorSettings } = context;
+    const { dragState, tokens, imageCache, zoom, localCursorPos } = context;
     if (!dragState.isDragging || !dragState.token) return;
-
-    const leader = dragState.token;
 
     for (const groupItem of dragState.draggedGroup) {
       const token = tokens.find(t => t.id === groupItem.id);
@@ -431,24 +288,16 @@ export class TokenLayer extends BaseLayer {
       const smoothX = localCursorPos.x - groupItem.offsetX;
       const smoothY = localCursorPos.y - groupItem.offsetY;
 
-      this.renderToken(ctx, { ...token, x: smoothX / gridSize, y: smoothY / gridSize }, gridSize, true, zoom, imageCache, false);
+      // Is ghost (zinza) set to true? Yes, dragging is always ghosted in new design
+      drawToken(
+        ctx,
+        { ...token, x: smoothX / gridSize, y: smoothY / gridSize },
+        gridSize,
+        true,
+        zoom,
+        imageCache,
+        true // isGhost
+      );
     }
-  }
-
-  private drawLabel(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, zoom: number, color: string): void {
-    ctx.font = `bold ${14 / zoom}px sans-serif`;
-    const metrics = ctx.measureText(text);
-    const pad = 6 / zoom;
-    const h = 20 / zoom;
-
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.roundRect(x - metrics.width / 2 - pad, y - h / 2 - pad, metrics.width + pad * 2, h + pad * 2, 4 / zoom);
-    ctx.fill();
-
-    ctx.fillStyle = 'white';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(text, x, y);
   }
 }

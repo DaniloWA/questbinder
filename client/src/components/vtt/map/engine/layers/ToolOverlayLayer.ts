@@ -17,6 +17,9 @@
 import { renderRemoteViewports } from '../../hooks/renderers';
 import { BaseLayer } from '../core/BaseLayer';
 import { RenderContext, AttackZoneResult } from '../core/types';
+import { drawRuler, drawToken, drawLabel } from '../../../../../utils/canvasRenderer';
+import { getTokenWorldPos, isTokenOwner, isPositionVisible } from '../../hooks/renderers';
+import { COLORS } from '../../hooks/renderers';
 
 /**
  * ToolOverlayLayer - Comprehensive active tool visualizations.
@@ -49,7 +52,6 @@ export class ToolOverlayLayer extends BaseLayer {
     // 1. REMOTE VIEWPORTS (Always visible for GM)
     // =========================================================================
     if (isGM && gmViewMode === 'gm' && Object.keys(remoteViewports).length > 0) {
-      // Use shared renderer for full feature parity (AFK, Stacking, Colors)
       const cursors = remoteCursorsRef?.current || remoteCursors || {};
       renderRemoteViewports(
         ctx,
@@ -61,6 +63,60 @@ export class ToolOverlayLayer extends BaseLayer {
         zoom,
         players
       );
+    }
+
+    // =========================================================================
+    // 1.5. REMOTE DRAGS (Rulers + Ghost Tokens)
+    // =========================================================================
+
+    // =========================================================================
+    // 1.5. DRAGS (Remote + Local)
+    // =========================================================================
+
+    // A. REMOTE DRAGS
+    if (context.remoteDrags) {
+      Object.entries(context.remoteDrags).forEach(([uid, dragItem]) => {
+        const drag = dragItem as any; // TokenDragPayload
+        const ghostToken = context.tokens.find(t => t.id === drag.tokenId);
+
+        if (ghostToken) {
+          // Visibility Check
+          if (!isGM) {
+            const isOwner = isTokenOwner(ghostToken, currentUser?.id);
+            if (!ghostToken.isVisibleToPlayers && !isOwner) return;
+          }
+
+          const dragPosWorld = getTokenWorldPos({ x: drag.x, y: drag.y, size: ghostToken.size }, gridSize);
+          const pathWorld = drag.path.map((p: any) => getTokenWorldPos({ x: p.x, y: p.y, size: ghostToken.size }, gridSize));
+
+          // Draw Ruler
+          if (pathWorld.length > 0) {
+            drawRuler(ctx, pathWorld, dragPosWorld, gridSize, unitsPerSquare, zoom, drag.color || COLORS.DEFAULT_CURSOR, ghostToken.speed || 9);
+          }
+
+          // Draw Ghost Token
+          ctx.save();
+          ctx.globalAlpha = 0.6;
+          drawToken(ctx, { ...ghostToken, x: drag.x, y: drag.y }, gridSize, false, zoom, context.imageCache, true);
+          ctx.restore();
+
+          // Draw Label
+          const draggingUser = players?.find(u => u.id === uid);
+          const labelText = draggingUser ? draggingUser.name : 'Unknown';
+          drawLabel(ctx, labelText, dragPosWorld.x, dragPosWorld.y - 40 / zoom, zoom, drag.color || COLORS.DEFAULT_CURSOR);
+        }
+      });
+    }
+
+    // B. LOCAL DRAG RULER
+    const { dragState, calculatedPath } = context;
+    if (dragState.isDragging && dragState.token && calculatedPath && calculatedPath.length > 0) {
+      const token = dragState.token;
+      // Use token center for ruler calculation/display
+      const dragPosWorld = localCursorPos; // Cursor is the leader position
+      const pathWorld = calculatedPath.map(p => ({ x: p.x * gridSize + (gridSize / 2), y: p.y * gridSize + (gridSize / 2) }));
+
+      drawRuler(ctx, pathWorld, dragPosWorld, gridSize, unitsPerSquare, zoom, '#fbbf24', token.speed || 9);
     }
 
 
@@ -184,6 +240,10 @@ export class ToolOverlayLayer extends BaseLayer {
   // RULER RENDERING
   // ===========================================================================
 
+  // ===========================================================================
+  // RULER RENDERING
+  // ===========================================================================
+
   private renderRuler(
     ctx: CanvasRenderingContext2D,
     path: { x: number; y: number; }[],
@@ -193,71 +253,41 @@ export class ToolOverlayLayer extends BaseLayer {
     zoom: number,
     rulerSettings: { snapToGrid: boolean; metric: string; }
   ): void {
-    const fullPath = [...path, currentPos];
-    if (fullPath.length < 2) return;
+    // Convert tool state metric to legacy metric string
+    const metric = rulerSettings.metric as 'euclidean' | 'chebyshev' | 'manhattan';
 
-    const color = '#fbbf24';
-    const unit = unitsPerSquare === 1.5 ? 'm' : 'ft';
+    // Delegate to legacy renderer for measuring path
+    // Note: drawRuler expects world coordinates for path, but toolState path is in GRID coords?
+    // Let's verify. movementPath in useMapInteraction is typically grid coords.
+    // Yes, drawRuler expects PIXEL coordinates (world space).
+    // so we need to convert path to pixels.
 
-    ctx.save();
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
+    const pixelPath = path.map(p => ({
+      x: p.x * gridSize + gridSize / 2,
+      y: p.y * gridSize + gridSize / 2
+    }));
 
-    let totalDist = 0;
+    // Legacy drawRuler helper converts them internally?
+    // Let's check canvasRenderer.ts... NO. 
+    // drawRuler(ctx, path, currentMousePos, ...)
+    // In useMapRenderer:
+    // const pathWorldPoints = calculatedPath.map(p => getTokenWorldPos({ x: p.x, y: p.y, size: token.size }, gridSize));
+    // So inputs to drawRuler MUST be World Pixels.
 
-    for (let i = 1; i < fullPath.length; i++) {
-      const p1 = fullPath[i - 1];
-      const p2 = fullPath[i];
+    // ToolState.movementPath is usually center-of-tile points in grid steps if snap is on?
+    // Let's assume they are grid coordinates for now and convert them.
 
-      const dx = (p2.x - p1.x) / gridSize;
-      const dy = (p2.y - p1.y) / gridSize;
-      let segmentDist: number;
-
-      switch (rulerSettings.metric) {
-        case 'euclidean':
-          segmentDist = Math.sqrt(dx * dx + dy * dy);
-          break;
-        case 'manhattan':
-          segmentDist = Math.abs(dx) + Math.abs(dy);
-          break;
-        default:
-          segmentDist = Math.max(Math.abs(dx), Math.abs(dy));
-      }
-
-      totalDist += segmentDist * unitsPerSquare;
-
-      // Segment line
-      ctx.beginPath();
-      ctx.moveTo(p1.x, p1.y);
-      ctx.lineTo(p2.x, p2.y);
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 4 / zoom;
-      ctx.stroke();
-
-      // Waypoint
-      ctx.beginPath();
-      ctx.arc(p1.x, p1.y, 6 / zoom, 0, Math.PI * 2);
-      ctx.fillStyle = color;
-      ctx.fill();
-      ctx.strokeStyle = '#000';
-      ctx.lineWidth = 2 / zoom;
-      ctx.stroke();
-    }
-
-    // Endpoint
-    const lastPoint = fullPath[fullPath.length - 1];
-    ctx.beginPath();
-    ctx.arc(lastPoint.x, lastPoint.y, 8 / zoom, 0, Math.PI * 2);
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 2 / zoom;
-    ctx.stroke();
-
-    // Distance label
-    this.renderLabel(ctx, `${totalDist.toFixed(1)}${unit}`, lastPoint.x, lastPoint.y - 30 / zoom, zoom, color);
-
-    ctx.restore();
+    drawRuler(
+      ctx,
+      pixelPath,
+      currentPos,
+      gridSize,
+      unitsPerSquare,
+      zoom,
+      '#fbbf24',
+      undefined, // maxDistance
+      metric
+    );
   }
 
   // ===========================================================================
@@ -273,7 +303,7 @@ export class ToolOverlayLayer extends BaseLayer {
     ctx.setLineDash([8 / zoom, 4 / zoom]);
     ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
     ctx.setLineDash([]);
-  }
+  };
 
   // ===========================================================================
   // POLYGON PREVIEW
@@ -404,7 +434,7 @@ export class ToolOverlayLayer extends BaseLayer {
     ctx.fillStyle = 'rgba(168, 85, 247, 0.8)';
     ctx.textAlign = 'center';
     ctx.fillText('Smart Wall', localCursorPos.x, localCursorPos.y - snapRadius - 10 / zoom);
-  }
+  };
 
   // ===========================================================================
   // ZONE PREVIEW (Rect)
@@ -569,7 +599,7 @@ export class ToolOverlayLayer extends BaseLayer {
         ctx.stroke();
 
         // Label
-        this.renderLabel(ctx, labels[i], p.x, p.y - 20 / zoom, zoom, color);
+        drawLabel(ctx, labels[i], p.x, p.y - 20 / zoom, zoom, color);
       }
     }
 
@@ -587,28 +617,5 @@ export class ToolOverlayLayer extends BaseLayer {
       }
       ctx.restore();
     }
-  }
-
-
-
-  // ===========================================================================
-  // HELPERS
-  // ===========================================================================
-
-  private renderLabel(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, zoom: number, bgColor: string): void {
-    ctx.font = `bold ${14 / zoom}px sans-serif`;
-    const metrics = ctx.measureText(text);
-    const padding = 6 / zoom;
-    const height = 20 / zoom;
-
-    ctx.fillStyle = bgColor;
-    ctx.beginPath();
-    ctx.roundRect(x - metrics.width / 2 - padding, y - height / 2 - padding, metrics.width + padding * 2, height + padding * 2, 4 / zoom);
-    ctx.fill();
-
-    ctx.fillStyle = '#000';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(text, x, y);
   }
 }

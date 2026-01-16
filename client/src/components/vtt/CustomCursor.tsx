@@ -27,6 +27,7 @@ interface CustomCursorProps {
   activeTool?: string;
   isContexting?: boolean;
   isChatting?: boolean;
+  isDragging?: boolean;
 }
 
 /**
@@ -45,6 +46,7 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
   activeTool,
   isContexting,
   isChatting,
+  isDragging,
 }) => {
   const cursorRef = useRef<HTMLDivElement>(null);
   const [isClicking, setIsClicking] = useState(false);
@@ -136,7 +138,7 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
     };
   }, [enabled, handleMouseMove, handleMouseDown, handleMouseUp]);
 
-  if (!enabled || !svgContent) return null;
+  if (!enabled || !svgContent || isDragging) return null;
 
   return (
     <>

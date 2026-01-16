@@ -377,6 +377,18 @@ export class CursorPhysicsEngine {
     return state;
   }
 
+  /**
+   * Updates status flags directly (e.g. for click/press events that happen between movement frames)
+   */
+  updateStatus(userId: string, status: Partial<CursorState>) {
+    const state = this.states.get(userId);
+    if (!state) return;
+
+    if (status.isClicking !== undefined) state.isClicking = status.isClicking;
+    if (status.isAfk !== undefined) state.isAfk = status.isAfk;
+    // Add other flags as needed
+  }
+
   tick(userId: string, deltaMs: number): Point2D | null {
     const state = this.states.get(userId);
     if (!state) return null;

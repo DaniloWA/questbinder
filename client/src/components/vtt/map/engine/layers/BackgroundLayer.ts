@@ -20,6 +20,7 @@ export class BackgroundLayer extends BaseLayer {
   constructor() {
     super('background', 'Background', {
       useCache: true,
+      cacheStrategy: 'world', // Ensuring full map coverage
       description: 'Map background image',
     });
   }

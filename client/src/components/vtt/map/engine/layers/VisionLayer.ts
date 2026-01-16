@@ -77,8 +77,17 @@ export class VisionLayer extends BaseLayer {
       ? visionTokens
       : this.getPlayerVisionTokens(tokens, currentUser?.id);
 
+    // If no vision tokens, we still might see GM-revealed areas (fogPath)
     if (visibleTokens.length === 0) {
-      // No vision tokens - render complete darkness
+      if (scene.fogPath) {
+        // We have GM revealed areas, so we shouldn't just render pitch black.
+        // We need to render the "fog overlay" with an empty vision path.
+        this.combinedVisionPath = new Path2D(); // Empty vision
+        this.renderFogOverlay(ctx, context);
+        return;
+      }
+
+      // No vision tokens AND no revealed fog -> Render complete darkness
       this.renderDarkness(ctx, context);
       return;
     }
@@ -86,14 +95,21 @@ export class VisionLayer extends BaseLayer {
     // Calculate vision polygons for each token
     this.visionPolygons.clear();
 
+    // Use Legacy Unit Scale Calculation
+    const unitsPerSquare = scene.grid.unitsPerSquare || 1.5;
+    const unitScale = gridSize / unitsPerSquare;
+
     for (const token of visibleTokens) {
       const cx = (token.x + token.size / 2) * gridSize;
       const cy = (token.y + token.size / 2) * gridSize;
 
-      // Vision radius (use visionRange or default based on darkvision)
-      const visionRadius = (token.visionRange || 60) * gridSize / 1.5; // Convert meters to pixels
-      const darkvisionRadius = (token.darkvisionRange || 0) * gridSize / 1.5;
-      const effectiveRadius = Math.max(visionRadius, darkvisionRadius);
+      // Legacy Calculation: Default to 0, use unitScale, ensure min radius
+      const visionRangePx = (token.visionRange || 0) * unitScale;
+      const darkvisionRangePx = (token.darkvisionRange || 0) * unitScale;
+
+      // Ensure specific minimum radius so tokens always see their own space (gridSize * 0.6)
+      // This prevents "self-occlusion" where a token is blocked by the wall they are standing next to
+      const effectiveRadius = Math.max(gridSize * 0.6, Math.max(visionRangePx, darkvisionRangePx));
 
       if (effectiveRadius <= 0) continue;
 
@@ -107,6 +123,9 @@ export class VisionLayer extends BaseLayer {
         this.visionPolygons.set(token.id, polygon);
       }
     }
+
+    // Share vision polygons with downstream layers (TokenLayer)
+    context.visionPolygons = Array.from(this.visionPolygons.values());
 
     // Build combined vision path
     this.combinedVisionPath = this.buildCombinedPath();
@@ -155,10 +174,14 @@ export class VisionLayer extends BaseLayer {
    * Render complete darkness (when no vision tokens).
    */
   private renderDarkness(ctx: CanvasRenderingContext2D, context: RenderContext): void {
-    const { mapWidth, mapHeight } = context;
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.95)';
+    const { mapWidth, mapHeight, scene } = context;
+    // Respect ambient light (default to 1.0 = daylight if undefined)
+    const ambientLevel = Math.max(0, Math.min(1, scene?.ambientLight ?? 1.0));
+    const darknessAlpha = 1.0 - ambientLevel;
+
+    ctx.fillStyle = `rgba(0, 0, 0, ${darknessAlpha})`;
     ctx.fillRect(0, 0, mapWidth, mapHeight);
-  }
+  };
 
   /**
    * Render the fog overlay (darkness outside combined vision).
@@ -170,7 +193,15 @@ export class VisionLayer extends BaseLayer {
     ctx.save();
 
     // Draw darkness over the entire map
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.95)';
+    const ambientLevel = Math.max(0, Math.min(1, scene.ambientLight ?? 1.0));
+    const darknessAlpha = 1.0 - ambientLevel;
+
+    // If fully lit (daylight), darkness is invisible, so we don't need to render black overlay
+    // UNLESS we want to support "Fog of War" (explored/unexplored) separate from lighting?
+    // Legacy behavior in drawLightingLayer suggests simple ambient darkness.
+    // If darknessAlpha is 0, we fillRect with 0 alpha.
+
+    ctx.fillStyle = `rgba(0, 0, 0, ${darknessAlpha})`;
     ctx.fillRect(0, 0, mapWidth, mapHeight);
 
     // Combine with GM-revealed fog if present

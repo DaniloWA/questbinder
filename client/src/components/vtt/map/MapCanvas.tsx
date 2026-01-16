@@ -81,6 +81,20 @@ export const MapCanvas = (props: MapCanvasProps) => {
     };
   }, [props.currentUser?.id, props.activeTool]);
 
+  // Handle Window Resize (Fix for map clipping/stretching)
+  useEffect(() => {
+    const handleResize = () => {
+      if (canvasRef.current) {
+        canvasRef.current.width = window.innerWidth;
+        canvasRef.current.height = window.innerHeight;
+        // Force re-render of layer engine if methods exposed? 
+        // Actually, orchestrator loop uses canvas.width directly, so it picks up the change next frame!
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // 5. Map Interaction (Event Handlers)
   const interaction = useMapInteraction({
     ...props,
@@ -98,6 +112,7 @@ export const MapCanvas = (props: MapCanvasProps) => {
     canvasRef,
     {
       ...props,
+      viewportRef, // Pass ref for immediate high-performance access
       visionTokens,
       imageCache,
       hoveredTokenId: mapState.hoveredTokenId,
@@ -287,6 +302,7 @@ export const MapCanvas = (props: MapCanvasProps) => {
         activeTool={props.activeTool}
         isContexting={props.isContexting}
         isChatting={props.isChatting}
+        isDragging={mapState.dragState.current.isDragging}
         healthStatus={(() => {
           if (!props.currentUser?.id || !props.campaignCharacters) return 'healthy';
           const char = props.campaignCharacters.find(c => c.ownerId === props.currentUser?.id);
