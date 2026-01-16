@@ -32,6 +32,9 @@ import {
   cleanupTrailHistory,
   HealthStatus,
 } from '../../../../../utils/trailRenderer';
+import { getToolTranslationKey } from '../../../../../utils/toolMappings';
+import { getToolIcon } from '../../../../../constants/toolIcons';
+import { t } from '../../../../../i18n';
 
 /**
  * CursorLayer - Renders multiplayer cursor visualization with physics.
@@ -177,6 +180,33 @@ export class CursorLayer extends BaseLayer {
         });
       }
 
+      // Resolve Tool Info
+      const activeTool = cursor.activeTool;
+
+      // 1. Status Icon (Chat > Combat)
+      let statusIcon: string | undefined;
+      if (cursor.isChatting) {
+        statusIcon = '💬';
+      } else if (activeTool === 'combat') {
+        statusIcon = '⚔️';
+      }
+
+      // 2. Context Icon
+      let contextIcon: string | undefined;
+      if (cursor.isContexting) {
+        contextIcon = '•••';
+      }
+
+      // 3. Tool Badge (Active Tool, excluding select/pan/combat)
+      // Note: Combat is handled by statusIcon.
+      let activeToolName: string | undefined;
+      let activeToolIcon: string | undefined;
+
+      if (activeTool && activeTool !== 'select' && activeTool !== 'pan' && activeTool !== 'combat') {
+        activeToolIcon = getToolIcon(activeTool);
+        activeToolName = t(getToolTranslationKey(activeTool));
+      }
+
       // Render cursor
       ctx.save();
       if (renderData.isAfk) {
@@ -193,7 +223,11 @@ export class CursorLayer extends BaseLayer {
         false, // isLocal
         renderData.scaleX,
         renderData.scaleY,
-        zoom
+        zoom,
+        activeToolName,
+        activeToolIcon,
+        statusIcon,
+        contextIcon
       );
       ctx.restore();
 

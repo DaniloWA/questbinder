@@ -3,6 +3,8 @@ import { getCursorShape } from './constants/cursorShapes';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { getToolIcon } from '../../constants/toolIcons';
 import { HealthStatus } from '../../utils/trailRenderer';
+import { getToolTranslationKey } from '../../utils/toolMappings';
+import { useTranslation } from '../../i18n/TranslationContext';
 import {
   getDynamicCursorSize,
   VISUAL_LERP_SPEED,
@@ -50,6 +52,7 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
 }) => {
   const cursorRef = useRef<HTMLDivElement>(null);
   const [isClicking, setIsClicking] = useState(false);
+  const { t } = useTranslation();
 
   // Animation state (refs to avoid re-renders)
   const mousePos = useRef({ x: 0, y: 0 });
@@ -140,6 +143,8 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
 
   if (!enabled || !svgContent || isDragging) return null;
 
+  const showToolBadge = activeTool && activeTool !== 'select' && activeTool !== 'pan' && activeTool !== 'combat';
+
   return (
     <>
       {/* Custom cursor element */}
@@ -182,10 +187,18 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
           </div>
         )}
 
-        {/* Active Tool Indicator */}
-        {activeTool && activeTool !== 'select' && activeTool !== 'pan' && activeTool !== 'combat' && (
-          <div className="absolute -bottom-4 -right-4 text-lg filter drop-shadow-md z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-            {getToolIcon(activeTool)}
+        {/* Active Tool Badge (Icon + Text) */}
+        {showToolBadge && (
+          <div
+            className="absolute left-6 top-6 flex items-center gap-2 bg-zinc-900/90 text-white text-[10px] font-bold px-2 py-1 rounded-md shadow-lg border border-white/20 whitespace-nowrap z-50 animate-in fade-in slide-in-from-top-2 duration-200"
+            style={{
+              // Counteract default rotation of parent (which rotates with mouse movement)
+              // This ensures the text stays horizontal and readable
+              transform: `rotate(${-angle.current}deg)`
+            }}
+          >
+            <span className="text-primary">{getToolIcon(activeTool)}</span>
+            <span>{t(getToolTranslationKey(activeTool))}</span>
           </div>
         )}
       </div>
@@ -193,3 +206,4 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
   );
 };
 export default CustomCursor;
+
