@@ -90,12 +90,27 @@ export class ZonesLayer extends BaseLayer {
 
     // Visual style based on brightness
     const isDarkness = zone.brightness <= 0.2;
-    const color = isDarkness ? 'rgba(30, 30, 30, 0.6)' : (zone.color || 'rgba(255, 220, 100, 0.3)');
 
-    ctx.fillStyle = color;
+    let fillColor = 'rgba(255, 220, 100, 0.3)';
+    let strokeColor = 'rgba(255, 220, 100, 0.6)';
+    let labelColor = '#ffdc64';
+
+    if (isDarkness) {
+      fillColor = 'rgba(30, 30, 30, 0.6)';
+      strokeColor = 'rgba(80, 80, 80, 0.8)';
+      labelColor = '#666';
+    } else if (zone.color) {
+      // Use custom color but enforce opacity
+      const rgb = this.hexToRgb(zone.color);
+      fillColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.3)`;
+      strokeColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.6)`;
+      labelColor = zone.color;
+    }
+
+    ctx.fillStyle = fillColor;
     ctx.fill();
 
-    ctx.strokeStyle = isDarkness ? 'rgba(80, 80, 80, 0.8)' : 'rgba(255, 220, 100, 0.6)';
+    ctx.strokeStyle = strokeColor;
     ctx.lineWidth = 2 / zoom;
     ctx.setLineDash([6 / zoom, 3 / zoom]);
     ctx.stroke();
@@ -106,7 +121,7 @@ export class ZonesLayer extends BaseLayer {
       ctx.font = `bold ${14 / zoom}px sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillStyle = isDarkness ? '#666' : '#ffdc64';
+      ctx.fillStyle = labelColor;
       ctx.fillText(isDarkness ? '🌑' : '💡', center.x, center.y);
     }
 
@@ -200,5 +215,28 @@ export class ZonesLayer extends BaseLayer {
       };
     }
     return null;
+  }
+
+  /**
+   * Convert hex color to RGB.
+   */
+  private hexToRgb(hex: string): { r: number; g: number; b: number; } {
+    if (!hex || typeof hex !== 'string') return { r: 255, g: 255, b: 255 };
+
+    if (!/^#[0-9a-fA-F]{6}$/.test(hex)) {
+      if (/^#[0-9a-fA-F]{3}$/.test(hex)) {
+        const r = parseInt(hex[1] + hex[1], 16);
+        const g = parseInt(hex[2] + hex[2], 16);
+        const b = parseInt(hex[3] + hex[3], 16);
+        return { r, g, b };
+      }
+      return { r: 255, g: 255, b: 255 };
+    }
+
+    return {
+      r: parseInt(hex.slice(1, 3), 16),
+      g: parseInt(hex.slice(3, 5), 16),
+      b: parseInt(hex.slice(5, 7), 16),
+    };
   }
 }

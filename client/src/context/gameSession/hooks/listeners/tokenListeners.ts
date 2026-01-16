@@ -20,16 +20,34 @@ export const registerTokenListeners = ({
 
   // Handler: token:update
   const handleTokenUpdate = (payload: TokenUpdatePayload) => {
-    setState(previousState => ({
-      ...previousState,
-      scenes: StateHelpers.updateItemInSceneList(
+    setState(previousState => {
+      // 1. Update Scenes
+      const updatedScenes = StateHelpers.updateItemInSceneList(
         previousState.scenes,
         payload.sceneId,
         'tokens',
         payload.id,
         payload.changes
-      )
-    }));
+      );
+
+      // 2. Clear Remote Drags (Fix for remote cursor delay)
+      // If this token was being dragged, the update means the drag ended.
+      const updatedDrags = { ...previousState.remoteDrags };
+      let dragsChanged = false;
+
+      Object.keys(updatedDrags).forEach(userId => {
+        if (updatedDrags[userId].tokenId === payload.id) {
+          delete updatedDrags[userId];
+          dragsChanged = true;
+        }
+      });
+
+      return {
+        ...previousState,
+        scenes: updatedScenes,
+        remoteDrags: dragsChanged ? updatedDrags : previousState.remoteDrags
+      };
+    });
   };
 
   // Handler: token:add

@@ -113,7 +113,15 @@ export class ToolOverlayLayer extends BaseLayer {
     if (dragState.isDragging && dragState.token && calculatedPath && calculatedPath.length > 0) {
       const token = dragState.token;
       // Use token center for ruler calculation/display
-      const dragPosWorld = localCursorPos; // Cursor is the leader position
+      // Calculate smoothed position of the leader token (based on render logic in useMapRenderer)
+      // center-of-tile points are fine for ruler, but let's be precise.
+      // ruler logic: start from token center.
+      const smoothedX = localCursorPos.x - (dragState.offset?.x || 0);
+      const smoothedY = localCursorPos.y - (dragState.offset?.y || 0);
+      const dragPosWorld = {
+        x: smoothedX + (token.size * gridSize) / 2,
+        y: smoothedY + (token.size * gridSize) / 2
+      };
       const pathWorld = calculatedPath.map(p => ({ x: p.x * gridSize + (gridSize / 2), y: p.y * gridSize + (gridSize / 2) }));
 
       drawRuler(ctx, pathWorld, dragPosWorld, gridSize, unitsPerSquare, zoom, '#fbbf24', token.speed || 9);

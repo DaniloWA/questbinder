@@ -242,6 +242,8 @@ export function useLayerEngine(
     props.remoteViewports,
     props.imageCache, // CRITICAL: Re-run when images load to update map dimensions
     props.viewportRef, // Safety: Ensure context has ref
+    props.calculatedPath, // CRITICAL: Update context when drag path changes (Ruler)
+    props.dragState, // CRITICAL: Update context when drag state changes
   ]);
 
   // API methods

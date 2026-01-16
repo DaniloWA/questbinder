@@ -30,6 +30,8 @@ interface UseMapInteractionProps extends MapCanvasProps {
   setDraggedAttackZone: (z: { id: string, startX: number, startY: number, originX: number, originY: number, rotating?: boolean; } | null) => void;
   liveDrawingPointsRef: React.RefObject<{ x: number, y: number; }[]>;
   isDrawingRef: React.RefObject<boolean>;
+  emitTokenDrag?: (id: string, x: number, y: number, path: { x: number, y: number; }[]) => void;
+  emitCursorMove: (x: number, y: number, forceImmediate?: boolean) => void;
   lastCursorEmit: React.RefObject<number>;
   lastMousePos: React.RefObject<{ x: number, y: number; }>;
   hoverOpenTimerRef: React.RefObject<ReturnType<typeof setTimeout> | null>;
@@ -265,7 +267,7 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
     }
 
     const now = Date.now();
-    if (now - lastCursorEmit.current > 50) {
+    if (now - lastCursorEmit.current > 50 && !dragState.current.isDragging) {
       emitCursorMove(worldPos.x, worldPos.y);
       lastCursorEmit.current = now;
     }
@@ -698,6 +700,11 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
     setDragging?.(false); // Remote cursor visibility
     dragState.current.token = null;
     setCalculatedPath([]);
+
+    // Force immediate cursor update to sync position for other clients
+    const pos = getMousePos(e);
+    const worldPos = screenToWorld(pos.x, pos.y);
+    emitCursorMove(worldPos.x, worldPos.y, true);
     return;
   };
 

@@ -60,6 +60,9 @@ export class CursorLayer extends BaseLayer {
   // Track last processed timestamp per user to avoid duplicate updates
   private processedTimestamps: Map<string, number> = new Map();
 
+  // Track local drag state to reset physics on drop
+  private wasDragging: boolean = false;
+
   constructor() {
     super('cursors', 'Cursors', {
       useCache: false,
@@ -218,7 +221,22 @@ export class CursorLayer extends BaseLayer {
 
     // 6. Local User Trail
     // Render local trail ONLY if enabled. Pointer is handled by CustomCursor (DOM) for zero latency.
-    if (cursorSettings?.trailEnabled !== false && cursorSettings?.showMyTrail !== false && context.localCursorPos && !context.dragState?.isDragging) {
+    const isDragging = context.dragState?.isDragging ?? false;
+
+    // DETECT DRAG END (Reset physics to prevent "ghost" trail from start to end of drag)
+    if (this.wasDragging && !isDragging && this.localCursorState && context.localCursorPos) {
+      const { x, y } = context.localCursorPos;
+      // Instant teleport to new position
+      this.localCursorState.x = x;
+      this.localCursorState.y = y;
+      this.localCursorState.visualX = x;
+      this.localCursorState.visualY = y;
+      this.localCursorState.lastUpdateTime = time;
+      this.localCursorState.trailHistory = []; // Clear trail
+    }
+    this.wasDragging = isDragging;
+
+    if (cursorSettings?.trailEnabled !== false && cursorSettings?.showMyTrail !== false && context.localCursorPos && !isDragging) {
       if (!this.localCursorState) {
         this.localCursorState = this.createLocalPhysicsState({
           x: context.localCursorPos.x,
