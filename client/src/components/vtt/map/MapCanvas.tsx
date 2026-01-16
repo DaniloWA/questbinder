@@ -7,20 +7,24 @@ import { useTokenLayer } from './hooks/useTokenLayer';
 import { useVisionLayer } from './hooks/useVisionLayer';
 import { useImageLoader } from './hooks/useImageLoader';
 import { useMapInteraction } from './hooks/useMapInteraction';
-import { useMapRenderer } from './hooks/useMapRenderer';
+import { useLayerEngine } from './hooks/useLayerEngine';
 import { TokenHoverCard } from './TokenHoverCard';
 import { CustomCursor } from '../CustomCursor';
 import { PrecisionCursor } from '../PrecisionCursor';
-// ...
+import { useGameSession } from '../../../context/GameSessionContext';
+
+/**
+ * MapCanvas - Main VTT rendering component.
+ * 
+ * Uses the new modular layer engine for rendering.
+ */
 export const MapCanvas = (props: MapCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const lightCanvasRef = useRef<HTMLCanvasElement>(null);
 
   // Track if mouse is over VTT area (to show/hide custom cursor)
   const [isMouseOverVTT, setIsMouseOverVTT] = useState(false);
 
   // PERFORMANCE: Ref for immediate viewport updates during pan/zoom
-  // This avoids React re-renders during continuous mouse movement
   const viewportRef = useRef({ x: props.viewport.x, y: props.viewport.y, zoom: props.viewport.zoom });
 
   // Keep viewportRef in sync with props when not panning
@@ -28,13 +32,15 @@ export const MapCanvas = (props: MapCanvasProps) => {
     viewportRef.current = { x: props.viewport.x, y: props.viewport.y, zoom: props.viewport.zoom };
   }, [props.viewport.x, props.viewport.y, props.viewport.zoom]);
 
+  // Get UI settings from GameSession
+  const { ui, drawingSettings, rulerSettings } = useGameSession();
+
   // 1. State Management
   const mapState = useMapState();
 
   // Sync viewport ref to state when panning stops
   useEffect(() => {
     if (!mapState.isPanning) {
-      // Sync ref back to React state on pan end (single re-render)
       const ref = viewportRef.current;
       if (ref.x !== props.viewport.x || ref.y !== props.viewport.y) {
         props.setViewport({ x: ref.x, y: ref.y });
@@ -52,13 +58,13 @@ export const MapCanvas = (props: MapCanvasProps) => {
   const imageCache = useImageLoader(props.scene, props.tokens);
 
   // Shared Ref for Click Animations (Visual Feedback)
-  const clickAnimationsRef = useRef<{ x: number, y: number, color: string, style?: 'ripple' | 'burst' | 'sparkle' | 'pulse' | 'vortex' | 'shard' | 'ring' | 'echo' | 'orb', startTime: number; }[]>([]);
+  type ClickAnimationStyle = 'ripple' | 'burst' | 'sparkle' | 'pulse' | 'vortex' | 'shard' | 'ring' | 'echo' | 'orb';
+  const clickAnimationsRef = useRef<{ x: number; y: number; color: string; style?: ClickAnimationStyle; startTime: number; }[]>([]);
 
   // Listen for Remote Clicks
   useEffect(() => {
     const handleRemoteClick = (payload: CursorClickPayload) => {
-      if (payload.userId === props.currentUser?.id) return; // Already handled locally
-      // Precision Mode: Skip click animations when grid align tools are active
+      if (payload.userId === props.currentUser?.id) return;
       if (props.activeTool.startsWith('map-align')) return;
       clickAnimationsRef.current.push({
         x: payload.x,
@@ -82,28 +88,60 @@ export const MapCanvas = (props: MapCanvasProps) => {
     ...mapState,
     ...tokenLayer,
     imageCache,
-
-    clickAnimationsRef, // Pass Ref
-    viewportRef, // PERFORMANCE: Pass ref for immediate panning
-    mouseWorldPosRef: mapState.mouseWorldPosRef, // PERFORMANCE: Pass ref for immediate mouse position
+    clickAnimationsRef,
+    viewportRef,
+    mouseWorldPosRef: mapState.mouseWorldPosRef,
   });
 
-  // 6. Map Renderer (Canvas Loop)
-  useMapRenderer({
-    ...props,
+  // 6. NEW: Layer Engine (replaces useMapRenderer)
+  const { orchestrator, getFps, toggleLayer, getLayerStates } = useLayerEngine(
     canvasRef,
-    lightCanvasRef,
-    ...mapState,
-    ...tokenLayer,
-    visionTokens,
-    imageCache,
-    clickAnimationsRef, // Pass Ref
-    viewportRef, // PERFORMANCE: Use ref for rendering during pan
-    mouseWorldPosRef: mapState.mouseWorldPosRef, // PERFORMANCE: Use ref for immediate mouse position during drag
+    {
+      ...props,
+      visionTokens,
+      imageCache,
+      hoveredTokenId: mapState.hoveredTokenId,
+      hoveredObstacleId: mapState.hoveredObstacleId,
+      mouseWorldPos: mapState.mouseWorldPos,
+      dragState: mapState.dragState,
+      animationsRef: tokenLayer.animationsRef,
+      calculatedPath: mapState.calculatedPath,
+      liveDrawingPointsRef: mapState.liveDrawingPointsRef,
+      isDrawingRef: mapState.isDrawingRef,
+      currentFogRect: mapState.currentFogRect,
+      draggedAttackZone: mapState.draggedAttackZone,
+    },
+    { debug: false }
+  );
+
+  // Sync additional context data to orchestrator
+  useEffect(() => {
+    if (!orchestrator) return;
+
+    orchestrator.updateContext({
+      clickAnimations: clickAnimationsRef.current,
+      ui: {
+        showGridCoordinates: ui.showGridCoordinates,
+        showVisionRanges: ui.showVisionRanges ?? false,
+        gmHideObstacles: ui.gmHideObstacles ?? false,
+      },
+      drawingState: {
+        livePoints: mapState.liveDrawingPointsRef?.current || [],
+        isDrawing: mapState.isDrawingRef?.current || false,
+        settings: drawingSettings || { color: '#ffffff', width: 3, opacity: 1 },
+      },
+      rulerSettings: rulerSettings || { snapToGrid: true, metric: 'chebyshev' },
+      dragState: {
+        isDragging: mapState.dragState?.current?.isDragging || false,
+        token: mapState.dragState?.current?.token || null,
+        draggedGroup: mapState.dragState?.current?.draggedGroup || [],
+        offset: mapState.dragState?.current?.offset || { x: 0, y: 0 },
+      },
+      localCursorPos: mapState.mouseWorldPosRef?.current || { x: 0, y: 0 },
+    });
   });
 
   // Get cursor config from user's settings or GM overrides
-  // Priority: GM cursorOverrides > user cursorSettings > defaults
   const cursorConfig = useMemo(() => {
     const userId = props.currentUser?.id || '';
     const overrides = (props.permissions?.cursorOverrides?.[userId] || {}) as {
@@ -121,10 +159,8 @@ export const MapCanvas = (props: MapCanvasProps) => {
     const settings = props.cursorSettings;
 
     return {
-      // Basic cursor settings
       shapeId: overrides.shape || settings?.shape || 'default',
       color: overrides.color || settings?.color || '#fbbf24',
-      // Trail settings - now respecting GM overrides
       trailEnabled: overrides.trailEnabled ?? settings?.trailEnabled ?? false,
       trailAnimation: overrides.trailAnimation || settings?.trailAnimation || 'line',
       trailColor: overrides.trailColor || settings?.trailColor || settings?.color || '#fbbf24',
@@ -151,49 +187,31 @@ export const MapCanvas = (props: MapCanvasProps) => {
 
   const { hoveredTokenId, dragState } = mapState;
 
-  // Render TokenHoverCard with reactive key pattern (from old implementation)
+  // Render TokenHoverCard
   const renderHoverCard = () => {
-    // Precision Mode: Hide hover card when grid align tools are active
     if (props.activeTool.startsWith('map-align')) return null;
-    // Hide hover card when dragging to prevent mouse interference
     if (dragState.current.isDragging) return null;
     if (!hoveredTokenId || !props.scene) return null;
 
-    // Find the LIVE token object to ensure we have the latest HP/Conditions from WebSocket
     const liveToken = props.tokens.find(t => t.id === hoveredTokenId);
     if (!liveToken) return null;
 
-    // Find linked character
     const linkedCharacter = props.campaignCharacters?.find(c => c.id === liveToken.linkedId);
 
-    // Calculate precise anchor point: Top Center of the Token in Screen Coordinates
     const gridSize = props.scene.grid.size;
-    // World coordinates
     const tokenWorldX = (liveToken.x * gridSize) + (liveToken.size * gridSize / 2);
-    const tokenWorldY = (liveToken.y * gridSize); // Top edge
+    const tokenWorldY = (liveToken.y * gridSize);
 
-    // Screen coordinates
     const screenX = (tokenWorldX * props.viewport.zoom) + props.viewport.x;
     const screenY = (tokenWorldY * props.viewport.zoom) + props.viewport.y;
 
-    // Build a reactive key that includes frequently changing data
-    // This ensures React re-renders when character stats change
     const reactiveKey = [
       hoveredTokenId,
       linkedCharacter?.hpCurrent,
       linkedCharacter?.hpMax,
-      linkedCharacter?.manaCurrent,
-      linkedCharacter?.manaMax,
-      linkedCharacter?.name,
-      linkedCharacter?.armorClass,
-      linkedCharacter?.speed,
       liveToken.bars?.bar1?.value,
-      liveToken.bars?.bar1?.max,
-      liveToken.bars?.bar2?.value,
-      liveToken.bars?.bar2?.max,
       liveToken.name,
       liveToken.conditions?.join(','),
-      JSON.stringify(props.campaign?.permissions?.tokenHover)
     ].join('-');
 
     return (
@@ -230,9 +248,6 @@ export const MapCanvas = (props: MapCanvasProps) => {
   return (
     <div
       className="relative w-full h-full overflow-hidden bg-black select-none"
-      // Logic: Show custom cursor (hide mouse) when over VTT OR Dragging, UNLESS hovering a token (show normal mouse)
-      // If dragging, we force hide mouse (cursor: none)
-      // Precision Mode: Hide cursor when grid align tools are active (PrecisionCursor handles display)
       style={{
         cursor: props.activeTool.startsWith('map-align')
           ? 'none'
@@ -253,22 +268,14 @@ export const MapCanvas = (props: MapCanvasProps) => {
         onMouseLeave={interaction.handleMouseLeave}
         onDoubleClick={interaction.handleDoubleLeftClick}
       />
-      <canvas
-        ref={lightCanvasRef}
-        className="pointer-events-none hidden"
-      />
 
-      {/* Render Hover Card outside Canvas but inside Container */}
+      {/* Render Hover Card outside Canvas */}
       {renderHoverCard()}
 
-      {/* DOM-based Custom Cursor with Physics Animation - only when over VTT */}
-      {/* Precision Mode: Disable custom cursor when grid align tools are active for accurate positioning */}
+      {/* DOM-based Custom Cursor */}
       <CustomCursor
         shapeId={cursorConfig.shapeId}
         color={cursorConfig.color}
-        // Disable custom cursor when hovering a token so we don't overlapping cursors
-        // Also disable when dragging (user requested cursor to disappear)
-        // Also disable during grid alignment for precision mode
         enabled={isMouseOverVTT && !mapState.hoveredTokenId && !mapState.isTokenDragging && !props.activeTool.startsWith('map-align')}
         trailEnabled={cursorConfig.trailEnabled && cursorConfig.showMyTrail && !props.activeTool.startsWith('map-align')}
         trailAnimation={cursorConfig.trailAnimation}
@@ -290,7 +297,7 @@ export const MapCanvas = (props: MapCanvasProps) => {
         })()}
       />
 
-      {/* Precision Cursor for Grid Alignment - shows crosshair with smart HUD */}
+      {/* Precision Cursor for Grid Alignment */}
       <PrecisionCursor
         enabled={props.activeTool.startsWith('map-align')}
         mode={props.activeTool === 'map-align' ? 'inspect' : (props.activeTool.replace('map-align-', '') as any)}
