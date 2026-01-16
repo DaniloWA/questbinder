@@ -2,25 +2,77 @@
  * VTT Engine - Cursor Layer
  *
  * Renders remote player cursors, trails, click animations, pings, and explosions.
- * Fully dynamic layer - never cached.
+ * REUSES existing renderers from hooks/renderers for 100% feature parity.
  */
 
 import { BaseLayer } from '../core/BaseLayer';
 import { RenderContext } from '../core/types';
 import { CursorMovePayload } from '../../../../../types/socket';
 
+// Import existing renderers for full feature parity
+import {
+  renderCursor,
+  renderPingAnimations,
+  renderClickAnimations,
+  renderExplosions,
+  renderCursorOverlays,
+  ClickAnimation,
+  renderRemoteViewports,
+} from '../../hooks/renderers';
+import {
+  renderTrail,
+  TrailPoint,
+  TrailConfig,
+  addTrailPoint,
+  cleanupTrailHistory,
+  HealthStatus,
+} from '../../../../../utils/trailRenderer';
+
 /**
- * CursorLayer - Renders multiplayer cursor visualization.
+ * Physics state for smooth cursor interpolation.
+ */
+interface CursorPhysicsState {
+  x: number;
+  y: number;
+  targetX: number;
+  targetY: number;
+  velocity: number;
+  angle: number;
+  scaleX: number;
+  scaleY: number;
+  lastUpdateTime: number;
+  trailHistory: TrailPoint[];
+  lastTrailTime: number;
+}
+
+/**
+ * CursorLayer - Renders multiplayer cursor visualization with physics.
  *
- * Features:
- * - Remote player cursors with shape rendering
- * - Cursor trails with various animations
- * - Click ripple animations
- * - Ping animations (radar, beacon, etc.)
- * - Cursor collision explosions
- * - AFK/Ghost mode visualization
+ * Uses existing renderers for 100% feature parity:
+ * - renderCursor() for cursor shapes
+ * - renderPingAnimations() for pings
+ * - renderClickAnimations() for click effects
+ * - renderCursorTrails() for trails
+ * - renderExplosions() for collision effects
+ * - renderRemoteViewports() for viewport indicators
  */
 export class CursorLayer extends BaseLayer {
+  // Trail history for each remote cursor
+  private cursorStates: Map<string, CursorPhysicsState> = new Map();
+
+  // Local cursor state for trail only (pointer handled by DOM)
+  private localCursorState: CursorPhysicsState | null = null;
+
+  // Explosion effects state
+  private explosions: { x: number; y: number; time: number; colors: string[]; }[] = [];
+
+  // Interpolation constants
+  private readonly LERP_SPEED = 0.2;
+  private readonly MAX_TRAIL_POINTS = 40;
+  private readonly STRETCH_FACTOR = 0.015;
+  private readonly MAX_STRETCH = 0.3;
+  private readonly MAX_SQUASH = 0.15;
+
   constructor() {
     super('cursors', 'Cursors', {
       useCache: false,
@@ -33,293 +85,308 @@ export class CursorLayer extends BaseLayer {
   }
 
   render(ctx: CanvasRenderingContext2D, context: RenderContext): void {
-    const { remoteCursors, currentUser, zoom, pings, clickAnimations, time } = context;
+    const {
+      // remoteCursors, // Removed to prefer Ref version below
+      currentUser,
+      zoom,
+      pings,
+      clickAnimations,
+      time,
+      cursorSettings,
+      scene,
+      isGM,
+      gmViewMode,
+      remoteViewports,
+      players,
+    } = context;
+
+    // PERFORMANCE: Use Ref if available for 60fps updates without React rerenders
+    const remoteCursors = context.remoteCursorsRef?.current || context.remoteCursors || {};
+
+    if (!scene) return;
+
+    const gridSize = scene.grid.size;
 
     ctx.save();
 
-    // Render pings first (under cursors)
-    this.renderPings(ctx, pings, context.scene?.grid.size || 70, zoom, time);
+    // 1. Remote Viewports (GM only, render under everything)
+    if (isGM && gmViewMode === 'gm' && remoteViewports && Object.keys(remoteViewports).length > 0) {
+      renderRemoteViewports(
+        ctx,
+        remoteViewports,
+        remoteCursors,
+        currentUser?.id,
+        context.permissions,
+        isGM,
+        zoom,
+        players
+      );
+    }
 
-    // Render click animations
-    this.renderClickAnimations(ctx, clickAnimations, zoom, time);
+    // 2. Pings (Use existing renderer)
+    if (pings && pings.length > 0) {
+      renderPingAnimations(ctx, pings, gridSize, zoom);
+    }
 
-    // Render remote cursors
+    // 3. Click Animations (Use existing renderer)
+    if (clickAnimations && clickAnimations.length > 0) {
+      renderClickAnimations(ctx, clickAnimations as ClickAnimation[], zoom);
+    }
+
+    // 4. Explosions (Use existing renderer)
+    if (this.explosions.length > 0) {
+      renderExplosions(ctx, this.explosions, zoom);
+      // Cleanup old explosions
+      const now = Date.now();
+      this.explosions = this.explosions.filter(e => now - e.time < 500);
+    }
+
+    // 5. Remote Cursors with Physics
+    // DEBUG: Log remote cursor data
+    const remoteCursorCount = Object.keys(remoteCursors).length;
+    console.log('[CursorLayer] Rendering', remoteCursorCount, 'remote cursors', Object.keys(remoteCursors));
+
+    // 6. Local User Trail
+    // Render local trail ONLY if enabled. Pointer is handled by CustomCursor (DOM) for zero latency.
+    if (cursorSettings?.trailEnabled !== false && cursorSettings?.showMyTrail !== false && context.localCursorPos) {
+      if (!this.localCursorState) {
+        this.localCursorState = this.createPhysicsState({
+          x: context.localCursorPos.x,
+          y: context.localCursorPos.y,
+          userId: currentUser?.id || 'local',
+        } as any);
+      }
+
+      // Update local physics purely for trail generation (no lerp delay needed for local pos, but needed for velocity calc)
+      this.updateLocalPhysics(this.localCursorState, context.localCursorPos.x, context.localCursorPos.y, time);
+
+      // Render local trail
+      this.renderLocalTrail(ctx, this.localCursorState, cursorSettings, zoom);
+    }
+
     for (const cursor of Object.values(remoteCursors)) {
       // Skip local user cursor
       if (cursor.userId === currentUser?.id) continue;
 
-      this.renderRemoteCursor(ctx, cursor, zoom);
+      // Get or create physics state
+      let state = this.cursorStates.get(cursor.userId);
+      if (!state) {
+        state = this.createPhysicsState(cursor);
+        this.cursorStates.set(cursor.userId, state);
+      }
+
+      // Update physics (interpolate position)
+      this.updatePhysics(state, cursor, time);
+
+      // Render trail first (under cursor) using existing renderer
+      if (cursorSettings?.showOthersTrails !== false && cursor.trailEnabled !== false) {
+        this.renderRemoteTrail(ctx, cursor, state, zoom);
+      }
+
+      // Render cursor using existing renderer
+      renderCursor(
+        ctx,
+        state.x,
+        state.y,
+        state.angle,
+        cursor.userColor || '#fbbf24',
+        cursor.userShape || 'default',
+        cursor.userName || '',
+        false, // isLocal
+        state.scaleX,
+        state.scaleY,
+        zoom
+      );
+
+      // Render overlays (AFK indicator)
+      if (cursor.isAfk) {
+        renderCursorOverlays(
+          ctx,
+          {
+            position: { x: state.x, y: state.y },
+            isAfk: cursor.isAfk || false,
+          },
+          zoom
+        );
+      }
     }
+
+    // Cleanup stale cursor states
+    this.cleanupStaleStates(remoteCursors);
 
     ctx.restore();
   }
 
   // =========================================================================
-  // REMOTE CURSOR RENDERING
+  // PHYSICS INTERPOLATION
   // =========================================================================
 
-  private renderRemoteCursor(ctx: CanvasRenderingContext2D, cursor: CursorMovePayload, zoom: number): void {
-    const { x, y, userName, userColor, userShape, isAfk, isDragging } = cursor;
-
-    // Skip if dragging (TokenLayer handles that)
-    if (isDragging) return;
-
-    ctx.save();
-    ctx.translate(x, y);
-
-    // Ghost mode for AFK
-    const effectiveColor = isAfk ? '#9ca3af' : (userColor || '#fbbf24');
-    const effectiveOpacity = isAfk ? 0.5 : 1.0;
-
-    ctx.globalAlpha = effectiveOpacity;
-    if (isAfk) {
-      ctx.filter = 'blur(2px)';
-    }
-
-    // Render cursor shape
-    this.renderCursorShape(ctx, userShape || 'default', effectiveColor, zoom);
-
-    // Render name label
-    this.renderCursorLabel(ctx, userName || '?', effectiveColor, zoom);
-
-    ctx.restore();
+  private createPhysicsState(cursor: CursorMovePayload): CursorPhysicsState {
+    return {
+      x: cursor.x,
+      y: cursor.y,
+      targetX: cursor.x,
+      targetY: cursor.y,
+      velocity: 0,
+      angle: 0,
+      scaleX: 1,
+      scaleY: 1,
+      lastUpdateTime: Date.now(),
+      trailHistory: [],
+      lastTrailTime: 0,
+    };
   }
 
-  private renderCursorShape(ctx: CanvasRenderingContext2D, shape: string, color: string, zoom: number): void {
-    const size = 16 / zoom;
+  private updatePhysics(state: CursorPhysicsState, cursor: CursorMovePayload, time: number): void {
+    // Update target position
+    state.targetX = cursor.x;
+    state.targetY = cursor.y;
 
-    ctx.fillStyle = color;
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 2 / zoom;
+    // Calculate delta
+    const dx = state.targetX - state.x;
+    const dy = state.targetY - state.y;
 
-    switch (shape) {
-      case 'arrow':
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(0, size);
-        ctx.lineTo(size * 0.3, size * 0.7);
-        ctx.lineTo(size * 0.5, size * 1.2);
-        ctx.lineTo(size * 0.7, size * 1.1);
-        ctx.lineTo(size * 0.5, size * 0.6);
-        ctx.lineTo(size, size * 0.6);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-        break;
+    // Lerp interpolation
+    state.x += dx * this.LERP_SPEED;
+    state.y += dy * this.LERP_SPEED;
 
-      case 'crosshair':
-        const crossSize = size * 0.8;
-        ctx.beginPath();
-        ctx.moveTo(-crossSize, 0);
-        ctx.lineTo(crossSize, 0);
-        ctx.moveTo(0, -crossSize);
-        ctx.lineTo(0, crossSize);
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 3 / zoom;
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(0, 0, crossSize * 0.3, 0, Math.PI * 2);
-        ctx.stroke();
-        break;
+    // Calculate velocity
+    state.velocity = Math.sqrt(dx * dx + dy * dy);
 
-      case 'circle':
-        ctx.beginPath();
-        ctx.arc(0, 0, size * 0.5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-        break;
-
-      case 'diamond':
-        ctx.beginPath();
-        ctx.moveTo(0, -size * 0.6);
-        ctx.lineTo(size * 0.4, 0);
-        ctx.lineTo(0, size * 0.6);
-        ctx.lineTo(-size * 0.4, 0);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-        break;
-
-      default: // 'default' pointer
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(0, size);
-        ctx.lineTo(size * 0.35, size * 0.75);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-        break;
+    // Calculate angle for rotation
+    if (state.velocity > 0.5) {
+      state.angle = Math.atan2(dy, dx) + Math.PI / 2;
     }
-  }
 
-  private renderCursorLabel(ctx: CanvasRenderingContext2D, name: string, color: string, zoom: number): void {
-    const fontSize = 12 / zoom;
-    const offsetY = 24 / zoom;
-    const padding = 4 / zoom;
+    // Squash & Stretch
+    state.scaleY = 1 + Math.min(state.velocity * this.STRETCH_FACTOR, this.MAX_STRETCH);
+    state.scaleX = 1 - Math.min(state.velocity * this.STRETCH_FACTOR * 0.5, this.MAX_SQUASH);
 
-    ctx.font = `bold ${fontSize}px sans-serif`;
-    const metrics = ctx.measureText(name);
-
-    // Background
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.roundRect(
-      -metrics.width / 2 - padding,
-      offsetY - padding,
-      metrics.width + padding * 2,
-      fontSize + padding * 2,
-      4 / zoom
+    // Add trail point
+    const trailResult = addTrailPoint(
+      state.trailHistory,
+      state.x,
+      state.y,
+      state.velocity,
+      state.lastTrailTime,
+      this.MAX_TRAIL_POINTS
     );
-    ctx.fill();
+    state.trailHistory = trailResult.history;
+    state.lastTrailTime = trailResult.lastTime;
 
-    // Text
-    ctx.fillStyle = '#fff';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-    ctx.fillText(name, 0, offsetY);
+    // Cleanup old trail points
+    state.trailHistory = cleanupTrailHistory(state.trailHistory);
+
+    state.lastUpdateTime = time;
   }
 
-  // =========================================================================
-  // PING ANIMATIONS
-  // =========================================================================
+  private updateLocalPhysics(state: CursorPhysicsState, x: number, y: number, time: number): void {
+    const dx = x - state.x;
+    const dy = y - state.y;
+    // For local cursor, we set position directly (no lerp) to match mouse perfectly
+    state.x = x;
+    state.y = y;
 
-  private renderPings(ctx: CanvasRenderingContext2D, pings: any[], gridSize: number, zoom: number, time: number): void {
-    const PING_DURATION = 2000;
-
-    for (const ping of pings) {
-      const elapsed = time - ping.createdAt;
-      if (elapsed >= PING_DURATION) continue;
-
-      const progress = elapsed / PING_DURATION;
-      const alpha = 1 - progress;
-
-      ctx.save();
-      ctx.translate(ping.x * gridSize, ping.y * gridSize);
-      ctx.globalAlpha = alpha;
-
-      // Render based on animation style
-      const style = ping.animationStyle || 'radar';
-      this.renderPingStyle(ctx, style, ping.color, progress, zoom);
-
-      ctx.restore();
+    // But we still calculate velocity for trail effects
+    const dt = time - state.lastUpdateTime;
+    if (dt > 0) {
+      // Simple velocity estimate
+      state.velocity = Math.sqrt(dx * dx + dy * dy);
     }
+
+    // Add trail point
+    const trailResult = addTrailPoint(
+      state.trailHistory,
+      state.x,
+      state.y,
+      state.velocity,
+      state.lastTrailTime,
+      this.MAX_TRAIL_POINTS
+    );
+    state.trailHistory = trailResult.history;
+    state.lastTrailTime = trailResult.lastTime;
+
+    // Cleanup old trail points
+    state.trailHistory = cleanupTrailHistory(state.trailHistory);
+    state.lastUpdateTime = time;
   }
 
-  private renderPingStyle(ctx: CanvasRenderingContext2D, style: string, color: string, progress: number, zoom: number): void {
-    const baseRadius = 30 / zoom;
-
-    switch (style) {
-      case 'beacon':
-        const beaconRadius = baseRadius * (0.5 + progress * 1.5);
-        ctx.beginPath();
-        ctx.arc(0, 0, beaconRadius, 0, Math.PI * 2);
-        ctx.fillStyle = color;
-        ctx.globalAlpha = (1 - progress) * 0.3;
-        ctx.fill();
-        break;
-
-      case 'target':
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 3 / zoom;
-        // Outer circle
-        ctx.beginPath();
-        ctx.arc(0, 0, baseRadius * (1 + progress * 0.5), 0, Math.PI * 2);
-        ctx.stroke();
-        // Crosshair
-        const size = baseRadius * 0.5;
-        ctx.beginPath();
-        ctx.moveTo(-size, 0);
-        ctx.lineTo(size, 0);
-        ctx.moveTo(0, -size);
-        ctx.lineTo(0, size);
-        ctx.stroke();
-        break;
-
-      default: // 'radar'
-        for (let i = 0; i < 3; i++) {
-          const ringProgress = (progress + i * 0.3) % 1;
-          const ringRadius = baseRadius * (0.3 + ringProgress * 1.5);
-          const ringAlpha = (1 - ringProgress) * 0.6;
-
-          ctx.beginPath();
-          ctx.arc(0, 0, ringRadius, 0, Math.PI * 2);
-          ctx.strokeStyle = color;
-          ctx.lineWidth = 3 / zoom;
-          ctx.globalAlpha = ringAlpha;
-          ctx.stroke();
-        }
-        break;
+  private cleanupStaleStates(remoteCursors: Record<string, CursorMovePayload>): void {
+    for (const userId of this.cursorStates.keys()) {
+      if (!remoteCursors[userId]) {
+        this.cursorStates.delete(userId);
+      }
     }
   }
 
   // =========================================================================
-  // CLICK ANIMATIONS
+  // TRAIL RENDERING (Uses existing trailRenderer)
   // =========================================================================
 
-  private renderClickAnimations(
+  private renderRemoteTrail(
     ctx: CanvasRenderingContext2D,
-    animations: { x: number; y: number; color: string; style?: string; startTime: number; }[],
-    zoom: number,
-    time: number
+    cursor: CursorMovePayload,
+    state: CursorPhysicsState,
+    zoom: number
   ): void {
-    const CLICK_DURATION = 500;
+    if (state.trailHistory.length === 0) return;
 
-    for (const anim of animations) {
-      const elapsed = time - anim.startTime;
-      if (elapsed >= CLICK_DURATION) continue;
+    const config: TrailConfig = {
+      enabled: true,
+      color: cursor.trailColor || cursor.userColor || '#fbbf24',
+      animation: (cursor.trailAnimation as any) || 'line',
+      length: cursor.trailLength || 20,
+      thickness: cursor.trailThickness || 1,
+      size: cursor.trailSize || 4,
+      customImage: cursor.trailCustomImage,
+    };
 
-      const progress = elapsed / CLICK_DURATION;
-
-      ctx.save();
-      ctx.translate(anim.x, anim.y);
-
-      this.renderClickStyle(ctx, anim.style || 'ripple', anim.color, progress, zoom);
-
-      ctx.restore();
-    }
+    renderTrail(ctx, state.trailHistory, config, {
+      zoom,
+      currentPosition: { x: state.x, y: state.y },
+      healthStatus: cursor.healthStatus as HealthStatus,
+    });
   }
 
-  private renderClickStyle(ctx: CanvasRenderingContext2D, style: string, color: string, progress: number, zoom: number): void {
-    const baseSize = 20 / zoom;
-    const alpha = 1 - progress;
+  private renderLocalTrail(
+    ctx: CanvasRenderingContext2D,
+    state: CursorPhysicsState,
+    settings: any,
+    zoom: number
+  ): void {
+    if (state.trailHistory.length === 0) return;
 
-    ctx.globalAlpha = alpha;
+    const config: TrailConfig = {
+      enabled: true,
+      color: settings?.trailColor || settings?.color || '#fbbf24',
+      animation: settings?.trailAnimation || 'line',
+      length: settings?.trailLength || 20,
+      thickness: settings?.trailThickness || 1,
+      size: settings?.trailSize || 4,
+      customImage: settings?.trailCustomImage,
+    };
 
-    switch (style) {
-      case 'burst':
-        const particles = 8;
-        const expandRadius = baseSize * (1 + progress * 2);
-        for (let i = 0; i < particles; i++) {
-          const angle = (Math.PI * 2 / particles) * i;
-          const x = Math.cos(angle) * expandRadius;
-          const y = Math.sin(angle) * expandRadius;
-          ctx.beginPath();
-          ctx.arc(x, y, 3 / zoom, 0, Math.PI * 2);
-          ctx.fillStyle = color;
-          ctx.fill();
-        }
-        break;
+    renderTrail(ctx, state.trailHistory, config, {
+      zoom,
+      currentPosition: { x: state.x, y: state.y },
+      healthStatus: 'healthy',
+    });
+  }
 
-      case 'sparkle':
-        ctx.fillStyle = color;
-        const sparkleSize = baseSize * (1 - progress * 0.5);
-        for (let i = 0; i < 4; i++) {
-          const angle = (Math.PI / 2) * i + progress * Math.PI;
-          const dist = baseSize * progress * 1.5;
-          ctx.beginPath();
-          ctx.arc(Math.cos(angle) * dist, Math.sin(angle) * dist, sparkleSize * 0.2, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        break;
+  // =========================================================================
+  // EXPLOSION EFFECTS (Collision Detection)
+  // =========================================================================
 
-      default: // 'ripple'
-        const rippleRadius = baseSize * (1 + progress * 2);
-        ctx.beginPath();
-        ctx.arc(0, 0, rippleRadius, 0, Math.PI * 2);
-        ctx.strokeStyle = color;
-        ctx.lineWidth = (3 / zoom) * (1 - progress);
-        ctx.stroke();
-        break;
-    }
+  /**
+   * Add an explosion effect at the given position.
+   * Called when cursors collide.
+   */
+  addExplosion(x: number, y: number, colors: string[]): void {
+    this.explosions.push({
+      x,
+      y,
+      time: Date.now(),
+      colors,
+    });
   }
 }

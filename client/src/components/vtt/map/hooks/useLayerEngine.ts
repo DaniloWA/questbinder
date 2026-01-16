@@ -177,6 +177,7 @@ export function useLayerEngine(
       activeTool: props.activeTool,
       selectedTokenIds: props.selectedTokenIds || [],
       remoteCursors: props.remoteCursors || {},
+      remoteCursorsRef: props.remoteCursorsRef,
       remoteDrags: props.remoteDrags || {},
       localCursorPos: props.mouseWorldPos || { x: 0, y: 0 },
       cursorSettings: props.cursorSettings || null,

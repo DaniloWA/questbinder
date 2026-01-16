@@ -62,6 +62,7 @@ export interface RenderContext {
 
   // Cursors & Remote State
   remoteCursors: Record<string, CursorMovePayload>;
+  remoteCursorsRef?: React.MutableRefObject<Record<string, CursorMovePayload>>;
   remoteDrags: Record<string, TokenDragPayload>;
   localCursorPos: { x: number; y: number; };
 
