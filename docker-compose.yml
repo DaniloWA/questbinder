@@ -24,6 +24,7 @@ services:
       CORS_ORIGIN_1: http://localhost:5173
       CORS_ORIGIN_2: http://127.0.0.1:5173
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      CHOKIDAR_USEPOLLING: "true"
     volumes:
       # Mount source code for hot reload
       - ./server:/app/server
@@ -49,6 +50,8 @@ services:
       NODE_ENV: development
       VITE_WS_URL: http://127.0.0.1:3002
       VITE_API_URL: http://127.0.0.1:3002/api
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
     volumes:
       # Mount source code for hot reload
       - ./client:/app/client

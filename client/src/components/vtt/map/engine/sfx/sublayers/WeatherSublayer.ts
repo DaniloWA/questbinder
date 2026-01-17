@@ -39,7 +39,7 @@ export class WeatherSublayer implements SFXSublayer {
       gravity: 50,
       wind: 20,
       color: 'rgba(255, 255, 255, 0.8)',
-      life: 10.0,
+      life: 60.0,
     }
   };
 
