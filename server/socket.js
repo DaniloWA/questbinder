@@ -50,12 +50,7 @@ export const setupSocket = (server) => {
 
     const utils = createSocketUtils(io, socket, client);
 
-    // Log all incoming events
-    socket.onAny((event, ...args) => {
-      if (!ephemeralEvents.includes(event)) {
-        console.log(`[WS] Listener received: ${event} `, args);
-      }
-    });
+
 
 
 
@@ -172,9 +167,20 @@ export const setupSocket = (server) => {
 
     // cursor:move and cursor:click now handled by cursorHandlers.js
     // These are HIGH-FREQUENCY events that should NOT be logged
-    const ephemeralEvents = ['cursor:move', 'cursor:pressing', 'cursor:click', 'cursor:keep_alive', 'token:drag', 'chat:reaction', 'viewport:update'];
+    const eventsToIgnoreLog = ['cursor:move', 'cursor:pressing', 'cursor:click', 'cursor:keep_alive', 'token:drag', 'chat:reaction', 'viewport:update'];
 
-    ephemeralEvents.forEach(event => {
+    // Only broadcast these events via the generic loop
+    // Cursor events are handled by dedicated handlers and should NOT be here
+    const genericEphemeralEvents = ['token:drag', 'chat:reaction', 'viewport:update'];
+
+    // Log all incoming events (filter out high frequency)
+    socket.onAny((event, ...args) => {
+      if (!eventsToIgnoreLog.includes(event)) {
+        console.log(`[WS] Listener received: ${event} `, args);
+      }
+    });
+
+    genericEphemeralEvents.forEach(event => {
       socket.on(event, (payload) => {
         try {
           if (!client.campaignId) return;

@@ -333,8 +333,9 @@ class CursorStateManager {
                 message: 'Você foi desconectado por inatividade (5 minutos).',
                 redirectTo: `/join/${campaignId}`
               });
-              // Slight delay to ensure the event is received
-              setTimeout(() => socket.disconnect(true), 100);
+              // Increased delay to 5s to ensure client (which might be throttled in background)
+              // has enough time to receive and process the event before socket closure.
+              setTimeout(() => socket.disconnect(true), 5000);
             }
           }
           this.removeUser(campaignId, userId);

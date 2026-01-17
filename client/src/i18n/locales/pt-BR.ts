@@ -251,6 +251,7 @@ export default {
         desc: 'Mexa o mouse ou interaja com a tela para retornar.',
         warning_title: 'Inatividade Detectada!',
         warning_desc: 'Você será desconectado em :seconds segundos.',
+        fallback_kick: 'Você foi desconectado por inatividade devido a falha de comunicação com o servidor.',
       },
     },
     grid: {

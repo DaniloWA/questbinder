@@ -251,6 +251,7 @@ export default {
         desc: 'Move your mouse or interact with the screen to return.',
         warning_title: 'Inactivity Detected!',
         warning_desc: 'You will be disconnected in :seconds seconds.',
+        fallback_kick: 'You have been disconnected due to inactivity (connection lost).',
       },
     },
     grid: {

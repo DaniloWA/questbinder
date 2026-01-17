@@ -94,7 +94,9 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
       const lastNotification = notificationDebounce.get(payload.userId) || 0;
 
       // AFK Notification Logic with debounce
-      if (payload.isAfk && (!prev || !prev.isAfk)) {
+      // Strict check: Only trigger if explicitly true (Away) or false (Returned)
+      // Ignores undefined (which happens on routine syncs)
+      if (payload.isAfk === true && (!prev || !prev.isAfk)) {
         // Only show if we have a name AND debounce passed
         if (payload.userName && (now - lastNotification > NOTIFICATION_DEBOUNCE_MS)) {
           notificationDebounce.set(payload.userId, now);
@@ -104,16 +106,10 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
             duration: 3000
           });
         }
-      } else if (!payload.isAfk && prev?.isAfk) {
-        if (payload.userName && (now - lastNotification > NOTIFICATION_DEBOUNCE_MS)) {
-          notificationDebounce.set(payload.userId, now);
-          show({
-            type: 'success',
-            message: t('vtt.cursor.notifications.active', { name: payload.userName }),
-            duration: 2000
-          });
-        }
       }
+
+      // Removed client-side "Returned" notification to avoid duplication.
+      // The server sends a system:notification when a user returns.
 
       deps.remoteCursorsRef.current[payload.userId] = payload;
     }

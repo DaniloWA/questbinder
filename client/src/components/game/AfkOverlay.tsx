@@ -27,6 +27,27 @@ export const AfkOverlay: React.FC = () => {
     return () => clearInterval(timer);
   }, [afkStatus, displayTime]);
 
+  // Client-side Failsafe: If timer reaches 0 and server hasn't kicked us (e.g. socket lag), force redirect.
+  // Redirects to the campaign lobby (/join/:id) so they can easily rejoin.
+  useEffect(() => {
+    if (afkStatus === 'warning' && displayTime === 0) {
+      const timeout = setTimeout(() => {
+        console.warn('[AfkOverlay] Kick timer expired and no server event received. Forcing redirect.');
+        const pathParts = window.location.pathname.split('/');
+        const campaignId = pathParts[2]; // /campaign/[id]/game
+
+        if (campaignId) {
+          sessionStorage.setItem('kickMessage', t('vtt.cursor.afk.fallback_kick'));
+          sessionStorage.setItem('kickReason', 'afk');
+          window.location.href = `/join/${campaignId}`;
+        } else {
+          window.location.href = '/dashboard';
+        }
+      }, 3000);
+      return () => clearTimeout(timeout);
+    }
+  }, [afkStatus, displayTime]);
+
   console.log('[AfkOverlay] Render:', { afkStatus, afkTimeLeft, displayTime });
 
   if (!afkStatus || afkStatus === 'active') return null;
