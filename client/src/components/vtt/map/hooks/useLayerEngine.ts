@@ -11,6 +11,7 @@ import { RenderContext } from '../engine/core/types';
 import { MapCanvasProps } from '../types';
 import { Token } from '../../../../types';
 
+
 // Import all layers
 import {
   BackgroundLayer,
@@ -24,7 +25,9 @@ import {
   LightingLayer,
   CursorLayer,
   ToolOverlayLayer,
+  DebugLayer,
 } from '../engine/layers';
+import { SFXLayer } from '../engine/sfx/SFXLayer';
 
 /**
  * Extended props that includes data from other hooks.
@@ -43,6 +46,7 @@ interface ExtendedProps extends MapCanvasProps {
   isDrawingRef?: React.RefObject<boolean>;
   currentFogRect?: { x: number; y: number; w: number; h: number; } | null;
   draggedAttackZone?: any | null;
+  showDebug?: boolean;
 }
 
 /**
@@ -107,7 +111,9 @@ export function useLayerEngine(
       tokens: 60,
       lighting: 70,      // Dynamic lighting
       'tool-overlay': 80,
+      sfx: 85,           // Weather effects above tools/overlays
       cursors: 100,
+      debug: 999,
     };
 
     // Merge with custom order
@@ -126,10 +132,15 @@ export function useLayerEngine(
       new LightingLayer(),
       new ToolOverlayLayer(),
       new CursorLayer(),
+      new SFXLayer(),
+      new DebugLayer(),
     ];
 
     for (const layer of layers) {
-      if (options.disabledLayers?.includes(layer.id)) {
+      // Specifically check for debug flag in props for DebugLayer
+      if (layer.id === 'debug' && !props.showDebug) {
+        layer.enabled = false;
+      } else if (options.disabledLayers?.includes(layer.id)) {
         layer.enabled = false;
       }
       orchestrator.addLayer(layer, layerOrder[layer.id] ?? 50);
@@ -245,6 +256,25 @@ export function useLayerEngine(
     props.calculatedPath, // CRITICAL: Update context when drag path changes (Ruler)
     props.dragState, // CRITICAL: Update context when drag state changes
   ]);
+
+  // Sync SFX state
+  useEffect(() => {
+    const orchestrator = orchestratorRef.current;
+    if (!orchestrator || !props.scene) return;
+
+    // Get SFX layer
+    const sfxLayer = orchestrator.getRegistry().getLayer('sfx') as SFXLayer | undefined;
+    if (!sfxLayer) return;
+
+    // Apply SFX Config
+    if (props.scene.sfx) {
+      sfxLayer.setConfig(props.scene.sfx);
+    } else {
+      sfxLayer.setConfig({});
+    }
+
+
+  }, [props.scene?.sfx]); // Only run when sfx config changes
 
   // API methods
   const getFps = useCallback(() => {

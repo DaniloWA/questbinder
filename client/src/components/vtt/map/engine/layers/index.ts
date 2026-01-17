@@ -20,3 +20,4 @@ export { LightingLayer } from './LightingLayer';
 // Interactive Layers
 export { CursorLayer } from './CursorLayer';
 export { ToolOverlayLayer } from './ToolOverlayLayer';
+export * from './DebugLayer';

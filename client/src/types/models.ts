@@ -365,6 +365,12 @@ export interface Token {
   speed?: number;
 }
 
+export interface SFXConfig {
+  rain?: { enabled: boolean, intensity: number; };
+  snow?: { enabled: boolean, intensity: number; };
+  fog?: { enabled: boolean, intensity: number, speed?: { x: number, y: number; }; };
+}
+
 export interface MapScene {
   id: string;
   name: string;
@@ -379,6 +385,7 @@ export interface MapScene {
   drawings: MapDrawing[];
   tokens: Token[];
   audioUrl?: string;
+  sfx?: SFXConfig;
 }
 
 export interface Viewport {

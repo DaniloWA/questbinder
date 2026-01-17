@@ -128,6 +128,7 @@ export interface GameSessionState {
     showVisionRanges: boolean;
     showGridCoordinates: boolean; // Debug mode for grid coordinates
     defaultObstacleHidden: boolean;
+    isSFXPanelOpen: boolean;
   };
 
   // Attack Zones (ephemeral, synced via WebSocket)
@@ -280,6 +281,7 @@ export interface GameSessionContextType extends GameSessionState {
   toggleDiceRoller: () => void;
   toggleAudioPanel: () => void;
   toggleCompendium: () => void;
+  toggleSFXPanel: () => void;
   isCompendiumOpen: boolean;
 
   invitePlayer: () => string;

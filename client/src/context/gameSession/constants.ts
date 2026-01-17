@@ -89,7 +89,8 @@ export const INITIAL_STATE: GameSessionState = {
     gmHideObstacles: false,
     showVisionRanges: false,
     showGridCoordinates: false,
-    defaultObstacleHidden: false
+    defaultObstacleHidden: false,
+    isSFXPanelOpen: false
   },
 
   // Attack Zones (ephemeral)

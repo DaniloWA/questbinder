@@ -4,7 +4,7 @@ import {
   X, ChevronUp, Layers, Settings, User, ArrowLeft,
   Grid, Fence, DoorOpen, Eraser, PenTool, Wand2, Sun, Hexagon, EyeOff, Square, RefreshCw,
   Music, Speaker, Zap, Target, Dices, BookOpen, Book, FileText, UserPlus, Swords, ShieldOff,
-  Crown, Eye, Lock
+  Crown, Eye, Lock, CloudRain
 } from 'lucide-react';
 import { VTTTool, User as UserType } from '@/types';
 import { BooleanPermissionKey } from '@/context/gameSession/types';
@@ -33,6 +33,8 @@ interface MobileVTTToolbarProps {
   onToggleHandouts?: () => void;
   onToggleCompendium?: () => void;
   onToggleAttackZones?: () => void;
+  onToggleSFXPanel?: () => void;
+  isSFXPanelOpen?: boolean;
   onOpenSettings: () => void;
   onStartCombat: () => void;
   onEndCombat: () => void;
@@ -102,6 +104,8 @@ export const MobileVTTToolbar: React.FC<MobileVTTToolbarProps> = (props) => {
         { id: 'draw-light-poly', label: 'Luz Poly', icon: <Hexagon />, action: () => handleToolSelect('draw-light-poly'), isActive: props.activeTool === 'draw-light-poly' },
         { id: 'fog-poly', label: 'Revelar Poly', icon: <EyeOff />, action: () => handleToolSelect('fog-poly'), isActive: props.activeTool === 'fog-poly' },
         { id: 'fog-rect', label: 'Revelar Rect', icon: <Square />, action: () => handleToolSelect('fog-rect'), isActive: props.activeTool === 'fog-rect' },
+        { id: 'fog-rect', label: 'Revelar Rect', icon: <Square />, action: () => handleToolSelect('fog-rect'), isActive: props.activeTool === 'fog-rect' },
+        { id: 'sfx', label: 'Ambiente', icon: <CloudRain />, action: props.onToggleSFXPanel, isActive: props.isSFXPanelOpen },
         { id: 'fog-reset', label: 'Resetar Fog', icon: <RefreshCw />, action: props.onResetFog, danger: true },
       ]
     },

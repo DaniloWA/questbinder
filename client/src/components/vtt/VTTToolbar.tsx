@@ -8,7 +8,7 @@ import {
     User, Crown, Lightbulb, Sun, Hexagon, Users, Lock,
     LayoutGrid, RefreshCw, ArrowLeft, ScanEye, Dices, BookOpen,
     Music, Speaker, FileText, Book, Zap, Brush, Wand2, Target,
-    Link, Monitor, Magnet, X
+    Link, Monitor, Magnet, X, CloudRain
 } from 'lucide-react';
 import { Tooltip } from '../ui/Tooltip';
 import { useGameSession } from '../../context/GameSessionContext';
@@ -71,6 +71,8 @@ interface VTTToolbarProps {
     onToggleHandouts?: () => void;
     onToggleCompendium?: () => void;
     onToggleAttackZones?: () => void;
+    onToggleSFXPanel?: () => void;
+    isSFXPanelOpen?: boolean;
     onOpenSettings: () => void;
     onStartCombat: () => void;
     onEndCombat: () => void;
@@ -430,6 +432,16 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                             { id: 'eraser-audio', type: 'tool', label: t('vtt.tools.toolbar.audioTools.zones.eraser.button.label'), icon: <Eraser />, danger: true },
                         ]
                     }
+                ]
+            },
+            {
+                id: 'environment',
+                type: 'group',
+                label: 'Environment', // t('vtt.tools.toolbar.environmentTools.group.label')
+                icon: <CloudRain />,
+                requireRole: GameRole.GM,
+                children: [
+                    { id: 'sfx-panel', type: 'action', label: 'SFX Controller', icon: <CloudRain />, onClick: props.onToggleSFXPanel, isActive: props.isSFXPanelOpen }
                 ]
             },
             {

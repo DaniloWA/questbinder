@@ -46,6 +46,7 @@ const CursorSettingsModal = lazy(() => import('../components/vtt/CursorSettingsM
 import { PullViewNotification } from '../components/vtt/notifications/PullViewNotification';
 import { FollowModeIndicator } from '../components/vtt/notifications/FollowModeIndicator';
 import { ViewSettingsModal } from '../components/vtt/settings/ViewSettingsModal';
+import { SFXPanel } from '../components/vtt/SFXPanel';
 
 export const GameSessionView: React.FC = () => {
     const { params, navigateTo } = useNavigation();
@@ -622,6 +623,8 @@ const GameSessionUI: React.FC = () => {
                             isCompendiumOpen={isCompendiumOpen}
                             isAttackZonePanelOpen={isAttackZonePanelOpen}
                             onToggleAttackZones={() => setIsAttackZonePanelOpen(!isAttackZonePanelOpen)}
+                            onToggleSFXPanel={session.toggleSFXPanel}
+                            isSFXPanelOpen={session.ui.isSFXPanelOpen}
                             onOpenViewSettings={() => setIsViewSettingsOpen(true)}
                         />
                     </div>
@@ -653,7 +656,10 @@ const GameSessionUI: React.FC = () => {
                             onToggleAudioPanel={session.toggleAudioPanel}
                             onToggleHandouts={() => setIsHandoutTrayOpen(!isHandoutTrayOpen)}
                             onToggleCompendium={() => setIsCompendiumOpen(!isCompendiumOpen)}
+
                             onToggleAttackZones={() => setIsAttackZonePanelOpen(!isAttackZonePanelOpen)}
+                            onToggleSFXPanel={session.toggleSFXPanel}
+                            isSFXPanelOpen={session.ui.isSFXPanelOpen}
                             onOpenSettings={() => setIsSettingsOpen(true)}
                             onStartCombat={() => setIsInitiativeRollerOpen(true)}
                             onEndCombat={session.endCombat}
@@ -679,6 +685,10 @@ const GameSessionUI: React.FC = () => {
 
             <div className="pointer-events-auto">
                 <AudioPanel isOpen={session.ui.isAudioPanelOpen} onClose={session.toggleAudioPanel} />
+            </div>
+
+            <div className="pointer-events-auto">
+                <SFXPanel isOpen={session.ui.isSFXPanelOpen || false} onClose={session.toggleSFXPanel} />
             </div>
 
             <div className="pointer-events-auto">
