@@ -20,6 +20,7 @@ import { useMapInteraction } from './gameSession/hooks/useMapInteraction';
 import { useUiActions } from './gameSession/hooks/useUiActions';
 import { useAuraSystem } from './gameSession/hooks/useAuraSystem';
 import { useAttackZoneActions } from './gameSession/hooks/useAttackZoneActions';
+import { useSFXActions } from './gameSession/hooks/useSFXActions';
 import { audioService } from '../services/audioService';
 
 const GameSessionContext = createContext<GameSessionContextType | undefined>(undefined);
@@ -113,6 +114,8 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
     const {
         addAttackZone, updateAttackZone, removeAttackZone, clearAttackZones
     } = useAttackZoneActions(state, setState);
+
+    const { saveSFXPreset, deleteSFXPreset } = useSFXActions(state, setState, campaignId);
 
     const uiActions = useUiActions(state, setState, campaignId, isCompendiumOpen, setIsCompendiumOpen);
 
@@ -228,6 +231,8 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
         isCompendiumOpen,
         isFollowingGM: state.followMode.active && !state.isGM,
         remoteCursorsRef, // Expose the ref
+        saveSFXPreset,
+        deleteSFXPreset,
         ...uiActions
     };
 

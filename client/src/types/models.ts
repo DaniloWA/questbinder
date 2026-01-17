@@ -218,6 +218,7 @@ export interface Campaign {
   scenes: MapScene[];
   activeSceneId: string;
   audioSettings: { playlists: Playlist[], soundboard: SoundEffect[]; };
+  sfxPresets?: SFXPreset[];
   permissions: SessionPermissions;
   createdAt: string;
 }
@@ -386,6 +387,12 @@ export interface SFXConfig {
   rain?: SFXParticleConfig;
   snow?: SFXParticleConfig;
   fog?: SFXFogConfig;
+}
+
+export interface SFXPreset {
+  id: string;
+  name: string;
+  config: SFXConfig;
 }
 
 export interface MapScene {

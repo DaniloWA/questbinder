@@ -5,6 +5,7 @@ import {
   ChatLinkMetadata, RollResult, Ping, Obstacle, LightZone, AudioZone,
   Playlist, SoundEffect, CompendiumCategory, TriggerZone, VTTTool, MapDrawing, RulerSettings
 } from '../../types';
+import { Campaign as CampaignModel, MapScene as MapSceneModel, SFXConfig, SFXPreset } from '../../types/models';
 import { AttackZoneConfig } from '../../types/attackZone';
 import {
   TokenDragPayload, CursorMovePayload
@@ -308,6 +309,10 @@ export interface GameSessionContextType extends GameSessionState {
   updateAttackZone: (zoneId: string, updates: Partial<AttackZoneConfig>) => void;
   removeAttackZone: (zoneId: string) => void;
   clearAttackZones: () => void;
+
+  // SFX Presets
+  saveSFXPreset: (preset: SFXPreset) => void;
+  deleteSFXPreset: (id: string) => void;
 
   activeScene: MapScene | null;
   pullNotification: boolean;
