@@ -32,14 +32,14 @@ export class WeatherSublayer implements SFXSublayer {
       gravity: 800,
       wind: -50,
       color: 'rgba(170, 190, 220, 0.6)',
-      life: 0.8,
+      life: 5.0,
     },
     snow: {
       spawnRate: 10,
       gravity: 50,
       wind: 20,
       color: 'rgba(255, 255, 255, 0.8)',
-      life: 4,
+      life: 10.0,
     }
   };
 
@@ -56,6 +56,10 @@ export class WeatherSublayer implements SFXSublayer {
 
   update(deltaTime: number, context: RenderContext): void {
     const { mapWidth, mapHeight, viewport } = context;
+
+    // Calculate visible bounds for culling
+    const visibleTop = -viewport.y / viewport.zoom;
+    const visibleBottom = (-viewport.y + context.canvas.height) / viewport.zoom;
 
     // --- Spawner Logic ---
     const supportedTypes: Array<'rain' | 'snow'> = ['rain', 'snow'];
@@ -80,7 +84,12 @@ export class WeatherSublayer implements SFXSublayer {
         p.data1 += dt * 2; // sway time
         p.x += Math.sin(p.data1) * 20 * dt;
       }
-      // Rain is just linear for now
+
+      // Kill if off-screen (bottom)
+      // Allow buffer for wide screens or swaying
+      if (p.y > visibleBottom + 100) {
+        p.life = 0;
+      }
     });
   }
 
@@ -90,7 +99,7 @@ export class WeatherSublayer implements SFXSublayer {
     const spawnInterval = settings.spawnRate / Math.max(0.01, intensity);
 
     let spawnCount = 0;
-    while (this.timeSinceSpawn[type] > spawnInterval && spawnCount < 20) {
+    while (this.timeSinceSpawn[type] > spawnInterval && spawnCount < 50) { // Increased limits
       this.timeSinceSpawn[type] -= spawnInterval;
       spawnCount++;
       const p = this.engine.spawn();
@@ -108,7 +117,7 @@ export class WeatherSublayer implements SFXSublayer {
 
     // Spawn slightly above view
     p.x = visibleX + Math.random() * visibleW * 1.5 - visibleW * 0.25;
-    p.y = visibleY - 50;
+    p.y = visibleY - 100; // Start higher to avoid "popping" in
 
     const s = this.settings[type];
     p.life = s.life;

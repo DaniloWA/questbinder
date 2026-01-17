@@ -30,7 +30,7 @@ export class AtmosphereSublayer implements SFXSublayer {
   }
 
   private initNoise() {
-    // Generate a simple seamless noise texture procedurally
+    // Generate a seamless noise texture
     const size = 512;
     const canvas = document.createElement('canvas');
     canvas.width = size;
@@ -38,25 +38,49 @@ export class AtmosphereSublayer implements SFXSublayer {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Simple random noise clouds
-    // For better results we'd use Perlin, but for this POC we use radial gradients scattered
-    ctx.fillStyle = '#000000'; // Transparent base (using blend mode later)
-    ctx.fillRect(0, 0, size, size);
+    // Clear transparent
+    ctx.clearRect(0, 0, size, size);
 
-    // Create a few "cloud" blobs
-    for (let i = 0; i < 50; i++) {
-      const x = Math.random() * size;
-      const y = Math.random() * size;
-      const r = 50 + Math.random() * 100;
-
+    // Helper to draw a soft blob with wrapping
+    const drawBlob = (x: number, y: number, r: number, alpha: number) => {
       const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-      g.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
+      g.addColorStop(0, `rgba(255, 255, 255, ${alpha})`);
       g.addColorStop(1, 'rgba(255, 255, 255, 0)');
-
       ctx.fillStyle = g;
       ctx.beginPath();
       ctx.arc(x, y, r, 0, Math.PI * 2);
       ctx.fill();
+    };
+
+    const drawSeamlessBlob = (x: number, y: number, r: number, alpha: number) => {
+      drawBlob(x, y, r, alpha);
+      // Wrap X
+      if (x - r < 0) drawBlob(x + size, y, r, alpha);
+      if (x + r > size) drawBlob(x - size, y, r, alpha);
+      // Wrap Y
+      if (y - r < 0) drawBlob(x, y + size, r, alpha);
+      if (y + r > size) drawBlob(x, y - size, r, alpha);
+      // Corners (simplified, main cross-wrap handles most, but corners needed for full seamlessness)
+      if (x - r < 0 && y - r < 0) drawBlob(x + size, y + size, r, alpha);
+      if (x + r > size && y - r < 0) drawBlob(x - size, y + size, r, alpha);
+      if (x - r < 0 && y + r > size) drawBlob(x + size, y - size, r, alpha);
+      if (x + r > size && y + r > size) drawBlob(x - size, y - size, r, alpha);
+    };
+
+    // Layer 1: Large base clouds
+    for (let i = 0; i < 40; i++) {
+      const x = Math.random() * size;
+      const y = Math.random() * size;
+      const r = 150 + Math.random() * 150;
+      drawSeamlessBlob(x, y, r, 0.05);
+    }
+
+    // Layer 2: Medium details
+    for (let i = 0; i < 80; i++) {
+      const x = Math.random() * size;
+      const y = Math.random() * size;
+      const r = 50 + Math.random() * 80;
+      drawSeamlessBlob(x, y, r, 0.08);
     }
 
     this.noiseTexture = canvas;
