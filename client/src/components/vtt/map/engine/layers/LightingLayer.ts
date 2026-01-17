@@ -74,9 +74,7 @@ export class LightingLayer extends BaseLayer {
     const playerVisionPath = this.getPlayerVisionPath(context);
 
     // Get visible obstacles
-    const obstacles = effectiveIsGM
-      ? scene.obstacles
-      : scene.obstacles.filter(o => !o.hidden);
+    const obstacles = scene.obstacles;
 
     // Reset the light canvas
     lightCtx.setTransform(1, 0, 0, 1, 0, 0);
@@ -126,7 +124,7 @@ export class LightingLayer extends BaseLayer {
     if (!scene || visionTokens.length === 0) return null;
 
     const gridSize = scene.grid.size;
-    const obstacles = scene.obstacles.filter(o => !o.hidden);
+    const obstacles = scene.obstacles;
 
     const path = new Path2D();
 

@@ -84,7 +84,7 @@ export class VisionLayer extends BaseLayer {
     }
 
     const gridSize = scene.grid.size;
-    const obstacles = scene.obstacles.filter(o => !o.hidden);
+    const obstacles = scene.obstacles;
 
     // Calculate obstacle hash for cache invalidation
     const obstacleHash = this.hashObstacles(obstacles);
