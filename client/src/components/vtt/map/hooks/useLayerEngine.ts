@@ -5,7 +5,7 @@
  * Handles orchestrator lifecycle and props-to-context synchronization.
  */
 
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback, useState } from 'react';
 import { MapOrchestrator } from '../engine/core/MapOrchestrator';
 import { RenderContext } from '../engine/core/types';
 import { MapCanvasProps } from '../types';
@@ -88,6 +88,7 @@ export function useLayerEngine(
   options: UseLayerEngineOptions = {}
 ): UseLayerEngineResult {
   const orchestratorRef = useRef<MapOrchestrator | null>(null);
+  const [orchestratorInstance, setOrchestratorInstance] = useState<MapOrchestrator | null>(null);
 
   // Initialize orchestrator and layers
   useEffect(() => {
@@ -149,6 +150,7 @@ export function useLayerEngine(
     // Start render loop
     orchestrator.start();
     orchestratorRef.current = orchestrator;
+    setOrchestratorInstance(orchestrator);
 
     if (options.debug) {
       console.log('[useLayerEngine] Initialized with', layers.length, 'layers');
@@ -158,6 +160,7 @@ export function useLayerEngine(
     return () => {
       orchestrator.destroy();
       orchestratorRef.current = null;
+      setOrchestratorInstance(null);
       if (options.debug) {
         console.log('[useLayerEngine] Destroyed');
       }
@@ -259,7 +262,7 @@ export function useLayerEngine(
 
   // Sync SFX state
   useEffect(() => {
-    const orchestrator = orchestratorRef.current;
+    const orchestrator = orchestratorInstance;
     if (!orchestrator || !props.scene) return;
 
     // Get SFX layer
@@ -272,9 +275,7 @@ export function useLayerEngine(
     } else {
       sfxLayer.setConfig({});
     }
-
-
-  }, [props.scene?.sfx]); // Only run when sfx config changes
+  }, [props.scene?.sfx, orchestratorInstance]); // Update when sfx or engine instance changes
 
   // API methods
   const getFps = useCallback(() => {

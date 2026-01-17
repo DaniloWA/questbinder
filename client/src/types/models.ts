@@ -365,10 +365,27 @@ export interface Token {
   speed?: number;
 }
 
+export interface SFXParticleConfig {
+  enabled: boolean;
+  intensity: number; // 0 to 1
+  speed: number;     // Multiplier, default 1
+  wind: number;      // -100 to 100
+  size: number;      // Multiplier, default 1
+  color: string;     // Hex or rgba
+}
+
+export interface SFXFogConfig {
+  enabled: boolean;
+  intensity: number; // 0 to 1 (Opacity)
+  speedX: number;
+  speedY: number;
+  color: string;
+}
+
 export interface SFXConfig {
-  rain?: { enabled: boolean, intensity: number; };
-  snow?: { enabled: boolean, intensity: number; };
-  fog?: { enabled: boolean, intensity: number, speed?: { x: number, y: number; }; };
+  rain?: SFXParticleConfig;
+  snow?: SFXParticleConfig;
+  fog?: SFXFogConfig;
 }
 
 export interface MapScene {

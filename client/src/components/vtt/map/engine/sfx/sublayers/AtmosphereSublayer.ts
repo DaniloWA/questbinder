@@ -17,12 +17,17 @@ export class AtmosphereSublayer implements SFXSublayer {
   private speed = { x: 10, y: 5 };
   private opacity = 0.5;
 
-  setConfig(config: { enabled: boolean, intensity: number, speed?: { x: number, y: number; }; }) {
+  private color: string | undefined;
+  private tintCanvas: HTMLCanvasElement | null = null;
+
+  setConfig(config: any) { // Type as SFXFogConfig
     this.enabled = config.enabled;
     this.opacity = config.intensity;
-    if (config.speed) {
-      this.speed = config.speed;
-    }
+    this.speed = {
+      x: config.speedX ?? 10,
+      y: config.speedY ?? 5
+    };
+    this.color = config.color;
   }
 
   constructor() {
@@ -95,12 +100,7 @@ export class AtmosphereSublayer implements SFXSublayer {
   render(ctx: CanvasRenderingContext2D, context: RenderContext): void {
     if (!this.noiseTexture) return;
 
-    const { viewport, mapWidth, mapHeight } = context;
-
-    // We want to fill the screen with the repeating texture
-    // But mapped to world coordinates so it stays with the map?
-    // Atmosphere (Fog) acts like a layer above the map.
-    // If we want it to scroll with the map, render in world space.
+    const { viewport } = context;
 
     // World bounds visible
     const visibleX = -viewport.x / viewport.zoom;
@@ -110,28 +110,72 @@ export class AtmosphereSublayer implements SFXSublayer {
 
     ctx.save();
 
-    // Blend mode for fog
-    ctx.globalCompositeOperation = 'screen';
-    // ctx.globalAlpha = 0.5;
-    ctx.globalAlpha = this.opacity;
+    // Check Config
+    const useColor = this.color && this.color !== '#ffffff';
 
-    // Pattern fill is easiest for tiling
-    const pattern = ctx.createPattern(this.noiseTexture, 'repeat');
-    if (pattern) {
-      // Offset pattern by our scroll offset
-      // We need to account for the pattern matrix
-      const matrix = new DOMMatrix();
-      // Translate by scroll offset + world position (to lock to world)
-      // If we want it to float *over* the world, we add world pos but maybe with parallax?
-      // For now, lock to world.
-      matrix.translateSelf(this.offset.x, this.offset.y);
+    if (useColor) {
+      // --- Tinting Path (Offscreen) ---
+      if (!this.tintCanvas) {
+        this.tintCanvas = document.createElement('canvas');
+      }
 
-      pattern.setTransform(matrix);
-      ctx.fillStyle = pattern;
+      // Resize buffer if needed (ceil to avoid subpixel resizing spam)
+      const targetW = Math.ceil(visibleW);
+      const targetH = Math.ceil(visibleH);
 
-      // Draw rect over visible area
-      // We inflate slightly to avoid edge artifacts
-      ctx.fillRect(visibleX, visibleY, visibleW, visibleH);
+      if (this.tintCanvas.width !== targetW || this.tintCanvas.height !== targetH) {
+        this.tintCanvas.width = targetW;
+        this.tintCanvas.height = targetH;
+      }
+
+      const tCtx = this.tintCanvas.getContext('2d');
+      if (tCtx) {
+        tCtx.clearRect(0, 0, targetW, targetH);
+
+        // Draw Pattern on Temp
+        tCtx.save();
+        const pattern = tCtx.createPattern(this.noiseTexture, 'repeat');
+        if (pattern) {
+          const matrix = new DOMMatrix();
+          // Adjust for local coordinates since temp canvas is 0,0 based
+          // pattern offset needs to include the viewport offset because we are drawing from (0,0) representing (visibleX, visibleY)
+          // actually, if we translate the matrix, it works in world space usually.
+          // But here we draw to [0, 0, W, H] on temp canvas.
+          // So the pattern needs to offset by (this.offset.x - visibleX, this.offset.y - visibleY)
+
+          matrix.translateSelf(this.offset.x - visibleX, this.offset.y - visibleY);
+          pattern.setTransform(matrix);
+
+          tCtx.fillStyle = pattern;
+          tCtx.fillRect(0, 0, targetW, targetH);
+        }
+
+        // Tint
+        tCtx.globalCompositeOperation = 'source-in';
+        tCtx.fillStyle = this.color!;
+        tCtx.fillRect(0, 0, targetW, targetH);
+        tCtx.restore();
+
+        // Composite back to main
+        ctx.globalAlpha = this.opacity;
+        ctx.globalCompositeOperation = 'screen'; // or normal? Atmosphere usually screen/lighter
+        ctx.drawImage(this.tintCanvas, visibleX, visibleY, visibleW, visibleH);
+      }
+
+    } else {
+      // --- Standard Path (Direct) ---
+      ctx.globalCompositeOperation = 'screen';
+      ctx.globalAlpha = this.opacity;
+
+      const pattern = ctx.createPattern(this.noiseTexture, 'repeat');
+      if (pattern) {
+        const matrix = new DOMMatrix();
+        matrix.translateSelf(this.offset.x, this.offset.y);
+        pattern.setTransform(matrix);
+
+        ctx.fillStyle = pattern;
+        ctx.fillRect(visibleX, visibleY, visibleW, visibleH);
+      }
     }
 
     ctx.restore();

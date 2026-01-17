@@ -96,10 +96,15 @@ export class WeatherSublayer implements SFXSublayer {
   private spawnParticles(type: 'rain' | 'snow', intensity: number, deltaTime: number, context: RenderContext) {
     const settings = this.settings[type];
     this.timeSinceSpawn[type] += deltaTime * 1000;
+
+    // Intensity affects spawn rate directly. 
+    // Higher intensity = lower interval.
+    // Base rate is for max intensity.
     const spawnInterval = settings.spawnRate / Math.max(0.01, intensity);
 
     let spawnCount = 0;
-    while (this.timeSinceSpawn[type] > spawnInterval && spawnCount < 50) { // Increased limits
+    // Cap spawn per frame to avoid freezing if huge lag spike
+    while (this.timeSinceSpawn[type] > spawnInterval && spawnCount < 100) {
       this.timeSinceSpawn[type] -= spawnInterval;
       spawnCount++;
       const p = this.engine.spawn();
@@ -115,26 +120,36 @@ export class WeatherSublayer implements SFXSublayer {
     const visibleX = -viewport.x / viewport.zoom;
     const visibleY = -viewport.y / viewport.zoom;
 
-    // Spawn slightly above view
-    p.x = visibleX + Math.random() * visibleW * 1.5 - visibleW * 0.25;
-    p.y = visibleY - 100; // Start higher to avoid "popping" in
+    const config = this.config[type];
+    const base = this.settings[type];
 
-    const s = this.settings[type];
-    p.life = s.life;
-    p.maxLife = s.life;
-    p.color = s.color;
+    // Defaults
+    const speedMult = config?.speed ?? 1;
+    const sizeMult = config?.size ?? 1;
+    const customColor = config?.color;
+    const customWind = config?.wind;
+
+    // Spawn area
+    p.x = visibleX + Math.random() * visibleW * 1.5 - visibleW * 0.25;
+    p.y = visibleY - 100;
+
+    p.life = base.life;
+    p.maxLife = base.life;
+    p.color = customColor || base.color;
     p.data2 = type === 'rain' ? RE_RAIN : RE_SNOW;
 
     if (type === 'rain') {
-      p.vx = s.wind + (Math.random() - 0.5) * 20;
-      p.vy = s.gravity + (Math.random() * 200);
-      p.size = 2;
-      p.data1 = 15; // tail length
+      const wind = customWind ?? base.wind;
+      p.vx = wind + (Math.random() - 0.5) * 20;
+      p.vy = (base.gravity * speedMult) + (Math.random() * 200);
+      p.size = 2 * sizeMult;
+      p.data1 = 15 * sizeMult; // tail length scaled
     } else {
-      p.vx = s.wind + (Math.random() - 0.5) * 10;
-      p.vy = s.gravity + (Math.random() * 20);
-      p.size = Math.random() * 2 + 1;
-      p.data1 = Math.random() * Math.PI * 2; // random start sway
+      const wind = customWind ?? base.wind;
+      p.vx = wind + (Math.random() - 0.5) * 10;
+      p.vy = (base.gravity * speedMult) + (Math.random() * 20);
+      p.size = (Math.random() * 2 + 1) * sizeMult;
+      p.data1 = Math.random() * Math.PI * 2;
     }
   }
 
@@ -149,10 +164,17 @@ export class WeatherSublayer implements SFXSublayer {
 
     this.engine.render(ctx, (c, p) => {
       if (p.data2 === RE_RAIN) {
-        c.strokeStyle = p.color; // Using particle color allowing for variation if needed
-        c.lineWidth = 1;
+        c.strokeStyle = p.color;
+        c.lineWidth = p.size || 1; // Use particle size
         c.beginPath();
         c.moveTo(p.x, p.y);
+        // Use data1 for tail length factor if we want independent control, 
+        // but vx/vy based trail is usually good enough. 
+        // p.data1 is tail length in init?
+        // in init: p.data1 = 15 * sizeMult;
+        // current buffer: 0.05s of movement.
+        // Let's keep existing logic but maybe check if we want to use data1? 
+        // "c.lineTo(p.x - p.vx * 0.05, p.y - p.vy * 0.05);" corresponds to 50ms of travel.
         c.lineTo(p.x - p.vx * 0.05, p.y - p.vy * 0.05);
         c.stroke();
       } else if (p.data2 === RE_SNOW) {
