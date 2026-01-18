@@ -7,6 +7,7 @@
 import { BaseHandler } from '../core/BaseHandler';
 import type { EventPhase, HandlerResult, InteractionContext } from '../core/types';
 import type { Point } from '../../../../../types';
+import { screenToWorld } from '../utils/coordConversion';
 
 /**
  * PanZoomHandler - Map navigation via pan and zoom.
@@ -101,22 +102,56 @@ export class PanZoomHandler extends BaseHandler {
     return this.notHandled();
   }
 
+  onDetach(): void {
+    if (this.throttleTimer) {
+      clearTimeout(this.throttleTimer);
+      this.throttleTimer = null;
+    }
+  }
+
+  private throttleTimer: ReturnType<typeof setTimeout> | null = null;
+
   onWheel(ctx: InteractionContext, deltaY: number): HandlerResult {
     // Calculate zoom
     const scale = deltaY > 0 ? 0.9 : 1.1;
-    const newZoom = Math.max(0.1, Math.min(5, ctx.zoom * scale));
 
-    // Zoom centered on cursor
-    const worldX = (ctx.screenPos.x - ctx.viewport.x) / ctx.zoom;
-    const worldY = (ctx.screenPos.y - ctx.viewport.y) / ctx.zoom;
-    const newX = ctx.screenPos.x - worldX * newZoom;
-    const newY = ctx.screenPos.y - worldY * newZoom;
+    // Use the REF as the source of truth for the current viewport state, NOT the React context (which is stale)
+    const currentViewport = ctx.viewportRef?.current || ctx.viewport;
+    const currentZoom = currentViewport.zoom;
 
-    this.callbacks?.setViewport({
-      x: newX,
-      y: newY,
-      zoom: newZoom,
-    });
+    const newZoom = Math.max(0.1, Math.min(5, currentZoom * scale));
+
+    // ZOOM CENTERED ON CURSOR:
+    // 1. Get current world position of cursor regarding the CURRENT viewport (Ref)
+    // We pass currentViewport explicitly to ensure we aren't using stale state
+    const worldPos = screenToWorld(ctx.screenPos.x, ctx.screenPos.y, currentViewport);
+
+    // 2. The target position (new viewport x/y) is the screen point MINUS the world point scaled by new zoom
+    const newX = ctx.screenPos.x - worldPos.x * newZoom;
+    const newY = ctx.screenPos.y - worldPos.y * newZoom;
+
+    // Use ref for immediate update without React re-render
+    if (ctx.viewportRef?.current) {
+      ctx.viewportRef.current.x = newX;
+      ctx.viewportRef.current.y = newY;
+      ctx.viewportRef.current.zoom = newZoom;
+    }
+
+    // Debounce the state sync to "pause" React updates until the zoom gesture "settles".
+    // This removes the heavy React commit loop from the active interaction entirely.
+    if (this.throttleTimer) {
+      clearTimeout(this.throttleTimer);
+    }
+
+    this.throttleTimer = setTimeout(() => {
+      const ref = ctx.viewportRef?.current || { x: newX, y: newY, zoom: newZoom };
+      this.callbacks?.setViewport({
+        x: ref.x,
+        y: ref.y,
+        zoom: ref.zoom,
+      });
+      this.throttleTimer = null;
+    }, 100); // 100ms debounce = "Zoom End" detection
 
     return this.handled();
   }

@@ -27,26 +27,11 @@ export const MapCanvas = (props: MapCanvasProps) => {
   // PERFORMANCE: Ref for immediate viewport updates during pan/zoom
   const viewportRef = useRef({ x: props.viewport.x, y: props.viewport.y, zoom: props.viewport.zoom });
 
-  // Keep viewportRef in sync with props when not panning
-  useEffect(() => {
-    viewportRef.current = { x: props.viewport.x, y: props.viewport.y, zoom: props.viewport.zoom };
-  }, [props.viewport.x, props.viewport.y, props.viewport.zoom]);
-
   // Get UI settings from GameSession
   const { ui, drawingSettings, rulerSettings } = useGameSession();
 
   // 1. State Management
   const mapState = useMapState();
-
-  // Sync viewport ref to state when panning stops
-  useEffect(() => {
-    if (!mapState.isPanning) {
-      const ref = viewportRef.current;
-      if (ref.x !== props.viewport.x || ref.y !== props.viewport.y) {
-        props.setViewport({ x: ref.x, y: ref.y });
-      }
-    }
-  }, [mapState.isPanning]);
 
   // 2. Token Layer (Animations)
   const tokenLayer = useTokenLayer(props.tokens, mapState.dragState);
@@ -107,6 +92,8 @@ export const MapCanvas = (props: MapCanvasProps) => {
     mouseWorldPosRef: mapState.mouseWorldPosRef,
     lastMousePos: mapState.lastMousePos,
   });
+
+  const isInteracting = mapState.isPanning || interaction?.getPanZoomHandler?.()?.getIsPanning?.();
 
   // 6. NEW: Layer Engine (replaces useMapRenderer)
   const { orchestrator, getFps, toggleLayer, getLayerStates } = useLayerEngine(

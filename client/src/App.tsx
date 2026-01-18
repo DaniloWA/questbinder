@@ -7,7 +7,7 @@ import { DashboardView } from './views/DashboardView';
 import { CharacterCreateView } from './views/CharacterCreateView';
 import { CampaignCreateView } from './views/CampaignCreateView';
 import { GameSessionView } from './views/GameSessionView';
-import { GameSessionView3D } from './views/GameSessionView3D';
+// import { GameSessionView3D } from './views/GameSessionView3D';
 import { CampaignDashboardView } from './views/CampaignDashboardView'; // Import new view
 import { Loader2, Sparkles } from 'lucide-react';
 
@@ -43,8 +43,8 @@ const App: React.FC = () => {
       case 'game-session':
         content = <GameSessionView />;
         break;
-      case 'game-session-3d':
-        content = <GameSessionView3D />;
+        // case 'game-session-3d':
+        // content = <GameSessionView3D />;
         break;
       case 'dashboard':
       default:
