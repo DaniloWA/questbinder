@@ -32,6 +32,8 @@ export interface UseLayeredInteractionProps extends MapCanvasProps {
   mouseWorldPosRef: React.RefObject<Point>;
   lastMousePos: React.RefObject<Point>;
   clickAnimationsRef: React.RefObject<ClickAnimation[]>;
+  setHoveredTokenId?: (id: string | null) => void;
+  setHoveredObstacleId?: (id: string | null) => void;
 }
 
 export interface UseLayeredInteractionReturn {
@@ -111,6 +113,8 @@ export const useLayeredInteraction = (
       removeAudioZone: () => { },
       addDrawing: () => { },
       removeDrawing: () => { },
+      setHoveredTokenId: props.setHoveredTokenId,
+      setHoveredObstacleId: props.setHoveredObstacleId,
     };
 
     orchestrator.setCallbacks(callbacks);

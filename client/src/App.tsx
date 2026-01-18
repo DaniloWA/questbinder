@@ -6,7 +6,7 @@ import { RegisterView } from './views/RegisterView';
 import { DashboardView } from './views/DashboardView';
 import { CharacterCreateView } from './views/CharacterCreateView';
 import { CampaignCreateView } from './views/CampaignCreateView';
-import { GameSessionView } from './views/GameSessionView';
+import { GameSessionView } from './views/GameSession';
 // import { GameSessionView3D } from './views/GameSessionView3D';
 import { CampaignDashboardView } from './views/CampaignDashboardView'; // Import new view
 import { Loader2, Sparkles } from 'lucide-react';

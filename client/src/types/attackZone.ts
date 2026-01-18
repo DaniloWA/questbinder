@@ -42,6 +42,7 @@ export interface AttackZoneConfig {
 
   // Forma e Dimensões
   shape: AttackZoneShape;
+  isVisible?: boolean;       // Visibilidade (para GM esconder a zona)
   radius?: number;           // Para circle (em grid units)
   length?: number;           // Para line, rectangle (em grid units)
   width?: number;            // Para cone, rectangle (em grid units)

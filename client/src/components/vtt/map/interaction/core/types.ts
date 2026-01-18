@@ -311,4 +311,6 @@ export interface InteractionCallbacks {
   removeAudioZone: (id: string) => void;
   addDrawing: (drawing: any) => void;
   removeDrawing: (id: string) => void;
+  setHoveredTokenId?: (id: string | null) => void;
+  setHoveredObstacleId?: (id: string | null) => void;
 }

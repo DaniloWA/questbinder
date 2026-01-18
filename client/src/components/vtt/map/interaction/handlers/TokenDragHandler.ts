@@ -55,10 +55,24 @@ export class TokenDragHandler extends BaseHandler {
     // Always handle if currently dragging
     if (this.dragState.isDragging) return true;
 
-    // Check for token click on mouse down
-    if (phase === 'down' && ctx.button === 0) {
-      const token = findTokenAt(ctx.worldPos.x, ctx.worldPos.y, ctx);
-      return token !== null && canDragToken(token, ctx);
+    // Check for token click/context/hover
+    const token = findTokenAt(ctx.worldPos.x, ctx.worldPos.y, ctx);
+
+    if (phase === 'down') {
+      // Left click (0) -> Drag start check
+      if (ctx.button === 0) {
+        return token !== null && canDragToken(token, ctx);
+      }
+      // Right click (2) -> Context menu check
+      if (ctx.button === 2) {
+        return token !== null && (ctx.isGM || ctx.currentUser?.id === token.ownerId || token.controlledBy?.includes(ctx.currentUser?.id || ''));
+      }
+    }
+
+    if (phase === 'move') {
+      // Always snoop for hover updates, but return false to not block other handlers unless we are dragging
+      this.handleHover(ctx);
+      return false;
     }
 
     return false;
@@ -67,6 +81,17 @@ export class TokenDragHandler extends BaseHandler {
   onMouseDown(ctx: InteractionContext): HandlerResult {
     const token = findTokenAt(ctx.worldPos.x, ctx.worldPos.y, ctx);
     if (!token) return this.notHandled();
+
+    // Right Click -> Context Menu
+    if (ctx.button === 2) {
+      this.callbacks?.onTokenContextMenu(
+        { clientX: ctx.screenPos.x, clientY: ctx.screenPos.y } as React.MouseEvent,
+        token.id
+      );
+      return this.handled();
+    }
+
+    // Left Click -> Drag Logic
 
     // Handle selection
     const alreadySelected = ctx.selectedTokenIds.includes(token.id);
@@ -85,6 +110,8 @@ export class TokenDragHandler extends BaseHandler {
   }
 
   onMouseMove(ctx: InteractionContext): HandlerResult {
+    // If NOT dragging, we just handle hover logic (which is done in shouldHandle/handleHover for snooping)
+    // But since we are here, it means we ARE dragging because of state check below
     if (!this.dragState.isDragging || !this.dragState.token) {
       return this.notHandled();
     }
@@ -256,6 +283,18 @@ export class TokenDragHandler extends BaseHandler {
       lastCheckedGridY: -1,
     };
     this.calculatedPath = [];
+    this.calculatedPath = [];
     this.callbacks?.setDragging?.(false);
+  }
+
+  private handleHover(ctx: InteractionContext): void {
+    if (this.dragState.isDragging) return;
+
+    const token = findTokenAt(ctx.worldPos.x, ctx.worldPos.y, ctx);
+    if (token) {
+      this.callbacks?.setHoveredTokenId?.(token.id);
+    } else {
+      this.callbacks?.setHoveredTokenId?.(null);
+    }
   }
 }
