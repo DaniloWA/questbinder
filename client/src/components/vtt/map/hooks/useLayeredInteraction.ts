@@ -34,6 +34,9 @@ export interface UseLayeredInteractionProps extends MapCanvasProps {
   clickAnimationsRef: React.RefObject<ClickAnimation[]>;
   setHoveredTokenId?: (id: string | null) => void;
   setHoveredObstacleId?: (id: string | null) => void;
+  setDragging?: (isDragging: boolean) => void;
+  dragStateRef?: React.MutableRefObject<any>; // Using any to avoid circular import or redefining DragState
+  calculatedPathRef?: React.MutableRefObject<Point[]>;
 }
 
 export interface UseLayeredInteractionReturn {
@@ -107,8 +110,9 @@ export const useLayeredInteraction = (
       onUpdatePreviewOrigin: props.onUpdatePreviewOrigin,
       onConfirmAttackZonePlacement: props.onConfirmAttackZonePlacement,
       onCancelAttackZonePlacement: props.onCancelAttackZonePlacement,
+      onCancelAttackZonePlacement: props.onCancelAttackZonePlacement,
       setCursorClickState: () => { },
-      setDragging: () => { },
+      setDragging: props.setDragging || (() => { }),
       removeObstacle: () => { },
       removeAudioZone: () => { },
       addDrawing: () => { },
@@ -139,6 +143,14 @@ export const useLayeredInteraction = (
     const clickHandler = orchestrator.getHandler<ClickAnimationHandler>('click-animation');
     if (clickHandler && props.clickAnimationsRef) {
       clickHandler.setAnimationsRef(props.clickAnimationsRef);
+    }
+
+    // Wire TokenDrag handler refs
+    // This connects the handler's internal High-Freq state to the external Render Refs
+    // preventing the need for React Renders during drag!
+    const tokenDragHandler = orchestrator.getHandler<TokenDragHandler>('token-drag');
+    if (tokenDragHandler && props.dragStateRef && props.calculatedPathRef) {
+      tokenDragHandler.setRefs(props.dragStateRef, props.calculatedPathRef);
     }
 
     orchestratorRef.current = orchestrator;

@@ -58,6 +58,11 @@ export class MeasureRulerHandler extends BaseHandler {
     return this.notHandled();
   }
 
+  onMouseMove(ctx: InteractionContext): HandlerResult {
+    // We handle mouse move to ensure the cursor is updated and orchestrator knows we are active
+    return this.handled({ cursor: 'crosshair' });
+  }
+
   onDoubleClick(_ctx: InteractionContext): HandlerResult {
     // Double click clears path
     this.clearPath();

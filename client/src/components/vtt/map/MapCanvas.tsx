@@ -82,6 +82,12 @@ export const MapCanvas = (props: MapCanvasProps) => {
 
   // 5. Map Interaction (Event Handlers)
   // Replaced monolithic useMapInteraction with modular useLayeredInteraction
+
+  // High-performance Refs for dragging
+  // We use existing mapState.dragState (Ref)
+  // We need a ref for calculatedPath to avoid re-renders during drag
+  const calculatedPathRef = useRef<import('../../../../../types').Point[]>([]);
+
   const interaction = useLayeredInteraction({
     ...props,
     canvasRef,
@@ -91,6 +97,8 @@ export const MapCanvas = (props: MapCanvasProps) => {
     viewportRef,
     mouseWorldPosRef: mapState.mouseWorldPosRef,
     lastMousePos: mapState.lastMousePos,
+    dragStateRef: mapState.dragState, // Pass the REF
+    calculatedPathRef: calculatedPathRef, // Pass the REF
   });
 
   const isInteracting = mapState.isPanning || interaction?.getPanZoomHandler?.()?.getIsPanning?.();
@@ -106,9 +114,11 @@ export const MapCanvas = (props: MapCanvasProps) => {
       hoveredTokenId: mapState.hoveredTokenId,
       hoveredObstacleId: mapState.hoveredObstacleId,
       mouseWorldPos: mapState.mouseWorldPos,
+      mouseWorldPosRef: mapState.mouseWorldPosRef,
       dragState: mapState.dragState,
       animationsRef: tokenLayer.animationsRef,
-      calculatedPath: mapState.calculatedPath,
+      calculatedPath: mapState.calculatedPath, // keeping generic prop if used elsewhere but Ref is key
+      calculatedPathRef: calculatedPathRef,
       liveDrawingPointsRef: mapState.liveDrawingPointsRef,
       isDrawingRef: mapState.isDrawingRef,
       currentFogRect: mapState.currentFogRect,

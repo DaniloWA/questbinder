@@ -154,7 +154,14 @@ export class TokenDragHandler extends BaseHandler {
         newGridPos.y,
         this.calculatedPath
       );
+
+      // Sync refs
+      if (this.calculatedPathRef) this.calculatedPathRef.current = [...this.calculatedPath];
     }
+
+    // Always sync dragState (offset might change in future, but mainly to keep it alive)
+    // Actually we only changed lastCheckedGridX/Y so dragState changed.
+    if (this.dragStateRef) this.dragStateRef.current = { ...this.dragState };
 
     return this.handled({ cursor: 'grabbing' });
   }
@@ -220,6 +227,17 @@ export class TokenDragHandler extends BaseHandler {
     return this.dragState.isDragging;
   }
 
+  private dragStateRef?: React.MutableRefObject<DragState>;
+  private calculatedPathRef?: React.MutableRefObject<Point[]>;
+
+  public setRefs(
+    dragStateRef: React.MutableRefObject<DragState>,
+    calculatedPathRef: React.MutableRefObject<Point[]>
+  ) {
+    this.dragStateRef = dragStateRef;
+    this.calculatedPathRef = calculatedPathRef;
+  }
+
   // Private methods
   private startDrag(token: Token, ctx: InteractionContext): void {
     const gridSize = ctx.gridSize;
@@ -260,6 +278,8 @@ export class TokenDragHandler extends BaseHandler {
         offsetY: this.dragState.offset.y,
         startGridX: token.x,
         startGridY: token.y,
+        startGridX: token.x,
+        startGridY: token.y,
       }];
     }
 
@@ -267,6 +287,11 @@ export class TokenDragHandler extends BaseHandler {
 
     // Notify for UI state
     this.callbacks?.setDragging?.(true);
+    this.callbacks?.setHoveredTokenId?.(null);
+
+    // Sync to Refs
+    if (this.dragStateRef) this.dragStateRef.current = { ...this.dragState };
+    if (this.calculatedPathRef) this.calculatedPathRef.current = [...this.calculatedPath];
   }
 
   private endDrag(): void {
@@ -283,8 +308,11 @@ export class TokenDragHandler extends BaseHandler {
       lastCheckedGridY: -1,
     };
     this.calculatedPath = [];
-    this.calculatedPath = [];
     this.callbacks?.setDragging?.(false);
+
+    // Sync to Refs
+    if (this.dragStateRef) this.dragStateRef.current = { ...this.dragState };
+    if (this.calculatedPathRef) this.calculatedPathRef.current = [];
   }
 
   private handleHover(ctx: InteractionContext): void {

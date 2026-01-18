@@ -39,9 +39,11 @@ interface ExtendedProps extends MapCanvasProps {
   hoveredTokenId?: string | null;
   hoveredObstacleId?: string | null;
   mouseWorldPos?: { x: number; y: number; };
+  mouseWorldPosRef?: React.RefObject<{ x: number; y: number; }>;
   dragState?: React.RefObject<any>;
   animationsRef?: React.RefObject<Map<string, any>>;
   calculatedPath?: { x: number; y: number; }[];
+  calculatedPathRef?: React.MutableRefObject<{ x: number; y: number; }[]>;
   liveDrawingPointsRef?: React.RefObject<{ x: number; y: number; }[]>;
   isDrawingRef?: React.RefObject<boolean>;
   currentFogRect?: { x: number; y: number; w: number; h: number; } | null;
@@ -209,7 +211,9 @@ export function useLayerEngine(
       remoteCursorsRef: props.remoteCursorsRef,
       remoteDrags: props.remoteDrags || {},
       localCursorPos: props.mouseWorldPos || { x: 0, y: 0 },
+      mouseWorldPosRef: props.mouseWorldPosRef,
       cursorSettings: props.cursorSettings || null,
+      dragStateRef: props.dragState,
       toolState: {
         movementPath: props.movementPath || [],
         draftPolyPoints: props.draftPolyPoints || [],
@@ -231,6 +235,7 @@ export function useLayerEngine(
       hoveredTokenId: props.hoveredTokenId || null,
       hoveredObstacleId: props.hoveredObstacleId || null,
       calculatedPath: props.calculatedPath || [],
+      calculatedPathRef: props.calculatedPathRef,
       visionTokens: props.visionTokens || [],
     } as Partial<RenderContext>);
   }, [

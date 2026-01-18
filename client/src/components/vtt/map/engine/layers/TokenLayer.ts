@@ -8,7 +8,7 @@
 import { BaseLayer } from '../core/BaseLayer';
 import { RenderContext } from '../core/types';
 import { Token, Character, Aura, Obstacle } from '../../../../../types';
-import { drawToken, drawAuras, drawLabel } from '../../../../../utils/canvasRenderer';
+import { drawToken, drawAuras, drawLabel, drawRuler } from '../../../../../utils/canvasRenderer';
 import { isPositionVisible } from '../../hooks/renderers/visibilityHelpers';
 import { calculateVisibilityPolygon } from '../../../../../utils/geometry';
 import { COLORS } from '../../hooks/renderers';
@@ -51,8 +51,11 @@ export class TokenLayer extends BaseLayer {
 
   render(ctx: CanvasRenderingContext2D, context: RenderContext): void {
     const { scene, tokens, isGM, gmViewMode, currentUser, selectedTokenIds,
-      imageCache, zoom, campaignCharacters, dragState, remoteDrags, players, visionPolygons } = context;
+      imageCache, zoom, campaignCharacters, dragState: propDragState, dragStateRef, remoteDrags, players, visionPolygons } = context;
     if (!scene) return;
+
+    // Use live ref if available
+    const dragState = dragStateRef?.current || propDragState;
 
     const gridSize = scene.grid.size;
     const effectiveIsGM = isGM && gmViewMode === 'gm';
@@ -278,9 +281,20 @@ export class TokenLayer extends BaseLayer {
   }
 
   private renderLocalDrag(ctx: CanvasRenderingContext2D, context: RenderContext, gridSize: number): void {
-    const { dragState, tokens, imageCache, zoom, localCursorPos } = context;
+    const { dragState: propDragState, dragStateRef, tokens, imageCache, zoom, localCursorPos: propCursorPos, mouseWorldPosRef, calculatedPath: propPath, calculatedPathRef, scene, currentUser, rulerSettings, campaignCharacters } = context;
+
+    // Use live ref if available
+    const dragState = dragStateRef?.current || propDragState;
     if (!dragState.isDragging || !dragState.token) return;
 
+    // Use live ref if available for smooth updates
+    const localCursorPos = mouseWorldPosRef?.current || propCursorPos;
+    const calculatedPath = calculatedPathRef?.current || propPath;
+
+    // Draw the ruler from origin to current target
+    const mainToken = dragState.token;
+
+    // Render dragged tokens projection (Ghost at Snap)
     for (const groupItem of dragState.draggedGroup) {
       const token = tokens.find(t => t.id === groupItem.id);
       if (!token) continue;
@@ -288,16 +302,65 @@ export class TokenLayer extends BaseLayer {
       const smoothX = localCursorPos.x - groupItem.offsetX;
       const smoothY = localCursorPos.y - groupItem.offsetY;
 
-      // Is ghost (zinza) set to true? Yes, dragging is always ghosted in new design
+      // Snap to grid for "Projection" (new location)
+      const gridX = Math.round(smoothX / gridSize);
+      const gridY = Math.round(smoothY / gridSize);
+
+      // Draw Ghost at Grid Target
+      ctx.globalAlpha = 0.6;
       drawToken(
         ctx,
-        { ...token, x: smoothX / gridSize, y: smoothY / gridSize },
+        { ...token, x: gridX, y: gridY },
         gridSize,
         true,
         zoom,
         imageCache,
-        true // isGhost
+        false // Not 'ghost' mode style (outline), but full semi-transparent
       );
+      ctx.globalAlpha = 1.0;
+
+      // Draw Label
+      const labelText = currentUser?.name || 'Me';
+      const labelX = (gridX * gridSize) + (gridSize / 2);
+      const labelY = (gridY * gridSize);
+      // User requested "cor limite de movimentos" -> For now default gold, maybe logic later
+      drawLabel(ctx, labelText, labelX, labelY - (20 / zoom), zoom, '#fbbf24');
+    }
+
+    // Find linked character for speed limit
+    const linkedCharacter = dragState.token.linkedId
+      ? campaignCharacters.find(c => c.id === dragState.token!.linkedId)
+      : undefined;
+    const maxDistance = linkedCharacter?.speed;
+
+    // Draw Ruler (Last so it is on top)
+    if (calculatedPath.length > 0) {
+      const startPos = calculatedPath[0];
+      // Convert path to world pixels for drawRuler
+      const rulerPath = calculatedPath.map(p => ({
+        x: (p.x * gridSize) + (gridSize / 2),
+        y: (p.y * gridSize) + (gridSize / 2)
+      }));
+      // Remove last point as 'currentMousePos' for drawRuler should be separate if tracking mouse,
+      // but here calculatedPath INCLUDES the target. 
+      // drawRuler expects (path, currentPos).
+      // Let's split it.
+      const pathPoints = rulerPath.slice(0, -1);
+      const currentPos = rulerPath[rulerPath.length - 1];
+
+      if (pathPoints.length > 0 && currentPos) {
+        drawRuler(
+          ctx,
+          pathPoints,
+          currentPos,
+          gridSize,
+          scene.grid.unitsPerSquare || 1.5,
+          zoom,
+          '#fbbf24', // Color
+          maxDistance, // Max distance
+          rulerSettings?.metric || 'chebyshev'
+        );
+      }
     }
   }
 }

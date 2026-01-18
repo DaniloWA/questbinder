@@ -20,6 +20,7 @@ import { RenderContext, AttackZoneResult } from '../core/types';
 import { drawRuler, drawToken, drawLabel } from '../../../../../utils/canvasRenderer';
 import { getTokenWorldPos, isTokenOwner, isPositionVisible } from '../../hooks/renderers';
 import { COLORS } from '../../hooks/renderers';
+import { snapToGridCenter } from '../../interaction/utils/coordConversion';
 
 /**
  * ToolOverlayLayer - Comprehensive active tool visualizations.
@@ -37,11 +38,14 @@ export class ToolOverlayLayer extends BaseLayer {
   }
 
   render(ctx: CanvasRenderingContext2D, context: RenderContext): void {
-    const { activeTool, zoom, scene, localCursorPos, toolState, rulerSettings,
+    const { activeTool, zoom, scene, localCursorPos: propCursorPos, mouseWorldPosRef, toolState, rulerSettings,
       attackZoneResults, previewZoneResult, remoteViewports, players, isGM, gmViewMode,
       currentUser, permissions, remoteCursorsRef, remoteCursors
     } = context;
     if (!scene) return;
+
+    // Use live ref if available for smooth updates, fallback to prop
+    const localCursorPos = mouseWorldPosRef?.current || propCursorPos;
 
     const gridSize = scene.grid.size;
     const unitsPerSquare = scene.grid.unitsPerSquare;
@@ -248,10 +252,6 @@ export class ToolOverlayLayer extends BaseLayer {
   // RULER RENDERING
   // ===========================================================================
 
-  // ===========================================================================
-  // RULER RENDERING
-  // ===========================================================================
-
   private renderRuler(
     ctx: CanvasRenderingContext2D,
     path: { x: number; y: number; }[],
@@ -261,34 +261,38 @@ export class ToolOverlayLayer extends BaseLayer {
     zoom: number,
     rulerSettings: { snapToGrid: boolean; metric: string; }
   ): void {
+    // 0. Handle empty path (Start Point Preview)
+    if (path.length === 0) {
+      // Draw a small circle to indicate tool is active
+      let startPos = currentPos;
+      if (rulerSettings.snapToGrid) {
+        startPos = snapToGridCenter(currentPos, gridSize);
+      }
+
+      ctx.beginPath();
+      ctx.arc(startPos.x, startPos.y, 4 / zoom, 0, Math.PI * 2);
+      ctx.fillStyle = '#fbbf24';
+      ctx.fill();
+      return;
+    }
+
+    // 1. Calculate Live Position (Snapped if needed)
+    let livePos = currentPos;
+    if (rulerSettings.snapToGrid) {
+      livePos = snapToGridCenter(currentPos, gridSize);
+    }
+
     // Convert tool state metric to legacy metric string
     const metric = rulerSettings.metric as 'euclidean' | 'chebyshev' | 'manhattan';
 
-    // Delegate to legacy renderer for measuring path
-    // Note: drawRuler expects world coordinates for path, but toolState path is in GRID coords?
-    // Let's verify. movementPath in useMapInteraction is typically grid coords.
-    // Yes, drawRuler expects PIXEL coordinates (world space).
-    // so we need to convert path to pixels.
-
-    const pixelPath = path.map(p => ({
-      x: p.x * gridSize + gridSize / 2,
-      y: p.y * gridSize + gridSize / 2
-    }));
-
-    // Legacy drawRuler helper converts them internally?
-    // Let's check canvasRenderer.ts... NO. 
-    // drawRuler(ctx, path, currentMousePos, ...)
-    // In useMapRenderer:
-    // const pathWorldPoints = calculatedPath.map(p => getTokenWorldPos({ x: p.x, y: p.y, size: token.size }, gridSize));
-    // So inputs to drawRuler MUST be World Pixels.
-
-    // ToolState.movementPath is usually center-of-tile points in grid steps if snap is on?
-    // Let's assume they are grid coordinates for now and convert them.
+    // The path from toolState (MeasureRulerHandler) is ALREADY in world pixel coordinates.
+    // See MeasureRulerHandler.ts:53 -> this.movementPath.push({ ...pos });
+    // And pos comes from ctx.worldPos or snapToGridCenter (which returns world pixels).
 
     drawRuler(
       ctx,
-      pixelPath,
-      currentPos,
+      path,
+      livePos,
       gridSize,
       unitsPerSquare,
       zoom,

@@ -66,6 +66,7 @@ export interface RenderContext {
   remoteCursorsRef?: React.MutableRefObject<Record<string, CursorMovePayload>>;
   remoteDrags: Record<string, TokenDragPayload>;
   localCursorPos: { x: number; y: number; };
+  mouseWorldPosRef?: React.RefObject<{ x: number; y: number; }>;
 
   // Cursor Settings
   cursorSettings: {
@@ -138,6 +139,7 @@ export interface RenderContext {
   };
 
   // Drag State
+  dragStateRef?: React.RefObject<any>;
   dragState: {
     isDragging: boolean;
     token: Token | null;
@@ -151,6 +153,7 @@ export interface RenderContext {
 
   // Calculated Path (for movement preview)
   calculatedPath: { x: number; y: number; }[];
+  calculatedPathRef?: React.MutableRefObject<{ x: number; y: number; }[]>;
 
   // Vision Tokens (filtered for current user)
   visionTokens: Token[];
