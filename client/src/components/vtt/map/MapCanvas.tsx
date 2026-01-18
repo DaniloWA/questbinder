@@ -6,7 +6,7 @@ import { useMapState } from './hooks/useMapState';
 import { useTokenLayer } from './hooks/useTokenLayer';
 import { useVisionLayer } from './hooks/useVisionLayer';
 import { useImageLoader } from './hooks/useImageLoader';
-import { useMapInteraction } from './hooks/useMapInteraction';
+import { useLayeredInteraction } from './hooks/useLayeredInteraction';
 import { useLayerEngine } from './hooks/useLayerEngine';
 import { TokenHoverCard } from './TokenHoverCard';
 import { CustomCursor } from '../CustomCursor';
@@ -58,8 +58,8 @@ export const MapCanvas = (props: MapCanvasProps) => {
   const imageCache = useImageLoader(props.scene, props.tokens);
 
   // Shared Ref for Click Animations (Visual Feedback)
-  type ClickAnimationStyle = 'ripple' | 'burst' | 'sparkle' | 'pulse' | 'vortex' | 'shard' | 'ring' | 'echo' | 'orb';
-  const clickAnimationsRef = useRef<{ x: number; y: number; color: string; style?: ClickAnimationStyle; startTime: number; }[]>([]);
+  // Use imported types from interaction engine
+  const clickAnimationsRef = useRef<import('./interaction/utils/clickAnimations').ClickAnimation[]>([]);
 
   // Listen for Remote Clicks
   useEffect(() => {
@@ -96,15 +96,16 @@ export const MapCanvas = (props: MapCanvasProps) => {
   }, []);
 
   // 5. Map Interaction (Event Handlers)
-  const interaction = useMapInteraction({
+  // Replaced monolithic useMapInteraction with modular useLayeredInteraction
+  const interaction = useLayeredInteraction({
     ...props,
     canvasRef,
-    ...mapState,
+    ...mapState, // Keeping mapState for non-interaction state if needed (like hoveredTokenId)
     ...tokenLayer,
-    imageCache,
     clickAnimationsRef,
     viewportRef,
     mouseWorldPosRef: mapState.mouseWorldPosRef,
+    lastMousePos: mapState.lastMousePos,
   });
 
   // 6. NEW: Layer Engine (replaces useMapRenderer)
@@ -281,7 +282,8 @@ export const MapCanvas = (props: MapCanvasProps) => {
         onMouseMove={interaction.handleMouseMove}
         onMouseUp={interaction.handleMouseUp}
         onMouseLeave={interaction.handleMouseLeave}
-        onDoubleClick={interaction.handleDoubleLeftClick}
+        onDoubleClick={interaction.handleDoubleClick}
+        onWheel={interaction.handleWheel}
       />
 
       {/* Render Hover Card outside Canvas */}
