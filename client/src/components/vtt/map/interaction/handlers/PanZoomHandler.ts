@@ -8,6 +8,7 @@ import { BaseHandler } from '../core/BaseHandler';
 import type { EventPhase, HandlerResult, InteractionContext } from '../core/types';
 import type { Point } from '../../../../../types';
 import { screenToWorld } from '../utils/coordConversion';
+import { findObstacleAt, findTriggerZoneAt, findAudioZoneAt } from '../utils/hitTesting';
 
 /**
  * PanZoomHandler - Map navigation via pan and zoom.
@@ -42,6 +43,8 @@ export class PanZoomHandler extends BaseHandler {
       if (ctx.button === 1) return true;
       // Ctrl+left always pans
       if (ctx.button === 0 && (ctx.ctrlKey || ctx.metaKey)) return true;
+      // Right click always handled (for context menu)
+      if (ctx.button === 2) return true;
       // Left click may be fallback pan (if no token or drawing tool)
       if (ctx.button === 0 && ctx.activeTool === 'select') return true;
     }
@@ -50,6 +53,26 @@ export class PanZoomHandler extends BaseHandler {
   }
 
   onMouseDown(ctx: InteractionContext): HandlerResult {
+    // Right Click -> Map Context Menu
+    if (ctx.button === 2) {
+      if (this.callbacks?.onMapContextMenu) {
+        // Find entities at click position for context menu
+        const obstacle = findObstacleAt(ctx.worldPos.x, ctx.worldPos.y, ctx);
+        const trigger = findTriggerZoneAt(ctx.worldPos.x, ctx.worldPos.y, ctx);
+        const audio = findAudioZoneAt(ctx.worldPos.x, ctx.worldPos.y, ctx);
+
+        this.callbacks.onMapContextMenu(
+          { clientX: ctx.screenPos.x, clientY: ctx.screenPos.y } as React.MouseEvent,
+          ctx.worldPos.x,
+          ctx.worldPos.y,
+          obstacle?.id,
+          trigger?.id,
+          audio?.id
+        );
+        return this.handled();
+      }
+    }
+
     // Middle click or ctrl+left click starts pan
     if (ctx.button === 1 || (ctx.button === 0 && (ctx.ctrlKey || ctx.metaKey))) {
       this.startPan(ctx.screenPos);

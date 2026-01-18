@@ -223,6 +223,8 @@ export const MapCanvas = (props: MapCanvasProps) => {
         token={liveToken}
         character={linkedCharacter}
         position={{ x: screenX, y: screenY }}
+        tokenWorldPos={{ x: tokenWorldX, y: tokenWorldY }}
+        viewportRef={viewportRef}
         isGM={props.isGM && props.gmViewMode === 'gm'}
         currentUserId={props.currentUser?.id}
         permissions={props.campaign?.permissions?.tokenHover}

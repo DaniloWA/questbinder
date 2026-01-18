@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Token, Condition, Character, TokenHoverPermissions } from '../../../types';
 import { Heart, Shield, Zap, Eye, EyeOff, Droplets, Skull, AlertTriangle, Wind, ScrollText, Activity, Hand, Flame, Ghost, Anchor, EarOff, Lock, Moon, Plus } from 'lucide-react';
 import { Tooltip } from '../../ui/Tooltip';
@@ -10,6 +10,8 @@ interface TokenHoverCardProps {
   token: Token;
   character?: Character | null; // Linked character data for PCs
   position: { x: number, y: number; };
+  tokenWorldPos?: { x: number; y: number; }; // World position for animation
+  viewportRef?: React.RefObject<{ x: number, y: number, zoom: number; }>; // Viewport Ref for animation
   isGM: boolean;
   currentUserId?: string;
   permissions?: TokenHoverPermissions; // NEW: Token hover permissions
@@ -63,19 +65,49 @@ const getMod = (score: number = 10) => Math.floor((score - 10) / 2);
 const fmtMod = (n: number) => (n >= 0 ? `+${n}` : `${n}`);
 
 export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
-  token, character, position, isGM, currentUserId, permissions,
+  token, character, position, tokenWorldPos, viewportRef, isGM, currentUserId, permissions,
   onUpdate, onCharacterUpdate, onOpenSheet, onRoll, onMouseEnter, onMouseLeave
 }) => {
   const { t, hasKey } = useTranslation();
   const { sendChatMessage, permissionHelper, permissions: sessionPermissions } = useGameSession();
   const [isAdding, setIsAdding] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const style: React.CSSProperties = {
-    position: 'fixed', // Fixed ensures smooth movement relative to viewport without jitter from parent scaling
-    left: position.x,
-    top: position.y - 10, // 10px Gap above the token
-    transform: 'translate(-50%, -100%)', // Center horizontally, position above
-    zIndex: 5000, // Ensure it's above everything on the map
+  // OPTIMIZATION: Use RAF loop to position the card smoothly if viewportRef/tokenWorldPos provided
+  React.useLayoutEffect(() => {
+    if (!viewportRef || !tokenWorldPos || !containerRef.current) return;
+
+    let frameId: number;
+
+    const updatePosition = () => {
+      const viewport = viewportRef.current;
+      if (!viewport || !containerRef.current) return;
+
+      const screenX = (tokenWorldPos.x * viewport.zoom) + viewport.x;
+      const screenY = (tokenWorldPos.y * viewport.zoom) + viewport.y;
+
+      // Update transform directly for 60fps smoothness
+      // Reduced gap to 2px to facilitate hovering from token to card
+      containerRef.current.style.transform = `translate(${screenX}px, ${screenY}px) translate(-50%, -100%)`;
+
+      frameId = requestAnimationFrame(updatePosition);
+    };
+
+    updatePosition();
+    return () => cancelAnimationFrame(frameId);
+  }, [tokenWorldPos?.x, tokenWorldPos?.y, viewportRef]);
+
+  // Fallback style for backward compatibility or initial render
+  const initialStyle: React.CSSProperties = {
+    position: 'fixed',
+    zIndex: 5000,
+    left: 0,
+    top: 0,
+    ...((!viewportRef) ? {
+      left: position.x,
+      top: position.y - 2,
+      transform: 'translate(-50%, -100%)'
+    } : {})
   };
 
   // Determine effective stats (PC vs NPC/Token)
@@ -247,12 +279,14 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
 
   return (
     <div
-      className="w-[300px] bg-zinc-950/95 backdrop-blur-md border border-zinc-700 rounded-xl shadow-2xl overflow-visible flex flex-col animate-in fade-in zoom-in-95 slide-in-from-bottom-2 duration-200 pointer-events-auto ring-1 ring-white/10"
-      style={style}
+      ref={containerRef}
+      className="w-[300px] bg-zinc-950/95 backdrop-blur-md border border-zinc-700 rounded-xl shadow-2xl overflow-visible flex flex-col animate-in fade-in zoom-in-95 duration-200 pointer-events-auto ring-1 ring-white/10"
+      style={initialStyle}
       onMouseEnter={onMouseEnter}
       onMouseLeave={() => { setIsAdding(false); onMouseLeave(); }}
       onClick={(e) => e.stopPropagation()}
     >
+
       {/* HEADER */}
       <div className="relative bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 border-b border-white/10 p-2.5 flex items-center gap-2.5 rounded-t-xl overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay pointer-events-none" />
