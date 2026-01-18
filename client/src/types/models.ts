@@ -386,6 +386,12 @@ export interface SFXFogConfig {
 export interface SFXConfig {
   rain?: SFXParticleConfig;
   snow?: SFXParticleConfig;
+  leaves?: SFXParticleConfig;
+  embers?: SFXParticleConfig;
+  fireflies?: SFXParticleConfig;
+  dust?: SFXParticleConfig;
+  ash?: SFXParticleConfig;
+  birds?: SFXParticleConfig;
   fog?: SFXFogConfig;
 }
 

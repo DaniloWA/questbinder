@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlignHorizontalJustifyStart, Timer, Wind, Scaling, Palette, CloudRain, Snowflake, Move } from 'lucide-react';
+import { AlignHorizontalJustifyStart, Timer, Wind, Scaling, Palette, CloudRain, Snowflake, Move, Leaf, Flame, Bird, Sparkles, Feather, CircleDot } from 'lucide-react';
 import { SFXConfig, SFXParticleConfig, SFXFogConfig } from '../../types/models';
 
 interface SFXEditorProps {
@@ -62,7 +62,7 @@ export const SFXEditor: React.FC<SFXEditorProps> = ({ config, onChange, classNam
     </div>
   );
 
-  const renderParticleControls = (key: 'rain' | 'snow') => {
+  const renderParticleControls = (key: 'rain' | 'snow' | 'leaves' | 'embers' | 'fireflies' | 'dust' | 'ash' | 'birds') => {
     const sfxConfig = (config[key] as SFXParticleConfig) || {};
     const defaults = key === 'rain'
       ? { intensity: 0.5, speed: 1, wind: -50, size: 1, color: '#aabedc' }
@@ -168,6 +168,12 @@ export const SFXEditor: React.FC<SFXEditorProps> = ({ config, onChange, classNam
     <div className={className}>
       {renderEffectCard('rain', 'Rain Storm', <CloudRain className="w-5 h-5" />, 'bg-gradient-to-br from-indigo-500 to-blue-600 text-white', () => renderParticleControls('rain'))}
       {renderEffectCard('snow', 'Blizzard', <Snowflake className="w-5 h-5" />, 'bg-gradient-to-br from-cyan-400 to-blue-300 text-white', () => renderParticleControls('snow'))}
+      {renderEffectCard('leaves', 'Falling Leaves', <Leaf className="w-5 h-5" />, 'bg-gradient-to-br from-yellow-600 to-orange-500 text-white', () => renderParticleControls('leaves'))}
+      {renderEffectCard('embers', 'Rising Embers', <Flame className="w-5 h-5" />, 'bg-gradient-to-br from-orange-500 to-red-600 text-white', () => renderParticleControls('embers'))}
+      {renderEffectCard('fireflies', 'Fireflies', <Sparkles className="w-5 h-5" />, 'bg-gradient-to-br from-lime-500 to-green-400 text-white', () => renderParticleControls('fireflies'))}
+      {renderEffectCard('dust', 'Dust & Motes', <Feather className="w-5 h-5" />, 'bg-gradient-to-br from-stone-400 to-zinc-400 text-white', () => renderParticleControls('dust'))}
+      {renderEffectCard('ash', 'Volcanic Ash', <CircleDot className="w-5 h-5" />, 'bg-gradient-to-br from-zinc-600 to-zinc-800 text-white', () => renderParticleControls('ash'))}
+      {renderEffectCard('birds', 'Flock of Birds', <Bird className="w-5 h-5" />, 'bg-gradient-to-br from-sky-600 to-indigo-800 text-white', () => renderParticleControls('birds'))}
       {renderEffectCard('fog', 'Atmosphere', <Wind className="w-5 h-5" />, 'bg-gradient-to-br from-emerald-500 to-teal-400 text-white', renderFogControls)}
     </div>
   );
