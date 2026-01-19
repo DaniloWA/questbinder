@@ -7,6 +7,7 @@
 import { BaseHandler } from '../core/BaseHandler';
 import type { EventPhase, HandlerResult, InteractionContext } from '../core/types';
 import { distance } from '../utils/coordConversion';
+import { handleRightClickCancel } from '../utils/InteractionUtils';
 import type { Point } from '../../../../../types';
 
 /**
@@ -35,6 +36,9 @@ export class BrushCanvasHandler extends BaseHandler {
   }
 
   onMouseDown(ctx: InteractionContext): HandlerResult {
+    const cancelResult = handleRightClickCancel(ctx, this.callbacks);
+    if (cancelResult.handled) return cancelResult;
+
     if (ctx.button !== 0) return this.notHandled();
 
     this.isDrawing = true;
@@ -49,6 +53,8 @@ export class BrushCanvasHandler extends BaseHandler {
     const lastPoint = this.drawingPoints[this.drawingPoints.length - 1];
     if (distance(lastPoint, ctx.worldPos) > 3) {
       this.drawingPoints.push({ ...ctx.worldPos });
+      // EMIT LIVE PREVIEW
+      this.callbacks?.updateDrawingState?.(this.drawingPoints);
     }
 
     return this.handled({ cursor: 'crosshair' });
@@ -66,6 +72,8 @@ export class BrushCanvasHandler extends BaseHandler {
         opacity: ctx.drawingSettings?.opacity || 1,
         userId: ctx.currentUser?.id || '',
       });
+      // Clear live preview
+      this.callbacks?.updateDrawingState?.([]);
     }
 
     this.isDrawing = false;

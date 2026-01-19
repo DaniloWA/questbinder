@@ -49,6 +49,11 @@ interface ExtendedProps extends MapCanvasProps {
   currentFogRect?: { x: number; y: number; w: number; h: number; } | null;
   draggedAttackZone?: any | null;
   showDebug?: boolean;
+  drawingSettings?: {
+    color: string;
+    width: number;
+    opacity: number;
+  };
 }
 
 /**
@@ -226,6 +231,12 @@ export function useLayerEngine(
         mapAlignPoints: [],
         mapAlignDragging: false,
         mapAlignPreviewGrid: null,
+      },
+      drawingState: {
+        livePoints: props.liveDrawingPointsRef?.current || [],
+        isDrawing: props.isDrawingRef?.current || false,
+        liveDrawingPointsRef: props.liveDrawingPointsRef,
+        settings: props.drawingSettings,
       },
       attackZoneResults: props.attackZoneResults || [],
       previewZoneResult: props.previewZoneResult || null,

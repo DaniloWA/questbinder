@@ -28,7 +28,7 @@ export const MapCanvas = (props: MapCanvasProps) => {
   const viewportRef = useRef({ x: props.viewport.x, y: props.viewport.y, zoom: props.viewport.zoom });
 
   // Get UI settings from GameSession
-  const { ui, drawingSettings, rulerSettings } = useGameSession();
+  const { ui, drawingSettings, rulerSettings, addDrawing } = useGameSession();
 
   // 1. State Management
   const mapState = useMapState();
@@ -86,7 +86,7 @@ export const MapCanvas = (props: MapCanvasProps) => {
   // High-performance Refs for dragging
   // We use existing mapState.dragState (Ref)
   // We need a ref for calculatedPath to avoid re-renders during drag
-  const calculatedPathRef = useRef<import('../../../../../types').Point[]>([]);
+  const calculatedPathRef = useRef<import('../../../types').Point[]>([]);
 
   const interaction = useLayeredInteraction({
     ...props,
@@ -99,6 +99,8 @@ export const MapCanvas = (props: MapCanvasProps) => {
     lastMousePos: mapState.lastMousePos,
     dragStateRef: mapState.dragState, // Pass the REF
     calculatedPathRef: calculatedPathRef, // Pass the REF
+    addDrawing,
+    liveDrawingPointsRef: mapState.liveDrawingPointsRef,
   });
 
   const isInteracting = mapState.isPanning || interaction?.getPanZoomHandler?.()?.getIsPanning?.();

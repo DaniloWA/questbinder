@@ -24,7 +24,7 @@ import { DoorToggleHandler } from '../interaction/handlers/DoorToggleHandler';
 import type { InteractionCallbacks } from '../interaction/core/types';
 import type { ClickAnimation } from '../interaction/utils/clickAnimations';
 import type { MapCanvasProps } from '../types';
-import type { Point } from '../../../../types';
+import type { MapDrawing, Point } from '../../../../types';
 
 export interface UseLayeredInteractionProps extends MapCanvasProps {
   canvasRef: React.RefObject<HTMLCanvasElement>;
@@ -37,6 +37,8 @@ export interface UseLayeredInteractionProps extends MapCanvasProps {
   setDragging?: (isDragging: boolean) => void;
   dragStateRef?: React.MutableRefObject<any>; // Using any to avoid circular import or redefining DragState
   calculatedPathRef?: React.MutableRefObject<Point[]>;
+  addDrawing: (drawing: Omit<MapDrawing, 'id'>) => void;
+  liveDrawingPointsRef: React.MutableRefObject<Point[]>;
 }
 
 export interface UseLayeredInteractionReturn {
@@ -110,15 +112,19 @@ export const useLayeredInteraction = (
       onUpdatePreviewOrigin: props.onUpdatePreviewOrigin,
       onConfirmAttackZonePlacement: props.onConfirmAttackZonePlacement,
       onCancelAttackZonePlacement: props.onCancelAttackZonePlacement,
-      onCancelAttackZonePlacement: props.onCancelAttackZonePlacement,
       setCursorClickState: () => { },
       setDragging: props.setDragging || (() => { }),
       removeObstacle: () => { },
       removeAudioZone: () => { },
-      addDrawing: () => { },
-      removeDrawing: () => { },
       setHoveredTokenId: props.setHoveredTokenId,
       setHoveredObstacleId: props.setHoveredObstacleId,
+      removeDrawing: () => { },
+      addDrawing: props.addDrawing,
+      updateDrawingState: (points) => {
+        if (props.liveDrawingPointsRef) {
+          props.liveDrawingPointsRef.current = points;
+        }
+      },
     };
 
     orchestrator.setCallbacks(callbacks);
@@ -137,6 +143,7 @@ export const useLayeredInteraction = (
     orchestrator.addHandler(new TokenDragHandler());      // 500
     orchestrator.addHandler(new ClickAnimationHandler()); // 200
     orchestrator.addHandler(new PanZoomHandler());        // 100
+    orchestrator.addHandler(new CursorSyncHandler());     // 50
     orchestrator.addHandler(new CursorSyncHandler());     // 50
 
     // Wire click animations ref

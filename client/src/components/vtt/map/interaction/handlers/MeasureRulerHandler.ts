@@ -7,6 +7,7 @@
 import { BaseHandler } from '../core/BaseHandler';
 import type { EventPhase, HandlerResult, InteractionContext } from '../core/types';
 import { snapToGridCenter } from '../utils/coordConversion';
+import { handleRightClickCancel } from '../utils/InteractionUtils';
 import type { Point } from '../../../../../types';
 
 /**
@@ -35,10 +36,10 @@ export class MeasureRulerHandler extends BaseHandler {
 
   onMouseDown(ctx: InteractionContext): HandlerResult {
     // Right click clears path
-    if (ctx.button === 2) {
-      this.clearPath();
-      this.callbacks?.setActiveTool('select');
-      return this.handled();
+    const cancelResult = handleRightClickCancel(ctx, this.callbacks);
+    if (cancelResult.handled) {
+      this.movementPath = []; // Clear internal state
+      return cancelResult;
     }
 
     // Left click adds point

@@ -8,6 +8,7 @@
 import { BaseHandler } from '../core/BaseHandler';
 import type { EventPhase, HandlerResult, InteractionContext } from '../core/types';
 import { distance } from '../utils/coordConversion';
+import { handleRightClickCancel } from '../utils/InteractionUtils';
 import type { Point, LightZone, AudioZone, TriggerZone } from '../../../../../types';
 
 type ZoneType = 'light' | 'audio' | 'trigger';
@@ -247,8 +248,7 @@ export class ZoneDrawHandler extends BaseHandler {
 
     // Otherwise cancel
     this.resetAll();
-    this.callbacks?.setActiveTool('select');
-    return this.handled();
+    return handleRightClickCancel(ctx, this.callbacks);
   }
 
   // =========================================================================

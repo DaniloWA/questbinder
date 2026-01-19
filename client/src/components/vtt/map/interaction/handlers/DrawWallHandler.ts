@@ -8,6 +8,7 @@
 import { BaseHandler } from '../core/BaseHandler';
 import type { EventPhase, HandlerResult, InteractionContext } from '../core/types';
 import { distance } from '../utils/coordConversion';
+import { handleRightClickCancel } from '../utils/InteractionUtils';
 import type { Point, Obstacle } from '../../../../../types';
 
 type ObstacleType = 'wall' | 'door' | 'window';
@@ -160,8 +161,7 @@ export class DrawWallHandler extends BaseHandler {
 
     // Otherwise cancel
     this.resetAll();
-    this.callbacks?.setActiveTool('select');
-    return this.handled();
+    return handleRightClickCancel(ctx, this.callbacks);
   }
 
   private resetWall(): void {

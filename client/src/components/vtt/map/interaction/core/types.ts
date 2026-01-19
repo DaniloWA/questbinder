@@ -177,6 +177,17 @@ export interface AttackZoneConfig {
 }
 
 // ============================================================================
+// DRAWING STATE
+// ============================================================================
+
+export interface DrawingState {
+  livePoints: Point[];
+  isDrawing: boolean;
+  liveDrawingPointsRef?: React.RefObject<Point[]>;
+  settings: DrawingSettings;
+}
+
+// ============================================================================
 // DRAG STATE
 // ============================================================================
 
@@ -309,7 +320,8 @@ export interface InteractionCallbacks {
   updateMapSettings?: (settings: any) => void;
   removeObstacle: (id: string) => void;
   removeAudioZone: (id: string) => void;
-  addDrawing: (drawing: any) => void;
+  addDrawing: (drawing: Omit<MapDrawing, 'id'>) => void;
+  updateDrawingState?: (points: Point[]) => void;
   removeDrawing: (id: string) => void;
   setHoveredTokenId?: (id: string | null) => void;
   setHoveredObstacleId?: (id: string | null) => void;

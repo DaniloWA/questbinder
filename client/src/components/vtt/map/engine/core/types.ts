@@ -18,6 +18,7 @@ import {
   Character,
   SessionPermissions,
   User,
+  Point, // Explicitly ensure Point is here
 } from '../../../../../types';
 import { CursorMovePayload, TokenDragPayload } from '../../../../../types/socket';
 
@@ -91,8 +92,9 @@ export interface RenderContext {
 
   // Drawing State
   drawingState: {
-    livePoints: { x: number; y: number; }[];
+    livePoints: Point[];
     isDrawing: boolean;
+    liveDrawingPointsRef?: React.RefObject<Point[]>;
     settings: {
       color: string;
       width: number;

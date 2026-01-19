@@ -58,13 +58,16 @@ export class DrawingsLayer extends BaseLayer {
     }
 
     // Render live drawing (in-progress stroke)
-    const { livePoints, isDrawing, settings } = drawingState;
-    if (isDrawing && livePoints.length > 1) {
-      ctx.beginPath();
-      ctx.moveTo(livePoints[0].x, livePoints[0].y);
+    const { livePoints, settings, liveDrawingPointsRef } = drawingState;
+    // Use Ref if available for immediate updates, fallback to synced state
+    const pointsToRender = liveDrawingPointsRef?.current || livePoints;
 
-      for (let i = 1; i < livePoints.length; i++) {
-        ctx.lineTo(livePoints[i].x, livePoints[i].y);
+    if (pointsToRender.length > 1) {
+      ctx.beginPath();
+      ctx.moveTo(pointsToRender[0].x, pointsToRender[0].y);
+
+      for (let i = 1; i < pointsToRender.length; i++) {
+        ctx.lineTo(pointsToRender[i].x, pointsToRender[i].y);
       }
 
       // Special style for freehand wall tool
