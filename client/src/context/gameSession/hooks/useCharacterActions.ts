@@ -3,6 +3,7 @@ import { GameSessionState } from '../types';
 import { characterService } from '../../../services/characterService';
 import { Character, User } from '../../../types';
 import { socketService } from '../../../services/socketService';
+import { smartSync } from '../../../services/sync';
 import { PermissionHelper } from '../helpers/PermissionHelper';
 
 // Critical fields that should bypass debounce for instant updates
@@ -96,7 +97,7 @@ export const useCharacterActions = (
     // Send to API and WebSocket
     try {
       await characterService.update(id, changedFields);
-      socketService.emit('character:update', { characterId: id, updates: changedFields });
+      smartSync.apply('character', id, 'update', changedFields);
       console.log('[CharacterActions] Sent immediate update:', changedFields);
     } catch (err: any) {
       console.error('[CharacterActions] Failed to update character:', err);
@@ -163,7 +164,7 @@ export const useCharacterActions = (
 
       try {
         await characterService.update(id, changedFields);
-        socketService.emit('character:update', { characterId: id, updates: changedFields });
+        smartSync.apply('character', id, 'update', changedFields);
         console.log('[CharacterActions] Sent debounced update:', changedFields);
       } catch (err: any) {
         console.error('[CharacterActions] Failed to update character:', err);

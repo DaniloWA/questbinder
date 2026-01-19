@@ -2,6 +2,7 @@ import React from 'react';
 import { GameSessionState } from '../types';
 import { campaignService } from '../../../services/campaignService';
 import { socketService } from '../../../services/socketService';
+import { smartSync } from '../../../services/sync';
 import { MapScene } from '../../../types';
 import { ActionHandlers, StateHelpers } from '../helpers';
 
@@ -62,7 +63,7 @@ export const useSceneActions = (
       },
 
       socketEmit: () => {
-        socketService.emit('scene:add', { scene: newScene });
+        smartSync.apply('scene', newScene.id, 'create', newScene);
       }
     });
   };
@@ -87,7 +88,7 @@ export const useSceneActions = (
       },
 
       socketEmit: () => {
-        socketService.emit('scene:delete', { id });
+        smartSync.apply('scene', id, 'delete', {});
       }
     });
   };
@@ -105,7 +106,7 @@ export const useSceneActions = (
       },
 
       socketEmit: () => {
-        socketService.emit('scene:update', { id, changes: data });
+        smartSync.apply('scene', id, 'update', data);
       }
     });
   };
@@ -125,8 +126,8 @@ export const useSceneActions = (
       },
 
       socketEmit: () => {
-        console.log('[WS] Emitting scene:update', { id: state.activeSceneId, changes: settings });
-        socketService.emit('scene:update', { id: state.activeSceneId, changes: settings });
+        console.log('[WS] Emitting scene:update (settings)', { id: state.activeSceneId, changes: settings });
+        smartSync.apply('scene', state.activeSceneId, 'update', settings);
       }
     });
   };
@@ -146,7 +147,7 @@ export const useSceneActions = (
       },
 
       socketEmit: () => {
-        socketService.emit('scene:update', { id: state.activeSceneId, changes: { fogPath: path } });
+        smartSync.apply('scene', state.activeSceneId, 'update', { fogPath: path });
       }
     });
   };

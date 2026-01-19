@@ -2,6 +2,7 @@ import React from 'react';
 import { GameSessionState, BooleanPermissionKey, DrawingSettings } from '../types';
 import { campaignService } from '../../../services/campaignService';
 import { socketService } from '../../../services/socketService';
+import { smartSync } from '../../../services/sync';
 import { MapDrawing } from '../../../types';
 import { ActionHandlers, StateHelpers } from '../helpers';
 
@@ -34,7 +35,7 @@ export const useDrawingActions = (
       },
 
       socketEmit: () => {
-        socketService.emit('drawing:add', { sceneId: state.activeSceneId, drawing: newDrawing });
+        smartSync.apply('drawing', newDrawing.id, 'create', newDrawing, state.activeSceneId);
       }
     });
   };
@@ -66,7 +67,7 @@ export const useDrawingActions = (
       },
 
       socketEmit: () => {
-        socketService.emit('drawing:remove', { sceneId: state.activeSceneId, id });
+        smartSync.apply('drawing', id, 'delete', {}, state.activeSceneId);
       }
     });
   };
@@ -101,7 +102,7 @@ export const useDrawingActions = (
       },
 
       socketEmit: () => {
-        socketService.emit('scene:update', { id: state.activeSceneId, changes: { drawings: [] } });
+        smartSync.apply('scene', state.activeSceneId, 'update', { drawings: [] });
       }
     });
   };

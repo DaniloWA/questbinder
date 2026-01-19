@@ -1,5 +1,6 @@
 import * as db from '../../db.js';
 import { v4 as uuidv4 } from 'uuid';
+import { SyncMiddleware } from '../sync/SyncMiddleware.js';
 
 export const registerCharacterHandlers = (socket, client, utils) => {
   console.log('[character] handlers registered');
@@ -16,6 +17,18 @@ export const registerCharacterHandlers = (socket, client, utils) => {
 
       if (!character || !campaign) {
         console.error('[WS] Character or campaign not found');
+        return;
+      }
+
+      // 0. Sync Check
+      const clientVersion = payload.clientVersion;
+      const changeId = payload.changeId;
+      const currentVersion = character.version || 0;
+
+      if (SyncMiddleware.hasConflict(clientVersion, currentVersion)) {
+        if (changeId) socket.emit('sync:reject', SyncMiddleware.createReject(changeId, currentVersion, character));
+        // Force refresh
+        socket.emit('character:update', { characterId, updates: character, updatedBy: 'system', version: currentVersion });
         return;
       }
 
@@ -69,25 +82,32 @@ export const registerCharacterHandlers = (socket, client, utils) => {
         const currentHistory = character.changeHistory || [];
         const newHistory = [...currentHistory, changeEntry].slice(-100); // Keep last 100 entries
         filteredUpdates.changeHistory = newHistory;
-
-        console.log(`[WS] Logged ${Object.keys(changeEntry.changes).length} changes to history for character ${characterId}`);
       }
 
       // 5. Update in Database
+      const nextVersion = SyncMiddleware.nextVersion(currentVersion);
+      filteredUpdates.version = nextVersion;
+
       await db.update('characters', characterId, filteredUpdates);
+
+      if (changeId) {
+        socket.emit('sync:ack', SyncMiddleware.createAck(changeId, nextVersion));
+      }
 
       // 6. Broadcast to everyone in the room (including sender for confirmation)
       safeBroadcast('character:update', {
         characterId,
         updates: filteredUpdates,
-        updatedBy: client.userId
+        updatedBy: client.userId,
+        version: nextVersion
       });
 
-      // Also emit to sender for immediate confirmation
+      // Also emit to sender for immediate confirmation (redundant if using Ack? kept for legacy compatibility)
       socket.emit('character:update', {
         characterId,
         updates: filteredUpdates,
-        updatedBy: client.userId
+        updatedBy: client.userId,
+        version: nextVersion
       });
 
       console.log(`[WS] Character ${characterId} updated by ${client.userId}, broadcast to room ${client.campaignId}`);

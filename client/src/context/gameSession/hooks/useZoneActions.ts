@@ -2,6 +2,7 @@ import React from 'react';
 import { GameSessionState } from '../types';
 import { campaignService } from '../../../services/campaignService';
 import { socketService } from '../../../services/socketService';
+import { smartSync } from '../../../services/sync';
 import { TriggerZone, Token } from '../../../types';
 import { ActionHandlers, StateHelpers } from '../helpers';
 
@@ -33,7 +34,7 @@ export const useZoneActions = (
         const scene = state.scenes.find(s => s.id === state.activeSceneId);
         const currentZones = scene?.lightZones || [];
         const updatedZones = [...currentZones, ...newZones];
-        socketService.emit('scene:update', { id: state.activeSceneId, changes: { lightZones: updatedZones } });
+        smartSync.apply('scene', state.activeSceneId, 'update', { lightZones: updatedZones });
       },
 
       apiCall: async () => {
@@ -81,7 +82,7 @@ export const useZoneActions = (
         const scene = state.scenes.find(s => s.id === state.activeSceneId);
         const currentZones = scene?.triggerZones || [];
         const updatedZones = [...currentZones, ...newZones];
-        socketService.emit('scene:update', { id: state.activeSceneId, changes: { triggerZones: updatedZones } });
+        smartSync.apply('scene', state.activeSceneId, 'update', { triggerZones: updatedZones });
       },
 
       apiCall: async () => {
@@ -109,7 +110,7 @@ export const useZoneActions = (
       socketEmit: () => {
         const scene = state.scenes.find(s => s.id === state.activeSceneId);
         const updatedZones = scene?.triggerZones?.map(z => z.id === id ? { ...z, ...data } : z);
-        socketService.emit('scene:update', { id: state.activeSceneId, changes: { triggerZones: updatedZones } });
+        smartSync.apply('scene', state.activeSceneId, 'update', { triggerZones: updatedZones });
       },
 
       apiCall: async () => {
@@ -136,7 +137,7 @@ export const useZoneActions = (
       socketEmit: () => {
         const scene = state.scenes.find(s => s.id === state.activeSceneId);
         const updatedZones = scene?.triggerZones?.filter(z => z.id !== id);
-        socketService.emit('scene:update', { id: state.activeSceneId, changes: { triggerZones: updatedZones } });
+        smartSync.apply('scene', state.activeSceneId, 'update', { triggerZones: updatedZones });
       },
 
       apiCall: async () => {

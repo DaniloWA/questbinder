@@ -1,5 +1,6 @@
 import * as db from '../../db.js';
 import crypto from 'crypto';
+import { SyncMiddleware } from '../sync/SyncMiddleware.js';
 
 export const registerDrawingHandlers = (socket, client, utils) => {
   console.log('[drawing] handlers registered');
@@ -12,19 +13,20 @@ export const registerDrawingHandlers = (socket, client, utils) => {
       const validation = validatePayload(payload, ['sceneId', 'drawing']);
       if (!validation.valid) return safeEmitError('Dados inválidos.');
 
+      const { sceneId, drawing, changeId } = payload;
+
       // REGRA MILENAR: Use PermissionHelper
       const helper = await getPermissionHelper();
       if (!helper.can('drawings')) {
         return safeEmitError('Sem permissão para desenhar.');
       }
 
-      const { sceneId, drawing } = payload;
-
       const d = {
         ...drawing,
         id: drawing.id || crypto.randomUUID(),
         userId: client.userId,
         timestamp: Date.now(),
+        version: 1 // Start version
       };
 
       const campaign = await db.getById('campaigns', client.campaignId);
@@ -35,6 +37,10 @@ export const registerDrawingHandlers = (socket, client, utils) => {
 
       scene.drawings.push(d);
       await db.update('campaigns', client.campaignId, campaign);
+
+      if (changeId) {
+        socket.emit('sync:ack', SyncMiddleware.createAck(changeId, 1));
+      }
 
       safeBroadcast('drawing:add', { sceneId, drawing: d });
     } catch (err) {
@@ -51,7 +57,7 @@ export const registerDrawingHandlers = (socket, client, utils) => {
       const validation = validatePayload(payload, ['sceneId', 'id']);
       if (!validation.valid) return safeEmitError('Dados inválidos.');
 
-      const { sceneId, id } = payload;
+      const { sceneId, id, changeId } = payload;
 
       const campaign = await db.getById('campaigns', client.campaignId);
       if (!campaign) return;
@@ -60,7 +66,10 @@ export const registerDrawingHandlers = (socket, client, utils) => {
       if (!scene) return;
 
       const drawing = scene.drawings.find(d => d.id === id);
-      if (!drawing) return safeEmitError('Desenho não encontrado.');
+      if (!drawing) {
+        if (changeId) socket.emit('sync:ack', SyncMiddleware.createAck(changeId, 0));
+        return safeEmitError('Desenho não encontrado.');
+      }
 
       // REGRA MILENAR: Use PermissionHelper
       const helper = await getPermissionHelper();
@@ -71,6 +80,10 @@ export const registerDrawingHandlers = (socket, client, utils) => {
 
       scene.drawings = scene.drawings.filter(d => d.id !== id);
       await db.update('campaigns', client.campaignId, campaign);
+
+      if (changeId) {
+        socket.emit('sync:ack', SyncMiddleware.createAck(changeId, 0));
+      }
 
       safeBroadcast('drawing:remove', { sceneId, id });
     } catch (err) {

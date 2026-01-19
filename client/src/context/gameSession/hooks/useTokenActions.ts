@@ -2,6 +2,7 @@ import React, { useCallback, useRef, useEffect } from 'react';
 import { GameSessionState, BooleanPermissionKey } from '../types';
 import { campaignService } from '../../../services/campaignService';
 import { socketService } from '../../../services/socketService';
+import { smartSync } from '../../../services/sync';
 import { Token } from '../../../types';
 import { ActionHandlers, StateHelpers, GeometryHelpers } from '../helpers';
 
@@ -96,11 +97,7 @@ export const useTokenActions = (
       },
 
       socketEmit: () => {
-        socketService.emit('token:update', {
-          sceneId: state.activeSceneId,
-          id: tokenId,
-          changes: { x: newX, y: newY }
-        });
+        smartSync.apply('token', tokenId, 'move', { x: newX, y: newY }, state.activeSceneId);
       }
     });
 
@@ -169,7 +166,7 @@ export const useTokenActions = (
       },
 
       socketEmit: () => {
-        socketService.emit('token:update', { sceneId: state.activeSceneId, id, changes: data });
+        smartSync.apply('token', id, 'update', data, state.activeSceneId);
       }
     });
   };
@@ -225,8 +222,8 @@ export const useTokenActions = (
       },
 
       socketEmit: () => {
-        console.log('[CLIENT] Emitting token:add to server:', { sceneId: state.activeSceneId, token: newToken });
-        socketService.emit('token:add', { sceneId: state.activeSceneId, token: newToken });
+        console.log('[CLIENT] SmartSync token:add:', { sceneId: state.activeSceneId, token: newToken });
+        smartSync.apply('token', newToken.id, 'create', newToken, state.activeSceneId);
       }
     });
   };
@@ -271,9 +268,8 @@ export const useTokenActions = (
       // apiCall removed to avoid double-write and race conditions. 
       // Server handles persistence via socket event.
 
-      // Always emit to server; server will enforce its own permission check
       socketEmit: () => {
-        socketService.emit('token:remove', { sceneId: state.activeSceneId, id });
+        smartSync.apply('token', id, 'delete', {}, state.activeSceneId);
       },
     });
   };

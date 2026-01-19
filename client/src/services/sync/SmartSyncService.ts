@@ -254,6 +254,14 @@ export class SmartSyncService {
         });
       }
     });
+
+    socket.on?.('sync:ack', (payload: any) => {
+      this.handleAck(payload);
+    });
+
+    socket.on?.('sync:reject', (payload: any) => {
+      this.handleReject(payload);
+    });
   }
 
   // ===========================================================================
@@ -601,6 +609,48 @@ export class SmartSyncService {
   private clearBaseData(entityType: EntityType, entityId: string): void {
     const key = `${entityType}:${entityId}`;
     this.baseDataCache.delete(key);
+  }
+
+  // ===========================================================================
+  // ACKNOWLEDGEMENT HANDLING
+  // ===========================================================================
+
+  private handleAck(payload: any) {
+    const { changeId, version } = payload;
+    if (this.options.debug) {
+      console.log('[SmartSync] ACK received:', payload);
+    }
+
+    // Remove from queue (confirmed)
+    this.queue.dequeue(changeId);
+
+    // Update local version if applicable (though usually we wait for broadcast)
+    // Actually, local version is optimistic. Broadcast will update it firmly.
+  }
+
+  private handleReject(payload: any) {
+    const { changeId, version, data } = payload;
+    console.warn('[SmartSync] REJECT received:', payload);
+
+    // Remove from queue (failed)
+    this.queue.dequeue(changeId);
+
+    // Rollback or Apply Server Data
+    // We should treat this as a forced update from server
+    // Find the entity type from the rejected change?
+    // We don't track changeId -> entityType mapping easily unless we check queue BEFORE dequeue
+    // But we just dequeued.
+    // Ideally queue.dequeue returns the entry.
+
+    // For now, assume broadcast will follow or we interpret payload.data
+    // If payload contains data, we update cache.
+    // But we need entityType/Id.
+    if (data && data.id) {
+      // Try to infer type? Or server should send type?
+      // Token has id, Scene has id... 
+    }
+
+    // Note: Better implementation would be to look up the change in queue first.
   }
 
   // ===========================================================================

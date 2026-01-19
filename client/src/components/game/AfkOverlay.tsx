@@ -32,7 +32,7 @@ export const AfkOverlay: React.FC = () => {
   useEffect(() => {
     if (afkStatus === 'warning' && displayTime === 0) {
       const timeout = setTimeout(() => {
-        console.warn('[AfkOverlay] Kick timer expired and no server event received. Forcing redirect.');
+        // console.warn('[AfkOverlay] Kick timer expired and no server event received. Forcing redirect.');
         const pathParts = window.location.pathname.split('/');
         const campaignId = pathParts[2]; // /campaign/[id]/game
 
@@ -48,7 +48,7 @@ export const AfkOverlay: React.FC = () => {
     }
   }, [afkStatus, displayTime]);
 
-  console.log('[AfkOverlay] Render:', { afkStatus, afkTimeLeft, displayTime });
+  // console.log('[AfkOverlay] Render:', { afkStatus, afkTimeLeft, displayTime });
 
   if (!afkStatus || afkStatus === 'active') return null;
 

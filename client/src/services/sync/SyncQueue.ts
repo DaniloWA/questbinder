@@ -274,36 +274,37 @@ export class SyncQueue {
 
     // Build payload based on entity type
     let payload: any;
+    const common = { clientVersion: change.version, changeId: change.id };
 
     switch (entityType) {
       case 'token':
         payload = changeType === 'create'
-          ? { sceneId: parentId, token: data }
+          ? { sceneId: parentId, token: data, ...common }
           : changeType === 'delete'
-            ? { sceneId: parentId, id: entityId }
-            : { sceneId: parentId, id: entityId, changes: data };
+            ? { sceneId: parentId, id: entityId, ...common }
+            : { sceneId: parentId, id: entityId, changes: data, ...common };
         break;
 
       case 'scene':
-        payload = { id: entityId, changes: data };
+        payload = { id: entityId, changes: data, ...common };
         break;
 
       case 'character':
-        payload = { characterId: entityId, updates: data };
+        payload = { characterId: entityId, updates: data, ...common };
         break;
 
       case 'drawing':
         payload = changeType === 'create'
-          ? { sceneId: parentId, drawing: data }
-          : { sceneId: parentId, id: entityId };
+          ? { sceneId: parentId, drawing: data, ...common }
+          : { sceneId: parentId, id: entityId, ...common };
         break;
 
       case 'combat':
-        payload = { combat: data };
+        payload = { combat: data, ...common };
         break;
 
       default:
-        payload = { id: entityId, ...data };
+        payload = { id: entityId, ...data, ...common };
     }
 
     socketService.emit(event as any, payload);

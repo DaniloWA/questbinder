@@ -2,6 +2,7 @@ import React from 'react';
 import { GameSessionState } from '../types';
 import { campaignService } from '../../../services/campaignService';
 import { socketService } from '../../../services/socketService';
+import { smartSync } from '../../../services/sync';
 import { ActionHandlers, StateHelpers } from '../helpers';
 
 export const useObstacleActions = (
@@ -38,7 +39,7 @@ export const useObstacleActions = (
         const scene = state.scenes.find(s => s.id === state.activeSceneId);
         const currentObstacles = scene?.obstacles || [];
         const updatedObstacles = [...currentObstacles, ...newObstacles];
-        socketService.emit('scene:update', { id: state.activeSceneId, changes: { obstacles: updatedObstacles } });
+        smartSync.apply('scene', state.activeSceneId, 'update', { obstacles: updatedObstacles });
       },
 
       apiCall: async () => {
@@ -95,10 +96,9 @@ export const useObstacleActions = (
       },
 
       socketEmit: () => {
-        // Re-calculating full list for emit as per original pattern
         const scene = state.scenes.find(s => s.id === state.activeSceneId);
         const updatedObstacles = scene?.obstacles.map(o => o.id === id ? { ...o, ...data } : o);
-        socketService.emit('scene:update', { id: state.activeSceneId, changes: { obstacles: updatedObstacles } });
+        smartSync.apply('scene', state.activeSceneId, 'update', { obstacles: updatedObstacles });
       },
 
       apiCall: async () => {
@@ -125,7 +125,7 @@ export const useObstacleActions = (
       socketEmit: () => {
         const scene = state.scenes.find(s => s.id === state.activeSceneId);
         const updatedObstacles = scene?.obstacles.filter(o => o.id !== id);
-        socketService.emit('scene:update', { id: state.activeSceneId, changes: { obstacles: updatedObstacles } });
+        smartSync.apply('scene', state.activeSceneId, 'update', { obstacles: updatedObstacles });
       },
 
       apiCall: async () => {
@@ -155,7 +155,7 @@ export const useObstacleActions = (
       socketEmit: () => {
         const scene = state.scenes.find(s => s.id === state.activeSceneId);
         const updatedObstacles = scene?.obstacles.map(o => ({ ...o, ...data }));
-        socketService.emit('scene:update', { id: state.activeSceneId, changes: { obstacles: updatedObstacles } });
+        smartSync.apply('scene', state.activeSceneId, 'update', { obstacles: updatedObstacles });
       },
 
       apiCall: async () => {
@@ -181,7 +181,7 @@ export const useObstacleActions = (
       },
 
       socketEmit: () => {
-        socketService.emit('scene:update', { id: state.activeSceneId, changes: { obstacles: [] } });
+        smartSync.apply('scene', state.activeSceneId, 'update', { obstacles: [] });
       },
 
       apiCall: async () => {
