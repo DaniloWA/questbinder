@@ -1,0 +1,665 @@
+/**
+ * SmartSync System - SmartSyncService
+ * 
+ * Central coordinator for the sync system. Handles:
+ * - Local state updates with optimistic UI
+ * - Remote sync via socket
+ * - Subscription management for reactive updates
+ * - Conflict detection and resolution
+ * - Retry logic with exponential backoff
+ * - Connection state management
+ */
+
+import { socketService } from '../socketService';
+import { syncCache, SyncCache } from './SyncCache';
+import { syncQueue, SyncQueue } from './SyncQueue';
+import { retryManager, RetryManager } from './RetryManager';
+import { connectionManager, ConnectionManager, ConnectionStatus } from './ConnectionManager';
+import { resolveConflict, getMergeStrategy } from './strategies';
+import {
+  EntityType,
+  ChangeType,
+  PendingChange,
+  SyncEvent,
+  ChangeCallback,
+  CollectionCallback,
+  Subscription,
+  SubscriptionOptions,
+  SyncConflict,
+  ConflictStrategy,
+  SyncStatus,
+  SmartSyncOptions,
+  CacheEntry,
+  generateChangeId,
+} from './types';
+
+/**
+ * SmartSyncService - Main sync coordinator.
+ * 
+ * Usage:
+ * ```ts
+ * // Apply a local change
+ * smartSync.apply('token', tokenId, 'update', { x: 10, y: 20 }, sceneId);
+ * 
+ * // Subscribe to changes
+ * const unsub = smartSync.subscribe('token', (id, data, type) => {
+ *   console.log('Token changed:', id, type);
+ * });
+ * ```
+ */
+export class SmartSyncService {
+  private cache: SyncCache;
+  private queue: SyncQueue;
+  private retry: RetryManager;
+  private connection: ConnectionManager;
+  private subscriptions: Map<string, Subscription> = new Map();
+  private conflicts: SyncConflict[] = [];
+  private baseDataCache: Map<string, unknown> = new Map(); // Store base data for merge
+  private options: SmartSyncOptions;
+  private initialized = false;
+  private connectionUnsubscribe: (() => void) | null = null;
+
+  constructor(
+    cache: SyncCache = syncCache,
+    queue: SyncQueue = syncQueue,
+    retry: RetryManager = retryManager,
+    connection: ConnectionManager = connectionManager,
+    options: SmartSyncOptions = {}
+  ) {
+    this.cache = cache;
+    this.queue = queue;
+    this.retry = retry;
+    this.connection = connection;
+    this.options = {
+      debug: false,
+      defaultConflictStrategy: 'merge', // Changed default to merge for better UX
+      optimisticUpdates: true,
+      maxRetries: 5,
+      retryDelayMs: 500,
+      ...options,
+    };
+
+    // Setup retry callbacks
+    this.retry.setOnRetry((change) => this.handleRetry(change));
+    this.retry.setOnMaxRetriesExceeded((change, error) => this.handleMaxRetriesExceeded(change, error));
+  }
+
+  // ===========================================================================
+  // INITIALIZATION
+  // ===========================================================================
+
+  /**
+   * Initialize the sync service and set up socket listeners.
+   */
+  init(): void {
+    if (this.initialized) return;
+
+    this.setupSocketListeners();
+    this.setupConnectionListener();
+    this.initialized = true;
+
+    if (this.options.debug) {
+      console.log('[SmartSync] Initialized with options:', this.options);
+    }
+  }
+
+  /**
+   * Setup connection state listener.
+   */
+  private setupConnectionListener(): void {
+    this.connectionUnsubscribe = this.connection.subscribe((status) => {
+      if (status.state === 'connected' && this.queue.getPendingCount() > 0) {
+        // Reconnected - flush pending changes
+        if (this.options.debug) {
+          console.log('[SmartSync] Reconnected, flushing pending changes');
+        }
+        this.queue.flushAll();
+      }
+    });
+  }
+
+  /**
+   * Set up socket listeners for incoming sync events.
+   * Note: We listen to the same events that useSocketListeners handles,
+   * but SmartSync provides a unified caching layer.
+   */
+  private setupSocketListeners(): void {
+    // Token events - using 'any' handlers since socket events are dynamically typed
+    // The GameSession useSocketListeners already handles these events and updates React state.
+    // SmartSync provides parallel caching for future optimistic updates.
+
+    // For now, we hook into the existing socket events via their current names.
+    // We can use 'any' type assertion since these are internal sync events.
+    const socket = socketService as any;
+
+    // These handlers run in parallel with existing useSocketListeners
+    // and update the SmartSync cache for conflict detection
+    socket.on?.('token:update', (payload: any) => {
+      if (payload?.id) {
+        this.receive({
+          entityType: 'token',
+          entityId: payload.id,
+          parentId: payload.sceneId,
+          changeType: 'update',
+          data: payload.changes || payload,
+          version: Date.now(),
+          timestamp: Date.now(),
+          userId: payload.userId,
+        });
+      }
+    });
+
+    socket.on?.('token:add', (payload: any) => {
+      const token = payload?.token;
+      if (token?.id) {
+        this.receive({
+          entityType: 'token',
+          entityId: token.id,
+          parentId: payload.sceneId,
+          changeType: 'create',
+          data: token,
+          version: Date.now(),
+          timestamp: Date.now(),
+          userId: payload.userId,
+        });
+      }
+    });
+
+    socket.on?.('token:remove', (payload: any) => {
+      if (payload?.id) {
+        this.receive({
+          entityType: 'token',
+          entityId: payload.id,
+          parentId: payload.sceneId,
+          changeType: 'delete',
+          data: {},
+          version: Date.now(),
+          timestamp: Date.now(),
+          userId: payload.userId,
+        });
+      }
+    });
+
+    socket.on?.('scene:update', (payload: any) => {
+      if (payload?.id) {
+        this.receive({
+          entityType: 'scene',
+          entityId: payload.id,
+          changeType: 'update',
+          data: payload.changes || payload,
+          version: Date.now(),
+          timestamp: Date.now(),
+          userId: payload.userId,
+        });
+      }
+    });
+
+    socket.on?.('character:update', (payload: any) => {
+      const id = payload?.characterId || payload?.id;
+      if (id) {
+        this.receive({
+          entityType: 'character',
+          entityId: id,
+          changeType: 'update',
+          data: payload.updates || payload,
+          version: Date.now(),
+          timestamp: Date.now(),
+          userId: payload.userId,
+        });
+      }
+    });
+
+    socket.on?.('combat:update', (payload: any) => {
+      const combat = payload?.combat;
+      if (combat) {
+        this.receive({
+          entityType: 'combat',
+          entityId: combat.id || 'current',
+          changeType: 'update',
+          data: combat,
+          version: Date.now(),
+          timestamp: Date.now(),
+          userId: payload.userId,
+        });
+      }
+    });
+
+    socket.on?.('drawing:add', (payload: any) => {
+      const drawing = payload?.drawing;
+      if (drawing?.id) {
+        this.receive({
+          entityType: 'drawing',
+          entityId: drawing.id,
+          parentId: payload.sceneId,
+          changeType: 'create',
+          data: drawing,
+          version: Date.now(),
+          timestamp: Date.now(),
+          userId: payload.userId,
+        });
+      }
+    });
+
+    socket.on?.('drawing:remove', (payload: any) => {
+      if (payload?.id) {
+        this.receive({
+          entityType: 'drawing',
+          entityId: payload.id,
+          parentId: payload.sceneId,
+          changeType: 'delete',
+          data: {},
+          version: Date.now(),
+          timestamp: Date.now(),
+          userId: payload.userId,
+        });
+      }
+    });
+  }
+
+  // ===========================================================================
+  // LOCAL CHANGES
+  // ===========================================================================
+
+  /**
+   * Apply a local change (optimistic + queue for remote).
+   */
+  apply<T>(
+    entityType: EntityType,
+    entityId: string,
+    changeType: ChangeType,
+    data: Partial<T>,
+    parentId?: string
+  ): string {
+    const entry = this.cache.getEntry(entityType, entityId);
+    const version = entry?.version || 0;
+
+    // Generate change ID
+    const changeId = generateChangeId();
+
+    // Optimistic update
+    if (this.options.optimisticUpdates) {
+      if (changeType === 'update' || changeType === 'move') {
+        this.cache.applyOptimisticUpdate(entityType, entityId, data, changeId);
+      } else if (changeType === 'create') {
+        this.cache.set(entityType, entityId, data, version, parentId, true);
+      } else if (changeType === 'delete') {
+        this.cache.delete(entityType, entityId);
+      }
+    }
+
+    // Queue for remote sync
+    this.queue.enqueue(entityType, entityId, changeType, data, parentId, version);
+
+    // Notify subscribers
+    this.notifySubscribers(entityType, entityId, data as T, changeType);
+
+    if (this.options.debug) {
+      console.log('[SmartSync] Applied:', { entityType, entityId, changeType, data });
+    }
+
+    return changeId;
+  }
+
+  /**
+   * Apply multiple changes in a batch.
+   */
+  applyBatch<T>(
+    changes: Array<{
+      entityType: EntityType;
+      entityId: string;
+      changeType: ChangeType;
+      data: Partial<T>;
+      parentId?: string;
+    }>
+  ): string[] {
+    return changes.map(c =>
+      this.apply(c.entityType, c.entityId, c.changeType, c.data, c.parentId)
+    );
+  }
+
+  // ===========================================================================
+  // REMOTE CHANGES
+  // ===========================================================================
+
+  /**
+   * Handle incoming sync event from server.
+   */
+  receive<T>(event: SyncEvent<T>): void {
+    const { entityType, entityId, changeType, data, version, parentId } = event;
+
+    // Check for conflicts
+    const entry = this.cache.getEntry(entityType, entityId);
+    if (entry && entry.dirty && entry.pendingChanges.length > 0) {
+      // Potential conflict
+      const conflict = this.detectConflict(entry, event);
+      if (conflict) {
+        this.handleConflict(conflict);
+        return;
+      }
+    }
+
+    // Apply remote change
+    if (changeType === 'delete') {
+      this.cache.delete(entityType, entityId);
+    } else {
+      this.cache.set(entityType, entityId, data, version, parentId, false);
+    }
+
+    // Notify subscribers
+    this.notifySubscribers(entityType, entityId, changeType === 'delete' ? null : data, changeType);
+
+    if (this.options.debug) {
+      console.log('[SmartSync] Received:', { entityType, entityId, changeType });
+    }
+  }
+
+  // ===========================================================================
+  // SUBSCRIPTIONS
+  // ===========================================================================
+
+  /**
+   * Subscribe to entity changes.
+   */
+  subscribe<T>(
+    entityType: EntityType,
+    callback: ChangeCallback<T>,
+    options: SubscriptionOptions = {}
+  ): () => void {
+    const id = generateChangeId();
+    const subscription: Subscription = {
+      id,
+      entityType,
+      callback: callback as ChangeCallback,
+      options,
+    };
+
+    this.subscriptions.set(id, subscription);
+
+    return () => {
+      this.subscriptions.delete(id);
+    };
+  }
+
+  /**
+   * Subscribe to all entities of a type.
+   */
+  subscribeCollection<T>(
+    entityType: EntityType,
+    callback: CollectionCallback<T>,
+    options: SubscriptionOptions = {}
+  ): () => void {
+    // Wrap as entity callback
+    const wrappedCallback: ChangeCallback<T> = (entityId, data, changeType) => {
+      const entities = this.cache.getAll<T>(entityType);
+      callback(entities, [entityId]);
+    };
+
+    return this.subscribe(entityType, wrappedCallback, options);
+  }
+
+  /**
+   * Notify all relevant subscribers.
+   */
+  private notifySubscribers<T>(
+    entityType: EntityType,
+    entityId: string,
+    data: T | null,
+    changeType: ChangeType
+  ): void {
+    for (const subscription of this.subscriptions.values()) {
+      if (subscription.entityType !== entityType) continue;
+
+      const { options, callback } = subscription;
+
+      // Filter by ID
+      if (options.filterIds && !options.filterIds.includes(entityId)) continue;
+
+      // Filter by change type
+      if (options.filterChangeTypes && !options.filterChangeTypes.includes(changeType)) continue;
+
+      // Call subscriber
+      try {
+        (callback as ChangeCallback<T>)(entityId, data, changeType);
+      } catch (error) {
+        console.error('[SmartSync] Subscriber error:', error);
+      }
+    }
+  }
+
+  // ===========================================================================
+  // CONFLICT RESOLUTION
+  // ===========================================================================
+
+  /**
+   * Detect if there's a conflict between local and remote.
+   */
+  private detectConflict<T>(
+    localEntry: import('./types').CacheEntry<T>,
+    remoteEvent: SyncEvent<T>
+  ): SyncConflict<T> | null {
+    // Simple version comparison
+    if (remoteEvent.version > localEntry.version) {
+      // Remote is newer, but we have pending changes
+      return {
+        entityType: remoteEvent.entityType,
+        entityId: remoteEvent.entityId,
+        localChange: {
+          id: localEntry.pendingChanges[0] || 'unknown',
+          entityType: remoteEvent.entityType,
+          entityId: remoteEvent.entityId,
+          changeType: 'update',
+          data: localEntry.data as Partial<T>,
+          version: localEntry.version,
+          timestamp: localEntry.lastSync,
+          optimistic: true,
+          priority: 'medium',
+        },
+        remoteChange: remoteEvent,
+        localVersion: localEntry.version,
+        remoteVersion: remoteEvent.version,
+      };
+    }
+
+    return null;
+  }
+
+  /**
+   * Handle a sync conflict.
+   */
+  private handleConflict<T>(conflict: SyncConflict<T>): void {
+    const strategy = this.options.defaultConflictStrategy || 'remote-wins';
+
+    if (this.options.debug) {
+      console.warn('[SmartSync] Conflict detected:', conflict);
+    }
+
+    this.conflicts.push(conflict as SyncConflict);
+
+    switch (strategy) {
+      case 'remote-wins':
+        // Accept remote, discard local
+        this.cache.set(
+          conflict.entityType,
+          conflict.entityId,
+          conflict.remoteChange.data,
+          conflict.remoteVersion,
+          conflict.remoteChange.parentId,
+          false
+        );
+        // Remove pending changes
+        for (const changeId of (this.cache.getEntry(conflict.entityType, conflict.entityId)?.pendingChanges || [])) {
+          this.queue.dequeue(changeId);
+        }
+        break;
+
+      case 'local-wins':
+        // Keep local, re-queue for sync
+        // The local data is already in cache
+        break;
+
+      case 'merge':
+        // Attempt to merge
+        const merged = this.mergeChanges(conflict);
+        this.cache.set(
+          conflict.entityType,
+          conflict.entityId,
+          merged,
+          conflict.remoteVersion + 1,
+          conflict.remoteChange.parentId,
+          true
+        );
+        break;
+
+      case 'manual':
+        // Store conflict for UI to resolve
+        // Don't apply remote
+        break;
+    }
+
+    // Notify subscribers about the resolved state
+    this.notifySubscribers(
+      conflict.entityType,
+      conflict.entityId,
+      this.cache.get(conflict.entityType, conflict.entityId),
+      'update'
+    );
+  }
+
+  /**
+   * Merge local and remote changes (simple property merge).
+   */
+  private mergeChanges<T>(conflict: SyncConflict<T>): T {
+    return {
+      ...conflict.remoteChange.data,
+      ...conflict.localChange.data,
+    } as T;
+  }
+
+  // ===========================================================================
+  // RETRY HANDLING
+  // ===========================================================================
+
+  /**
+   * Handle a retry attempt for a failed change.
+   */
+  private handleRetry(change: PendingChange): void {
+    if (this.options.debug) {
+      console.log('[SmartSync] Retrying change:', change.id);
+    }
+
+    // Re-queue the change
+    this.queue.enqueue(
+      change.entityType,
+      change.entityId,
+      change.changeType,
+      change.data,
+      change.parentId,
+      change.version
+    );
+  }
+
+  /**
+   * Handle when max retries are exceeded.
+   */
+  private handleMaxRetriesExceeded(change: PendingChange, error: string): void {
+    console.error('[SmartSync] Max retries exceeded for change:', change.id, error);
+
+    // Remove from cache's pending list
+    const entry = this.cache.getEntry(change.entityType, change.entityId);
+    if (entry) {
+      // Rollback to last known good state if possible
+      const baseKey = `${change.entityType}:${change.entityId}`;
+      const baseData = this.baseDataCache.get(baseKey);
+      if (baseData) {
+        this.cache.rollbackChange(change.entityType, change.entityId, change.id, baseData);
+        this.baseDataCache.delete(baseKey);
+      }
+    }
+
+    // Notify subscribers of the failure (they might want to show an error)
+    this.notifySubscribers(
+      change.entityType,
+      change.entityId,
+      this.cache.get(change.entityType, change.entityId),
+      'update'
+    );
+  }
+
+  /**
+   * Store base data before applying optimistic update (for rollback).
+   */
+  private storeBaseData<T>(entityType: EntityType, entityId: string, data: T): void {
+    const key = `${entityType}:${entityId}`;
+    if (!this.baseDataCache.has(key)) {
+      this.baseDataCache.set(key, data);
+    }
+  }
+
+  /**
+   * Clear base data after successful sync.
+   */
+  private clearBaseData(entityType: EntityType, entityId: string): void {
+    const key = `${entityType}:${entityId}`;
+    this.baseDataCache.delete(key);
+  }
+
+  // ===========================================================================
+  // STATUS & UTILITIES
+  // ===========================================================================
+
+  /**
+   * Get current sync status.
+   */
+  getStatus(): SyncStatus {
+    const connectionStatus = this.connection.getStatus();
+    return {
+      connected: connectionStatus.state === 'connected',
+      pendingChanges: this.queue.getPendingCount() + this.retry.getPendingCount(),
+      lastSyncTime: connectionStatus.lastConnected || Date.now(),
+      conflicts: this.conflicts,
+    };
+  }
+
+  /**
+   * Clear all conflicts.
+   */
+  clearConflicts(): void {
+    this.conflicts = [];
+  }
+
+  /**
+   * Flush all pending changes immediately.
+   */
+  flush(): void {
+    this.queue.flushAll();
+  }
+
+  /**
+   * Get entity from cache.
+   */
+  get<T>(entityType: EntityType, id: string): T | null {
+    return this.cache.get<T>(entityType, id);
+  }
+
+  /**
+   * Get all entities of a type.
+   */
+  getAll<T>(entityType: EntityType): Map<string, T> {
+    return this.cache.getAll<T>(entityType);
+  }
+
+  /**
+   * Debug log current state.
+   */
+  debug(): void {
+    console.group('[SmartSync] Debug');
+    console.log('Status:', this.getStatus());
+    console.log('Subscriptions:', this.subscriptions.size);
+    this.cache.debug();
+    this.queue.debug();
+    console.groupEnd();
+  }
+}
+
+// Export singleton instance
+export const smartSync = new SmartSyncService();
