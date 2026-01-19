@@ -256,10 +256,11 @@ export class CursorLayer extends BaseLayer {
     // 6. Local User Trail
     // Render local trail ONLY if enabled. Pointer is handled by CustomCursor (DOM) for zero latency.
     const isDragging = context.dragState?.isDragging ?? false;
+    const currentLoc = context.mouseWorldPosRef?.current || context.localCursorPos;
 
     // DETECT DRAG END (Reset physics to prevent "ghost" trail from start to end of drag)
-    if (this.wasDragging && !isDragging && this.localCursorState && context.localCursorPos) {
-      const { x, y } = context.localCursorPos;
+    if (this.wasDragging && !isDragging && this.localCursorState && currentLoc) {
+      const { x, y } = currentLoc;
       // Instant teleport to new position
       this.localCursorState.x = x;
       this.localCursorState.y = y;
@@ -270,15 +271,15 @@ export class CursorLayer extends BaseLayer {
     }
     this.wasDragging = isDragging;
 
-    if (cursorSettings?.trailEnabled !== false && cursorSettings?.showMyTrail !== false && context.localCursorPos && !isDragging) {
+    if (cursorSettings?.trailEnabled !== false && cursorSettings?.showMyTrail !== false && currentLoc && !isDragging) {
       if (!this.localCursorState) {
         this.localCursorState = this.createLocalPhysicsState({
-          x: context.localCursorPos.x,
-          y: context.localCursorPos.y,
+          x: currentLoc.x,
+          y: currentLoc.y,
         });
       }
 
-      this.updateLocalPhysics(this.localCursorState, context.localCursorPos.x, context.localCursorPos.y, time);
+      this.updateLocalPhysics(this.localCursorState, currentLoc.x, currentLoc.y, time);
       this.renderLocalTrail(ctx, this.localCursorState, cursorSettings, zoom);
     }
 
