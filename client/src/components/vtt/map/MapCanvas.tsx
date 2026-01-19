@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useMemo, useState } from 'react';
+import React, { useRef, useEffect, useMemo, useState, useCallback } from 'react';
 import { socketService } from '../../../services/socketService';
 import { CursorClickPayload } from '../../../types/socket';
 import { MapCanvasProps } from './types';
@@ -12,6 +12,8 @@ import { TokenHoverCard } from './TokenHoverCard';
 import { CustomCursor } from '../CustomCursor';
 import { PrecisionCursor } from '../PrecisionCursor';
 import { useGameSession } from '../../../context/GameSessionContext';
+import { useModal } from '../../../context/ModalContext';
+import { AudioZoneConfigModalContent, TriggerZoneConfigModalContent } from './modals';
 
 /**
  * MapCanvas - Main VTT rendering component.
@@ -28,7 +30,31 @@ export const MapCanvas = (props: MapCanvasProps) => {
   const viewportRef = useRef({ x: props.viewport.x, y: props.viewport.y, zoom: props.viewport.zoom });
 
   // Get UI settings from GameSession
-  const { ui, drawingSettings, rulerSettings, addDrawing } = useGameSession();
+  const { ui, drawingSettings, rulerSettings, addDrawing, audioSettings, handouts } = useGameSession();
+  const { openModal, closeModal } = useModal();
+
+  // Modal callbacks for zone configuration
+  const openAudioZoneConfigModal = useCallback((onSave: (config: { audioUrl: string; volume: number; radius: number; }) => void) => {
+    openModal(
+      <AudioZoneConfigModalContent
+        audioSettings={audioSettings}
+        onSave={(config) => { onSave(config); closeModal(); }}
+        onClose={closeModal}
+      />,
+      { title: 'Configurar Zona de Áudio', size: 'md' }
+    );
+  }, [audioSettings, openModal, closeModal]);
+
+  const openTriggerZoneConfigModal = useCallback((onSave: (handoutId: string) => void) => {
+    openModal(
+      <TriggerZoneConfigModalContent
+        handouts={handouts}
+        onSave={(handoutId) => { onSave(handoutId); closeModal(); }}
+        onClose={closeModal}
+      />,
+      { title: 'Configurar Gatilho', size: 'sm' }
+    );
+  }, [handouts, openModal, closeModal]);
 
   // 1. State Management
   const mapState = useMapState();
@@ -101,6 +127,9 @@ export const MapCanvas = (props: MapCanvasProps) => {
     calculatedPathRef: calculatedPathRef, // Pass the REF
     addDrawing,
     liveDrawingPointsRef: mapState.liveDrawingPointsRef,
+    // Modal callbacks for zone configuration
+    openAudioZoneConfigModal,
+    openTriggerZoneConfigModal,
   });
 
   const isInteracting = mapState.isPanning || interaction?.getPanZoomHandler?.()?.getIsPanning?.();

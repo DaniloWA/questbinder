@@ -278,8 +278,6 @@ export class TokenDragHandler extends BaseHandler {
         offsetY: this.dragState.offset.y,
         startGridX: token.x,
         startGridY: token.y,
-        startGridX: token.x,
-        startGridY: token.y,
       }];
     }
 

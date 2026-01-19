@@ -178,7 +178,8 @@ export class ToolOverlayLayer extends BaseLayer {
           this.renderObstaclePreview(ctx, toolState.drawingObstacle, localCursorPos, zoom, activeTool);
         }
         if (toolState.draftPolyPoints.length > 0) {
-          this.renderPolygonPreview(ctx, toolState.draftPolyPoints, localCursorPos, zoom, 'rgba(255, 0, 255, 0.6)');
+          // Walls should render as lines only, not filled polygons
+          this.renderWallPreview(ctx, toolState.draftPolyPoints, localCursorPos, zoom);
         }
         break;
 
@@ -391,6 +392,63 @@ export class ToolOverlayLayer extends BaseLayer {
       ctx.arc(p.x, p.y, 6 / zoom, 0, Math.PI * 2);
       ctx.fillStyle = color;
       ctx.fill();
+    }
+  }
+
+  // ===========================================================================
+  // WALL LINE PREVIEW (Lines only, no fill)
+  // ===========================================================================
+
+  private renderWallPreview(
+    ctx: CanvasRenderingContext2D,
+    points: { x: number; y: number; }[],
+    currentPos: { x: number; y: number; },
+    zoom: number
+  ): void {
+    if (points.length === 0) return;
+
+    // Draw lines connecting points (no fill)
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < points.length; i++) {
+      ctx.lineTo(points[i].x, points[i].y);
+    }
+    ctx.lineTo(currentPos.x, currentPos.y);
+
+    ctx.strokeStyle = 'rgba(236, 72, 153, 0.9)'; // Pink
+    ctx.lineWidth = 4 / zoom;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+
+    // Dashed line back to start (close preview)
+    ctx.beginPath();
+    ctx.moveTo(currentPos.x, currentPos.y);
+    ctx.lineTo(points[0].x, points[0].y);
+    ctx.strokeStyle = 'rgba(236, 72, 153, 0.4)';
+    ctx.lineWidth = 2 / zoom;
+    ctx.setLineDash([6 / zoom, 3 / zoom]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Vertices
+    for (const point of points) {
+      ctx.beginPath();
+      ctx.arc(point.x, point.y, 5 / zoom, 0, Math.PI * 2);
+      ctx.fillStyle = '#ec4899';
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1 / zoom;
+      ctx.stroke();
+    }
+
+    // Close indicator (first point highlight)
+    if (points.length >= 3) {
+      ctx.beginPath();
+      ctx.arc(points[0].x, points[0].y, 10 / zoom, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(236, 72, 153, 0.6)';
+      ctx.lineWidth = 2 / zoom;
+      ctx.stroke();
     }
   }
 

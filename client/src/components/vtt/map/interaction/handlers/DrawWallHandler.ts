@@ -82,6 +82,8 @@ export class DrawWallHandler extends BaseHandler {
       const lastPoint = this.freehandPoints[this.freehandPoints.length - 1];
       if (!lastPoint || distance(lastPoint, ctx.worldPos) > 5) {
         this.freehandPoints.push({ ...ctx.worldPos });
+        // Emit live preview for rendering
+        this.callbacks?.updateDrawingState?.([...this.freehandPoints]);
       }
       return this.handled({ cursor: 'crosshair' });
     }
@@ -107,7 +109,17 @@ export class DrawWallHandler extends BaseHandler {
   onDoubleClick(ctx: InteractionContext): HandlerResult {
     // Double click commits polygon wall
     if (ctx.activeTool === 'draw-wall' && this.draftPoints.length >= 2) {
-      this.commitWallPolygon();
+      // Remove duplicate last point if present (from double-click)
+      let points = [...this.draftPoints];
+      if (points.length >= 2) {
+        const last = points[points.length - 1];
+        const secondLast = points[points.length - 2];
+        if (Math.abs(last.x - secondLast.x) < 1 && Math.abs(last.y - secondLast.y) < 1) {
+          points.pop();
+        }
+      }
+      this.draftPoints = points;
+      this.commitOpenWallPolygon();
       return this.handled();
     }
     return this.notHandled();
@@ -120,11 +132,11 @@ export class DrawWallHandler extends BaseHandler {
   private addWallPoint(ctx: InteractionContext): HandlerResult {
     const { worldPos } = ctx;
 
-    // Check if clicking near start point to close
+    // Check if clicking near start point to close (closed polygon)
     if (this.draftPoints.length >= 3) {
       const first = this.draftPoints[0];
       if (distance(worldPos, first) < 15 / ctx.zoom) {
-        this.commitWallPolygon();
+        this.commitClosedWallPolygon();
         return this.handled({ cursor: 'crosshair' });
       }
     }
@@ -133,6 +145,44 @@ export class DrawWallHandler extends BaseHandler {
     this.draftPoints.push({ ...worldPos });
     this.callbacks?.setDraftPolyPoints([...this.draftPoints]);
     return this.handled({ cursor: 'crosshair' });
+  }
+
+  /** Commit wall as closed polygon (clicking near first point) */
+  private commitClosedWallPolygon(): void {
+    if (this.draftPoints.length < 2) {
+      this.resetWall();
+      return;
+    }
+
+    this.callbacks?.addObstacles([{
+      type: 'wall',
+      points: [...this.draftPoints],
+      blocksVision: true,
+      blocksMovement: true,
+      open: false,  // Closed polygon loop
+    }]);
+
+    this.resetWall();
+    this.callbacks?.setActiveTool('select');
+  }
+
+  /** Commit wall as open polygon (right-click or double-click) */
+  private commitOpenWallPolygon(): void {
+    if (this.draftPoints.length < 2) {
+      this.resetWall();
+      return;
+    }
+
+    this.callbacks?.addObstacles([{
+      type: 'wall',
+      points: [...this.draftPoints],
+      blocksVision: true,
+      blocksMovement: true,
+      open: true,  // Open line chain
+    }]);
+
+    this.resetWall();
+    this.callbacks?.setActiveTool('select');
   }
 
   private commitWallPolygon(): void {
@@ -153,13 +203,21 @@ export class DrawWallHandler extends BaseHandler {
   }
 
   private handleRightClick(ctx: InteractionContext): HandlerResult {
-    // If drawing wall with enough points, commit it
-    if (ctx.activeTool === 'draw-wall' && this.draftPoints.length >= 2) {
-      this.commitWallPolygon();
+    // If drawing wall with points, first right-click clears the drawing
+    if (ctx.activeTool === 'draw-wall' && this.draftPoints.length > 0) {
+      // First right-click: Clear points but stay in tool
+      this.resetWall();
       return this.handled();
     }
 
-    // Otherwise cancel
+    // If drawing door/window, cancel it
+    if (this.drawingObstacle) {
+      this.drawingObstacle = null;
+      this.callbacks?.setDrawingObstacle(null);
+      return this.handled();
+    }
+
+    // Second right-click (no drawing in progress): Exit the tool
     this.resetAll();
     return handleRightClickCancel(ctx, this.callbacks);
   }
@@ -194,8 +252,9 @@ export class DrawWallHandler extends BaseHandler {
         type: this.drawingObstacle.type,
         p1: { ...this.drawingObstacle.p1 },
         p2: { ...p2 },
-        blocksVision: true,
+        blocksVision: this.drawingObstacle.type === 'door',  // Doors block vision, windows don't
         blocksMovement: true,
+        hidden: false,
       }]);
     }
 
@@ -222,6 +281,7 @@ export class DrawWallHandler extends BaseHandler {
         points: [...this.freehandPoints],
         blocksVision: true,
         blocksMovement: true,
+        open: true,  // Freehand walls are always open (line chain)
       }]);
     }
 

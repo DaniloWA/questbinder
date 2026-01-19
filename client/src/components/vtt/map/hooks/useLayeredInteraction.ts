@@ -39,6 +39,9 @@ export interface UseLayeredInteractionProps extends MapCanvasProps {
   calculatedPathRef?: React.MutableRefObject<Point[]>;
   addDrawing: (drawing: Omit<MapDrawing, 'id'>) => void;
   liveDrawingPointsRef: React.MutableRefObject<Point[]>;
+  // Modal callbacks for zone configuration
+  openAudioZoneConfigModal?: (onSave: (config: { audioUrl: string; volume: number; radius: number; }) => void) => void;
+  openTriggerZoneConfigModal?: (onSave: (handoutId: string) => void) => void;
 }
 
 export interface UseLayeredInteractionReturn {
@@ -125,6 +128,9 @@ export const useLayeredInteraction = (
           props.liveDrawingPointsRef.current = points;
         }
       },
+      // Modal callbacks for zone configuration
+      openAudioZoneConfigModal: props.openAudioZoneConfigModal,
+      openTriggerZoneConfigModal: props.openTriggerZoneConfigModal,
     };
 
     orchestrator.setCallbacks(callbacks);
@@ -143,7 +149,6 @@ export const useLayeredInteraction = (
     orchestrator.addHandler(new TokenDragHandler());      // 500
     orchestrator.addHandler(new ClickAnimationHandler()); // 200
     orchestrator.addHandler(new PanZoomHandler());        // 100
-    orchestrator.addHandler(new CursorSyncHandler());     // 50
     orchestrator.addHandler(new CursorSyncHandler());     // 50
 
     // Wire click animations ref

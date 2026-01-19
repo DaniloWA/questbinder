@@ -325,4 +325,11 @@ export interface InteractionCallbacks {
   removeDrawing: (id: string) => void;
   setHoveredTokenId?: (id: string | null) => void;
   setHoveredObstacleId?: (id: string | null) => void;
+
+  // Modal callbacks for zone configuration
+  openAudioZoneConfigModal?: (onSave: (config: { audioUrl: string; volume: number; radius: number; }) => void) => void;
+  openTriggerZoneConfigModal?: (onSave: (handoutId: string) => void) => void;
+
+  // Token drag state
+  setIsTokenDragging?: (isDragging: boolean) => void;
 }

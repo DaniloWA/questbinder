@@ -58,6 +58,9 @@ export class ZoneDrawHandler extends BaseHandler {
   }
 
   onMouseDown(ctx: InteractionContext): HandlerResult {
+    // Only GM can draw zones
+    if (!ctx.isGM) return this.notHandled();
+
     // Right click cancels or commits
     if (ctx.button === 2) {
       return this.handleRightClick(ctx);
@@ -153,24 +156,33 @@ export class ZoneDrawHandler extends BaseHandler {
         brightness: 1,
         color: '#ffffff',
       }]);
+      this.resetAll();
+      this.callbacks?.setActiveTool('select');
     } else if (zoneType === 'audio') {
-      this.callbacks?.addAudioZones([{
-        type: 'rect',
-        rect,
-        audioUrl: '',
-        volume: 1,
-        radius: 100,
-      }]);
+      // Open modal for audio zone configuration
+      const savedRect = { ...rect };
+      this.callbacks?.openAudioZoneConfigModal?.((config) => {
+        this.callbacks?.addAudioZones([{
+          type: 'rect',
+          rect: savedRect,
+          ...config,
+        }]);
+      });
+      this.resetAll();
+      this.callbacks?.setActiveTool('select');
     } else if (zoneType === 'trigger') {
-      this.callbacks?.addTriggerZones([{
-        type: 'rect',
-        rect,
-        handoutId: '',
-      }]);
+      // Open modal for trigger zone configuration
+      const savedRect = { ...rect };
+      this.callbacks?.openTriggerZoneConfigModal?.((handoutId) => {
+        this.callbacks?.addTriggerZones([{
+          type: 'rect',
+          rect: savedRect,
+          handoutId,
+        }]);
+      });
+      this.resetAll();
+      this.callbacks?.setActiveTool('select');
     }
-
-    this.resetAll();
-    this.callbacks?.setActiveTool('select');
   }
 
   // =========================================================================
@@ -218,24 +230,33 @@ export class ZoneDrawHandler extends BaseHandler {
         brightness: 1,
         color: '#ffffff',
       }]);
+      this.resetAll();
+      this.callbacks?.setActiveTool('select');
     } else if (zoneType === 'audio') {
-      this.callbacks?.addAudioZones([{
-        type: 'polygon',
-        points,
-        audioUrl: '',
-        volume: 1,
-        radius: 100,
-      }]);
+      // Open modal for audio zone configuration
+      const savedPoints = [...points];
+      this.callbacks?.openAudioZoneConfigModal?.((config) => {
+        this.callbacks?.addAudioZones([{
+          type: 'polygon',
+          points: savedPoints,
+          ...config,
+        }]);
+      });
+      this.resetAll();
+      this.callbacks?.setActiveTool('select');
     } else if (zoneType === 'trigger') {
-      this.callbacks?.addTriggerZones([{
-        type: 'polygon',
-        points,
-        handoutId: '',
-      }]);
+      // Open modal for trigger zone configuration  
+      const savedPoints = [...points];
+      this.callbacks?.openTriggerZoneConfigModal?.((handoutId) => {
+        this.callbacks?.addTriggerZones([{
+          type: 'polygon',
+          points: savedPoints,
+          handoutId,
+        }]);
+      });
+      this.resetAll();
+      this.callbacks?.setActiveTool('select');
     }
-
-    this.resetAll();
-    this.callbacks?.setActiveTool('select');
   }
 
   private handleRightClick(ctx: InteractionContext): HandlerResult {

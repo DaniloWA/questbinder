@@ -74,13 +74,15 @@ export class AttackZoneHandler extends BaseHandler {
       const zone = findAttackZoneAt(ctx.worldPos.x, ctx.worldPos.y, ctx);
       if (zone) {
         // Start dragging (shift = rotate)
+        // Shift+drag enables rotation mode, but only for cone/line shapes
+        const canRotate = ctx.shiftKey && (zone.shape === 'cone' || zone.shape === 'line');
         this.draggedZone = {
           id: zone.id,
           startX: ctx.worldPos.x,
           startY: ctx.worldPos.y,
           originX: zone.origin.x,
           originY: zone.origin.y,
-          rotating: ctx.shiftKey,
+          rotating: canRotate,
         };
         return this.handled({ cursor: ctx.shiftKey ? 'ew-resize' : 'move' });
       }
@@ -111,10 +113,10 @@ export class AttackZoneHandler extends BaseHandler {
     // Handle dragging
     if (this.draggedZone) {
       if (this.draggedZone.rotating) {
-        // Calculate rotation angle
+        // Calculate rotation angle in radians (same as legacy)
         const dx = ctx.worldPos.x - this.draggedZone.originX;
         const dy = ctx.worldPos.y - this.draggedZone.originY;
-        const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+        const angle = Math.atan2(dy, dx);  // Keep radians, legacy behavior
 
         this.callbacks?.onUpdateAttackZone?.(this.draggedZone.id, { direction: angle });
         return this.handled({ cursor: 'ew-resize' });
