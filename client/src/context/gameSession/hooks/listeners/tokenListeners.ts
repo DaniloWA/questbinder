@@ -103,16 +103,16 @@ export const registerTokenListeners = ({
   };
 
   // Register listeners
-  socketService.on('token:update', handleTokenUpdate);
-  socketService.on('token:add', handleTokenAdd);
-  socketService.on('token:remove', handleTokenRemove);
+  // socketService.on('token:update', handleTokenUpdate);
+  // socketService.on('token:add', handleTokenAdd);
+  // socketService.on('token:remove', handleTokenRemove);
   socketService.on('token:drag', handleTokenDrag);
 
   // Return cleanup function
   return () => {
-    socketService.off('token:update', handleTokenUpdate);
-    socketService.off('token:add', handleTokenAdd);
-    socketService.off('token:remove', handleTokenRemove);
+    // socketService.off('token:update', handleTokenUpdate);
+    // socketService.off('token:add', handleTokenAdd);
+    // socketService.off('token:remove', handleTokenRemove);
     socketService.off('token:drag', handleTokenDrag);
   };
 };

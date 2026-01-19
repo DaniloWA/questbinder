@@ -108,17 +108,17 @@ export const registerSceneListeners = ({
   };
 
   // Register listeners
-  socketService.on('scene:update', handleSceneUpdate);
-  socketService.on('scene:add', handleSceneAdd);
-  socketService.on('scene:delete', handleSceneDelete);
+  // socketService.on('scene:update', handleSceneUpdate);
+  // socketService.on('scene:add', handleSceneAdd);
+  // socketService.on('scene:delete', handleSceneDelete);
   socketService.on('scene:switch', handleSceneSwitch);
   socketService.on('map:ping', handleMapPing);
 
   // Return cleanup function
   return () => {
-    socketService.off('scene:update', handleSceneUpdate);
-    socketService.off('scene:add', handleSceneAdd);
-    socketService.off('scene:delete', handleSceneDelete);
+    // socketService.off('scene:update', handleSceneUpdate);
+    // socketService.off('scene:add', handleSceneAdd);
+    // socketService.off('scene:delete', handleSceneDelete);
     socketService.off('scene:switch', handleSceneSwitch);
     socketService.off('map:ping', handleMapPing);
   };

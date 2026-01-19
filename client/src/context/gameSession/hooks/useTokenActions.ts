@@ -97,7 +97,7 @@ export const useTokenActions = (
       },
 
       socketEmit: () => {
-        smartSync.apply('token', tokenId, 'move', { x: newX, y: newY }, state.activeSceneId);
+        smartSync.apply('token', tokenId, 'update', { x: newX, y: newY }, state.activeSceneId);
       }
     });
 

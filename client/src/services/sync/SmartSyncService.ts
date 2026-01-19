@@ -90,16 +90,61 @@ export class SmartSyncService {
 
   /**
    * Initialize the sync service and set up socket listeners.
+   * Can optionally hydrate cache from initial state.
    */
-  init(): void {
-    if (this.initialized) return;
+  init(initialState?: any): void {
+    if (this.initialized && !initialState) return;
 
-    this.setupSocketListeners();
-    this.setupConnectionListener();
-    this.initialized = true;
+    if (!this.initialized) {
+      this.setupSocketListeners();
+      this.setupConnectionListener();
+      this.initialized = true;
+    }
+
+    if (initialState) {
+      this.hydrate(initialState);
+    }
 
     if (this.options.debug) {
-      console.log('[SmartSync] Initialized with options:', this.options);
+      console.log('[SmartSync] Initialized', { options: this.options, hydrated: !!initialState });
+    }
+  }
+
+  /**
+   * Hydrate cache from full game state.
+   */
+  private hydrate(state: any): void {
+    if (!state || !state.scenes) return;
+
+    const scenes = state.scenes as any[];
+
+    // Scenes
+    scenes.forEach(scene => {
+      this.cache.set('scene', scene.id, scene, scene.version || 0);
+
+      // Tokens
+      scene.tokens?.forEach((token: any) => {
+        this.cache.set('token', token.id, token, token.version || 0, scene.id);
+      });
+
+      // Drawings
+      scene.drawings?.forEach((drawing: any) => {
+        this.cache.set('drawing', drawing.id, drawing, drawing.version || 0, scene.id);
+      });
+
+      // Obstacles
+      scene.obstacles?.forEach((obstacle: any) => {
+        this.cache.set('obstacle', obstacle.id, obstacle, obstacle.version || 0, scene.id);
+      });
+    });
+
+    // Characters
+    state.campaignCharacters?.forEach((char: any) => {
+      this.cache.set('character', char.id, char, char.version || 0);
+    });
+
+    if (this.options.debug) {
+      console.log('[SmartSync] Hydrated from state:', this.cache.getStats());
     }
   }
 
@@ -299,7 +344,7 @@ export class SmartSyncService {
     this.queue.enqueue(entityType, entityId, changeType, data, parentId, version);
 
     // Notify subscribers
-    this.notifySubscribers(entityType, entityId, data as T, changeType);
+    this.notifySubscribers(entityType, entityId, data as T, changeType, parentId);
 
     if (this.options.debug) {
       console.log('[SmartSync] Applied:', { entityType, entityId, changeType, data });
@@ -354,7 +399,7 @@ export class SmartSyncService {
     }
 
     // Notify subscribers
-    this.notifySubscribers(entityType, entityId, changeType === 'delete' ? null : data, changeType);
+    this.notifySubscribers(entityType, entityId, changeType === 'delete' ? null : data, changeType, parentId);
 
     if (this.options.debug) {
       console.log('[SmartSync] Received:', { entityType, entityId, changeType });
@@ -412,7 +457,8 @@ export class SmartSyncService {
     entityType: EntityType,
     entityId: string,
     data: T | null,
-    changeType: ChangeType
+    changeType: ChangeType,
+    parentId?: string
   ): void {
     for (const subscription of this.subscriptions.values()) {
       if (subscription.entityType !== entityType) continue;
@@ -427,7 +473,7 @@ export class SmartSyncService {
 
       // Call subscriber
       try {
-        (callback as ChangeCallback<T>)(entityId, data, changeType);
+        (callback as ChangeCallback<T>)(entityId, data, changeType, parentId);
       } catch (error) {
         console.error('[SmartSync] Subscriber error:', error);
       }
@@ -529,7 +575,8 @@ export class SmartSyncService {
       conflict.entityType,
       conflict.entityId,
       this.cache.get(conflict.entityType, conflict.entityId),
-      'update'
+      'update',
+      conflict.remoteChange.parentId
     );
   }
 
@@ -589,7 +636,8 @@ export class SmartSyncService {
       change.entityType,
       change.entityId,
       this.cache.get(change.entityType, change.entityId),
-      'update'
+      'update',
+      change.parentId
     );
   }
 
@@ -712,4 +760,4 @@ export class SmartSyncService {
 }
 
 // Export singleton instance
-export const smartSync = new SmartSyncService();
+export const smartSync = new SmartSyncService(undefined, undefined, undefined, undefined, { debug: true });

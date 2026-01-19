@@ -47,9 +47,9 @@ export const useSocketListeners = (
       registerTokenListeners(deps),
       registerCombatListeners(deps),
       registerChatListeners(deps),
-      registerDrawingListeners(deps),
+      // registerDrawingListeners(deps), // Handled by SmartSync
       registerAudioListeners(deps),
-      registerCharacterListeners(deps),
+      // registerCharacterListeners(deps), // Handled by SmartSync
       registerPlayerListeners(deps),
       registerAttackZoneListeners(deps),
       registerSystemListeners(deps)

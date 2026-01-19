@@ -162,7 +162,8 @@ export interface CacheStats {
 export type ChangeCallback<T = unknown> = (
   entityId: string,
   data: T | null,
-  changeType: ChangeType
+  changeType: ChangeType,
+  parentId?: string
 ) => void;
 
 /**

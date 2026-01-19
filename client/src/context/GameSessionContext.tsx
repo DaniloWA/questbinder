@@ -23,6 +23,7 @@ import { useAttackZoneActions } from './gameSession/hooks/useAttackZoneActions';
 import { useSFXActions } from './gameSession/hooks/useSFXActions';
 import { audioService } from '../services/audioService';
 import { smartSync } from '../services/sync';
+import { useSmartSyncBridge } from './gameSession/hooks/useSmartSyncBridge';
 
 const GameSessionContext = createContext<GameSessionContextType | undefined>(undefined);
 
@@ -57,15 +58,17 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
     }, [state]);
 
     useSocketListeners(state, setState, campaignId, user, show, setViewport, stateRef, remoteCursorsRef);
+    useSmartSyncBridge(setState);
     useAuraSystem(state, updateToken, campaignId, state.isGM);
 
-    // Initialize SmartSync system for live updates
+    // Initialize SmartSync system and hydrate with loaded state
     React.useEffect(() => {
-        smartSync.init();
-        if (import.meta.env.DEV) {
-            console.log('[SmartSync] Initialized');
+        if (!state.isLoading && state.campaign) {
+            smartSync.init(state);
+        } else {
+            smartSync.init();
         }
-    }, []);
+    }, [state.isLoading, state.campaign]);
 
     // Audio Zone Playback Effect
     React.useEffect(() => {

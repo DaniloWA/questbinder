@@ -259,7 +259,7 @@ export interface PolygonObstacle extends BaseObstacle {
   open?: boolean; // if true, not a closed loop
 }
 
-export type Obstacle = LineObstacle | PolygonObstacle;
+export type Obstacle = (LineObstacle | PolygonObstacle) & { version?: number; };
 
 export interface LightZone {
   id: string;
@@ -299,6 +299,7 @@ export interface MapDrawing {
   width: number;
   opacity: number;
   isEraser?: boolean; // Conceptually
+  version?: number;
 }
 
 export type TokenType = 'pc' | 'npc' | 'object';
@@ -364,6 +365,7 @@ export interface Token {
   displayMode?: 'image' | 'text';
   textDetails?: { text: string, backgroundColor: string, textColor: string; };
   speed?: number;
+  version?: number;
 }
 
 export interface SFXParticleConfig {
@@ -416,6 +418,7 @@ export interface MapScene {
   tokens: Token[];
   audioUrl?: string;
   sfx?: SFXConfig;
+  version?: number;
 }
 
 export interface Viewport {
