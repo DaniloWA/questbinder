@@ -98,6 +98,25 @@ export class PanZoomHandler extends BaseHandler {
     if (ctx.viewportRef?.current) {
       ctx.viewportRef.current.x += dx;
       ctx.viewportRef.current.y += dy;
+
+      // Debounce the state sync to commit changes when panning stops
+      if (this.throttleTimer) {
+        clearTimeout(this.throttleTimer);
+      }
+
+      const newX = ctx.viewportRef.current.x;
+      const newY = ctx.viewportRef.current.y;
+      const currentZoom = ctx.viewportRef.current.zoom;
+
+      this.throttleTimer = setTimeout(() => {
+        this.callbacks?.setViewport({
+          x: newX,
+          y: newY,
+          zoom: currentZoom,
+        });
+        this.throttleTimer = null;
+      }, 100);
+
     } else {
       // Fallback to callback
       this.callbacks?.setViewport({
