@@ -320,7 +320,7 @@ export interface InteractionCallbacks {
   updateMapSettings?: (settings: any) => void;
   removeObstacle: (id: string) => void;
   removeAudioZone: (id: string) => void;
-  addDrawing: (drawing: Omit<MapDrawing, 'id'>) => void;
+  addDrawing: (drawing: MapDrawing) => void;
   updateDrawingState?: (points: Point[]) => void;
   removeDrawing: (id: string) => void;
   setHoveredTokenId?: (id: string | null) => void;

@@ -8,6 +8,7 @@ import { BaseHandler } from '../core/BaseHandler';
 import type { EventPhase, HandlerResult, InteractionContext } from '../core/types';
 import { distance } from '../utils/coordConversion';
 import { handleRightClickCancel } from '../utils/InteractionUtils';
+import { simplifyPath } from '../../../../../utils/geometry';
 import type { Point } from '../../../../../types';
 
 /**
@@ -65,8 +66,12 @@ export class BrushCanvasHandler extends BaseHandler {
 
     // Commit drawing
     if (this.drawingPoints.length > 1) {
+      // Optimize path before sending (tolerance 2.5)
+      const optimizedPoints = simplifyPath(this.drawingPoints, 2.5);
+
       this.callbacks?.addDrawing({
-        points: [...this.drawingPoints],
+        id: `drawing-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+        points: optimizedPoints,
         color: ctx.drawingSettings?.color || '#ffffff',
         width: ctx.drawingSettings?.width || 3,
         opacity: ctx.drawingSettings?.opacity || 1,

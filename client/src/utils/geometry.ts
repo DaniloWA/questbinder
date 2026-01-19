@@ -77,5 +77,74 @@ export {
     getVisibilityServiceStatus
 } from './visibilityService';
 
-// NOTE: VisibilityCacheEntry type kept for potential future use but cache
-// is now managed by visibilityService.ts
+// ============================================================================
+// SIMPLIFICATION & CURVES
+// ============================================================================
+
+/**
+ * Calculates the midpoint between two points.
+ */
+export const getMidPoint = (p1: Point, p2: Point): Point => {
+    return {
+        x: p1.x + (p2.x - p1.x) / 2,
+        y: p1.y + (p2.y - p1.y) / 2
+    };
+};
+
+/**
+ * Simplifies a path using the Ramer-Douglas-Peucker algorithm.
+ * Reduces point count while maintaining shape within tolerance.
+ * 
+ * @param points The original path points
+ * @param tolerance Max distance error (in grid units/pixels)
+ * @returns Simplified path
+ */
+export const simplifyPath = (points: Point[], tolerance: number): Point[] => {
+    if (points.length <= 2) return points;
+
+    const sqTolerance = tolerance * tolerance;
+    let maxSqDist = 0;
+    let index = 0;
+
+    // Find the point with the maximum distance
+    for (let i = 1; i < points.length - 1; i++) {
+        const sqDist = getSqSegDist(points[i], points[0], points[points.length - 1]);
+        if (sqDist > maxSqDist) {
+            index = i;
+            maxSqDist = sqDist;
+        }
+    }
+
+    // If max distance is greater than epsilon, recursively simplify
+    if (maxSqDist > sqTolerance) {
+        const left = simplifyPath(points.slice(0, index + 1), tolerance);
+        const right = simplifyPath(points.slice(index), tolerance);
+        return [...left.slice(0, -1), ...right];
+    } else {
+        return [points[0], points[points.length - 1]];
+    }
+};
+
+/**
+ * Helper: Square distance from a point to a segment
+ */
+const getSqSegDist = (p: Point, p1: Point, p2: Point) => {
+    let x = p1.x, y = p1.y, dx = p2.x - x, dy = p2.y - y;
+
+    if (dx !== 0 || dy !== 0) {
+        const t = ((p.x - x) * dx + (p.y - y) * dy) / (dx * dx + dy * dy);
+
+        if (t > 1) {
+            x = p2.x;
+            y = p2.y;
+        } else if (t > 0) {
+            x += dx * t;
+            y += dy * t;
+        }
+    }
+
+    dx = p.x - x;
+    dy = p.y - y;
+
+    return dx * dx + dy * dy;
+};

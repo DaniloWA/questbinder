@@ -189,6 +189,7 @@ export const MapCanvas = (props: MapCanvasProps) => {
       },
       drawingState: {
         livePoints: mapState.liveDrawingPointsRef?.current || [],
+        liveDrawingPointsRef: mapState.liveDrawingPointsRef,
         isDrawing: mapState.isDrawingRef?.current || false,
         settings: drawingSettings || { color: '#ffffff', width: 3, opacity: 1 },
       },
