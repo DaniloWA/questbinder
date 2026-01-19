@@ -5,6 +5,7 @@ import { socketService } from '../../../services/socketService';
 import { smartSync } from '../../../services/sync';
 import { Token } from '../../../types';
 import { ActionHandlers, StateHelpers, GeometryHelpers } from '../helpers';
+import { useLatestRef } from '../../../hooks/useLatestRef';
 
 // Cursor throttle constants
 const CURSOR_THROTTLE_MS = 80; // Batch Mode (relies on replay for smoothness)
@@ -18,6 +19,9 @@ export const useTokenActions = (
   permissionHelper?: any // REGRA MILENAR
 ) => {
   const activeScene = state.scenes.find(s => s.id === state.activeSceneId) || null;
+
+  // State ref to always have access to latest state in callbacks (prevents stale closures)
+  const stateRef = useLatestRef(state);
 
   // Cursor throttle refs
   const lastCursorEmitRef = useRef<number>(0);
@@ -55,12 +59,24 @@ export const useTokenActions = (
   }, []);
 
   const moveToken = useCallback((tokenId: string, newX: number, newY: number) => {
+    // Use stateRef to get the latest state (avoids stale closure)
+    const currentState = stateRef.current;
     resetAfkTimer(); // Token movement counts as activity
-    const scene = activeScene;
-    const token = scene?.tokens.find(t => t.id === tokenId);
-    // ... existing moveToken logic ...
 
-    if (!scene || !token) return;
+    // IMPORTANT: Get scene fresh from stateRef to avoid stale closure
+    const scene = currentState.scenes.find(s => s.id === currentState.activeSceneId);
+    const token = scene?.tokens.find(t => t.id === tokenId);
+
+    if (!scene || !token) {
+      console.warn('[moveToken] Failed to find token or scene:', {
+        sceneId: currentState.activeSceneId,
+        sceneFound: !!scene,
+        tokenId,
+        tokenFound: !!token,
+        tokensCount: scene?.tokens.length
+      });
+      return;
+    }
 
     ActionHandlers.handleOptimisticAction({
       state,
@@ -200,7 +216,7 @@ export const useTokenActions = (
       id: Math.random().toString(36).substr(2, 9),
       x: 0, y: 0, size: 1, name: 'Novo Token', type: 'npc', imgUrl: '', isVisibleToPlayers: true,
       ...rest,
-      ownerId // Override or set ownerId
+      ownerId: ownerId || user?.id // Default to current user if not set
     };
 
     ActionHandlers.handleOptimisticAction({

@@ -106,6 +106,10 @@ export class InteractionOrchestrator {
       handler.onContextUpdate?.(this.context as InteractionContext, changedKeys);
     }
 
+    if (changedKeys.includes('tokens')) {
+      console.log('[Orchestrator] Context Tokens Updated:', this.context.tokens?.length);
+    }
+
     this.emit({ type: 'context:updated', keys: changedKeys });
   }
 

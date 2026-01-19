@@ -52,8 +52,10 @@ export class TokenDragHandler extends BaseHandler {
   }
 
   shouldHandle(phase: EventPhase, ctx: InteractionContext): boolean {
-    // Always handle if currently dragging
-    if (this.dragState.isDragging) return true;
+    // Always handle if currently dragging - this takes priority over everything
+    if (this.dragState.isDragging) {
+      return true;
+    }
 
     // Check for token click/context/hover
     const token = findTokenAt(ctx.worldPos.x, ctx.worldPos.y, ctx);
@@ -70,7 +72,7 @@ export class TokenDragHandler extends BaseHandler {
     }
 
     if (phase === 'move') {
-      // Always snoop for hover updates, but return false to not block other handlers unless we are dragging
+      // When NOT dragging, just snoop for hover updates
       this.handleHover(ctx);
       return false;
     }
@@ -80,6 +82,17 @@ export class TokenDragHandler extends BaseHandler {
 
   onMouseDown(ctx: InteractionContext): HandlerResult {
     const token = findTokenAt(ctx.worldPos.x, ctx.worldPos.y, ctx);
+
+    if (ctx.button === 0 || ctx.button === 2) {
+      console.log('[TokenDrag] Hit Test:', {
+        found: !!token,
+        tokenId: token?.id,
+        owner: token?.ownerId,
+        canDrag: token ? canDragToken(token, ctx) : false,
+        worldPos: ctx.worldPos
+      });
+    }
+
     if (!token) return this.notHandled();
 
     // Right Click -> Context Menu
@@ -116,6 +129,7 @@ export class TokenDragHandler extends BaseHandler {
       return this.notHandled();
     }
 
+
     const gridSize = ctx.gridSize;
     const newGridPos = roundToGrid(
       {
@@ -124,6 +138,7 @@ export class TokenDragHandler extends BaseHandler {
       },
       gridSize
     );
+
 
     // Only recalculate path if grid position changed
     if (
@@ -183,20 +198,23 @@ export class TokenDragHandler extends BaseHandler {
     this.callbacks?.moveToken(token.id, finalPos.x, finalPos.y);
 
     // Move group tokens if multi-selected
-    if (this.dragState.draggedGroup.length > 1) {
-      const dx = finalPos.x - token.x;
-      const dy = finalPos.y - token.y;
+    if (this.dragStateRef?.current?.draggedGroup?.length > 1) { // Access via Ref or State
+      const group = this.dragState.draggedGroup;
+      if (group.length > 1) {
+        const dx = finalPos.x - token.x;
+        const dy = finalPos.y - token.y;
 
-      const groupMoves = this.dragState.draggedGroup
-        .filter(g => g.id !== token.id)
-        .map(g => ({
-          id: g.id,
-          x: g.startGridX + dx,
-          y: g.startGridY + dy,
-        }));
+        const groupMoves = group
+          .filter(g => g.id !== token.id)
+          .map(g => ({
+            id: g.id,
+            x: g.startGridX + dx,
+            y: g.startGridY + dy,
+          }));
 
-      if (groupMoves.length > 0) {
-        this.callbacks?.moveTokens?.(groupMoves);
+        if (groupMoves.length > 0) {
+          this.callbacks?.moveTokens?.(groupMoves);
+        }
       }
     }
 
@@ -207,6 +225,7 @@ export class TokenDragHandler extends BaseHandler {
 
   onMouseLeave(_ctx: InteractionContext): HandlerResult {
     if (this.dragState.isDragging) {
+      console.log('[TokenDrag] MouseLeave - Drag Cancelled');
       // Cancel drag on leave
       this.endDrag();
       return this.handled();
@@ -240,6 +259,7 @@ export class TokenDragHandler extends BaseHandler {
 
   // Private methods
   private startDrag(token: Token, ctx: InteractionContext): void {
+    console.log('[TokenDrag] Start Drag Real:', { id: token.id });
     const gridSize = ctx.gridSize;
 
     this.dragState = {

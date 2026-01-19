@@ -5,6 +5,7 @@ import { Character, User } from '../../../types';
 import { socketService } from '../../../services/socketService';
 import { smartSync } from '../../../services/sync';
 import { PermissionHelper } from '../helpers/PermissionHelper';
+import { useLatestRef } from '../../../hooks/useLatestRef';
 
 // Critical fields that should bypass debounce for instant updates
 const CRITICAL_FIELDS = new Set([
@@ -21,6 +22,9 @@ export const useCharacterActions = (
   permissionHelper: PermissionHelper,
   showNotification: (message: string, type: 'success' | 'error' | 'info' | 'warning') => void
 ) => {
+  // State ref to always have access to latest state in callbacks (prevents stale closures)
+  const stateRef = useLatestRef(state);
+
   const updateTimers = useRef<Record<string, NodeJS.Timeout>>({});
   const pendingUpdates = useRef<Record<string, Partial<Character>>>({});
   const lastSentUpdates = useRef<Record<string, Partial<Character>>>({});
@@ -115,7 +119,9 @@ export const useCharacterActions = (
   const updateCharacterDebounced = useCallback((id: string, data: Partial<Character>, delay: number = 800) => {
     console.log('[CharacterActions] Debounced update scheduled for', id, data);
 
-    const character = state.campaignCharacters.find(c => c.id === id);
+    // Use stateRef to get the latest state (avoids stale closure)
+    const currentState = stateRef.current;
+    const character = currentState.campaignCharacters.find(c => c.id === id);
     if (!character) {
       console.error('[CharacterActions] Character not found:', id);
       return;

@@ -239,6 +239,35 @@ export class SmartSyncService {
       }
     });
 
+    socket.on?.('scene:add', (payload: any) => {
+      const scene = payload?.scene;
+      if (scene?.id) {
+        this.receive({
+          entityType: 'scene',
+          entityId: scene.id,
+          changeType: 'create',
+          data: scene,
+          version: Date.now(),
+          timestamp: Date.now(),
+          userId: payload.userId,
+        });
+      }
+    });
+
+    socket.on?.('scene:delete', (payload: any) => {
+      if (payload?.id) {
+        this.receive({
+          entityType: 'scene',
+          entityId: payload.id,
+          changeType: 'delete',
+          data: {},
+          version: Date.now(),
+          timestamp: Date.now(),
+          userId: payload.userId,
+        });
+      }
+    });
+
     socket.on?.('character:update', (payload: any) => {
       const id = payload?.characterId || payload?.id;
       if (id) {
@@ -247,6 +276,35 @@ export class SmartSyncService {
           entityId: id,
           changeType: 'update',
           data: payload.updates || payload,
+          version: Date.now(),
+          timestamp: Date.now(),
+          userId: payload.userId,
+        });
+      }
+    });
+
+    socket.on?.('character:add', (payload: any) => {
+      const character = payload?.character || payload;
+      if (character?.id) {
+        this.receive({
+          entityType: 'character',
+          entityId: character.id,
+          changeType: 'create',
+          data: character,
+          version: Date.now(),
+          timestamp: Date.now(),
+          userId: payload.userId,
+        });
+      }
+    });
+
+    socket.on?.('character:delete', (payload: any) => {
+      if (payload?.id) {
+        this.receive({
+          entityType: 'character',
+          entityId: payload.id,
+          changeType: 'delete',
+          data: {},
           version: Date.now(),
           timestamp: Date.now(),
           userId: payload.userId,
@@ -382,12 +440,26 @@ export class SmartSyncService {
 
     // Check for conflicts
     const entry = this.cache.getEntry(entityType, entityId);
-    if (entry && entry.dirty && entry.pendingChanges.length > 0) {
+
+    // Skip conflict check for CREATE - server is confirming our optimistic create
+    // Also skip for updates to our own pending creates
+    if (entry && entry.dirty && entry.pendingChanges.length > 0 && changeType !== 'create') {
       // Potential conflict
       const conflict = this.detectConflict(entry, event);
       if (conflict) {
         this.handleConflict(conflict);
         return;
+      }
+    }
+
+    // If server confirms our create, clear pending state
+    if (changeType === 'create' && entry && entry.dirty) {
+      // Clear all pending changes for this entity since server confirmed
+      for (const changeId of entry.pendingChanges) {
+        this.queue.dequeue(changeId);
+      }
+      if (this.options.debug) {
+        console.log('[SmartSync] Server confirmed creation, cleared pending state for:', entityId);
       }
     }
 

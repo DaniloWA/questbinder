@@ -62,6 +62,24 @@ export const MapCanvas = (props: MapCanvasProps) => {
   // 2. Token Layer (Animations)
   const tokenLayer = useTokenLayer(props.tokens, mapState.dragState);
 
+  // Debug: Monitor tokens prop
+  useEffect(() => {
+    const newToken = props.tokens[props.tokens.length - 1];
+    if (newToken) {
+      console.log('[MapCanvas] Tokens Updated:', {
+        count: props.tokens.length,
+        lastTokenId: newToken.id,
+        owner: newToken.ownerId,
+        pos: { x: newToken.x, y: newToken.y }
+      });
+    }
+  }, [props.tokens]);
+
+  // Debug Props
+  useEffect(() => {
+    // console.log('[MapCanvas] Props update:', { isGM: props.isGM, tokens: props.tokens.length });
+  }, [props.isGM, props.tokens.length]);
+
   // 3. Vision Layer (Filtering)
   const visionTokens = useVisionLayer(props.tokens, props.isGM, props.gmViewMode, props.previewPlayerId, props.currentUser);
 

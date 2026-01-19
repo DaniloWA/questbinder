@@ -42,12 +42,13 @@ export const registerDrawingListeners = ({
   };
 
   // Register listeners
-  socketService.on('drawing:add', handleDrawingAdd);
-  socketService.on('drawing:remove', handleDrawingRemove);
+  // NOTE: Disabled - SmartSync handles these events via SmartSyncBridge
+  // socketService.on('drawing:add', handleDrawingAdd);
+  // socketService.on('drawing:remove', handleDrawingRemove);
 
   // Return cleanup function
   return () => {
-    socketService.off('drawing:add', handleDrawingAdd);
-    socketService.off('drawing:remove', handleDrawingRemove);
+    // socketService.off('drawing:add', handleDrawingAdd);
+    // socketService.off('drawing:remove', handleDrawingRemove);
   };
 };
