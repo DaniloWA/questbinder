@@ -17,25 +17,23 @@ export const renderRemoteViewports = (
   if (!players || players.length === 0) return;
 
   // 1. Extract viewports from players array (Source of Truth)
-  // We prioritize the 'players' Sync data, but can augment with 'remoteCursors' if needed
+  // We prioritize the 'players' Sync data (SYNC as single rule)
   const remoteViewports: Record<string, { x: number, y: number, zoom: number, w: number, h: number; }> = {};
 
   players.forEach(p => {
     // Skip current user (local viewport)
     if (p.id === currentUserId) return;
 
-    // Check if player has a viewport synced (via User object OR legacy prop)
-    const vpFromUser = p.viewport;
-    const vpFromMap = remoteViewportsMap ? remoteViewportsMap[p.id] : undefined;
-    const viewport = vpFromUser || vpFromMap;
+    // Check if player has a viewport synced (via User object)
+    const viewport = p.viewport;
 
     if (viewport) {
       remoteViewports[p.id] = {
         x: viewport.x,
         y: viewport.y,
         zoom: viewport.zoom,
-        w: (viewport as any).w || 1920, // Default width if not synced
-        h: (viewport as any).h || 1080  // Default height if not synced
+        w: viewport.w || 1920, // Default width if not synced
+        h: viewport.h || 1080  // Default height if not synced
       };
     }
   });

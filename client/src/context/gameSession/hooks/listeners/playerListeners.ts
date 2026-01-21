@@ -147,12 +147,14 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
 
   const handleViewportUpdate = (payload: ViewportUpdatePayload) => {
     if (payload.userId === user?.id) return;
+
     setState(prev => ({
       ...prev,
-      remoteViewports: {
-        ...prev.remoteViewports,
-        [payload.userId || 'unknown']: { x: payload.x, y: payload.y, zoom: payload.zoom, w: payload.w, h: payload.h }
-      }
+      players: prev.players.map(p =>
+        p.id === payload.userId
+          ? { ...p, viewport: { x: payload.x, y: payload.y, zoom: payload.zoom, w: payload.w, h: payload.h } }
+          : p
+      )
     }));
   };
 
