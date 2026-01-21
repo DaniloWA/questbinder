@@ -178,6 +178,10 @@ export class TokenDragHandler extends BaseHandler {
     // Actually we only changed lastCheckedGridX/Y so dragState changed.
     if (this.dragStateRef) this.dragStateRef.current = { ...this.dragState };
 
+    // Emit cursor move to keep remote clients synced (even if hidden)
+    // This prevents the "replay animation" effect when the cursor reappears after drag.
+    this.callbacks?.emitCursorMove?.(ctx.worldPos.x, ctx.worldPos.y, false);
+
     return this.handled({ cursor: 'grabbing' });
   }
 
