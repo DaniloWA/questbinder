@@ -34,6 +34,7 @@ import { SFXLayer } from '../engine/sfx/SFXLayer';
  */
 interface ExtendedProps extends MapCanvasProps {
   viewportRef?: React.RefObject<{ x: number; y: number; zoom: number; }>;
+  remoteViewports?: Record<string, { x: number; y: number; zoom: number; w: number; h: number; }>;
   visionTokens?: Token[];
   imageCache?: Record<string, HTMLImageElement>;
   hoveredTokenId?: string | null;
@@ -274,6 +275,8 @@ export function useLayerEngine(
     props.viewportRef, // Safety: Ensure context has ref
     props.calculatedPath, // CRITICAL: Update context when drag path changes (Ruler)
     props.dragState, // CRITICAL: Update context when drag state changes
+    props.players, // CRITICAL: Update context when players change (viewports)
+    props.permissions, // CRITICAL: Update context when permissions change
   ]);
 
   // Sync SFX state

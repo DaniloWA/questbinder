@@ -132,7 +132,7 @@ export interface RenderContext {
   campaignCharacters: Character[];
 
   // Remote Viewports
-  remoteViewports: Record<string, { x: number; y: number; zoom: number; w: number; h: number; userId?: string; color?: string; }>;
+  remoteViewports: Record<string, { x: number; y: number; zoom: number; w: number; h: number; }>;
 
   // Ruler Settings
   rulerSettings: {

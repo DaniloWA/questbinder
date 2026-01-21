@@ -39,6 +39,7 @@ export type SocketEventType =
   | 'gm:pull_view'
   | 'gm:force_view'
   | 'cursor:keep_alive'
+  | 'player:update'
   | 'system:notification'
   | 'connect'
   | 'disconnect';
@@ -374,6 +375,7 @@ export interface SocketEventMap {
   'character:delete': { id: string; };
   'player:join': { user: { id: string; name: string; color: string; avatar?: string; role: 'gm' | 'player'; }; };
   'player:leave': { userId: string; userName?: string; };
+  'player:update': { id: string; changes: any; }; // SmartSync player update
   'viewport:restore': ViewportRestorePayload;
   'cursor:keep_alive': void;
   'system:notification': SystemNotificationPayload;

@@ -1,9 +1,9 @@
 import React from 'react';
 import { GameSessionState, BooleanPermissionKey } from '../types';
-import { chatService } from '../../../services/chatService';
 import { socketService } from '../../../services/socketService';
 import { diceEngine } from '../../../utils/dice';
 import { ChatMessage, RollResult, ChatLinkMetadata } from '../../../types';
+import { smartSync } from '../../../services/sync';
 
 export const useChatActions = (
   state: GameSessionState,
@@ -65,25 +65,8 @@ export const useChatActions = (
       recipientName: options?.recipientName,
     };
 
-    chatService.sendMessage(
-      campaignId,
-      user?.id || '',
-      user?.name || 'User',
-      content,
-      type,
-      rollDetails,
-      link,
-      msg.visibility,
-      {
-        characterId: msg.characterId,
-        characterName: msg.characterName,
-        characterAvatarUrl: msg.characterAvatarUrl,
-        recipientId: msg.recipientId,
-        recipientName: msg.recipientName
-      }
-    );
-    setState(prev => ({ ...prev, chatMessages: [...prev.chatMessages, msg] }));
-    socketService.emit('chat:message', { message: msg });
+    // SmartSync handles Create + Optimistic Update + Persistence
+    smartSync.apply('chatMessage', msg.id, 'create', msg);
   };
 
   const toggleChatReaction = async (msg: ChatMessage, type: 'like' | 'dislike') => {
@@ -109,23 +92,8 @@ export const useChatActions = (
       [type]: { ...current, count: newCount, users: newUsers }
     };
 
-    // Optimistic Update
-    setState(prev => ({
-      ...prev,
-      chatMessages: prev.chatMessages.map(m => m.id === msg.id ? { ...m, reactions: newReactions } : m)
-    }));
-
-    // Emit socket event for others
-    socketService.emit('chat:reaction', {
-      messageId: msg.id,
-      reaction: newReactions
-    });
-
-    try {
-      await chatService.toggleReaction(msg, user?.id || '', type);
-    } catch (err) {
-      console.error('Failed to toggle reaction:', err);
-    }
+    // SmartSync handles Update + Optimistic Update + Persistence
+    smartSync.apply('chatMessage', msg.id, 'update', { reactions: newReactions });
   };
 
   const broadcastRoll = (result: RollResult) => {
@@ -140,8 +108,11 @@ export const useChatActions = (
       timestamp: Date.now(),
       rollDetails: result
     };
-    setState(prev => ({ ...prev, chatMessages: [...prev.chatMessages, msg] }));
-    chatService.sendMessage(campaignId, user?.id || '', user?.name || 'User', msg.content, 'roll', result);
+
+    // SmartSync for persistent chat log
+    smartSync.apply('chatMessage', msg.id, 'create', msg);
+
+    // Direct socket emit for ephemeral 3D dice animation
     socketService.emit('dice:roll', { result, user: { id: user?.id || '', name: user?.name || '', color: '#fff' } });
   };
 

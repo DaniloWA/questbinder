@@ -269,6 +269,9 @@ export class SyncQueue {
       'attackZone:delete': 'attackZone:remove',
       'handout:update': 'handout:update',
       'campaign:update': 'campaign:update',
+      'chatMessage:create': 'chat:message',
+      'chatMessage:update': 'chat:reaction',
+      'player:update': 'player:update', // Unified player update event
     };
 
     const eventKey = `${entityType}:${changeType}`;
@@ -308,6 +311,21 @@ export class SyncQueue {
 
       case 'combat':
         payload = { combat: data, ...common };
+        break;
+
+      case 'chatMessage':
+        if (changeType === 'create') {
+          payload = { message: data, ...common };
+        } else if (changeType === 'update') {
+          // Providing specific payload for chat:reaction
+          // data should contain { reactions: ... }
+          payload = { messageId: entityId, reaction: (data as any).reactions, ...common };
+        }
+        break;
+
+      case 'player':
+        // For player updates (viewport etc)
+        payload = { id: entityId, changes: data, ...common };
         break;
 
       default:

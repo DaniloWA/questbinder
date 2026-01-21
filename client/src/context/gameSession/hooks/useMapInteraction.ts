@@ -2,6 +2,7 @@ import React from 'react';
 import { GameSessionState, BooleanPermissionKey } from '../types';
 import { socketService } from '../../../services/socketService';
 import { Ping, Viewport } from '../../../types';
+import { smartSync } from '../../../services/sync';
 
 export const useMapInteraction = (
   state: GameSessionState,
@@ -24,6 +25,7 @@ export const useMapInteraction = (
         h: window.innerHeight
       });
     }, 100); // 100ms debounce
+
 
     return () => clearTimeout(handler);
   }, [state.viewport, state.isConnected, user]);

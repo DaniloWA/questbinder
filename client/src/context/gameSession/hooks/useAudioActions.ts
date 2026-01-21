@@ -1,57 +1,49 @@
 import React from 'react';
 import { GameSessionState } from '../types';
-import { campaignService } from '../../../services/campaignService';
-import { socketService } from '../../../services/socketService';
 import { Playlist, SoundEffect, AudioZone } from '../../../types';
+import { smartSync } from '../../../services/sync';
 
 export const useAudioActions = (
   state: GameSessionState,
-  setState: React.Dispatch<React.SetStateAction<GameSessionState>>,
+  setState: React.Dispatch<React.SetStateAction<GameSessionState>>, // Kept for signature compatibility if needed, but unused for logic
   campaignId: string,
   show: (notification: any) => void
 ) => {
   const updateAudioSettings = (settings: { playlists: Playlist[], soundboard: SoundEffect[]; }) => {
-    setState(prev => ({ ...prev, audioSettings: settings }));
-    campaignService.update(campaignId, { audioSettings: settings });
-    socketService.emit('campaign:update', { changes: { audioSettings: settings } });
+    // SmartSync handles Optimistic Update + Server Sync + Persistence
+    smartSync.apply('campaign', campaignId, 'update', { audioSettings: settings });
     show({ type: 'success', message: 'Áudio sincronizado com o grupo.' });
   };
 
   const addAudioZones = (zones: Omit<AudioZone, 'id'>[]) => {
     if (!state.activeSceneId) return;
-    const newZones: AudioZone[] = zones.map(z => ({ ...z, id: Math.random().toString(36).substr(2, 9) }));
-    const updatedScenes = state.scenes.map(s => s.id === state.activeSceneId ? {
-      ...s,
-      audioZones: [...(s.audioZones || []), ...newZones]
-    } : s);
-    setState(prev => ({ ...prev, scenes: updatedScenes }));
+    const currentScene = state.scenes.find(s => s.id === state.activeSceneId);
+    if (!currentScene) return;
 
-    campaignService.update(campaignId, { scenes: updatedScenes });
-    socketService.emit('scene:update', { id: state.activeSceneId, changes: { audioZones: updatedScenes.find(s => s.id === state.activeSceneId)?.audioZones } });
+    const newZones: AudioZone[] = zones.map(z => ({ ...z, id: Math.random().toString(36).substr(2, 9) }));
+    const updatedAudioZones = [...(currentScene.audioZones || []), ...newZones];
+
+    smartSync.apply('scene', state.activeSceneId, 'update', { audioZones: updatedAudioZones });
   };
 
   const updateAudioZone = (id: string, data: Partial<AudioZone>) => {
     if (!state.activeSceneId) return;
-    const updatedScenes = state.scenes.map(s => s.id === state.activeSceneId ? {
-      ...s,
-      audioZones: (s.audioZones || []).map(z => z.id === id ? { ...z, ...data } : z)
-    } : s);
-    setState(prev => ({ ...prev, scenes: updatedScenes }));
+    const currentScene = state.scenes.find(s => s.id === state.activeSceneId);
+    if (!currentScene) return;
 
-    campaignService.update(campaignId, { scenes: updatedScenes });
-    socketService.emit('scene:update', { id: state.activeSceneId, changes: { audioZones: updatedScenes.find(s => s.id === state.activeSceneId)?.audioZones } });
+    const updatedAudioZones = (currentScene.audioZones || []).map(z => z.id === id ? { ...z, ...data } : z);
+
+    smartSync.apply('scene', state.activeSceneId, 'update', { audioZones: updatedAudioZones });
   };
 
   const removeAudioZone = (id: string) => {
     if (!state.activeSceneId) return;
-    const updatedScenes = state.scenes.map(s => s.id === state.activeSceneId ? {
-      ...s,
-      audioZones: (s.audioZones || []).filter(z => z.id !== id)
-    } : s);
-    setState(prev => ({ ...prev, scenes: updatedScenes }));
+    const currentScene = state.scenes.find(s => s.id === state.activeSceneId);
+    if (!currentScene) return;
 
-    campaignService.update(campaignId, { scenes: updatedScenes });
-    socketService.emit('scene:update', { id: state.activeSceneId, changes: { audioZones: updatedScenes.find(s => s.id === state.activeSceneId)?.audioZones } });
+    const updatedAudioZones = (currentScene.audioZones || []).filter(z => z.id !== id);
+
+    smartSync.apply('scene', state.activeSceneId, 'update', { audioZones: updatedAudioZones });
   };
 
   return {

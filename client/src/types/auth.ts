@@ -14,6 +14,8 @@ export interface User {
   createdAt?: string;
   subscriptionTier?: SubscriptionTier;
   gameRole?: GameRole;
+  viewport?: { x: number; y: number; zoom: number; };
+  lastSceneId?: string;
 }
 
 /**

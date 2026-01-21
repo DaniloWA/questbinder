@@ -39,7 +39,7 @@ export class ToolOverlayLayer extends BaseLayer {
 
   render(ctx: CanvasRenderingContext2D, context: RenderContext): void {
     const { activeTool, zoom, scene, localCursorPos: propCursorPos, mouseWorldPosRef, toolState, rulerSettings,
-      attackZoneResults, previewZoneResult, remoteViewports, players, isGM, gmViewMode,
+      attackZoneResults, previewZoneResult, players, isGM, gmViewMode,
       currentUser, permissions, remoteCursorsRef, remoteCursors
     } = context;
     if (!scene) return;
@@ -53,14 +53,14 @@ export class ToolOverlayLayer extends BaseLayer {
     ctx.save();
 
     // =========================================================================
-    // 1. REMOTE VIEWPORTS (Always visible for GM)
+    // 1. REMOTE VIEWPORTS
     // =========================================================================
-    if (isGM && gmViewMode === 'gm' && Object.keys(remoteViewports).length > 0) {
+    if (players && players.length > 0) {
       const cursors = remoteCursorsRef?.current || remoteCursors || {};
       renderRemoteViewports(
         ctx,
-        remoteViewports,
         cursors,
+        context.remoteViewports,
         currentUser?.id,
         permissions,
         isGM,

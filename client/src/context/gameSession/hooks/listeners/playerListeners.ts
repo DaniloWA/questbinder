@@ -156,6 +156,7 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
     }));
   };
 
+
   const handleGMForceView = (payload: GMForceViewPayload) => {
     if (payload.targets && !payload.targets.includes(user?.id)) return;
 
@@ -246,7 +247,8 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
   socketService.on('cursor:pressing', handleCursorPressing);
   socketService.on('me:afk_status', handleMyAfkStatus);
   socketService.on('me:kicked', handleKicked);
-  socketService.on('viewport:update', handleViewportUpdate);
+  // socketService.on('player:update', handlePlayerUpdate); // Added for SmartSync support
+  socketService.on('viewport:update', handleViewportUpdate); // Deprecated
   socketService.on('viewport:restore', handleViewportRestore);
   socketService.on('gm:force_view', handleGMForceView);
   socketService.on('gm:follow_mode_change', handleGMFollowModeChange);
@@ -260,6 +262,7 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
     socketService.off('cursor:pressing', handleCursorPressing);
     socketService.off('me:afk_status', handleMyAfkStatus);
     socketService.off('me:kicked', handleKicked);
+    // socketService.off('player:update', handlePlayerUpdate);
     socketService.off('viewport:update', handleViewportUpdate);
     socketService.off('viewport:restore', handleViewportRestore);
     socketService.off('gm:force_view', handleGMForceView);
