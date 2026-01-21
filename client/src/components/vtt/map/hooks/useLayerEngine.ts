@@ -43,7 +43,7 @@ interface ExtendedProps extends MapCanvasProps {
   dragState?: React.RefObject<any>;
   animationsRef?: React.RefObject<Map<string, any>>;
   calculatedPath?: { x: number; y: number; }[];
-  calculatedPathRef?: React.MutableRefObject<{ x: number; y: number; }[]>;
+  calculatedPathRef?: React.RefObject<{ x: number; y: number; }[]>;
   liveDrawingPointsRef?: React.RefObject<{ x: number; y: number; }[]>;
   isDrawingRef?: React.RefObject<boolean>;
   currentFogRect?: { x: number; y: number; w: number; h: number; } | null;

@@ -250,12 +250,12 @@ export class TokenDragHandler extends BaseHandler {
     return this.dragState.isDragging;
   }
 
-  private dragStateRef?: React.MutableRefObject<DragState>;
-  private calculatedPathRef?: React.MutableRefObject<Point[]>;
+  private dragStateRef?: React.RefObject<DragState>;
+  private calculatedPathRef?: React.RefObject<Point[]>;
 
   public setRefs(
-    dragStateRef: React.MutableRefObject<DragState>,
-    calculatedPathRef: React.MutableRefObject<Point[]>
+    dragStateRef: React.RefObject<DragState>,
+    calculatedPathRef: React.RefObject<Point[]>
   ) {
     this.dragStateRef = dragStateRef;
     this.calculatedPathRef = calculatedPathRef;

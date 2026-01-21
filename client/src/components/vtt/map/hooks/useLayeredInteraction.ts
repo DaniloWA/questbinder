@@ -35,10 +35,10 @@ export interface UseLayeredInteractionProps extends MapCanvasProps {
   setHoveredTokenId?: (id: string | null) => void;
   setHoveredObstacleId?: (id: string | null) => void;
   setDragging?: (isDragging: boolean) => void;
-  dragStateRef?: React.MutableRefObject<any>; // Using any to avoid circular import or redefining DragState
-  calculatedPathRef?: React.MutableRefObject<Point[]>;
+  dragStateRef?: React.RefObject<any>; // Using any to avoid circular import or redefining DragState
+  calculatedPathRef?: React.RefObject<Point[]>;
   addDrawing: (drawing: MapDrawing) => void;
-  liveDrawingPointsRef: React.MutableRefObject<Point[]>;
+  liveDrawingPointsRef: React.RefObject<Point[]>;
   // Modal callbacks for zone configuration
   openAudioZoneConfigModal?: (onSave: (config: { audioUrl: string; volume: number; radius: number; }) => void) => void;
   openTriggerZoneConfigModal?: (onSave: (handoutId: string) => void) => void;

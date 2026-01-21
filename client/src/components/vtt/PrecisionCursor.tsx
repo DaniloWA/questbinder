@@ -10,7 +10,7 @@ interface PrecisionCursorProps {
   cols: number;
   rows: number;
   viewport: { x: number; y: number; zoom: number; };
-  activeCalibrationRef?: React.MutableRefObject<{ x: number, y: number; }[]>;
+  activeCalibrationRef?: React.RefObject<{ x: number, y: number; }[]>;
   onConfirmCalibration?: () => void;
   onCancelCalibration?: () => void;
   canvasRef?: React.RefObject<HTMLCanvasElement>;
