@@ -24,6 +24,7 @@ import { DoorToggleHandler } from '../interaction/handlers/DoorToggleHandler';
 import type { InteractionCallbacks } from '../interaction/core/types';
 import type { ClickAnimation } from '../interaction/utils/clickAnimations';
 import type { MapCanvasProps } from '../types';
+import type { InteractionContext, DrawingSettings } from '../interaction/core/types';
 import type { MapDrawing, Point } from '../../../../types';
 
 export interface UseLayeredInteractionProps extends MapCanvasProps {
@@ -42,6 +43,7 @@ export interface UseLayeredInteractionProps extends MapCanvasProps {
   // Modal callbacks for zone configuration
   openAudioZoneConfigModal?: (onSave: (config: { audioUrl: string; volume: number; radius: number; }) => void) => void;
   openTriggerZoneConfigModal?: (onSave: (handoutId: string) => void) => void;
+  drawingSettings?: DrawingSettings;
 }
 
 export interface UseLayeredInteractionReturn {
@@ -195,6 +197,7 @@ export const useLayeredInteraction = (
       remoteCursors: props.remoteCursors,
       cursorSettings: props.cursorSettings || null,
       rulerSettings: props.rulerSettings,
+      drawingSettings: props.drawingSettings || { color: '#ffffff', width: 3, opacity: 1 },
       attackZoneResults: props.attackZoneResults || [],
       isPlacingAttackZone: props.isPlacingAttackZone || false,
       campaignCharacters: props.campaignCharacters || [],
@@ -214,6 +217,7 @@ export const useLayeredInteraction = (
     props.remoteCursors,
     props.cursorSettings,
     props.rulerSettings,
+    props.drawingSettings,
     props.attackZoneResults,
     props.isPlacingAttackZone,
     props.campaignCharacters,

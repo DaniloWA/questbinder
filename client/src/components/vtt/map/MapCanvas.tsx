@@ -145,6 +145,7 @@ export const MapCanvas = (props: MapCanvasProps) => {
     dragStateRef: mapState.dragState, // Pass the REF
     calculatedPathRef: calculatedPathRef, // Pass the REF
     addDrawing,
+    drawingSettings: drawingSettings || { color: '#ffffff', width: 3, opacity: 1 },
     liveDrawingPointsRef: mapState.liveDrawingPointsRef,
     // Modal callbacks for zone configuration
     openAudioZoneConfigModal,
@@ -189,6 +190,7 @@ export const MapCanvas = (props: MapCanvasProps) => {
         showVisionRanges: ui.showVisionRanges ?? false,
         gmHideObstacles: ui.gmHideObstacles ?? false,
       },
+      drawingSettings: drawingSettings || { color: '#ffffff', width: 3, opacity: 1 },
       drawingState: {
         livePoints: mapState.liveDrawingPointsRef?.current || [],
         liveDrawingPointsRef: mapState.liveDrawingPointsRef,

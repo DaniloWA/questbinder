@@ -91,6 +91,11 @@ export interface RenderContext {
   };
 
   // Drawing State
+  drawingSettings: {
+    color: string;
+    width: number;
+    opacity: number;
+  };
   drawingState: {
     livePoints: Point[];
     isDrawing: boolean;

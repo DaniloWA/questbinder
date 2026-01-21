@@ -14,7 +14,7 @@ export const useDrawingActions = (
   permissionHelper?: any // REGRA MILENAR
 ) => {
   const addDrawing = (drawing: MapDrawing) => {
-    const newDrawing = { ...drawing, ...state.drawingSettings };
+    const newDrawing = { ...state.drawingSettings, ...drawing };
 
     ActionHandlers.handleOptimisticAction({
       state,
