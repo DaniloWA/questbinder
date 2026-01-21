@@ -299,7 +299,8 @@ export class ToolOverlayLayer extends BaseLayer {
       zoom,
       '#fbbf24',
       undefined, // maxDistance
-      metric
+      metric,
+      true // Show intermediate labels for each point
     );
   }
 

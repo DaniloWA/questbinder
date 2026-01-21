@@ -219,6 +219,7 @@ export function useLayerEngine(
       localCursorPos: props.mouseWorldPos || { x: 0, y: 0 },
       mouseWorldPosRef: props.mouseWorldPosRef,
       cursorSettings: props.cursorSettings || null,
+      rulerSettings: props.rulerSettings,
       dragStateRef: props.dragState,
       toolState: {
         movementPath: props.movementPath || [],
@@ -277,6 +278,7 @@ export function useLayerEngine(
     props.dragState, // CRITICAL: Update context when drag state changes
     props.players, // CRITICAL: Update context when players change (viewports)
     props.permissions, // CRITICAL: Update context when permissions change
+    props.rulerSettings, // CRITICAL: Update context when ruler settings change
   ]);
 
   // Sync SFX state

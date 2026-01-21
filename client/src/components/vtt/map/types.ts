@@ -96,6 +96,10 @@ export interface MapCanvasProps {
   isModalOpen?: boolean;
   isContexting?: boolean;
   isChatting?: boolean;
+  rulerSettings?: {
+    snapToGrid: boolean;
+    metric: 'euclidean' | 'chebyshev' | 'manhattan';
+  };
 }
 
 export interface DragState {

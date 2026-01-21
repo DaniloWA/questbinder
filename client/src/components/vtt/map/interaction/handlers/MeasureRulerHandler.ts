@@ -35,11 +35,17 @@ export class MeasureRulerHandler extends BaseHandler {
   }
 
   onMouseDown(ctx: InteractionContext): HandlerResult {
-    // Right click clears path
-    const cancelResult = handleRightClickCancel(ctx, this.callbacks);
-    if (cancelResult.handled) {
-      this.movementPath = []; // Clear internal state
-      return cancelResult;
+    // Right click logic
+    if (ctx.button === 2) {
+      if (this.movementPath.length > 0) {
+        // If has measurements, clear them first
+        this.clearPath();
+        return this.handled();
+      } else {
+        // If no measurements, deactivate tool
+        this.callbacks?.setActiveTool('select');
+        return this.handled();
+      }
     }
 
     // Left click adds point

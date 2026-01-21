@@ -135,6 +135,7 @@ export const MapCanvas = (props: MapCanvasProps) => {
   const interaction = useLayeredInteraction({
     ...props,
     canvasRef,
+    rulerSettings,
     ...mapState, // Keeping mapState for non-interaction state if needed (like hoveredTokenId)
     ...tokenLayer,
     clickAnimationsRef,
@@ -157,6 +158,7 @@ export const MapCanvas = (props: MapCanvasProps) => {
     canvasRef,
     {
       ...props,
+      rulerSettings,
       viewportRef, // Pass ref for immediate high-performance access
       visionTokens,
       imageCache,
