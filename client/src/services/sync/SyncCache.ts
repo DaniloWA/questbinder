@@ -32,7 +32,8 @@ export class SyncCache {
     const entityTypes: EntityType[] = [
       'token', 'scene', 'character', 'obstacle', 'drawing',
       'lightZone', 'audioZone', 'triggerZone', 'attackZone',
-      'combat', 'combatant', 'handout', 'campaign'
+      'combat', 'combatant', 'handout', 'campaign',
+      'chatMessage', 'player'
     ];
 
     for (const type of entityTypes) {

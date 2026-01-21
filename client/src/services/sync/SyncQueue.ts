@@ -261,7 +261,14 @@ export class SyncQueue {
       'drawing:delete': 'drawing:remove',
       'obstacle:create': 'scene:update',
       'obstacle:delete': 'scene:update',
+      'combat:create': 'combat:start',
       'combat:update': 'combat:update',
+      'combat:delete': 'combat:end',
+      'attackZone:create': 'attackZone:add',
+      'attackZone:update': 'attackZone:update',
+      'attackZone:delete': 'attackZone:remove',
+      'handout:update': 'handout:update',
+      'campaign:update': 'campaign:update',
     };
 
     const eventKey = `${entityType}:${changeType}`;

@@ -24,16 +24,6 @@ export const useDrawingActions = (
       permissionHelper, // REGRA MILENAR
       requiredPermission: 'drawings',
 
-      optimisticUpdate: (prev) => {
-        const updatedScenes = StateHelpers.addItemToSceneList(
-          prev.scenes,
-          prev.activeSceneId,
-          'drawings',
-          newDrawing
-        );
-        return { ...prev, scenes: updatedScenes };
-      },
-
       socketEmit: () => {
         smartSync.apply('drawing', newDrawing.id, 'create', newDrawing, state.activeSceneId);
       }
@@ -54,16 +44,6 @@ export const useDrawingActions = (
       // Custom permission: GM OR Owner OR drawingDelete permission
       validate: () => {
         return permissionHelper ? permissionHelper.canDeleteDrawing(drawing?.userId) : false;
-      },
-
-      optimisticUpdate: (prev) => {
-        const updatedScenes = StateHelpers.removeItemFromSceneList(
-          prev.scenes,
-          prev.activeSceneId,
-          'drawings',
-          id
-        );
-        return { ...prev, scenes: updatedScenes };
       },
 
       socketEmit: () => {
@@ -91,15 +71,6 @@ export const useDrawingActions = (
       user,
       permissionHelper, // REGRA MILENAR
       requiredPermission: 'drawingClear', // Changed from isGMOnly to specific permission
-
-      optimisticUpdate: (prev) => {
-        const updatedScenes = StateHelpers.updateSceneInList(
-          prev.scenes,
-          prev.activeSceneId,
-          { drawings: [] }
-        );
-        return { ...prev, scenes: updatedScenes };
-      },
 
       socketEmit: () => {
         smartSync.apply('scene', state.activeSceneId, 'update', { drawings: [] });

@@ -52,11 +52,6 @@ export const useSceneActions = (
       campaignId,
       isGMOnly: true,
 
-      optimisticUpdate: (prev) => {
-        const newScenes = [...prev.scenes, newScene];
-        return { ...prev, scenes: newScenes, activeSceneId: newScene.id };
-      },
-
       apiCall: async () => {
         const newScenes = [...state.scenes, newScene];
         await campaignService.update(campaignId, { scenes: newScenes, activeSceneId: newScene.id });
@@ -74,12 +69,6 @@ export const useSceneActions = (
       setState,
       campaignId,
       isGMOnly: true,
-
-      optimisticUpdate: (prev) => {
-        const newScenes = prev.scenes.filter(s => s.id !== id);
-        const nextSceneId = prev.activeSceneId === id ? (newScenes[0]?.id || '') : prev.activeSceneId;
-        return { ...prev, scenes: newScenes, activeSceneId: nextSceneId };
-      },
 
       apiCall: async () => {
         const newScenes = state.scenes.filter(s => s.id !== id);
@@ -100,11 +89,6 @@ export const useSceneActions = (
       campaignId,
       isGMOnly: true,
 
-      optimisticUpdate: (prev) => {
-        const updatedScenes = StateHelpers.updateSceneInList(prev.scenes, id, data);
-        return { ...prev, scenes: updatedScenes };
-      },
-
       socketEmit: () => {
         smartSync.apply('scene', id, 'update', data);
       }
@@ -119,11 +103,6 @@ export const useSceneActions = (
       setState,
       campaignId,
       isGMOnly: true,
-
-      optimisticUpdate: (prev) => {
-        const updatedScenes = StateHelpers.updateSceneInList(prev.scenes, prev.activeSceneId, settings);
-        return { ...prev, scenes: updatedScenes };
-      },
 
       socketEmit: () => {
         console.log('[WS] Emitting scene:update (settings)', { id: state.activeSceneId, changes: settings });
@@ -141,10 +120,7 @@ export const useSceneActions = (
       campaignId,
       isGMOnly: true,
 
-      optimisticUpdate: (prev) => {
-        const updatedScenes = StateHelpers.updateSceneInList(prev.scenes, prev.activeSceneId, { fogPath: path });
-        return { ...prev, scenes: updatedScenes };
-      },
+      // Removed optimisticUpdate (SmartSync handles it)
 
       socketEmit: () => {
         smartSync.apply('scene', state.activeSceneId, 'update', { fogPath: path });

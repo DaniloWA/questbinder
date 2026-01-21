@@ -18,19 +18,7 @@ export const registerChatListeners = ({
 }: ListenerDeps): ListenerCleanup => {
 
   const handleChatMessage = (payload: ChatMessagePayload) => {
-    setState(previousState => {
-      const messageExists = previousState.chatMessages.some(
-        message => message.id === payload.message.id
-      );
-
-      if (messageExists) return previousState;
-
-      return {
-        ...previousState,
-        chatMessages: [...previousState.chatMessages, payload.message]
-      };
-    });
-
+    // Notify SmartSync cache (Bridge updates state)
     notifySmartSync({
       entityType: 'chatMessage',
       entityId: payload.message.id,
@@ -59,11 +47,6 @@ export const registerChatListeners = ({
       rollDetails: payload.result
     } as ChatMessage;
 
-    setState(previousState => ({
-      ...previousState,
-      chatMessages: [...previousState.chatMessages, chatMessage]
-    }));
-
     notifySmartSync({
       entityType: 'chatMessage',
       entityId: chatMessage.id,
@@ -73,13 +56,6 @@ export const registerChatListeners = ({
   };
 
   const handleChatMessageUpdate = (payload: ChatMessage) => {
-    setState(prev => ({
-      ...prev,
-      chatMessages: prev.chatMessages.map(msg =>
-        msg.id === payload.id ? payload : msg
-      )
-    }));
-
     notifySmartSync({
       entityType: 'chatMessage',
       entityId: payload.id,
@@ -90,17 +66,6 @@ export const registerChatListeners = ({
 
   const handleChatReaction = (payload: any) => {
     if (payload.messageId && payload.reaction) {
-      setState(prev => ({
-        ...prev,
-        chatMessages: prev.chatMessages.map(msg => {
-          if (msg.id !== payload.messageId) return msg;
-          return {
-            ...msg,
-            reactions: payload.reaction
-          };
-        })
-      }));
-
       notifySmartSync({
         entityType: 'chatMessage',
         entityId: payload.messageId,

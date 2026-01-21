@@ -121,7 +121,7 @@ interface ActionOptions<T> {
   isGMOnly?: boolean;
 
   // The action logic
-  optimisticUpdate: (prevState: GameSessionState) => GameSessionState;
+  optimisticUpdate?: (prevState: GameSessionState) => GameSessionState;
   socketEmit?: () => void;
   apiCall?: () => Promise<any>;
 

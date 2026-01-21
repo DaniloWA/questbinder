@@ -101,17 +101,6 @@ export const useTokenActions = (
         return canMove;
       },
 
-      optimisticUpdate: (prev) => {
-        const updatedScenes = StateHelpers.updateItemInSceneList(
-          prev.scenes,
-          prev.activeSceneId,
-          'tokens',
-          tokenId,
-          { x: newX, y: newY }
-        );
-        return { ...prev, scenes: updatedScenes };
-      },
-
       socketEmit: () => {
         smartSync.apply('token', tokenId, 'update', { x: newX, y: newY }, state.activeSceneId);
       }
@@ -170,16 +159,8 @@ export const useTokenActions = (
       permissionHelper, // REGRA MILENAR
       requiredPermission: 'tokenEdit',
 
-      optimisticUpdate: (prev) => {
-        const updatedScenes = StateHelpers.updateItemInSceneList(
-          prev.scenes,
-          prev.activeSceneId,
-          'tokens',
-          id,
-          data
-        );
-        return { ...prev, scenes: updatedScenes };
-      },
+      // Removed redundant optimisticUpdate (SmartSync handles it)
+      optimisticUpdate: undefined as any,
 
       socketEmit: () => {
         smartSync.apply('token', id, 'update', data, state.activeSceneId);
@@ -227,15 +208,8 @@ export const useTokenActions = (
       permissionHelper, // REGRA MILENAR
       requiredPermission: 'tokenCreate',
 
-      optimisticUpdate: (prev) => {
-        const updatedScenes = StateHelpers.addItemToSceneList(
-          prev.scenes,
-          prev.activeSceneId,
-          'tokens',
-          newToken
-        );
-        return { ...prev, scenes: updatedScenes };
-      },
+      // Removed redundant optimisticUpdate (SmartSync handles it)
+      optimisticUpdate: undefined as any,
 
       socketEmit: () => {
         console.log('[CLIENT] SmartSync token:add:', { sceneId: state.activeSceneId, token: newToken });
@@ -263,23 +237,8 @@ export const useTokenActions = (
         return canDelete;
       },
 
-      optimisticUpdate: (prev) => {
-        const updatedScenes = StateHelpers.removeItemFromSceneList(
-          prev.scenes,
-          prev.activeSceneId,
-          'tokens',
-          id
-        );
-        // Remove from selection only if present
-        const newSelected = prev.selectedTokenIds.includes(id)
-          ? prev.selectedTokenIds.filter(tid => tid !== id)
-          : prev.selectedTokenIds;
-        return {
-          ...prev,
-          scenes: updatedScenes,
-          selectedTokenIds: newSelected,
-        };
-      },
+      // Removed redundant optimisticUpdate (SmartSync handles it)
+      optimisticUpdate: undefined as any,
 
       // apiCall removed to avoid double-write and race conditions. 
       // Server handles persistence via socket event.

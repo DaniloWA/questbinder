@@ -26,17 +26,17 @@ export const registerTokenListeners = ({
 
   // Handler: token:update
   const handleTokenUpdate = (payload: TokenUpdatePayload) => {
-    // 1. Update React state
-    setState(previousState => {
-      const updatedScenes = StateHelpers.updateItemInSceneList(
-        previousState.scenes,
-        payload.sceneId,
-        'tokens',
-        payload.id,
-        payload.changes
-      );
+    // 1. Notify SmartSync cache (Bridge will update React state)
+    notifySmartSync({
+      entityType: 'token',
+      entityId: payload.id,
+      changeType: 'update',
+      data: payload.changes,
+      parentId: payload.sceneId
+    });
 
-      // Clear remote drags when token position is finalized
+    // 2. Handle ephemeral side-effects (Remote Drags cleanup)
+    setState(previousState => {
       const updatedDrags = { ...previousState.remoteDrags };
       let dragsChanged = false;
       Object.keys(updatedDrags).forEach(userId => {
@@ -46,37 +46,18 @@ export const registerTokenListeners = ({
         }
       });
 
+      if (!dragsChanged) return previousState;
+
       return {
         ...previousState,
-        scenes: updatedScenes,
-        remoteDrags: dragsChanged ? updatedDrags : previousState.remoteDrags
+        remoteDrags: updatedDrags
       };
-    });
-
-    // 2. Notify SmartSync cache
-    notifySmartSync({
-      entityType: 'token',
-      entityId: payload.id,
-      changeType: 'update',
-      data: payload.changes,
-      parentId: payload.sceneId
     });
   };
 
   // Handler: token:add
   const handleTokenAdd = (payload: TokenAddPayload) => {
-    // 1. Update React state
-    setState(previousState => ({
-      ...previousState,
-      scenes: StateHelpers.addItemToSceneList(
-        previousState.scenes,
-        payload.sceneId,
-        'tokens',
-        payload.token
-      )
-    }));
-
-    // 2. Notify SmartSync cache
+    // Notify SmartSync cache
     notifySmartSync({
       entityType: 'token',
       entityId: payload.token.id,
@@ -88,18 +69,7 @@ export const registerTokenListeners = ({
 
   // Handler: token:remove
   const handleTokenRemove = (payload: TokenRemovePayload) => {
-    // 1. Update React state
-    setState(previousState => ({
-      ...previousState,
-      scenes: StateHelpers.removeItemFromSceneList(
-        previousState.scenes,
-        payload.sceneId,
-        'tokens',
-        payload.id
-      )
-    }));
-
-    // 2. Notify SmartSync cache
+    // Notify SmartSync cache
     notifySmartSync({
       entityType: 'token',
       entityId: payload.id,

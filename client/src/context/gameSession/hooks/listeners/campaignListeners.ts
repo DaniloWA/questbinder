@@ -20,18 +20,15 @@ export const registerCampaignListeners = ({
   const handleCampaignUpdate = (payload: CampaignUpdatePayload) => {
     if (!payload.changes) return;
 
-    setState(previousState => {
-      const updatedCampaign = { ...previousState.campaign!, ...payload.changes };
-      const newState = { ...previousState, campaign: updatedCampaign };
+    // Handle side effects (Audio Notification)
+    if (payload.changes.audioSettings) {
+      if (!state.isGM) { // Checked against state instead of user props
+        // Actually deps.user is User, deps.state.isGM. accessing state via deps.state might be cleaner if available, 
+        // but previous code accessed previousState.isGM inside setState. 
+        // We should use 'state.isGM' from props if available. 
+        // Looking at lines 14-18: 'state' is available.
 
-      if (payload.changes.permissions) {
-        newState.permissions = payload.changes.permissions;
-      }
-
-      if (payload.changes.audioSettings) {
-        newState.audioSettings = payload.changes.audioSettings!;
-
-        if (!previousState.isGM) {
+        if (!state.isGM) {
           show({
             type: 'info',
             message: '🎵 Mestre atualizou o painel de áudio',
@@ -39,11 +36,9 @@ export const registerCampaignListeners = ({
           });
         }
       }
+    }
 
-      return newState;
-    });
-
-    // Notify SmartSync cache
+    // Notify SmartSync cache (Bridge updates state)
     notifySmartSync({
       entityType: 'campaign',
       entityId: state.campaign?.id || 'current',
@@ -53,97 +48,81 @@ export const registerCampaignListeners = ({
   };
 
   const handleHandoutUpdate = (payload: HandoutUpdatePayload) => {
-    setState(previousState => {
-      let updatedHandouts = [...previousState.handouts];
-      const currentUserId = user?.id || '';
+    const currentUserId = user?.id || '';
 
-      if (payload.operation === 'create' && payload.handout) {
-        const handoutExists = updatedHandouts.some(
-          handout => handout.id === payload.handout!.id
-        );
+    if (payload.operation === 'create' && payload.handout) {
+      // Notify SmartSync
+      notifySmartSync({
+        entityType: 'handout',
+        entityId: payload.handout.id,
+        changeType: 'create',
+        data: payload.handout
+      });
+      return;
+    }
 
-        if (!handoutExists) {
-          updatedHandouts.push(payload.handout);
-        }
+    if (payload.operation === 'update' && payload.handout) {
+      // Notify SmartSync
+      notifySmartSync({
+        entityType: 'handout',
+        entityId: payload.handout.id,
+        changeType: 'update',
+        data: payload.handout
+      });
 
-        // Notify SmartSync
-        notifySmartSync({
-          entityType: 'handout',
-          entityId: payload.handout.id,
-          changeType: 'create',
-          data: payload.handout
+      // Calculate visibility changes for Toasts
+      // We need access to previous state to know if it WAS shared.
+      // This is tricky without setState updater.
+      // However, we can check the CURRENT state before update.
+      // `state.handouts` has the old state.
+
+      const oldHandout = state.handouts.find(h => h.id === payload.handout!.id);
+      const wasSharedWithUser = oldHandout?.sharedWith.includes(currentUserId);
+      const isNowSharedWithUser = payload.handout.sharedWith.includes(currentUserId);
+
+      if (!state.isGM && isNowSharedWithUser && !wasSharedWithUser) {
+        show({
+          type: 'info',
+          message: `📜 Mestre compartilhou: ${payload.handout.name}`,
+          duration: 4000
         });
 
-        return { ...previousState, handouts: updatedHandouts };
+        // Triggered Handout Logic - This MUST update state to open the popup
+        // Bridge handles data update, but `triggeredHandoutId` is a UI state not in SmartSync.
+        // We MUST keep setState for `triggeredHandoutId`.
+        setState(prev => ({
+          ...prev,
+          triggeredHandoutId: payload.handout!.id
+        }));
       }
 
-      if (payload.operation === 'update' && payload.handout) {
-        const oldHandout = previousState.handouts.find(
-          handout => handout.id === payload.handout!.id
-        );
-
-        updatedHandouts = updatedHandouts.map(handout =>
-          handout.id === payload.handout!.id ? payload.handout! : handout
-        );
-
-        // Notify SmartSync
-        notifySmartSync({
-          entityType: 'handout',
-          entityId: payload.handout.id,
-          changeType: 'update',
-          data: payload.handout
+      if (!state.isGM && !isNowSharedWithUser && wasSharedWithUser) {
+        show({
+          type: 'info',
+          message: `🔒 Recurso "${payload.handout.name}" foi ocultado`,
+          duration: 3000
         });
 
-        const wasSharedWithUser = oldHandout?.sharedWith.includes(currentUserId);
-        const isNowSharedWithUser = payload.handout.sharedWith.includes(currentUserId);
-
-        if (!previousState.isGM && isNowSharedWithUser && !wasSharedWithUser) {
-          show({
-            type: 'info',
-            message: `📜 Mestre compartilhou: ${payload.handout.name}`,
-            duration: 4000
-          });
-
-          return {
-            ...previousState,
-            handouts: updatedHandouts,
-            triggeredHandoutId: payload.handout.id
-          };
-        }
-
-        if (!previousState.isGM && !isNowSharedWithUser && wasSharedWithUser) {
-          show({
-            type: 'info',
-            message: `🔒 Recurso "${payload.handout.name}" foi ocultado`,
-            duration: 3000
-          });
-
-          const shouldCloseHandout = previousState.triggeredHandoutId === payload.handout.id;
-
-          return {
-            ...previousState,
-            handouts: updatedHandouts,
-            triggeredHandoutId: shouldCloseHandout ? null : previousState.triggeredHandoutId
-          };
+        // Close if open
+        if (state.triggeredHandoutId === payload.handout.id) {
+          setState(prev => ({
+            ...prev,
+            triggeredHandoutId: null
+          }));
         }
       }
+      return;
+    }
 
-      if (payload.operation === 'delete' && payload.handoutId) {
-        updatedHandouts = updatedHandouts.filter(
-          handout => handout.id !== payload.handoutId
-        );
-
-        // Notify SmartSync
-        notifySmartSync({
-          entityType: 'handout',
-          entityId: payload.handoutId,
-          changeType: 'delete',
-          data: {}
-        });
-      }
-
-      return { ...previousState, handouts: updatedHandouts };
-    });
+    if (payload.operation === 'delete' && payload.handoutId) {
+      // Notify SmartSync
+      notifySmartSync({
+        entityType: 'handout',
+        entityId: payload.handoutId,
+        changeType: 'delete',
+        data: {}
+      });
+    }
   };
 
   const handlePermissionsUpdated = (payload: { permissions: any; }) => {

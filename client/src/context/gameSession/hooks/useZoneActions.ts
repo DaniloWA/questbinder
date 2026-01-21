@@ -22,13 +22,7 @@ export const useZoneActions = (
       campaignId,
       isGMOnly: true,
 
-      optimisticUpdate: (prev) => {
-        let updatedScenes = prev.scenes;
-        for (const zone of newZones) {
-          updatedScenes = StateHelpers.addItemToSceneList(updatedScenes, prev.activeSceneId, 'lightZones', zone);
-        }
-        return { ...prev, scenes: updatedScenes };
-      },
+      // Removed optimisticUpdate (SmartSync handles it)
 
       socketEmit: () => {
         const scene = state.scenes.find(s => s.id === state.activeSceneId);
@@ -70,13 +64,7 @@ export const useZoneActions = (
       campaignId,
       isGMOnly: true,
 
-      optimisticUpdate: (prev) => {
-        let updatedScenes = prev.scenes;
-        for (const zone of newZones) {
-          updatedScenes = StateHelpers.addItemToSceneList(updatedScenes, prev.activeSceneId, 'triggerZones', zone);
-        }
-        return { ...prev, scenes: updatedScenes };
-      },
+      // Removed optimisticUpdate (SmartSync handles it)
 
       socketEmit: () => {
         const scene = state.scenes.find(s => s.id === state.activeSceneId);
@@ -102,10 +90,7 @@ export const useZoneActions = (
       campaignId,
       isGMOnly: true,
 
-      optimisticUpdate: (prev) => {
-        const updatedScenes = StateHelpers.updateItemInSceneList(prev.scenes, prev.activeSceneId, 'triggerZones', id, data);
-        return { ...prev, scenes: updatedScenes };
-      },
+      // Removed optimisticUpdate (SmartSync handles it)
 
       socketEmit: () => {
         const scene = state.scenes.find(s => s.id === state.activeSceneId);
@@ -129,10 +114,7 @@ export const useZoneActions = (
       campaignId,
       isGMOnly: true,
 
-      optimisticUpdate: (prev) => {
-        const updatedScenes = StateHelpers.removeItemFromSceneList(prev.scenes, prev.activeSceneId, 'triggerZones', id);
-        return { ...prev, scenes: updatedScenes };
-      },
+      // Removed optimisticUpdate (SmartSync handles it)
 
       socketEmit: () => {
         const scene = state.scenes.find(s => s.id === state.activeSceneId);

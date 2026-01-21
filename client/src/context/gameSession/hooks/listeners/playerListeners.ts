@@ -12,19 +12,7 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
 
   // Handler: player:join
   const handlePlayerJoin = (payload: { user: any; }) => {
-    setState(previousState => {
-      const playerExists = previousState.players.some(
-        player => player.id === payload.user.id
-      );
-
-      if (playerExists) return previousState;
-
-      return {
-        ...previousState,
-        players: [...previousState.players, payload.user]
-      };
-    });
-
+    // Notify SmartSync
     notifySmartSync({
       entityType: 'player',
       entityId: payload.user.id,
@@ -49,13 +37,7 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
     const leavingPlayer = stateRef.current.players.find(p => p.id === payload.userId);
     const playerName = payload.userName || leavingPlayer?.name || 'Jogador';
 
-    setState(previousState => ({
-      ...previousState,
-      players: previousState.players.filter(
-        player => player.id !== payload.userId
-      )
-    }));
-
+    // Notify SmartSync
     notifySmartSync({
       entityType: 'player',
       entityId: payload.userId,
@@ -63,7 +45,7 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
       data: {}
     });
 
-    // Immediate cleanup for cursor visuals
+    // Immediate cleanup for cursor visuals (Ephemeral)
     if (deps.remoteCursorsRef?.current?.[payload.userId]) {
       delete deps.remoteCursorsRef.current[payload.userId];
     }

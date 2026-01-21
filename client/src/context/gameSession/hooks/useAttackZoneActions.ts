@@ -3,6 +3,7 @@ import { socketService } from '../../../services/socketService';
 import { AttackZoneConfig } from '../../../types/attackZone';
 import React from 'react';
 import { GameSessionState } from '../types';
+import { smartSync } from '../../../services/sync';
 
 /**
  * Hook for attack zone actions that emit to WebSocket
@@ -16,46 +17,26 @@ export const useAttackZoneActions = (
   /**
    * Add an attack zone and broadcast to other clients
    */
-  const addAttackZone = useCallback((zone: AttackZoneConfig) => {
-    // Optimistic update - add locally immediately
-    setState(prev => ({
-      ...prev,
-      attackZones: [...prev.attackZones.filter(z => z.id !== zone.id), zone]
-    }));
+  /* import { smartSync } from '../../../services/sync'; // Need to add import first */
 
-    // Emit to server for broadcast
-    socketService.emit('attackZone:add', { zone });
-  }, [setState]);
+  const addAttackZone = useCallback((zone: AttackZoneConfig) => {
+    // SmartSync handles optimistic update and broadcasting
+    smartSync.apply('attackZone', zone.id, 'create', zone);
+  }, []);
 
   /**
    * Update an existing attack zone
    */
   const updateAttackZone = useCallback((zoneId: string, updates: Partial<AttackZoneConfig>) => {
-    // Optimistic update
-    setState(prev => ({
-      ...prev,
-      attackZones: prev.attackZones.map(z =>
-        z.id === zoneId ? { ...z, ...updates } : z
-      )
-    }));
-
-    // Emit to server
-    socketService.emit('attackZone:update', { zoneId, updates });
-  }, [setState]);
+    smartSync.apply('attackZone', zoneId, 'update', updates);
+  }, []);
 
   /**
    * Remove an attack zone
    */
   const removeAttackZone = useCallback((zoneId: string) => {
-    // Optimistic update
-    setState(prev => ({
-      ...prev,
-      attackZones: prev.attackZones.filter(z => z.id !== zoneId)
-    }));
-
-    // Emit to server
-    socketService.emit('attackZone:remove', { zoneId });
-  }, [setState]);
+    smartSync.apply('attackZone', zoneId, 'delete', {});
+  }, []);
 
   /**
    * Clear all attack zones

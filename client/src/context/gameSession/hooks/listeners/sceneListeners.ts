@@ -23,15 +23,6 @@ export const registerSceneListeners = ({
   const handleSceneUpdate = (payload: SceneUpdatePayload) => {
     if (!payload.id || !payload.changes) return;
 
-    setState(previousState => ({
-      ...previousState,
-      scenes: StateHelpers.updateSceneInList(
-        previousState.scenes,
-        payload.id,
-        payload.changes
-      )
-    }));
-
     notifySmartSync({
       entityType: 'scene',
       entityId: payload.id,
@@ -42,15 +33,6 @@ export const registerSceneListeners = ({
 
   // Handler: scene:add
   const handleSceneAdd = (payload: SceneAddPayload) => {
-    setState(previousState => {
-      const sceneExists = previousState.scenes.some(s => s.id === payload.scene.id);
-      if (sceneExists) return previousState;
-      return {
-        ...previousState,
-        scenes: [...previousState.scenes, payload.scene]
-      };
-    });
-
     notifySmartSync({
       entityType: 'scene',
       entityId: payload.scene.id,
@@ -61,18 +43,6 @@ export const registerSceneListeners = ({
 
   // Handler: scene:delete
   const handleSceneDelete = (payload: SceneDeletePayload) => {
-    setState(previousState => {
-      const filteredScenes = previousState.scenes.filter(s => s.id !== payload.id);
-      const newActiveSceneId = previousState.activeSceneId === payload.id
-        ? (filteredScenes[0]?.id || '')
-        : previousState.activeSceneId;
-      return {
-        ...previousState,
-        scenes: filteredScenes,
-        activeSceneId: newActiveSceneId
-      };
-    });
-
     notifySmartSync({
       entityType: 'scene',
       entityId: payload.id,

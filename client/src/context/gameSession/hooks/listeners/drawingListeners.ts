@@ -17,16 +17,6 @@ export const registerDrawingListeners = ({
 
   // Handler: drawing:add
   const handleDrawingAdd = (payload: DrawingAddPayload) => {
-    setState(previousState => ({
-      ...previousState,
-      scenes: StateHelpers.addItemToSceneList(
-        previousState.scenes,
-        payload.sceneId,
-        'drawings',
-        payload.drawing
-      )
-    }));
-
     notifySmartSync({
       entityType: 'drawing',
       entityId: payload.drawing.id,
@@ -38,16 +28,6 @@ export const registerDrawingListeners = ({
 
   // Handler: drawing:remove
   const handleDrawingRemove = (payload: DrawingRemovePayload) => {
-    setState(previousState => ({
-      ...previousState,
-      scenes: StateHelpers.removeItemFromSceneList(
-        previousState.scenes,
-        payload.sceneId,
-        'drawings',
-        payload.id
-      )
-    }));
-
     notifySmartSync({
       entityType: 'drawing',
       entityId: payload.id,

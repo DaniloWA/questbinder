@@ -15,11 +15,6 @@ export const registerCombatListeners = ({
 
   // Handler: combat:update
   const handleCombatUpdate = (payload: CombatUpdatePayload) => {
-    setState(previousState => ({
-      ...previousState,
-      combat: payload.combat
-    }));
-
     if (payload.combat) {
       notifySmartSync({
         entityType: 'combat',
@@ -32,11 +27,6 @@ export const registerCombatListeners = ({
 
   // Handler: combat:start
   const handleCombatStart = (payload: { combat: any; }) => {
-    setState(prev => ({
-      ...prev,
-      combat: payload.combat
-    }));
-
     notifySmartSync({
       entityType: 'combat',
       entityId: payload.combat?.id || 'current',
@@ -58,11 +48,6 @@ export const registerCombatListeners = ({
     // Get combat ID before clearing state
     const combatId = (state.combat as any)?.id || 'current';
 
-    setState(prev => ({
-      ...prev,
-      combat: null
-    }));
-
     notifySmartSync({
       entityType: 'combat',
       entityId: combatId,
@@ -81,11 +66,6 @@ export const registerCombatListeners = ({
 
   // Handler: combat:next-turn
   const handleCombatNextTurn = (payload: { combat: any; }) => {
-    setState(prev => ({
-      ...prev,
-      combat: payload.combat
-    }));
-
     notifySmartSync({
       entityType: 'combat',
       entityId: payload.combat?.id || 'current',
@@ -105,18 +85,6 @@ export const registerCombatListeners = ({
 
   // Handler: combat:combatant:add
   const handleCombatCombatantAdd = (payload: { combatant: any; }) => {
-    setState(prev => {
-      if (!prev.combat) return prev;
-      return {
-        ...prev,
-        combat: {
-          ...prev.combat,
-          turnOrder: [...prev.combat.turnOrder, payload.combatant]
-            .sort((a, b) => b.initiative - a.initiative)
-        }
-      };
-    });
-
     notifySmartSync({
       entityType: 'combatant',
       entityId: payload.combatant.id,
@@ -127,19 +95,6 @@ export const registerCombatListeners = ({
 
   // Handler: combat:combatant:update
   const handleCombatCombatantUpdate = (payload: { id: string; updates: any; }) => {
-    setState(prev => {
-      if (!prev.combat) return prev;
-      return {
-        ...prev,
-        combat: {
-          ...prev.combat,
-          turnOrder: prev.combat.turnOrder.map(c =>
-            c.id === payload.id ? { ...c, ...payload.updates } : c
-          )
-        }
-      };
-    });
-
     notifySmartSync({
       entityType: 'combatant',
       entityId: payload.id,
@@ -150,17 +105,6 @@ export const registerCombatListeners = ({
 
   // Handler: combat:combatant:remove
   const handleCombatCombatantRemove = (payload: { id: string; }) => {
-    setState(prev => {
-      if (!prev.combat) return prev;
-      return {
-        ...prev,
-        combat: {
-          ...prev.combat,
-          turnOrder: prev.combat.turnOrder.filter(c => c.id !== payload.id)
-        }
-      };
-    });
-
     notifySmartSync({
       entityType: 'combatant',
       entityId: payload.id,

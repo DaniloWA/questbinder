@@ -19,11 +19,6 @@ export const registerAttackZoneListeners = ({
       return;
     }
 
-    setState(prev => ({
-      ...prev,
-      attackZones: [...prev.attackZones.filter(z => z.id !== payload.zone.id), payload.zone]
-    }));
-
     notifySmartSync({
       entityType: 'attackZone',
       entityId: payload.zone.id,
@@ -35,13 +30,6 @@ export const registerAttackZoneListeners = ({
   // Handler: attackZone:update
   const handleAttackZoneUpdate = (payload: { zoneId: string; updates: Partial<AttackZoneConfig>; userId: string; }) => {
     if (payload.userId === user?.id) return;
-
-    setState(prev => ({
-      ...prev,
-      attackZones: prev.attackZones.map(z =>
-        z.id === payload.zoneId ? { ...z, ...payload.updates } : z
-      )
-    }));
 
     notifySmartSync({
       entityType: 'attackZone',
@@ -55,11 +43,6 @@ export const registerAttackZoneListeners = ({
   const handleAttackZoneRemove = (payload: { zoneId: string; userId: string; }) => {
     if (payload.userId === user?.id) return;
 
-    setState(prev => ({
-      ...prev,
-      attackZones: prev.attackZones.filter(z => z.id !== payload.zoneId)
-    }));
-
     notifySmartSync({
       entityType: 'attackZone',
       entityId: payload.zoneId,
@@ -72,7 +55,36 @@ export const registerAttackZoneListeners = ({
   const handleAttackZoneClear = (payload: { userId: string; }) => {
     if (payload.userId === user?.id) return;
 
-    // Get all zone IDs before clearing for cache notification
+    // Get all Current Attack Zones from state or cache is hard here without state access.
+    // Ideally we would trust the bridge handles 'delete'.
+    // The previous code iterated over `prev.attackZones` inside setState.
+    // We can't do that easily without state access.
+    // However, clean solution: The SERVER should emit individual delete events or handled by SyncQueue flush?
+    // Actually the server handler broadcasts `attackZone:clear`.
+    // If we can't access state here, we might need to keep setState OR trust that we don't need to iterate.
+    // Wait, the previous code iterated `prev.attackZones` to call `notifySmartSync`.
+    // If we remove setState callback, we lose access to `prev`.
+    // BUT `notifySmartSync` is imperative.
+    // We can use `setState` just to read? No, `setState` updater is async/batched.
+
+    // BETTER APPROACH: SmartSync likely has the data in cache.
+    // But this listener file doesn't import SmartSync directly, it uses helper.
+    // Let's keep the setState pattern JUST for this complex case (Clear All), 
+    // OR skip refactoring this specific handler if it's too complex.
+
+    // Actually, `handleAttackZoneClear` logic is:
+    // 1. Iterate all zones
+    // 2. Notify SmartSync delete for each.
+    // 3. Clear state.
+
+    // If we just want to notify smartSync, we need the list of zones.
+    // Use `setState` solely to access state for notification is fine, but we want to avoid the State Update part.
+    // But `setState` must return a value.
+
+    // Let's leave handleAttackZoneClear as is for now to avoid breakage, 
+    // or refactor to use `smartSync.getAll('attackZone')` if we can import it.
+    // Since we can't easily import `smartSync` (circular deps maybe?), keeping it is safer.
+
     setState(prev => {
       // Notify SmartSync for each zone being deleted
       prev.attackZones.forEach(zone => {
@@ -93,11 +105,7 @@ export const registerAttackZoneListeners = ({
 
   // Handler: attackZone:syncResponse - receives current zones when joining
   const handleAttackZoneSyncResponse = (payload: { zones: AttackZoneConfig[]; }) => {
-    setState(prev => ({
-      ...prev,
-      attackZones: payload.zones || []
-    }));
-
+    // This is initial load/sync. Overwriting state is fine, but technically SmartSync should handle it.
     // Hydrate cache with all zones
     (payload.zones || []).forEach(zone => {
       notifySmartSync({

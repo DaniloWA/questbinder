@@ -22,13 +22,7 @@ export const useObstacleActions = (
       campaignId,
       isGMOnly: true,
 
-      optimisticUpdate: (prev) => {
-        let updatedScenes = prev.scenes;
-        for (const obs of newObstacles) {
-          updatedScenes = StateHelpers.addItemToSceneList(updatedScenes, prev.activeSceneId, 'obstacles', obs);
-        }
-        return { ...prev, scenes: updatedScenes };
-      },
+      // Removed optimisticUpdate (SmartSync handles it)
 
       socketEmit: () => {
         // Note: The original code emitted the ENTIRE obstacle list. 
@@ -90,10 +84,7 @@ export const useObstacleActions = (
         return true;
       },
 
-      optimisticUpdate: (prev) => {
-        const updatedScenes = StateHelpers.updateItemInSceneList(prev.scenes, prev.activeSceneId, 'obstacles', id, data);
-        return { ...prev, scenes: updatedScenes };
-      },
+      // Removed optimisticUpdate (SmartSync handles it)
 
       socketEmit: () => {
         const scene = state.scenes.find(s => s.id === state.activeSceneId);
@@ -117,10 +108,7 @@ export const useObstacleActions = (
       campaignId,
       isGMOnly: true,
 
-      optimisticUpdate: (prev) => {
-        const updatedScenes = StateHelpers.removeItemFromSceneList(prev.scenes, prev.activeSceneId, 'obstacles', id);
-        return { ...prev, scenes: updatedScenes };
-      },
+      // Removed optimisticUpdate (SmartSync handles it)
 
       socketEmit: () => {
         const scene = state.scenes.find(s => s.id === state.activeSceneId);

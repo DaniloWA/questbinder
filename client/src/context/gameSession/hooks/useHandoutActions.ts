@@ -2,6 +2,7 @@ import React from 'react';
 import { GameSessionState } from '../types';
 
 import { socketService } from '../../../services/socketService';
+import { smartSync } from '../../../services/sync';
 import { Handout } from '../../../types';
 
 export const useHandoutActions = (
@@ -22,28 +23,11 @@ export const useHandoutActions = (
   };
 
   const updateHandout = async (id: string, data: any) => {
-    const handout = state.handouts.find(h => h.id === id);
-    if (!handout) return;
-
-    const updatedHandout = { ...handout, ...data };
-
-    // Optimistic update
-    setState(prev => ({
-      ...prev,
-      handouts: prev.handouts.map(h => h.id === id ? updatedHandout : h)
-    }));
-
-    socketService.emit('handout:update', { operation: 'update', handout: updatedHandout });
+    smartSync.apply('handout', id, 'update', data);
   };
 
   const deleteHandout = async (id: string) => {
-    // Optimistic update
-    setState(prev => ({
-      ...prev,
-      handouts: prev.handouts.filter(h => h.id !== id)
-    }));
-
-    socketService.emit('handout:update', { operation: 'delete', handoutId: id });
+    smartSync.apply('handout', id, 'delete', {});
   };
 
   const shareHandout = async (id: string, playerIds: string[]) => {
@@ -53,13 +37,7 @@ export const useHandoutActions = (
     const updatedHandout = { ...handout, sharedWith: playerIds };
     console.log('[WS] Sharing handout:', { id, playerIds, handoutName: handout.name });
 
-    // Optimistic Update
-    setState(prev => ({
-      ...prev,
-      handouts: prev.handouts.map(h => h.id === id ? updatedHandout : h)
-    }));
-
-    socketService.emit('handout:update', { operation: 'update', handout: updatedHandout });
+    smartSync.apply('handout', id, 'update', { sharedWith: playerIds });
     console.log('[WS] Handout share emitted:', updatedHandout);
 
     if (playerIds.length > 0) {

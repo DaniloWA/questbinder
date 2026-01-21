@@ -89,13 +89,9 @@ export const useCharacterActions = (
       return;
     }
 
-    // Update local state immediately
-    setState(prev => ({
-      ...prev,
-      campaignCharacters: prev.campaignCharacters.map(c => c.id === id ? { ...c, ...data } : c)
-    }));
+    // REMOVED: Immediate setState. SmartSync.apply will trigger the Bridge update.
 
-    // Track what we sent
+    // Track what we sent (Important for diffing)
     lastSentUpdates.current[id] = { ...lastSentUpdates.current[id], ...changedFields };
 
     // Send to API and WebSocket
@@ -105,13 +101,12 @@ export const useCharacterActions = (
       console.log('[CharacterActions] Sent immediate update:', changedFields);
     } catch (err: any) {
       console.error('[CharacterActions] Failed to update character:', err);
+      console.error('[CharacterActions] Failed to update character:', err);
       showNotification(err?.message || 'Erro ao atualizar ficha.', 'error');
 
-      // Rollback optimistic update
-      setState(prev => ({
-        ...prev,
-        campaignCharacters: prev.campaignCharacters.map(c => c.id === id ? character : c)
-      }));
+      // Rollback is handled by SmartSync cache if socket fails, 
+      // though API failure logic here implies we might want to reload?
+      // Since SmartSync is the source of truth, we trust its state.
     }
   };
 
