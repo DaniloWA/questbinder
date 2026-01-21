@@ -79,7 +79,7 @@ export const renderCursor = (
   ctx.restore(); // Restore from the main cursor drawing (translation, scale, rotation)
 
   // 1. Draw User Name Badge (Top Center)
-  if (!isLocal && cursorName) {
+  if (cursorName) {
     ctx.save();
     ctx.translate(cursorX, cursorY);
     // ctx.globalAlpha = 1.0; 
@@ -97,7 +97,7 @@ export const renderCursor = (
   }
 
   // 2. Draw Status Icon (Top Left: Chat/Combat)
-  if (!isLocal && statusIcon) {
+  if (statusIcon) {
     ctx.save();
     ctx.translate(cursorX, cursorY);
     // CustomCursor: -top-4 -left-4 (-16px, -16px)
@@ -107,7 +107,7 @@ export const renderCursor = (
   }
 
   // 3. Draw Context Icon (Top Right: Menu)
-  if (!isLocal && contextIcon) {
+  if (contextIcon) {
     ctx.save();
     ctx.translate(cursorX, cursorY);
     // CustomCursor: -top-4 -right-4 (approx +16px?, -16px)
@@ -118,7 +118,7 @@ export const renderCursor = (
 
   // 4. Draw Tool Badge (Bottom Right: Active Tool)
   // We check activeToolName is valid to avoid drawing empty boxes
-  if (!isLocal && activeToolName && activeToolIcon && activeToolIcon !== "select") {
+  if (activeToolName && activeToolIcon && activeToolIcon !== "select") {
     ctx.save();
     ctx.translate(cursorX, cursorY);
 

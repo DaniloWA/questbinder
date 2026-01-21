@@ -50,7 +50,7 @@ export class CursorSyncHandler extends BaseHandler {
     // Throttle cursor emission to 50ms (20fps) to avoid flooding
     const now = Date.now();
     if (now - this.lastEmitTime > 50) {
-      this.callbacks?.emitCursorMove?.(ctx.worldPos.x, ctx.worldPos.y);
+      this.callbacks?.emitCursorMove?.(ctx.worldPos.x, ctx.worldPos.y, ctx.activeTool);
       this.lastEmitTime = now;
     }
     // Don't handle - let other handlers process

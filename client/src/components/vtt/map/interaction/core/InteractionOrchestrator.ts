@@ -212,7 +212,7 @@ export class InteractionOrchestrator {
       // Don't emit cursor move if dragging a token (TokenDragHandler handles emission)
       // This prevents "ghost path" and double events
       if (!this.context.dragState?.isDragging) {
-        this.callbacks?.emitCursorMove(ctx.worldPos.x, ctx.worldPos.y);
+        this.callbacks?.emitCursorMove(ctx.worldPos.x, ctx.worldPos.y, ctx.activeTool);
       }
       this.lastCursorEmit = now;
     }
@@ -227,7 +227,7 @@ export class InteractionOrchestrator {
 
     // Force immediate cursor update on release
     // If we were dragging, this puts the cursor at the drop location, which is good.
-    this.callbacks?.emitCursorMove(ctx.worldPos.x, ctx.worldPos.y, true);
+    this.callbacks?.emitCursorMove(ctx.worldPos.x, ctx.worldPos.y, ctx.activeTool, true);
   }
 
   /**
@@ -380,6 +380,7 @@ export class InteractionOrchestrator {
       permissions: null,
       activeTool: 'select',
       selectedTokenIds: [],
+      dragState: { isDragging: false, token: null, draggedGroup: [], offset: { x: 0, y: 0 }, dragStartX: 0, dragStartY: 0, lastValidGridX: 0, lastValidGridY: 0, lastCheckedGridX: -1, lastCheckedGridY: -1 },
       remoteDrags: {},
       remoteCursors: {},
       cursorSettings: null,

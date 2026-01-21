@@ -17,7 +17,6 @@ interface CustomCursorProps {
   shapeId: string;
   color: string;
   enabled?: boolean;
-  // Trail settings (Legacy/Ignored - trail is now rendered in useMapRenderer)
   trailEnabled?: boolean;
   trailAnimation?: string;
   trailColor?: string;
@@ -33,15 +32,15 @@ interface CustomCursorProps {
 }
 
 /**
- * DOM-based custom cursor with physics animation
+ * DOM-based local cursor with physics animation
  * - Smooth lerp following
  * - Rotation based on movement direction
  * - Velocity-based stretch (squash & stretch)
  * - Click feedback (pulse/shrink)
  * 
- * NOTE: Trail rendering has been moved to useMapRenderer.ts (Canvas) for performance and unification.
+ * NOTE: Trail rendering determines local trail logic but is rendered via Canvas in useMapRenderer.ts
  */
-export const CustomCursor: React.FC<CustomCursorProps> = ({
+export const LocalCursor: React.FC<CustomCursorProps> = ({
   shapeId = 'default',
   color = '#fbbf24',
   enabled = true,
@@ -51,6 +50,7 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
   isDragging,
 }) => {
   const cursorRef = useRef<HTMLDivElement>(null);
+  const badgeRef = useRef<HTMLDivElement>(null);
   const [isClicking, setIsClicking] = useState(false);
   const { t } = useTranslation();
 
@@ -60,7 +60,7 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
   const angle = useRef(0);
   const animationRef = useRef<number>(0);
 
-  // Dynamic cursor size (from shared constants)
+  // Dynamic cursor size
   const CURSOR_SIZE = getDynamicCursorSize();
 
   // Generate SVG content
@@ -72,7 +72,7 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
       React.createElement(shape.Component, { color, size: CURSOR_SIZE })
     );
     return markup;
-  }, [shapeId, color]);
+  }, [shapeId, color, CURSOR_SIZE]);
 
   // Mouse move handler
   const handleMouseMove = useCallback((e: MouseEvent) => {
@@ -89,6 +89,7 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
 
     const animate = () => {
       const cursor = cursorRef.current;
+      const badge = badgeRef.current;
 
       if (!cursor) {
         animationRef.current = requestAnimationFrame(animate);
@@ -99,14 +100,14 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
       const distX = mousePos.current.x - cursorPos.current.x;
       const distY = mousePos.current.y - cursorPos.current.y;
 
-      // Lerp movement (using shared constant)
+      // Lerp movement
       cursorPos.current.x += distX * VISUAL_LERP_SPEED;
       cursorPos.current.y += distY * VISUAL_LERP_SPEED;
 
       // Calculate velocity
       const velocity = Math.sqrt(distX ** 2 + distY ** 2);
 
-      // Squash & Stretch (using shared constants)
+      // Squash & Stretch
       const scaleY = 1 + Math.min(velocity * STRETCH_FACTOR, MAX_STRETCH);
       const scaleX = 1 - Math.min(velocity * STRETCH_FACTOR * 0.5, MAX_SQUASH);
 
@@ -115,9 +116,14 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
         angle.current = Math.atan2(distY, distX) * (180 / Math.PI) + 90;
       }
 
-      // Apply transform to cursor
+      // Apply transform to CURSOR SHAPE (Rotate + Squash)
       const halfSize = CURSOR_SIZE / 2;
       cursor.style.transform = `translate3d(${cursorPos.current.x - halfSize}px, ${cursorPos.current.y - halfSize}px, 0) rotate(${angle.current}deg) scale(${scaleX}, ${scaleY})`;
+
+      // Apply transform to BADGE CONTAINER (Position Only - No Rotation)
+      if (badge) {
+        badge.style.transform = `translate3d(${cursorPos.current.x}px, ${cursorPos.current.y}px, 0)`;
+      }
 
       animationRef.current = requestAnimationFrame(animate);
     };
@@ -139,7 +145,7 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
       document.removeEventListener('mousedown', handleMouseDown);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [enabled, handleMouseMove, handleMouseDown, handleMouseUp]);
+  }, [enabled, handleMouseMove, handleMouseDown, handleMouseUp, CURSOR_SIZE]);
 
   if (!enabled || !svgContent || isDragging) return null;
 
@@ -147,7 +153,7 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
 
   return (
     <>
-      {/* Custom cursor element */}
+      {/* 1. Rotated Cursor Shape */}
       <div
         ref={cursorRef}
         className={`custom-cursor ${isClicking ? 'clicking' : ''}`}
@@ -160,6 +166,7 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
           zIndex: 99999,
           transformOrigin: 'center center',
           pointerEvents: 'none',
+          willChange: 'transform',
         }}
       >
         <div
@@ -172,38 +179,45 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
             filter: isClicking ? 'drop-shadow(0 0 8px rgba(255,255,255,0.8))' : 'none',
           }}
         />
+      </div>
 
+      {/* 2. Stable Badge Container (No Rotation) */}
+      <div
+        ref={badgeRef}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          zIndex: 99999,
+          pointerEvents: 'none',
+          willChange: 'transform',
+        }}
+      >
         {/* Status Indicator (Chat or Combat) */}
         {(isChatting || activeTool === 'combat') && (
-          <div className="absolute -top-4 -left-4 text-sm filter drop-shadow-md z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <div className="absolute -top-6 -left-6 text-lg filter drop-shadow-md z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
             {isChatting ? '💬' : '⚔️'}
           </div>
         )}
 
         {/* Context Menu Indicator */}
         {isContexting && (
-          <div className="absolute -top-4 -right-4 bg-white rounded-full w-5 h-5 flex items-center justify-center shadow-sm border border-zinc-200 z-50 animate-in fade-in zoom-in duration-200">
-            <span className="text-[10px] font-bold text-zinc-800 leading-none pb-1">•••</span>
+          <div className="absolute -top-5 -right-5 bg-white rounded-full w-6 h-6 flex items-center justify-center shadow-md border border-zinc-200 z-50 animate-in fade-in zoom-in duration-200">
+            <span className="text-xs font-bold text-zinc-800 leading-none pb-1">•••</span>
           </div>
         )}
 
         {/* Active Tool Badge (Icon + Text) */}
         {showToolBadge && (
           <div
-            className="absolute left-6 top-6 flex items-center gap-2 bg-zinc-900/90 text-white text-[10px] font-bold px-2 py-1 rounded-md shadow-lg border border-white/20 whitespace-nowrap z-50 animate-in fade-in slide-in-from-top-2 duration-200"
-            style={{
-              // Counteract default rotation of parent (which rotates with mouse movement)
-              // This ensures the text stays horizontal and readable
-              transform: `rotate(${-angle.current}deg)`
-            }}
+            className="absolute left-4 top-5 flex items-center gap-1.5 bg-zinc-900/95 text-white text-[11px] font-bold px-2 py-1.5 rounded shadow-lg border border-white/10 whitespace-nowrap z-50 animate-in fade-in slide-in-from-top-1 duration-200"
           >
-            <span className="text-primary">{getToolIcon(activeTool)}</span>
-            <span>{t(getToolTranslationKey(activeTool))}</span>
+            <span className="text-primary text-xs">{getToolIcon(activeTool)}</span>
+            <span className="tracking-tight">{t(getToolTranslationKey(activeTool))}</span>
           </div>
         )}
       </div>
     </>
   );
 };
-export default CustomCursor;
-
+export default LocalCursor;

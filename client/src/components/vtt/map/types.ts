@@ -77,7 +77,7 @@ export interface MapCanvasProps {
   updateToken: (id: string, data: Partial<Token>) => void;
   onOpenSheet?: (token: Token) => void;
   emitTokenDrag?: (tokenId: string, x: number, y: number, path: { x: number, y: number; }[]) => void;
-  emitCursorMove: (x: number, y: number) => void;
+  emitCursorMove: (x: number, y: number, activeTool: string) => void;
 
   campaignCharacters?: Character[];
   onRollDice?: (formula: string, label: string) => void;

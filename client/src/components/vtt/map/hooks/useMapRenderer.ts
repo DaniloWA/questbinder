@@ -13,6 +13,8 @@ import { Token, Point, User } from '../../../../types';
 import { useLayerCache } from './useLayerCache';
 import { CursorPhysicsEngine, createCursorUpdateFromPayload } from '../../../../utils/cursorPhysicsEngine';
 import { getGlobalFrameTimer } from '../../../../utils/animationEngine';
+import { getToolIcon } from '../../../../constants/toolIcons';
+import { getToolTranslationKey } from '../../../../utils/toolMappings';
 
 // Renderers & Helpers
 import {
@@ -501,10 +503,15 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
         trailCustomImage: currentUserOverride.trailCustomImage || localSettings.trailCustomImage,
         trailLength: currentUserOverride.trailLength ?? localSettings.trailLength,
         trailThickness: currentUserOverride.trailThickness ?? localSettings.trailThickness,
-        trailSize: currentUserOverride.trailSize ?? localSettings.trailSize
+        trailSize: currentUserOverride.trailSize ?? localSettings.trailSize,
+        shape: currentUserOverride.shape || localSettings.shape || 'default'
       };
 
-      // Feed local data into physics engine for collision detection (trail rendered by CustomCursor.tsx)
+      // Feed local data into physics engine for collision detection
+      const activeToolStr = activeTool as string;
+      const activeToolIcon = activeToolStr && activeToolStr !== 'select' && activeToolStr !== 'pan' && activeToolStr !== 'combat' ? (getToolIcon(activeToolStr) as string) : undefined;
+      const activeToolName = activeToolStr && activeToolStr !== 'select' && activeToolStr !== 'pan' && activeToolStr !== 'combat' ? t(getToolTranslationKey(activeToolStr)) : undefined;
+
       cursorEngine.processServerUpdate(LOCAL_ID, {
         x: mouseWorldPos.x,
         y: mouseWorldPos.y,
@@ -517,16 +524,42 @@ export const useMapRenderer = (props: UseMapRendererProps) => {
         trailThickness: effectiveLocalSettings.trailThickness,
         trailSize: effectiveLocalSettings.trailSize,
         healthStatus: 'healthy',
+        activeTool, // Pass tool for "physics" (persistence)
+        isChatting: props.isChatting, // Use prop for local status
+        isContexting: props.isContexting,
       });
 
       // Tick physics
       cursorEngine.tick(LOCAL_ID, deltaMs);
 
-      // Render Local Trail (Unified Logic)
+      // Render Local Cursor (Unified Logic)
       // Precision Mode: Skip trail when grid align tools are active
       const localRenderData = cursorEngine.getRenderData(LOCAL_ID);
-      if (localRenderData && !activeTool.startsWith('map-align') && (localRenderData.trailConfig?.enabled || localRenderData.healthStatus !== 'healthy')) {
-        renderCursorTrails(ctx, localRenderData as any, effectiveLocalSettings.color, z);
+      if (localRenderData) {
+        // Render Trail
+        if (!activeTool.startsWith('map-align') && (localRenderData.trailConfig?.enabled || localRenderData.healthStatus !== 'healthy')) {
+          renderCursorTrails(ctx, localRenderData as any, effectiveLocalSettings.color, z);
+        }
+
+        // Render Cursor
+        ctx.save();
+        renderCursor(
+          ctx,
+          localRenderData.position.x,
+          localRenderData.position.y,
+          0, // Angle 0 for local (mouse is instant)
+          effectiveLocalSettings.color,
+          effectiveLocalSettings.shape || 'default',
+          props.currentUser?.name || '',
+          true, // isLocal
+          1, 1, // Scale
+          z,
+          activeToolName,
+          activeToolIcon,
+          props.isChatting ? '💬' : activeToolStr === 'combat' ? '⚔️' : undefined,
+          props.isContexting ? '•••' : undefined
+        );
+        ctx.restore();
       }
 
 

@@ -9,7 +9,7 @@ import { useImageLoader } from './hooks/useImageLoader';
 import { useLayeredInteraction } from './hooks/useLayeredInteraction';
 import { useLayerEngine } from './hooks/useLayerEngine';
 import { TokenHoverCard } from './TokenHoverCard';
-import { CustomCursor } from '../CustomCursor';
+import { LocalCursor } from '../LocalCursor';
 import { PrecisionCursor } from '../PrecisionCursor';
 import { useGameSession } from '../../../context/GameSessionContext';
 import { useModal } from '../../../context/ModalContext';
@@ -339,8 +339,8 @@ export const MapCanvas = (props: MapCanvasProps) => {
       {/* Render Hover Card outside Canvas */}
       {renderHoverCard()}
 
-      {/* DOM-based Custom Cursor */}
-      <CustomCursor
+      {/* DOM-based Local Cursor */}
+      <LocalCursor
         shapeId={cursorConfig.shapeId}
         color={cursorConfig.color}
         enabled={isMouseOverVTT && !mapState.hoveredTokenId && !mapState.isTokenDragging && !props.activeTool.startsWith('map-align')}

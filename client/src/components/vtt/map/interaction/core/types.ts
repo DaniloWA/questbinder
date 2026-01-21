@@ -204,6 +204,11 @@ export interface DragState {
   lastCheckedGridY: number;
 }
 
+// Add to Context
+export interface InteractionContext {
+  dragState?: DragState;
+}
+
 export interface DraggedTokenInfo {
   id: string;
   offsetX: number;
@@ -307,7 +312,7 @@ export interface InteractionCallbacks {
   setDraftPolyPoints: (points: Point[]) => void;
   updateToken: (id: string, data: Partial<Token>) => void;
   emitTokenDrag?: (tokenId: string, x: number, y: number, path: Point[]) => void;
-  emitCursorMove: (x: number, y: number, forceImmediate?: boolean) => void;
+  emitCursorMove: (x: number, y: number, activeTool: string, forceImmediate?: boolean) => void;
   onTokenContextMenu: (e: React.MouseEvent, tokenId: string) => void;
   onMapContextMenu: (e: React.MouseEvent, worldX: number, worldY: number, obstacleId?: string, triggerZoneId?: string, audioZoneId?: string) => void;
   onAttackZoneContextMenu?: (e: React.MouseEvent, zoneId: string) => void;
