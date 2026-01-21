@@ -164,205 +164,25 @@ export class SmartSyncService {
   }
 
   /**
-   * Set up socket listeners for incoming sync events.
-   * Note: We listen to the same events that useSocketListeners handles,
-   * but SmartSync provides a unified caching layer.
+   * Set up socket listeners for sync acknowledgement events only.
+   * 
+   * NOTE: Entity-specific listeners (token, scene, character, drawing) are now
+   * handled by the listener modules in gameSession/hooks/listeners/.
+   * Those listeners call notifySmartSync() to pipe events to this service's cache.
+   * 
+   * This avoids code duplication while maintaining all SmartSync features:
+   * - Conflict detection
+   * - Version tracking
+   * - Optimistic updates
+   * - Subscription notifications
    */
   private setupSocketListeners(): void {
-    // Token events - using 'any' handlers since socket events are dynamically typed
-    // The GameSession useSocketListeners already handles these events and updates React state.
-    // SmartSync provides parallel caching for future optimistic updates.
-
-    // For now, we hook into the existing socket events via their current names.
-    // We can use 'any' type assertion since these are internal sync events.
-    const socket = socketService as any;
-
-    // These handlers run in parallel with existing useSocketListeners
-    // and update the SmartSync cache for conflict detection
-    socket.on?.('token:update', (payload: any) => {
-      if (payload?.id) {
-        this.receive({
-          entityType: 'token',
-          entityId: payload.id,
-          parentId: payload.sceneId,
-          changeType: 'update',
-          data: payload.changes || payload,
-          version: Date.now(),
-          timestamp: Date.now(),
-          userId: payload.userId,
-        });
-      }
-    });
-
-    socket.on?.('token:add', (payload: any) => {
-      const token = payload?.token;
-      if (token?.id) {
-        this.receive({
-          entityType: 'token',
-          entityId: token.id,
-          parentId: payload.sceneId,
-          changeType: 'create',
-          data: token,
-          version: Date.now(),
-          timestamp: Date.now(),
-          userId: payload.userId,
-        });
-      }
-    });
-
-    socket.on?.('token:remove', (payload: any) => {
-      if (payload?.id) {
-        this.receive({
-          entityType: 'token',
-          entityId: payload.id,
-          parentId: payload.sceneId,
-          changeType: 'delete',
-          data: {},
-          version: Date.now(),
-          timestamp: Date.now(),
-          userId: payload.userId,
-        });
-      }
-    });
-
-    socket.on?.('scene:update', (payload: any) => {
-      if (payload?.id) {
-        this.receive({
-          entityType: 'scene',
-          entityId: payload.id,
-          changeType: 'update',
-          data: payload.changes || payload,
-          version: Date.now(),
-          timestamp: Date.now(),
-          userId: payload.userId,
-        });
-      }
-    });
-
-    socket.on?.('scene:add', (payload: any) => {
-      const scene = payload?.scene;
-      if (scene?.id) {
-        this.receive({
-          entityType: 'scene',
-          entityId: scene.id,
-          changeType: 'create',
-          data: scene,
-          version: Date.now(),
-          timestamp: Date.now(),
-          userId: payload.userId,
-        });
-      }
-    });
-
-    socket.on?.('scene:delete', (payload: any) => {
-      if (payload?.id) {
-        this.receive({
-          entityType: 'scene',
-          entityId: payload.id,
-          changeType: 'delete',
-          data: {},
-          version: Date.now(),
-          timestamp: Date.now(),
-          userId: payload.userId,
-        });
-      }
-    });
-
-    socket.on?.('character:update', (payload: any) => {
-      const id = payload?.characterId || payload?.id;
-      if (id) {
-        this.receive({
-          entityType: 'character',
-          entityId: id,
-          changeType: 'update',
-          data: payload.updates || payload,
-          version: Date.now(),
-          timestamp: Date.now(),
-          userId: payload.userId,
-        });
-      }
-    });
-
-    socket.on?.('character:add', (payload: any) => {
-      const character = payload?.character || payload;
-      if (character?.id) {
-        this.receive({
-          entityType: 'character',
-          entityId: character.id,
-          changeType: 'create',
-          data: character,
-          version: Date.now(),
-          timestamp: Date.now(),
-          userId: payload.userId,
-        });
-      }
-    });
-
-    socket.on?.('character:delete', (payload: any) => {
-      if (payload?.id) {
-        this.receive({
-          entityType: 'character',
-          entityId: payload.id,
-          changeType: 'delete',
-          data: {},
-          version: Date.now(),
-          timestamp: Date.now(),
-          userId: payload.userId,
-        });
-      }
-    });
-
-    socket.on?.('combat:update', (payload: any) => {
-      const combat = payload?.combat;
-      if (combat) {
-        this.receive({
-          entityType: 'combat',
-          entityId: combat.id || 'current',
-          changeType: 'update',
-          data: combat,
-          version: Date.now(),
-          timestamp: Date.now(),
-          userId: payload.userId,
-        });
-      }
-    });
-
-    socket.on?.('drawing:add', (payload: any) => {
-      const drawing = payload?.drawing;
-      if (drawing?.id) {
-        this.receive({
-          entityType: 'drawing',
-          entityId: drawing.id,
-          parentId: payload.sceneId,
-          changeType: 'create',
-          data: drawing,
-          version: Date.now(),
-          timestamp: Date.now(),
-          userId: payload.userId,
-        });
-      }
-    });
-
-    socket.on?.('drawing:remove', (payload: any) => {
-      if (payload?.id) {
-        this.receive({
-          entityType: 'drawing',
-          entityId: payload.id,
-          parentId: payload.sceneId,
-          changeType: 'delete',
-          data: {},
-          version: Date.now(),
-          timestamp: Date.now(),
-          userId: payload.userId,
-        });
-      }
-    });
-
-    socket.on?.('sync:ack', (payload: any) => {
+    // Only handle sync acknowledgement events - entity events come via notifySmartSync()
+    (socketService as any).on?.('sync:ack', (payload: any) => {
       this.handleAck(payload);
     });
 
-    socket.on?.('sync:reject', (payload: any) => {
+    (socketService as any).on?.('sync:reject', (payload: any) => {
       this.handleReject(payload);
     });
   }

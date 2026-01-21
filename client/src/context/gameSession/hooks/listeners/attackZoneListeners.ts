@@ -1,14 +1,11 @@
 import { socketService } from '../../../../services/socketService';
 import { AttackZoneConfig } from '../../../../types/attackZone';
+import { notifySmartSync } from '../../syncHelpers';
 import { ListenerDeps, ListenerCleanup } from './types';
 
 /**
- * Registers listeners for attack zone events
- * - attackZone:add
- * - attackZone:update
- * - attackZone:remove
- * - attackZone:clear
- * - attackZone:syncResponse
+ * Registers listeners for attack zone events.
+ * All handlers update React state AND notify SmartSync cache.
  */
 export const registerAttackZoneListeners = ({
   setState,
@@ -17,19 +14,22 @@ export const registerAttackZoneListeners = ({
 
   // Handler: attackZone:add
   const handleAttackZoneAdd = (payload: { zone: AttackZoneConfig; userId?: string; }) => {
-    console.log('[AttackZone Listener] Received attackZone:add', { payload, myUserId: user?.id });
-
-    // Skip if we emitted this event (userId matches)
+    // Skip if we emitted this event
     if (payload.userId && payload.userId === user?.id) {
-      console.log('[AttackZone Listener] Skipping own event');
       return;
     }
 
-    console.log('[AttackZone Listener] Adding zone to state:', payload.zone.id);
     setState(prev => ({
       ...prev,
       attackZones: [...prev.attackZones.filter(z => z.id !== payload.zone.id), payload.zone]
     }));
+
+    notifySmartSync({
+      entityType: 'attackZone',
+      entityId: payload.zone.id,
+      changeType: 'create',
+      data: payload.zone
+    });
   };
 
   // Handler: attackZone:update
@@ -42,6 +42,13 @@ export const registerAttackZoneListeners = ({
         z.id === payload.zoneId ? { ...z, ...payload.updates } : z
       )
     }));
+
+    notifySmartSync({
+      entityType: 'attackZone',
+      entityId: payload.zoneId,
+      changeType: 'update',
+      data: payload.updates
+    });
   };
 
   // Handler: attackZone:remove
@@ -52,29 +59,57 @@ export const registerAttackZoneListeners = ({
       ...prev,
       attackZones: prev.attackZones.filter(z => z.id !== payload.zoneId)
     }));
+
+    notifySmartSync({
+      entityType: 'attackZone',
+      entityId: payload.zoneId,
+      changeType: 'delete',
+      data: {}
+    });
   };
 
   // Handler: attackZone:clear
   const handleAttackZoneClear = (payload: { userId: string; }) => {
     if (payload.userId === user?.id) return;
 
-    setState(prev => ({
-      ...prev,
-      attackZones: []
-    }));
+    // Get all zone IDs before clearing for cache notification
+    setState(prev => {
+      // Notify SmartSync for each zone being deleted
+      prev.attackZones.forEach(zone => {
+        notifySmartSync({
+          entityType: 'attackZone',
+          entityId: zone.id,
+          changeType: 'delete',
+          data: {}
+        });
+      });
+
+      return {
+        ...prev,
+        attackZones: []
+      };
+    });
   };
 
   // Handler: attackZone:syncResponse - receives current zones when joining
   const handleAttackZoneSyncResponse = (payload: { zones: AttackZoneConfig[]; }) => {
-    console.log('[AttackZone Listener] Received syncResponse with zones:', payload.zones?.length || 0);
     setState(prev => ({
       ...prev,
       attackZones: payload.zones || []
     }));
+
+    // Hydrate cache with all zones
+    (payload.zones || []).forEach(zone => {
+      notifySmartSync({
+        entityType: 'attackZone',
+        entityId: zone.id,
+        changeType: 'create',
+        data: zone
+      });
+    });
   };
 
   // Register listeners
-  console.log('[AttackZone Listener] Registering attack zone listeners for user:', user?.id);
   socketService.on('attackZone:add', handleAttackZoneAdd);
   socketService.on('attackZone:update', handleAttackZoneUpdate);
   socketService.on('attackZone:remove', handleAttackZoneRemove);
@@ -82,7 +117,6 @@ export const registerAttackZoneListeners = ({
   socketService.on('attackZone:syncResponse', handleAttackZoneSyncResponse);
 
   // Request sync on registration (for late joiners)
-  console.log('[AttackZone Listener] Requesting sync');
   socketService.emit('attackZone:sync', {});
 
   // Return cleanup function

@@ -1,17 +1,11 @@
 import { socketService } from '../../../../services/socketService';
 import { CombatUpdatePayload } from '../../../../types';
+import { notifySmartSync } from '../../syncHelpers';
 import { ListenerDeps, ListenerCleanup } from './types';
 
 /**
- * Registers listeners for combat-related events
- * - combat:start
- * - combat:end
- * - combat:update
- * - combat:next-turn
- * - combat:combatant:add
- * - combat:combatant:update
- * - combat:combatant:remove
- * - combat:action
+ * Registers listeners for combat-related events.
+ * All handlers update React state AND notify SmartSync cache.
  */
 export const registerCombatListeners = ({
   state,
@@ -25,6 +19,15 @@ export const registerCombatListeners = ({
       ...previousState,
       combat: payload.combat
     }));
+
+    if (payload.combat) {
+      notifySmartSync({
+        entityType: 'combat',
+        entityId: (payload.combat as any).id || 'current',
+        changeType: 'update',
+        data: payload.combat
+      });
+    }
   };
 
   // Handler: combat:start
@@ -33,6 +36,13 @@ export const registerCombatListeners = ({
       ...prev,
       combat: payload.combat
     }));
+
+    notifySmartSync({
+      entityType: 'combat',
+      entityId: payload.combat?.id || 'current',
+      changeType: 'create',
+      data: payload.combat
+    });
 
     if (!state.isGM) {
       show({
@@ -45,10 +55,20 @@ export const registerCombatListeners = ({
 
   // Handler: combat:end
   const handleCombatEnd = (payload: { stats: any; }) => {
+    // Get combat ID before clearing state
+    const combatId = (state.combat as any)?.id || 'current';
+
     setState(prev => ({
       ...prev,
       combat: null
     }));
+
+    notifySmartSync({
+      entityType: 'combat',
+      entityId: combatId,
+      changeType: 'delete',
+      data: {}
+    });
 
     if (!state.isGM) {
       show({
@@ -65,6 +85,13 @@ export const registerCombatListeners = ({
       ...prev,
       combat: payload.combat
     }));
+
+    notifySmartSync({
+      entityType: 'combat',
+      entityId: payload.combat?.id || 'current',
+      changeType: 'update',
+      data: payload.combat
+    });
 
     const activeCombatant = payload.combat.turnOrder[payload.combat.activeTurnIndex];
     if (!state.isGM && activeCombatant) {
@@ -89,6 +116,13 @@ export const registerCombatListeners = ({
         }
       };
     });
+
+    notifySmartSync({
+      entityType: 'combatant',
+      entityId: payload.combatant.id,
+      changeType: 'create',
+      data: payload.combatant
+    });
   };
 
   // Handler: combat:combatant:update
@@ -105,6 +139,13 @@ export const registerCombatListeners = ({
         }
       };
     });
+
+    notifySmartSync({
+      entityType: 'combatant',
+      entityId: payload.id,
+      changeType: 'update',
+      data: payload.updates
+    });
   };
 
   // Handler: combat:combatant:remove
@@ -118,6 +159,13 @@ export const registerCombatListeners = ({
           turnOrder: prev.combat.turnOrder.filter(c => c.id !== payload.id)
         }
       };
+    });
+
+    notifySmartSync({
+      entityType: 'combatant',
+      entityId: payload.id,
+      changeType: 'delete',
+      data: {}
     });
   };
 
@@ -133,6 +181,7 @@ export const registerCombatListeners = ({
         }
       };
     });
+    // Actions are appended to history, no separate cache entry needed
   };
 
   // Register listeners

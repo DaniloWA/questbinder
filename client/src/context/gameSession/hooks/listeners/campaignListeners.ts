@@ -3,9 +3,13 @@ import {
   CampaignUpdatePayload,
   HandoutUpdatePayload
 } from '../../../../types';
+import { notifySmartSync } from '../../syncHelpers';
 import { ListenerDeps, ListenerCleanup } from './types';
 
-
+/**
+ * Registers listeners for campaign-related events.
+ * All handlers update React state AND notify SmartSync cache.
+ */
 export const registerCampaignListeners = ({
   state,
   setState,
@@ -14,7 +18,6 @@ export const registerCampaignListeners = ({
 }: ListenerDeps): ListenerCleanup => {
 
   const handleCampaignUpdate = (payload: CampaignUpdatePayload) => {
-
     if (!payload.changes) return;
 
     setState(previousState => {
@@ -39,10 +42,17 @@ export const registerCampaignListeners = ({
 
       return newState;
     });
+
+    // Notify SmartSync cache
+    notifySmartSync({
+      entityType: 'campaign',
+      entityId: state.campaign?.id || 'current',
+      changeType: 'update',
+      data: payload.changes
+    });
   };
 
   const handleHandoutUpdate = (payload: HandoutUpdatePayload) => {
-
     setState(previousState => {
       let updatedHandouts = [...previousState.handouts];
       const currentUserId = user?.id || '';
@@ -56,6 +66,14 @@ export const registerCampaignListeners = ({
           updatedHandouts.push(payload.handout);
         }
 
+        // Notify SmartSync
+        notifySmartSync({
+          entityType: 'handout',
+          entityId: payload.handout.id,
+          changeType: 'create',
+          data: payload.handout
+        });
+
         return { ...previousState, handouts: updatedHandouts };
       }
 
@@ -67,6 +85,14 @@ export const registerCampaignListeners = ({
         updatedHandouts = updatedHandouts.map(handout =>
           handout.id === payload.handout!.id ? payload.handout! : handout
         );
+
+        // Notify SmartSync
+        notifySmartSync({
+          entityType: 'handout',
+          entityId: payload.handout.id,
+          changeType: 'update',
+          data: payload.handout
+        });
 
         const wasSharedWithUser = oldHandout?.sharedWith.includes(currentUserId);
         const isNowSharedWithUser = payload.handout.sharedWith.includes(currentUserId);
@@ -106,6 +132,14 @@ export const registerCampaignListeners = ({
         updatedHandouts = updatedHandouts.filter(
           handout => handout.id !== payload.handoutId
         );
+
+        // Notify SmartSync
+        notifySmartSync({
+          entityType: 'handout',
+          entityId: payload.handoutId,
+          changeType: 'delete',
+          data: {}
+        });
       }
 
       return { ...previousState, handouts: updatedHandouts };
@@ -113,7 +147,6 @@ export const registerCampaignListeners = ({
   };
 
   const handlePermissionsUpdated = (payload: { permissions: any; }) => {
-
     setState(prev => {
       if (!prev.campaign) {
         console.warn('[WS] No campaign in state, cannot update permissions');
@@ -132,15 +165,21 @@ export const registerCampaignListeners = ({
       };
     });
 
+    // Notify SmartSync
+    notifySmartSync({
+      entityType: 'campaign',
+      entityId: state.campaign?.id || 'current',
+      changeType: 'update',
+      data: { permissions: payload.permissions }
+    });
+
     // Sync cursorOverrides to localStorage for current user
-    // This prevents flickering between user settings and GM overrides on reconnect
     const myOverride = payload.permissions?.cursorOverrides?.[user?.id];
     if (myOverride && Object.keys(myOverride).length > 0) {
       try {
         const stored = JSON.parse(localStorage.getItem('qb_cursor_settings') || '{}');
         const merged = { ...stored };
 
-        // Sync all cursor override fields
         if (myOverride.color !== undefined) merged.color = myOverride.color;
         if (myOverride.shape !== undefined) merged.shape = myOverride.shape;
         if (myOverride.name !== undefined) merged.name = myOverride.name;
@@ -155,18 +194,15 @@ export const registerCampaignListeners = ({
         if (myOverride.trailThickness !== undefined) merged.trailThickness = myOverride.trailThickness;
 
         localStorage.setItem('qb_cursor_settings', JSON.stringify(merged));
-        console.log('[Permissions] Synced cursor overrides to localStorage');
       } catch (e) {
         console.warn('[Permissions] Failed to sync cursor overrides to localStorage:', e);
       }
     }
   };
 
-
   socketService.on('campaign:update', handleCampaignUpdate);
   socketService.on('handout:update', handleHandoutUpdate);
   socketService.on('campaign:permissionsUpdated', handlePermissionsUpdated);
-
 
   return () => {
     socketService.off('campaign:update', handleCampaignUpdate);

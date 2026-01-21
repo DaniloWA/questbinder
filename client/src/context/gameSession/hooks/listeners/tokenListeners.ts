@@ -1,17 +1,23 @@
 import { socketService } from '../../../../services/socketService';
 import {
   TokenUpdatePayload,
-  TokenDragPayload
+  TokenDragPayload,
+  TokenAddPayload,
+  TokenRemovePayload
 } from '../../../../types';
 import { StateHelpers } from '../../helpers';
+import { notifySmartSync } from '../../syncHelpers';
 import { ListenerDeps, ListenerCleanup } from './types';
 
 /**
- * Registers listeners for token-related events
- * - token:update
- * - token:add
- * - token:remove
- * - token:drag
+ * Registers listeners for token-related events.
+ * All handlers update React state AND notify SmartSync cache.
+ * 
+ * Events handled:
+ * - token:update - Token position/property changes
+ * - token:add - New token added
+ * - token:remove - Token deleted
+ * - token:drag - Live drag preview (ephemeral, not persisted)
  */
 export const registerTokenListeners = ({
   setState,
@@ -20,8 +26,8 @@ export const registerTokenListeners = ({
 
   // Handler: token:update
   const handleTokenUpdate = (payload: TokenUpdatePayload) => {
+    // 1. Update React state
     setState(previousState => {
-      // 1. Update Scenes
       const updatedScenes = StateHelpers.updateItemInSceneList(
         previousState.scenes,
         payload.sceneId,
@@ -30,11 +36,9 @@ export const registerTokenListeners = ({
         payload.changes
       );
 
-      // 2. Clear Remote Drags (Fix for remote cursor delay)
-      // If this token was being dragged, the update means the drag ended.
+      // Clear remote drags when token position is finalized
       const updatedDrags = { ...previousState.remoteDrags };
       let dragsChanged = false;
-
       Object.keys(updatedDrags).forEach(userId => {
         if (updatedDrags[userId].tokenId === payload.id) {
           delete updatedDrags[userId];
@@ -48,10 +52,20 @@ export const registerTokenListeners = ({
         remoteDrags: dragsChanged ? updatedDrags : previousState.remoteDrags
       };
     });
+
+    // 2. Notify SmartSync cache
+    notifySmartSync({
+      entityType: 'token',
+      entityId: payload.id,
+      changeType: 'update',
+      data: payload.changes,
+      parentId: payload.sceneId
+    });
   };
 
   // Handler: token:add
-  const handleTokenAdd = (payload: any) => {
+  const handleTokenAdd = (payload: TokenAddPayload) => {
+    // 1. Update React state
     setState(previousState => ({
       ...previousState,
       scenes: StateHelpers.addItemToSceneList(
@@ -61,10 +75,20 @@ export const registerTokenListeners = ({
         payload.token
       )
     }));
+
+    // 2. Notify SmartSync cache
+    notifySmartSync({
+      entityType: 'token',
+      entityId: payload.token.id,
+      changeType: 'create',
+      data: payload.token,
+      parentId: payload.sceneId
+    });
   };
 
   // Handler: token:remove
-  const handleTokenRemove = (payload: any) => {
+  const handleTokenRemove = (payload: TokenRemovePayload) => {
+    // 1. Update React state
     setState(previousState => ({
       ...previousState,
       scenes: StateHelpers.removeItemFromSceneList(
@@ -74,9 +98,18 @@ export const registerTokenListeners = ({
         payload.id
       )
     }));
+
+    // 2. Notify SmartSync cache
+    notifySmartSync({
+      entityType: 'token',
+      entityId: payload.id,
+      changeType: 'delete',
+      data: {},
+      parentId: payload.sceneId
+    });
   };
 
-  // Handler: token:drag
+  // Handler: token:drag (ephemeral - NOT synced to cache)
   const handleTokenDrag = (payload: TokenDragPayload) => {
     if (payload.userId === user?.id) return;
 
@@ -93,26 +126,24 @@ export const registerTokenListeners = ({
         if (previousState.remoteDrags[payload.userId] !== payload) {
           return previousState;
         }
-
         const updatedDrags = { ...previousState.remoteDrags };
         delete updatedDrags[payload.userId];
-
         return { ...previousState, remoteDrags: updatedDrags };
       });
     }, 2000);
   };
 
-  // Register listeners
-  // socketService.on('token:update', handleTokenUpdate);
-  // socketService.on('token:add', handleTokenAdd);
-  // socketService.on('token:remove', handleTokenRemove);
+  // Register all listeners
+  socketService.on('token:update', handleTokenUpdate);
+  socketService.on('token:add', handleTokenAdd);
+  socketService.on('token:remove', handleTokenRemove);
   socketService.on('token:drag', handleTokenDrag);
 
-  // Return cleanup function
+  // Cleanup
   return () => {
-    // socketService.off('token:update', handleTokenUpdate);
-    // socketService.off('token:add', handleTokenAdd);
-    // socketService.off('token:remove', handleTokenRemove);
+    socketService.off('token:update', handleTokenUpdate);
+    socketService.off('token:add', handleTokenAdd);
+    socketService.off('token:remove', handleTokenRemove);
     socketService.off('token:drag', handleTokenDrag);
   };
 };

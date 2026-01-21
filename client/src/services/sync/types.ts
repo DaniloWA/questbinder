@@ -25,7 +25,9 @@ export type EntityType =
   | 'combat'
   | 'combatant'
   | 'handout'
-  | 'campaign';
+  | 'campaign'
+  | 'chatMessage'
+  | 'player';
 
 /**
  * Sync priority levels - determines batching behavior.
@@ -49,6 +51,8 @@ export const ENTITY_PRIORITY: Record<EntityType, SyncPriority> = {
   combatant: 'high',
   handout: 'low',
   campaign: 'low',
+  chatMessage: 'medium',
+  player: 'medium',
 };
 
 /**

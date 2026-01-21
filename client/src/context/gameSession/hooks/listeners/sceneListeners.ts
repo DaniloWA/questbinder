@@ -7,15 +7,12 @@ import {
   MapPingPayload
 } from '../../../../types';
 import { StateHelpers } from '../../helpers';
+import { notifySmartSync } from '../../syncHelpers';
 import { ListenerDeps, ListenerCleanup } from './types';
 
 /**
- * Registers listeners for scene and map-related events
- * - scene:update
- * - scene:add
- * - scene:delete
- * - scene:switch
- * - map:ping
+ * Registers listeners for scene and map-related events.
+ * All handlers update React state AND notify SmartSync cache.
  */
 export const registerSceneListeners = ({
   setState,
@@ -34,44 +31,57 @@ export const registerSceneListeners = ({
         payload.changes
       )
     }));
+
+    notifySmartSync({
+      entityType: 'scene',
+      entityId: payload.id,
+      changeType: 'update',
+      data: payload.changes
+    });
   };
 
   // Handler: scene:add
   const handleSceneAdd = (payload: SceneAddPayload) => {
     setState(previousState => {
-      const sceneExists = previousState.scenes.some(
-        scene => scene.id === payload.scene.id
-      );
-
+      const sceneExists = previousState.scenes.some(s => s.id === payload.scene.id);
       if (sceneExists) return previousState;
-
       return {
         ...previousState,
         scenes: [...previousState.scenes, payload.scene]
       };
+    });
+
+    notifySmartSync({
+      entityType: 'scene',
+      entityId: payload.scene.id,
+      changeType: 'create',
+      data: payload.scene
     });
   };
 
   // Handler: scene:delete
   const handleSceneDelete = (payload: SceneDeletePayload) => {
     setState(previousState => {
-      const filteredScenes = previousState.scenes.filter(
-        scene => scene.id !== payload.id
-      );
-
+      const filteredScenes = previousState.scenes.filter(s => s.id !== payload.id);
       const newActiveSceneId = previousState.activeSceneId === payload.id
-        ? (previousState.scenes[0]?.id || '')
+        ? (filteredScenes[0]?.id || '')
         : previousState.activeSceneId;
-
       return {
         ...previousState,
         scenes: filteredScenes,
         activeSceneId: newActiveSceneId
       };
     });
+
+    notifySmartSync({
+      entityType: 'scene',
+      entityId: payload.id,
+      changeType: 'delete',
+      data: {}
+    });
   };
 
-  // Handler: scene:switch
+  // Handler: scene:switch (UI only, no cache)
   const handleSceneSwitch = (payload: SceneSwitchPayload) => {
     setState(previousState => ({
       ...previousState,
@@ -79,7 +89,7 @@ export const registerSceneListeners = ({
     }));
   };
 
-  // Handler: map:ping
+  // Handler: map:ping (ephemeral, no cache)
   const handleMapPing = (payload: MapPingPayload) => {
     if (payload.userId === user?.id) return;
 
@@ -102,23 +112,22 @@ export const registerSceneListeners = ({
     setTimeout(() => {
       setState(previousState => ({
         ...previousState,
-        pings: previousState.pings.filter(existingPing => existingPing.id !== ping.id)
+        pings: previousState.pings.filter(p => p.id !== ping.id)
       }));
     }, 3000);
   };
 
-  // Register listeners
-  // socketService.on('scene:update', handleSceneUpdate);
-  // socketService.on('scene:add', handleSceneAdd);
-  // socketService.on('scene:delete', handleSceneDelete);
+  // Register all listeners
+  socketService.on('scene:update', handleSceneUpdate);
+  socketService.on('scene:add', handleSceneAdd);
+  socketService.on('scene:delete', handleSceneDelete);
   socketService.on('scene:switch', handleSceneSwitch);
   socketService.on('map:ping', handleMapPing);
 
-  // Return cleanup function
   return () => {
-    // socketService.off('scene:update', handleSceneUpdate);
-    // socketService.off('scene:add', handleSceneAdd);
-    // socketService.off('scene:delete', handleSceneDelete);
+    socketService.off('scene:update', handleSceneUpdate);
+    socketService.off('scene:add', handleSceneAdd);
+    socketService.off('scene:delete', handleSceneDelete);
     socketService.off('scene:switch', handleSceneSwitch);
     socketService.off('map:ping', handleMapPing);
   };

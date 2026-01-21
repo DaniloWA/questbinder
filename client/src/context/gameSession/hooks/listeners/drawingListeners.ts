@@ -4,12 +4,12 @@ import {
   DrawingRemovePayload
 } from '../../../../types';
 import { StateHelpers } from '../../helpers';
+import { notifySmartSync } from '../../syncHelpers';
 import { ListenerDeps, ListenerCleanup } from './types';
 
 /**
- * Registers listeners for drawing-related events
- * - drawing:add
- * - drawing:remove
+ * Registers listeners for drawing-related events.
+ * Handlers update React state AND notify SmartSync cache.
  */
 export const registerDrawingListeners = ({
   setState
@@ -26,6 +26,14 @@ export const registerDrawingListeners = ({
         payload.drawing
       )
     }));
+
+    notifySmartSync({
+      entityType: 'drawing',
+      entityId: payload.drawing.id,
+      changeType: 'create',
+      data: payload.drawing,
+      parentId: payload.sceneId
+    });
   };
 
   // Handler: drawing:remove
@@ -39,16 +47,22 @@ export const registerDrawingListeners = ({
         payload.id
       )
     }));
+
+    notifySmartSync({
+      entityType: 'drawing',
+      entityId: payload.id,
+      changeType: 'delete',
+      data: {},
+      parentId: payload.sceneId
+    });
   };
 
   // Register listeners
-  // NOTE: Disabled - SmartSync handles these events via SmartSyncBridge
-  // socketService.on('drawing:add', handleDrawingAdd);
-  // socketService.on('drawing:remove', handleDrawingRemove);
+  socketService.on('drawing:add', handleDrawingAdd);
+  socketService.on('drawing:remove', handleDrawingRemove);
 
-  // Return cleanup function
   return () => {
-    // socketService.off('drawing:add', handleDrawingAdd);
-    // socketService.off('drawing:remove', handleDrawingRemove);
+    socketService.off('drawing:add', handleDrawingAdd);
+    socketService.off('drawing:remove', handleDrawingRemove);
   };
 };

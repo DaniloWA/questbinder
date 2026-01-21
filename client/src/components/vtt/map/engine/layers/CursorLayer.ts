@@ -134,10 +134,40 @@ export class CursorLayer extends BaseLayer {
       // If we feed identical updates, the engine queues duplicate segments causing massive lag/jitter.
       const lastTs = this.processedTimestamps.get(userId) || 0;
 
+      // APPLY GM OVERRIDES
+      // Merge remote cursor data with any overrides from permissions
+      // We must cast/map because overrides structure might differ slightly or be partial
+      const overrides = context.permissions?.cursorOverrides?.[userId] as any;
+
+      const effectiveCursor = { ...cursor };
+      if (overrides) {
+        if (overrides.shape) effectiveCursor.userShape = overrides.shape;
+        if (overrides.color) effectiveCursor.userColor = overrides.color;
+        if (overrides.name) effectiveCursor.userName = overrides.name;
+        // Map trail overrides to the structure expected by physics update if needed
+        // Or we apply them just before rendering.
+        // Since physics engine manages trail history based on 'trailConfig', 
+        // we might need to update the trail config in the physics engine?
+        // Actually, physicsEngine.processServerUpdate takes a payload.
+        // If we modify effectiveCursor (which mimics payload) before passing it, we are good.
+
+        // However, trail config is nested in payload usually? 
+        // Let's check createCursorUpdateFromPayload.
+        // It reads from payload properties directly effectively.
+      }
+
+      // We need to inject overrides into the payload fed to physics engine
+      // But we can ALSO override them at render time (Lines 166+) which is safer/easier for visuals
+      // Let's do it at RENDER time for purely visual things (Color, Shape, Trail Style)
+      // But 'enabled' state for trail affects history recording? No, recording happens anyway essentially?
+      // Actually CursorPhysicsState has 'trailConfig'.
+
+      // Let's just override visual props when creating the render config below.
+
       // Only process if we have a newer timestamp (standard case)
       // OR if we have NO timestamp but the values changed (fallback)
       if (cursor.timestamp && cursor.timestamp > lastTs) {
-        const updateWrapper = createCursorUpdateFromPayload({ ...cursor, userId });
+        const updateWrapper = createCursorUpdateFromPayload({ ...effectiveCursor, userId });
         this.physicsEngine.processServerUpdate(userId, updateWrapper.update);
         this.processedTimestamps.set(userId, cursor.timestamp);
 
@@ -161,16 +191,48 @@ export class CursorLayer extends BaseLayer {
       const renderData = this.physicsEngine.getRenderData(userId);
       if (!renderData) continue;
 
+      // START OVERRIDE APPLICATION FOR RENDER
+      let trailColor = renderData.trailConfig.color || '#fbbf24';
+      let trailAnimation = (renderData.trailConfig.animation as any) || 'line';
+      let trailEnabled = renderData.trailConfig.enabled;
+      let trailLength = renderData.trailConfig.length || 20;
+      let trailThickness = renderData.trailConfig.thickness || 1;
+      let trailSize = renderData.trailConfig.size || 4;
+      let trailCustomImage = renderData.trailConfig.customImage;
+
+      let cursorShape = cursor.userShape || 'default';
+      let cursorColor = cursor.userColor || '#fbbf24';
+      let cursorName = cursor.userName || '';
+
+      if (overrides) {
+        if (overrides.trailColor) trailColor = overrides.trailColor;
+        if (overrides.trailAnimation) trailAnimation = overrides.trailAnimation;
+        if (overrides.trailEnabled !== undefined) trailEnabled = overrides.trailEnabled;
+        if (overrides.trailLength) trailLength = overrides.trailLength;
+        if (overrides.trailThickness) trailThickness = overrides.trailThickness;
+        if (overrides.trailSize) trailSize = overrides.trailSize;
+        if (overrides.trailCustomImage) trailCustomImage = overrides.trailCustomImage;
+
+        // Force disable if showOthersTrails is false (checked below? no)
+        // Check showMyTrail equivalent for them? 'showOthersTrails' on MY side hides them.
+        // 'showMyTrail' on THEIR side hides them. We respect THEIR choice unless overridden.
+        if (overrides.showMyTrail === false) trailEnabled = false;
+
+        if (overrides.shape) cursorShape = overrides.shape;
+        if (overrides.color) cursorColor = overrides.color;
+        if (overrides.name) cursorName = overrides.name;
+      }
+
       // Render trail first
-      if (renderData.trailConfig.enabled && cursorSettings?.showOthersTrails !== false) {
+      if (trailEnabled && cursorSettings?.showOthersTrails !== false) {
         const config: TrailConfig = {
           enabled: true,
-          color: renderData.trailConfig.color || '#fbbf24',
-          animation: (renderData.trailConfig.animation as any) || 'line',
-          length: renderData.trailConfig.length || 20,
-          thickness: renderData.trailConfig.thickness || 1,
-          size: renderData.trailConfig.size || 4,
-          customImage: renderData.trailConfig.customImage,
+          color: trailColor,
+          animation: trailAnimation,
+          length: trailLength,
+          thickness: trailThickness,
+          size: trailSize,
+          customImage: trailCustomImage,
         };
 
         renderTrail(ctx, renderData.trailHistory, config, {
@@ -201,6 +263,7 @@ export class CursorLayer extends BaseLayer {
       // Note: Combat is handled by statusIcon.
       let activeToolName: string | undefined;
       let activeToolIcon: string | undefined;
+      let activeToolTranslated = activeToolName; // Holder
 
       if (activeTool && activeTool !== 'select' && activeTool !== 'pan' && activeTool !== 'combat') {
         activeToolIcon = getToolIcon(activeTool);
@@ -217,9 +280,9 @@ export class CursorLayer extends BaseLayer {
         renderData.position.x,
         renderData.position.y,
         renderData.angle,
-        cursor.userColor || '#fbbf24',
-        cursor.userShape || 'default',
-        cursor.userName || '',
+        cursorColor, // Overridden
+        cursorShape, // Overridden
+        cursorName, // Overridden
         false, // isLocal
         renderData.scaleX,
         renderData.scaleY,

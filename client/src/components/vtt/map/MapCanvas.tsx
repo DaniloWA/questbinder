@@ -201,6 +201,7 @@ export const MapCanvas = (props: MapCanvasProps) => {
         offset: mapState.dragState?.current?.offset || { x: 0, y: 0 },
       },
       localCursorPos: mapState.mouseWorldPosRef?.current || { x: 0, y: 0 },
+      cursorSettings: cursorConfig,
     });
   });
 

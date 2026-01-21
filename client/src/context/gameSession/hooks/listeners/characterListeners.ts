@@ -1,5 +1,6 @@
 import { socketService } from '../../../../services/socketService';
 import { Character } from '../../../../types';
+import { notifySmartSync } from '../../syncHelpers';
 import { ListenerDeps, ListenerCleanup } from './types';
 
 
@@ -29,9 +30,13 @@ const calculateTokenConditions = (
   return updatedConditions;
 };
 
-
+/**
+ * Registers listeners for character events.
+ * Handlers update React state AND notify SmartSync cache.
+ * 
+ * Special handling: Character updates cascade to linked tokens.
+ */
 export const registerCharacterListeners = ({
-  state,
   setState
 }: ListenerDeps): ListenerCleanup => {
 
@@ -40,6 +45,13 @@ export const registerCharacterListeners = ({
       ...previousState,
       campaignCharacters: [...previousState.campaignCharacters, character]
     }));
+
+    notifySmartSync({
+      entityType: 'character',
+      entityId: character.id,
+      changeType: 'create',
+      data: character
+    });
   };
 
   const handleCharacterUpdate = (payload: any) => {
@@ -66,6 +78,7 @@ export const registerCharacterListeners = ({
 
       const updatedCharacter = updatedCharacters.find(char => char.id === characterId);
 
+      // Cascade to linked tokens
       const updatedScenes = previousState.scenes.map(scene => ({
         ...scene,
         tokens: scene.tokens.map(token => {
@@ -139,7 +152,6 @@ export const registerCharacterListeners = ({
           if (updates.darkvisionRange !== undefined) {
             tokenChanges.darkvisionRange = updates.darkvisionRange;
           }
-
           if (updates.speed !== undefined) {
             tokenChanges.speed = updates.speed;
           }
@@ -154,6 +166,13 @@ export const registerCharacterListeners = ({
         scenes: updatedScenes
       };
     });
+
+    notifySmartSync({
+      entityType: 'character',
+      entityId: characterId,
+      changeType: 'update',
+      data: updates
+    });
   };
 
   const handleCharacterDelete = (payload: { id: string; }) => {
@@ -163,13 +182,19 @@ export const registerCharacterListeners = ({
         character => character.id !== payload.id
       )
     }));
+
+    notifySmartSync({
+      entityType: 'character',
+      entityId: payload.id,
+      changeType: 'delete',
+      data: {}
+    });
   };
 
-
+  // Register listeners
   socketService.on('character:add', handleCharacterAdd);
   socketService.on('character:update', handleCharacterUpdate);
   socketService.on('character:delete', handleCharacterDelete);
-
 
   return () => {
     socketService.off('character:add', handleCharacterAdd);

@@ -41,15 +41,16 @@ export const useSocketListeners = (
     const deps = { state, setState, campaignId, user, show, setViewport, stateRef, remoteCursorsRef, t };
 
     // Register all listener modules and collect cleanup functions
+    // All listeners integrate with SmartSync via notifySmartSync()
     const cleanups = [
       registerCampaignListeners(deps),
       registerSceneListeners(deps),
       registerTokenListeners(deps),
       registerCombatListeners(deps),
       registerChatListeners(deps),
-      // registerDrawingListeners(deps), // Handled by SmartSync
+      registerDrawingListeners(deps),
       registerAudioListeners(deps),
-      // registerCharacterListeners(deps), // Handled by SmartSync
+      registerCharacterListeners(deps),
       registerPlayerListeners(deps),
       registerAttackZoneListeners(deps),
       registerSystemListeners(deps)

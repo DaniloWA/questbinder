@@ -4,9 +4,13 @@ import {
   DiceRollPayload,
   ChatMessage
 } from '../../../../types';
+import { notifySmartSync } from '../../syncHelpers';
 import { ListenerDeps, ListenerCleanup } from './types';
 
-
+/**
+ * Registers listeners for chat-related events.
+ * All handlers update React state AND notify SmartSync cache.
+ */
 export const registerChatListeners = ({
   setState,
   user,
@@ -25,6 +29,13 @@ export const registerChatListeners = ({
         ...previousState,
         chatMessages: [...previousState.chatMessages, payload.message]
       };
+    });
+
+    notifySmartSync({
+      entityType: 'chatMessage',
+      entityId: payload.message.id,
+      changeType: 'create',
+      data: payload.message
     });
   };
 
@@ -52,6 +63,13 @@ export const registerChatListeners = ({
       ...previousState,
       chatMessages: [...previousState.chatMessages, chatMessage]
     }));
+
+    notifySmartSync({
+      entityType: 'chatMessage',
+      entityId: chatMessage.id,
+      changeType: 'create',
+      data: chatMessage
+    });
   };
 
   const handleChatMessageUpdate = (payload: ChatMessage) => {
@@ -61,6 +79,13 @@ export const registerChatListeners = ({
         msg.id === payload.id ? payload : msg
       )
     }));
+
+    notifySmartSync({
+      entityType: 'chatMessage',
+      entityId: payload.id,
+      changeType: 'update',
+      data: payload
+    });
   };
 
   const handleChatReaction = (payload: any) => {
@@ -69,22 +94,26 @@ export const registerChatListeners = ({
         ...prev,
         chatMessages: prev.chatMessages.map(msg => {
           if (msg.id !== payload.messageId) return msg;
-          // Merge reactions
           return {
             ...msg,
             reactions: payload.reaction
           };
         })
       }));
+
+      notifySmartSync({
+        entityType: 'chatMessage',
+        entityId: payload.messageId,
+        changeType: 'update',
+        data: { reactions: payload.reaction }
+      });
     }
   };
-
 
   socketService.on('chat:message', handleChatMessage);
   socketService.on('dice:roll', handleDiceRoll);
   socketService.on('chat_message:update', handleChatMessageUpdate);
   socketService.on('chat:reaction', handleChatReaction);
-
 
   return () => {
     socketService.off('chat:message', handleChatMessage);

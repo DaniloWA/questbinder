@@ -1,15 +1,11 @@
 import { socketService } from '../../../../services/socketService';
 import { CursorMovePayload, CursorPressingPayload, ViewportUpdatePayload, GMForceViewPayload, ViewportRestorePayload } from '../../../../types/socket';
+import { notifySmartSync } from '../../syncHelpers';
 import { ListenerDeps, ListenerCleanup } from './types';
 
 /**
- * Registers listeners for player-related events
- * - player:join
- * - player:leave
- * - cursor:move
- * - viewport:update
- * - gm:force_view
- * - error
+ * Registers listeners for player-related events.
+ * Updates React state AND notifies SmartSync cache for player entities.
  */
 export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => {
   const { setState, user, show, setViewport, stateRef, t } = deps;
@@ -29,23 +25,27 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
       };
     });
 
+    notifySmartSync({
+      entityType: 'player',
+      entityId: payload.user.id,
+      changeType: 'create',
+      data: payload.user
+    });
+
     show({
       type: 'success',
       message: `${payload.user.name} entrou na sessão`,
       duration: 3000
     });
 
-    // If I am the GM and Follow Mode is active, re-broadcast the permission so the new player (and others) get the correct state
-    // This fixes the issue where refreshing players lose the Follow Mode state
+    // Re-broadcast Follow Mode for new player
     if (stateRef.current.isGM && stateRef.current.followMode.active) {
-      console.log('[WS] Re-broadcasting Follow Mode for new player');
       socketService.emit('gm:toggle_follow', stateRef.current.followMode);
     }
   };
 
   // Handler: player:leave
   const handlePlayerLeave = (payload: { userId: string; userName?: string; }) => {
-    // Find player name before removing from state
     const leavingPlayer = stateRef.current.players.find(p => p.id === payload.userId);
     const playerName = payload.userName || leavingPlayer?.name || 'Jogador';
 
@@ -56,21 +56,18 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
       )
     }));
 
-    // Immediate Cleanup for Visuals
-    if (deps.remoteCursorsRef && deps.remoteCursorsRef.current) {
-      if (deps.remoteCursorsRef.current[payload.userId]) {
-        delete deps.remoteCursorsRef.current[payload.userId];
-      }
+    notifySmartSync({
+      entityType: 'player',
+      entityId: payload.userId,
+      changeType: 'delete',
+      data: {}
+    });
+
+    // Immediate cleanup for cursor visuals
+    if (deps.remoteCursorsRef?.current?.[payload.userId]) {
+      delete deps.remoteCursorsRef.current[payload.userId];
     }
 
-    // Direct Engine Cleanup (Import cursorEngine?) 
-    // We can't import the specific instance of cursorEngine used in useMapRenderer here easily without context.
-    // However, cleaning the Ref should stop useMapRenderer from ticking it.
-    // AND useMapRenderer's loop is: Object.values(cursorsToRender).forEach...
-    // cursorsToRender = remoteCursorsRef.current
-    // So removing it from the ref STOPS the rendering loop for that user immediately.
-
-    // Show notification for player leaving
     show({
       type: 'error',
       message: `${playerName} saiu da sessão`,
@@ -78,26 +75,20 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
     });
   };
 
-  // Debounce map to prevent duplicate notifications
+  // Debounce for notifications
   const notificationDebounce = new Map<string, number>();
-  const NOTIFICATION_DEBOUNCE_MS = 5000; // 5 seconds between same-user notifications
+  const NOTIFICATION_DEBOUNCE_MS = 5000;
 
-  // Handler: cursor:move
-  // PERFORMANCE FIX: Removed setState call. React reads from ref directly via animation loop.
+  // Handler: cursor:move (ephemeral - direct ref update)
   const handleCursorMove = (payload: CursorMovePayload) => {
     if (payload.userId === user?.id) return;
 
-    // Direct ref update ONLY - no React state update to avoid main thread blocking
     if (deps.remoteCursorsRef) {
       const prev = deps.remoteCursorsRef.current[payload.userId];
       const now = Date.now();
       const lastNotification = notificationDebounce.get(payload.userId) || 0;
 
-      // AFK Notification Logic with debounce
-      // Strict check: Only trigger if explicitly true (Away) or false (Returned)
-      // Ignores undefined (which happens on routine syncs)
       if (payload.isAfk === true && (!prev || !prev.isAfk)) {
-        // Only show if we have a name AND debounce passed
         if (payload.userName && (now - lastNotification > NOTIFICATION_DEBOUNCE_MS)) {
           notificationDebounce.set(payload.userId, now);
           show({
@@ -108,35 +99,37 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
         }
       }
 
-      // Removed client-side "Returned" notification to avoid duplication.
-      // The server sends a system:notification when a user returns.
-
       deps.remoteCursorsRef.current[payload.userId] = payload;
     }
 
-    // Player auto-discovery (rare event, so setState is ok here)
-    // Only call setState if this is a NEW player we haven't seen before
+    // Player auto-discovery
     const isKnownPlayer = stateRef.current.players.some(p => p.id === payload.userId);
     if (!isKnownPlayer && payload.userName) {
-      console.log('[PlayerListeners] Auto-discovering player from cursor:', payload.userId, payload.userName);
+      const newPlayer = {
+        id: payload.userId,
+        name: payload.userName,
+        avatarUrl: undefined,
+        email: ''
+      };
+
       setState(prev => ({
         ...prev,
-        players: [...prev.players, {
-          id: payload.userId,
-          name: payload.userName,
-          avatarUrl: undefined,
-          email: ''
-        }]
+        players: [...prev.players, newPlayer]
       }));
+
+      notifySmartSync({
+        entityType: 'player',
+        entityId: payload.userId,
+        changeType: 'create',
+        data: newPlayer
+      });
     }
   };
 
-  // Handler: cursor:pressing (unthrottled click state for visual feedback)
-  // PERFORMANCE FIX: Removed setState call. React reads from ref directly.
+  // Handler: cursor:pressing (ephemeral)
   const handleCursorPressing = (payload: CursorPressingPayload) => {
     if (!payload.userId || payload.userId === user?.id) return;
 
-    // Direct ref update ONLY
     if (deps.remoteCursorsRef?.current[payload.userId]) {
       deps.remoteCursorsRef.current[payload.userId] = {
         ...deps.remoteCursorsRef.current[payload.userId],
@@ -145,9 +138,8 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
     }
   };
 
-  // Handler: me:afk_status (Server notifying my own AFK state)
+  // Handler: me:afk_status
   const handleMyAfkStatus = (payload: { status: 'active' | 'afk' | 'warning', timeLeft?: number; }) => {
-    console.log('[PlayerListeners] Received me:afk_status:', payload);
     setState(prev => ({
       ...prev,
       afkStatus: payload.status,
@@ -155,22 +147,17 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
     }));
   };
 
-  // Handler: me:kicked (Server kicking user for AFK or other reasons)
+  // Handler: me:kicked
   const handleKicked = (payload: { reason: string, message: string, redirectTo: string; }) => {
-    console.log('[PlayerListeners] Received me:kicked:', payload);
-
-    // Store the kick message in sessionStorage so dashboard can display it
     sessionStorage.setItem('kickMessage', payload.message);
     sessionStorage.setItem('kickReason', payload.reason);
 
-    // Show notification
     show({
       type: 'error',
       message: payload.message,
       duration: 5000
     });
 
-    // Redirect to dashboard after a short delay
     setTimeout(() => {
       window.location.href = payload.redirectTo;
     }, 500);
@@ -188,18 +175,13 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
   };
 
   const handleGMForceView = (payload: GMForceViewPayload) => {
-    console.log('[WS] Received gm:force_view', payload);
-    if (payload.targets && !payload.targets.includes(user?.id)) {
-      console.log('[WS] Ignoring gm:force_view: not in targets', { userId: user?.id, targets: payload.targets });
-      return;
-    }
+    if (payload.targets && !payload.targets.includes(user?.id)) return;
 
     if (setViewport) {
       const { centerX, centerY, zoom, x, y } = payload;
       let newX = x;
       let newY = y;
 
-      // Prefer Center-based sync if available (handles screen size differences)
       if (centerX !== undefined && centerY !== undefined) {
         newX = (window.innerWidth / 2) - (centerX * zoom);
         newY = (window.innerHeight / 2) - (centerY * zoom);
@@ -207,7 +189,6 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
 
       setViewport({ x: newX, y: newY, zoom });
 
-      // Trigger Pull View Notification
       setState(prev => ({ ...prev, pullNotification: true }));
       setTimeout(() => {
         setState(prev => ({ ...prev, pullNotification: false }));
@@ -222,40 +203,29 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
   };
 
   const handleGMFollowModeChange = (payload: { active: boolean; targets: string[] | 'all'; }) => {
-    console.log('[WS] Received gm:follow_mode_change', payload);
-
-    // Check for changes to avoid spamming toast (e.g. when re-broadcasting on join)
     const wasActive = stateRef.current.followMode.active;
     const isChange = wasActive !== payload.active;
 
     setState(prev => ({ ...prev, followMode: payload }));
 
-    // Check if I am affected
     const amIAffected = payload.active && (payload.targets === 'all' || (Array.isArray(payload.targets) && user?.id && payload.targets.includes(user.id)));
 
     if (isChange) {
       if (amIAffected) {
         show({ type: 'info', message: 'Modo Seguir Ativado: Você agora segue a visão do Mestre', duration: 4000 });
-      } else if (payload.active) {
-        // Mode active but not for me
-      } else {
+      } else if (!payload.active) {
         show({ type: 'info', message: 'Modo Seguir Desativado', duration: 3000 });
       }
     }
   };
 
   const handleGMViewportSync = (payload: GMForceViewPayload) => {
-    // If payload has targets, use them. Otherwise fallback to state (backward compatibility)
-    // Actually, relying on payload is safer for stateless/late-join clients.
     const targets = payload.targets;
-
-    // If no targets specified in payload, ignore (or check local state if we want hybrid, but payload is better)
     if (!targets) return;
 
     const amITarget = (targets as any) === 'all' || (Array.isArray(targets) && user?.id && targets.includes(user.id));
     if (!amITarget) return;
 
-    // Silent update
     if (setViewport) {
       const { centerX, centerY, zoom, x, y } = payload;
       let newX = x;
@@ -268,9 +238,7 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
     }
   };
 
-  // Handler: error
   const handleError = (payload: { message: string; }) => {
-    console.warn('[WS] Error received:', payload);
     show({
       type: 'error',
       message: payload.message || 'Erro desconhecido no servidor',
@@ -278,9 +246,7 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
     });
   };
 
-  // Handler: viewport:restore - Restore saved viewport on reconnect
   const handleViewportRestore = (payload: ViewportRestorePayload) => {
-    console.log('[WS] Restoring saved viewport:', payload);
     if (setViewport && payload) {
       setViewport({ x: payload.x, y: payload.y, zoom: payload.zoom });
       show({
@@ -291,7 +257,7 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
     }
   };
 
-  // Register listeners (Cleaned up duplicates)
+  // Register listeners
   socketService.on('player:join', handlePlayerJoin);
   socketService.on('player:leave', handlePlayerLeave);
   socketService.on('cursor:move', handleCursorMove);
@@ -305,7 +271,6 @@ export const registerPlayerListeners = (deps: ListenerDeps): ListenerCleanup => 
   socketService.on('gm:viewport_sync', handleGMViewportSync);
   socketService.on('error', handleError);
 
-  // Return cleanup function
   return () => {
     socketService.off('player:join', handlePlayerJoin);
     socketService.off('player:leave', handlePlayerLeave);

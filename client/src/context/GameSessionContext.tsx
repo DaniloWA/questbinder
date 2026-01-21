@@ -62,13 +62,16 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
     useAuraSystem(state, updateToken, campaignId, state.isGM);
 
     // Initialize SmartSync system and hydrate with loaded state
+    // CRITICAL: Must wait for isConnected to ensure socket is ready for listener registration
     React.useEffect(() => {
+        if (!state.isConnected) return; // Wait for socket connection
+
         if (!state.isLoading && state.campaign) {
             smartSync.init(state);
         } else {
             smartSync.init();
         }
-    }, [state.isLoading, state.campaign]);
+    }, [state.isLoading, state.campaign, state.isConnected]);
 
     // Audio Zone Playback Effect
     React.useEffect(() => {
