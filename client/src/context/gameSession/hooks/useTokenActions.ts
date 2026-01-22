@@ -44,7 +44,7 @@ export const useTokenActions = (
     // Force emit even if we don't have a previous position yet (use 0,0 or last cursor default)
     // The key is to propagate the status flags (isHidden, isAfk)
     const pos = prevCursorPosRef.current || { x: 0, y: 0, time: Date.now() };
-    emitCursorMove(pos.x, pos.y, stateRef.current.activeTool, true);
+    emitCursorMove(pos.x, pos.y, true);
   }, []);
 
   // AFK Logic: Reset timer on activity (Legacy: Server now handles AFK)
@@ -293,7 +293,7 @@ export const useTokenActions = (
     socketService.emit('token:drag', { userId: user?.id || '', tokenId: id, x, y, path });
   };
 
-  const emitCursorMove = (x: number, y: number, activeTool: string, forceImmediate = false) => {
+  const emitCursorMove = (x: number, y: number, forceImmediate = false) => {
     resetAfkTimer();
     const now = Date.now();
 
@@ -338,7 +338,7 @@ export const useTokenActions = (
         path: [...movementBufferRef.current],
 
         // New Trail/Status Fields with Privacy Checks
-        activeTool: (settings as any).showToolActivity !== false ? activeTool : null,
+        activeTool: (settings as any).showToolActivity !== false ? stateRef.current.activeTool : null,
         isContexting: (settings as any).showStatusActivity !== false ? isContextingRef.current : false,
         isChatting: (settings as any).showStatusActivity !== false ? isChattingRef.current : false,
 
@@ -425,7 +425,7 @@ export const useTokenActions = (
     if (lastCursorEmitRef.current > 0) {
       const prev = prevCursorPosRef.current;
       if (prev) {
-        emitCursorMove(prev.x, prev.y, stateRef.current.activeTool);
+        emitCursorMove(prev.x, prev.y);
       }
     }
   }, [emitCursorMove, resetAfkTimer]);
@@ -433,7 +433,7 @@ export const useTokenActions = (
   // Force emit on tool change so remote users see it immediately
   useEffect(() => {
     if (lastCursorEmitRef.current > 0 && prevCursorPosRef.current) {
-      emitCursorMove(prevCursorPosRef.current.x, prevCursorPosRef.current.y, stateRef.current.activeTool);
+      emitCursorMove(prevCursorPosRef.current.x, prevCursorPosRef.current.y);
       resetAfkTimer();
     }
   }, [state.activeTool, state.cursorSettings, emitCursorMove, resetAfkTimer]);
@@ -446,7 +446,7 @@ export const useTokenActions = (
     if (lastCursorEmitRef.current > 0) {
       const prev = prevCursorPosRef.current;
       if (prev) {
-        emitCursorMove(prev.x, prev.y, stateRef.current.activeTool);
+        emitCursorMove(prev.x, prev.y);
       }
     }
   }, [emitCursorMove, resetAfkTimer]);

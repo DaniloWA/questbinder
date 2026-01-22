@@ -296,7 +296,7 @@ export interface GameSessionContextType extends GameSessionState {
   setDrawingTriggerZone: (z: any) => void;
 
   emitTokenDrag: (id: string, x: number, y: number, path: { x: number, y: number; }[]) => void;
-  emitCursorMove: (x: number, y: number) => void;
+  emitCursorMove: (x: number, y: number, forceImmediate?: boolean) => void;
   setCursorClickState: (clicking: boolean) => void; // For remote click feedback
   setCursorContextState: (isOpen: boolean) => void; // For remote gesture feedback
   setCursorChatState: (isChatting: boolean) => void; // For remote gesture feedback

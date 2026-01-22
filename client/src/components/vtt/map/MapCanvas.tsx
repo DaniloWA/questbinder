@@ -358,7 +358,7 @@ export const MapCanvas = (props: MapCanvasProps) => {
       <LocalCursor
         shapeId={cursorConfig.shapeId}
         color={cursorConfig.color}
-        enabled={isMouseOverVTT && !mapState.hoveredTokenId && !mapState.isTokenDragging && !props.activeTool.startsWith('map-align')}
+        enabled={isMouseOverVTT && !mapState.hoveredTokenId && !mapState.isTokenDragging && !props.activeTool.startsWith('map-align') && !['draw-', 'fog-', 'smart-', 'freehand-wall'].some(prefix => props.activeTool.startsWith(prefix))}
         trailEnabled={cursorConfig.trailEnabled && cursorConfig.showMyTrail && !props.activeTool.startsWith('map-align')}
         trailAnimation={cursorConfig.trailAnimation}
         trailColor={cursorConfig.trailColor}
@@ -380,10 +380,11 @@ export const MapCanvas = (props: MapCanvasProps) => {
         })()}
       />
 
-      {/* Precision Cursor for Grid Alignment */}
+      {/* Precision Cursor for Grid Alignment AND Drawing Tools */}
       <PrecisionCursor
-        enabled={props.activeTool.startsWith('map-align')}
+        enabled={props.activeTool.startsWith('map-align') || ['draw-', 'fog-', 'smart-', 'freehand-wall'].some(prefix => props.activeTool.startsWith(prefix))}
         mode={props.activeTool === 'map-align' ? 'inspect' : (props.activeTool.replace('map-align-', '') as any)}
+        tool={!props.activeTool.startsWith('map-align') ? props.activeTool : undefined}
         gridSize={props.scene?.grid.size || 70}
         offsetX={props.scene?.grid.offsetX || 0}
         offsetY={props.scene?.grid.offsetY || 0}

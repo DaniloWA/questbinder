@@ -345,6 +345,11 @@ export class MapOrchestrator {
         showVisionRanges: false,
         gmHideObstacles: false,
       },
+      drawingSettings: {
+        color: '#ffffff',
+        width: 3,
+        opacity: 1,
+      },
       drawingState: {
         livePoints: [],
         isDrawing: false,

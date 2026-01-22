@@ -192,7 +192,7 @@ export class TokenDragHandler extends BaseHandler {
 
     // Emit cursor move to keep remote clients synced (even if hidden)
     // This prevents the "replay animation" effect when the cursor reappears after drag.
-    this.callbacks?.emitCursorMove?.(ctx.worldPos.x, ctx.worldPos.y, 'select');
+    this.callbacks?.emitCursorMove?.(ctx.worldPos.x, ctx.worldPos.y);
 
     return this.handled({ cursor: 'grabbing' });
   }

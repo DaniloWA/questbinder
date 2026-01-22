@@ -1,9 +1,13 @@
 import React, { useEffect, useRef, useCallback, memo } from 'react';
 import { Move, MousePointer2, Grid3X3, ZoomIn, Map } from 'lucide-react';
+import { getToolIcon } from '../../constants/toolIcons';
+import { getToolTranslationKey } from '../../utils/toolMappings';
+import { useTranslation } from '../../i18n/TranslationContext';
 
 interface PrecisionCursorProps {
   enabled: boolean;
   mode: 'inspect' | 'drag' | '3point';
+  tool?: string; // NEW: Specific tool ID (e.g., 'draw-wall', 'fog-rect')
   gridSize: number;
   offsetX: number;
   offsetY: number;
@@ -23,6 +27,7 @@ interface PrecisionCursorProps {
 const PrecisionCursorComponent: React.FC<PrecisionCursorProps> = ({
   enabled,
   mode,
+  tool,
   gridSize,
   offsetX,
   offsetY,
@@ -34,6 +39,7 @@ const PrecisionCursorComponent: React.FC<PrecisionCursorProps> = ({
   onCancelCalibration,
   canvasRef
 }) => {
+  const { t } = useTranslation();
   const cursorRef = useRef<HTMLDivElement>(null);
   const hudRef = useRef<HTMLDivElement>(null);
   const lensCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -54,6 +60,23 @@ const PrecisionCursorComponent: React.FC<PrecisionCursorProps> = ({
   const markersRef = useRef<(SVGCircleElement | null)[]>([]);
   const linesRef = useRef<(SVGLineElement | null)[]>([]);
   const labelsRef = useRef<(SVGTextElement | null)[]>([]);
+
+  const modeConfig = {
+    'inspect': { label: 'INSPECTOR', color: '#3b82f6', icon: <Grid3X3 className="w-3 h-3" /> },
+    'drag': { label: 'DRAG ALIGN', color: '#a855f7', icon: <Move className="w-3 h-3" /> },
+    '3point': { label: '3-POINT', color: '#f59e0b', icon: <MousePointer2 className="w-3 h-3" /> }
+  };
+
+  const currentMode = React.useMemo(() => {
+    if (tool) {
+      return {
+        label: t(getToolTranslationKey(tool)).toUpperCase(),
+        color: '#fbbf24', // Default tool color (Amber-400)
+        icon: <span className="text-[10px] leading-none">{getToolIcon(tool)}</span>
+      };
+    }
+    return modeConfig[mode] || modeConfig['inspect'];
+  }, [tool, mode, t]);
 
   // Animation Loop for Smoothness (60fps decoupled from React)
   useEffect(() => {
@@ -324,12 +347,7 @@ const PrecisionCursorComponent: React.FC<PrecisionCursorProps> = ({
 
   if (!enabled) return null;
 
-  const modeConfig = {
-    'inspect': { label: 'INSPECTOR', color: '#3b82f6', icon: <Grid3X3 className="w-3 h-3" /> },
-    'drag': { label: 'DRAG ALIGN', color: '#a855f7', icon: <Move className="w-3 h-3" /> },
-    '3point': { label: '3-POINT', color: '#f59e0b', icon: <MousePointer2 className="w-3 h-3" /> }
-  };
-  const currentMode = modeConfig[mode] || modeConfig['inspect'];
+
 
   return (
     <>
@@ -462,6 +480,7 @@ const PrecisionCursorComponent: React.FC<PrecisionCursorProps> = ({
 export const PrecisionCursor = memo(PrecisionCursorComponent, (prev, next) => {
   return (
     prev.enabled === next.enabled &&
+    prev.tool === next.tool &&
     prev.mode === next.mode &&
     prev.gridSize === next.gridSize &&
     prev.offsetX === next.offsetX &&
