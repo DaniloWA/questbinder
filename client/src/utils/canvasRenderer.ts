@@ -623,7 +623,9 @@ export const drawToken = (
     } else {
         // Image Mode
         const tokenImage = imageCache[token.imgUrl];
-        if (tokenImage?.complete) {
+        // Check both complete AND naturalWidth to ensure image actually loaded
+        // (complete can be true for broken images that failed to load)
+        if (tokenImage?.complete && tokenImage.naturalWidth > 0) {
             ctx.save();
 
             // CLIP only if not topdown (or if we want a loose clip)

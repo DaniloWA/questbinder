@@ -223,12 +223,16 @@ export const useAssetLoader = ({ shouldStartLoading = false }: UseAssetLoaderPro
   // Check if complete
   const isComplete = assets.length > 0 && assets.every(a => a.status === 'loaded' || a.status === 'error');
 
+  // Get failed assets for error display
+  const failedAssets = assets.filter(a => a.status === 'error');
+
   return {
     assets,
     progress,
     currentFile,
     isComplete,
     addAssets,
+    failedAssets,
   };
 };
 

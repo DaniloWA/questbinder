@@ -3818,6 +3818,14 @@ export default {
         cacheComplete: 'Cache complete: :count files ready.',
         allResourcesLoaded: 'All resources loaded successfully!',
       },
+      // Asset Descriptions
+      assetNames: {
+        mapBackground: 'Loading: Main Map Background Image',
+        tokenSprite: 'Loading: Token Sprite ":name"',
+        characterAvatar: 'Loading: Character Avatar ":name"',
+        handoutImage: 'Loading: Handout Image ":name"',
+        defaultCreature: 'Creature #:index',
+      },
       // Finalization Messages
       finalization: {
         preparing: 'Preparing game environment...',
@@ -3831,6 +3839,20 @@ export default {
         loading: 'Loading',
         loaded: 'Complete',
         error: 'Error',
+      },
+      // Buttons
+      buttons: {
+        backToLobby: 'Back to Lobby',
+        forceEntry: 'Force Entry',
+        entering: 'Entering...',
+      },
+      // Error Modal
+      errorModal: {
+        title: 'Some Resources Failed to Load',
+        description: 'The following resources could not be loaded. This may cause tokens without images, incomplete maps, or other visual issues.',
+        consequence: 'The session will continue normally, but some elements may not display correctly.',
+        autoEntering: 'Entering automatically in :seconds seconds...',
+        failedAssets: 'Failed Resources:',
       },
     },
   },

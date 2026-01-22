@@ -3256,6 +3256,14 @@ export default {
         cacheComplete: 'Cache completo: :count arquivos prontos.',
         allResourcesLoaded: 'Todos os recursos carregados com sucesso!',
       },
+      // Asset Descriptions
+      assetNames: {
+        mapBackground: 'Carregando: Imagem de Fundo do Mapa Principal',
+        tokenSprite: 'Carregando: Sprite do Token ":name"',
+        characterAvatar: 'Carregando: Avatar do Personagem ":name"',
+        handoutImage: 'Carregando: Imagem do Handout ":name"',
+        defaultCreature: 'Criatura #:index',
+      },
       // Finalization Messages
       finalization: {
         preparing: 'Preparando ambiente de jogo...',
@@ -3269,6 +3277,20 @@ export default {
         loading: 'Carregando',
         loaded: 'Concluído',
         error: 'Erro',
+      },
+      // Buttons
+      buttons: {
+        backToLobby: 'Voltar ao Lobby',
+        forceEntry: 'Forçar Entrada',
+        entering: 'Entrando...',
+      },
+      // Error Modal
+      errorModal: {
+        title: 'Alguns Recursos Não Foram Carregados',
+        description: 'Os seguintes recursos não puderam ser carregados. Isso pode causar tokens sem imagem, mapas incompletos ou outros problemas visuais.',
+        consequence: 'A sessão continuará normalmente, mas alguns elementos podem não aparecer corretamente.',
+        autoEntering: 'Entrando automaticamente em :seconds segundos...',
+        failedAssets: 'Recursos com Falha:',
       },
     },
   },

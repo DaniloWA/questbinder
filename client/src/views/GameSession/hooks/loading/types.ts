@@ -138,6 +138,8 @@ export interface UseAssetLoaderReturn {
   isComplete: boolean;
   /** Add new assets to the queue */
   addAssets: (newAssets: Omit<LoaderAsset, 'status' | 'retryCount'>[]) => void;
+  /** Assets that failed to load */
+  failedAssets: LoaderAsset[];
 }
 
 /** Return type for useLoaderStages hook */
@@ -174,4 +176,8 @@ export interface UseSmartLoaderReturn {
   stageStatuses: Record<LoaderStage, AssetStatus>;
   pingMs: number | null;
   logs: LogEntry[];
+
+  // Error tracking
+  failedAssets: LoaderAsset[];
 }
+

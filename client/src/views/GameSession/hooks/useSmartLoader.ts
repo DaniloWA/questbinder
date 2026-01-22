@@ -53,7 +53,8 @@ function buildAssetList(
   scene: MapScene | null,
   tokens: Token[],
   characters: Character[],
-  handouts: Handout[]
+  handouts: Handout[],
+  t: (key: string, params?: Record<string, string | number>) => string
 ): { assets: Omit<LoaderAsset, 'status' | 'retryCount'>[]; hash: string; } {
   const uniqueUrls = new Set<string>();
   const assets: Omit<LoaderAsset, 'status' | 'retryCount'>[] = [];
@@ -83,27 +84,28 @@ function buildAssetList(
 
   // 2. Scene Background
   if (scene?.imageUrl) {
-    add(scene.imageUrl, 'image', 'Carregando: Imagem de Fundo do Mapa Principal');
+    add(scene.imageUrl, 'image', t('vtt.loading.assetNames.mapBackground'));
   }
 
   // 3. Token Images
-  (tokens || []).forEach((t, idx) => {
-    if (t.imgUrl) {
-      add(t.imgUrl, 'image', `Carregando: Sprite do Token "${t.name || `Criatura #${idx + 1}`}"`);
+  (tokens || []).forEach((token, idx) => {
+    if (token.imgUrl) {
+      const tokenName = token.name || t('vtt.loading.assetNames.defaultCreature', { index: idx + 1 });
+      add(token.imgUrl, 'image', t('vtt.loading.assetNames.tokenSprite', { name: tokenName }));
     }
   });
 
   // 4. Character Avatars
   (characters || []).forEach(c => {
     if (c.avatarUrl) {
-      add(c.avatarUrl, 'image', `Carregando: Avatar do Personagem "${c.name}"`);
+      add(c.avatarUrl, 'image', t('vtt.loading.assetNames.characterAvatar', { name: c.name }));
     }
   });
 
   // 5. Handout Images
   (handouts || []).forEach(h => {
     if (h.type === 'image' && h.content) {
-      add(h.content, 'image', `Carregando: Imagem do Handout "${h.name}"`);
+      add(h.content, 'image', t('vtt.loading.assetNames.handoutImage', { name: h.name }));
     }
   });
 
@@ -159,17 +161,18 @@ export const useSmartLoader = ({
     return `${scene?.id || ''}|${scene?.imageUrl || ''}|${tokenUrls}|${charUrls}|${handoutUrls}`;
   }, [scene?.id, scene?.imageUrl, tokens, characters, handouts]);
 
+  // Translation hook (must be before buildAssetList)
+  const { t } = useTranslation();
+
   // Build asset list with memoized key for change detection
   const { assets: assetDefinitions } = useMemo(
-    () => buildAssetList(scene, tokens, characters, handouts),
-    [assetKey]
+    () => buildAssetList(scene, tokens, characters, handouts, t),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [assetKey, t]
   );
 
   // Memoize asset definitions properly
   const memoizedAssets = useMemo(() => assetDefinitions, [assetKey]);
-
-  // Translation hook
-  const { t } = useTranslation();
 
   // Track if modules stage is complete (so we know when to start loading assets)
   const [modulesComplete, setModulesComplete] = useState(false);
@@ -220,6 +223,9 @@ export const useSmartLoader = ({
     stageStatuses: stages.stageStatuses,
     pingMs: stages.pingMs,
     logs: stages.logs,
+
+    // Error tracking
+    failedAssets: assetLoader.failedAssets,
   };
 };
 

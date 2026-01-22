@@ -16,16 +16,16 @@ export const LOADER_CONFIG = {
   PROGRESS_UPDATE_THROTTLE_MS: 50,
 
   /** Minimum time to display each stage so users can read it (ms) */
-  MIN_STAGE_DISPLAY_MS: 800,
+  MIN_STAGE_DISPLAY_MS: 300,
 
   /** Delay between stage transitions for visual effect (ms) */
-  STAGE_TRANSITION_DELAY_MS: 600,
+  STAGE_TRANSITION_DELAY_MS: 200,
 
   /** Delay after modules stage for font loading (ms) */
-  MODULES_WARMUP_DELAY_MS: 1200,
+  MODULES_WARMUP_DELAY_MS: 400,
 
   /** Maximum retry attempts for failed assets */
-  MAX_ASSET_RETRIES: 2,
+  MAX_ASSET_RETRIES: 3,
 
   /** Timeout for ping measurement (ms) */
   PING_TIMEOUT_MS: 2000,
@@ -40,13 +40,22 @@ export const LOADER_CONFIG = {
   PROGRESS_INCREMENT: 1,
 
   /** Finalization delay with extra messages before ready (ms) */
-  FINALIZATION_DELAY_MS: 2500,
+  FINALIZATION_DELAY_MS: 2000,
 
   /** Delay before calling onReady after finalization (ms) */
   COMPLETION_DELAY_MS: 500,
 
   /** Minimum time to display each asset during loading (ms) */
   MIN_ASSET_DISPLAY_MS: 100,
+
+  /** Maximum total loading time before forcing entry (ms) */
+  MAX_LOADING_TIME_MS: 25000,
+
+  /** Time before showing force entry button for stuck stages (ms) */
+  STAGE_TIMEOUT_MS: 8000,
+
+  /** Duration to display error modal before auto-entering (ms) */
+  ERROR_DISPLAY_MS: 2500,
 } as const;
 
 // ============================================================================

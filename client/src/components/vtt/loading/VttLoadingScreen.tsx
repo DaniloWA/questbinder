@@ -12,7 +12,7 @@
  * @module loading/VttLoadingScreen
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Loader2,
   Wifi,
@@ -20,6 +20,9 @@ import {
   Terminal,
   FileCode,
   Layers,
+  ArrowLeft,
+  AlertTriangle,
+  Zap,
 } from 'lucide-react';
 import { useTranslation } from '../../../i18n/TranslationContext';
 import { useGameSession } from '../../../context/GameSessionContext';
@@ -39,6 +42,8 @@ import { ProgressBar } from './ProgressBar';
 interface VttLoadingScreenProps {
   /** Callback when loading completes */
   onReady: () => void;
+  /** Callback to return to lobby */
+  onBackToLobby?: () => void;
   /** Tokens to preload */
   tokens: Token[];
   /** Characters to preload */
@@ -71,9 +76,14 @@ const STAGE_ICONS: Record<string, React.ComponentType<{ className?: string; }>> 
  * - Real-time progress bar
  * - Terminal-style activity log
  * - Smooth transitions and animations
+ * - Timeout safety net (30s)
+ * - Force entry button (after 10s stuck)
+ * - Back to lobby button
+ * - Error modal for failed assets
  */
 export const VttLoadingScreen: React.FC<VttLoadingScreenProps> = ({
   onReady,
+  onBackToLobby,
   tokens,
   characters,
   handouts,
@@ -81,6 +91,13 @@ export const VttLoadingScreen: React.FC<VttLoadingScreenProps> = ({
   const { t } = useTranslation();
   const session = useGameSession();
   const onReadyCalledRef = useRef(false);
+  const loadingStartTimeRef = useRef(Date.now());
+  const lastStageChangeRef = useRef(Date.now());
+
+  // New state for smart loading strategies
+  const [showForceEntry, setShowForceEntry] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorCountdown, setErrorCountdown] = useState(3);
 
   // Use the smart loader hook
   const loader = useSmartLoader({
@@ -92,8 +109,8 @@ export const VttLoadingScreen: React.FC<VttLoadingScreenProps> = ({
   });
 
   // Finalization state
-  const [isFinalizingRef, setIsFinalizing] = React.useState(false);
-  const [finalizationMessage, setFinalizationMessage] = React.useState('');
+  const [isFinalizingRef, setIsFinalizing] = useState(false);
+  const [finalizationMessage, setFinalizationMessage] = useState('');
 
   // Finalization messages from translations
   const FINALIZATION_MESSAGES = [
@@ -103,9 +120,66 @@ export const VttLoadingScreen: React.FC<VttLoadingScreenProps> = ({
     t('vtt.loading.finalization.ready'),
   ];
 
+  // Track stage changes for force entry button
+  useEffect(() => {
+    lastStageChangeRef.current = Date.now();
+    setShowForceEntry(false);
+  }, [loader.currentStage, loader.progress.loaded]);
+
+  // Check for stuck stages (10s timeout for force entry button)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const timeSinceStageChange = Date.now() - lastStageChangeRef.current;
+      if (timeSinceStageChange > LOADER_CONFIG.STAGE_TIMEOUT_MS && !showForceEntry && !loader.isComplete) {
+        setShowForceEntry(true);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [showForceEntry, loader.isComplete]);
+
+  // Global timeout (30s) - force entry with error modal if assets failed
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (!onReadyCalledRef.current && !loader.isComplete) {
+        handleForceEntry();
+      }
+    }, LOADER_CONFIG.MAX_LOADING_TIME_MS);
+    return () => clearTimeout(timeout);
+  }, []);
+
+  // Handle force entry (shows error modal if there are failed assets)
+  const handleForceEntry = () => {
+    if (onReadyCalledRef.current) return;
+
+    if (loader.failedAssets.length > 0) {
+      setShowErrorModal(true);
+      // Countdown and auto-enter
+      let countdown = 3;
+      setErrorCountdown(countdown);
+      const countdownInterval = setInterval(() => {
+        countdown--;
+        setErrorCountdown(countdown);
+        if (countdown <= 0) {
+          clearInterval(countdownInterval);
+          onReadyCalledRef.current = true;
+          onReady();
+        }
+      }, 1000);
+    } else {
+      onReadyCalledRef.current = true;
+      onReady();
+    }
+  };
+
   // Handle finalization sequence when loading completes
   useEffect(() => {
     if (loader.isComplete && !onReadyCalledRef.current && !isFinalizingRef) {
+      // If there are failed assets, show error modal
+      if (loader.failedAssets.length > 0) {
+        handleForceEntry();
+        return;
+      }
+
       setIsFinalizing(true);
 
       // Show finalization messages sequentially
@@ -219,6 +293,34 @@ export const VttLoadingScreen: React.FC<VttLoadingScreenProps> = ({
             label={t('vtt.loading.progressLabel')}
           />
         </div>
+
+        {/* Action Buttons */}
+        <div className="px-10 pb-6 flex justify-between items-center">
+          {/* Back to Lobby */}
+          {onBackToLobby && (
+            <button
+              onClick={onBackToLobby}
+              className="flex items-center gap-2 px-4 py-2 text-sm text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors border border-transparent hover:border-white/10"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              {t('vtt.loading.buttons.backToLobby')}
+            </button>
+          )}
+
+          {/* Spacer */}
+          {!onBackToLobby && <div />}
+
+          {/* Force Entry */}
+          {showForceEntry && !showErrorModal && (
+            <button
+              onClick={handleForceEntry}
+              className="flex items-center gap-2 px-4 py-2 text-sm bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-300 border border-amber-500/30 rounded-lg hover:from-amber-500/30 hover:to-orange-500/30 transition-all animate-pulse"
+            >
+              <Zap className="w-4 h-4" />
+              {t('vtt.loading.buttons.forceEntry')}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Footer */}
@@ -226,6 +328,72 @@ export const VttLoadingScreen: React.FC<VttLoadingScreenProps> = ({
         <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
         {t('vtt.loading.footer')}
       </div>
+
+      {/* Error Modal Overlay */}
+      {showErrorModal && (
+        <div className="absolute inset-0 z-[10000] bg-black/80 backdrop-blur-sm flex items-center justify-center animate-fadeIn">
+          <div className="w-[500px] bg-zinc-900 border border-red-500/30 rounded-2xl shadow-2xl shadow-red-900/30 overflow-hidden">
+            {/* Modal Header */}
+            <div className="h-1 bg-gradient-to-r from-red-500 via-orange-500 to-amber-500" />
+
+            <div className="p-8">
+              {/* Icon & Title */}
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 rounded-xl bg-red-500/20 border border-red-500/30 flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-red-400" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-white">
+                    {t('vtt.loading.errorModal.title')}
+                  </h2>
+                  <p className="text-xs text-zinc-500 mt-1">
+                    {t('vtt.loading.errorModal.autoEntering', { seconds: errorCountdown })}
+                  </p>
+                </div>
+              </div>
+
+              {/* Description */}
+              <p className="text-sm text-zinc-400 mb-4">
+                {t('vtt.loading.errorModal.description')}
+              </p>
+
+              {/* Failed Assets List */}
+              {loader.failedAssets.length > 0 && (
+                <div className="bg-black/40 rounded-lg p-4 mb-4 max-h-32 overflow-y-auto border border-red-500/20">
+                  <p className="text-xs text-red-400 font-medium mb-2">
+                    {t('vtt.loading.errorModal.failedAssets')}
+                  </p>
+                  <ul className="space-y-1">
+                    {loader.failedAssets.slice(0, 5).map((asset) => (
+                      <li key={asset.id} className="text-xs text-zinc-500 font-mono truncate">
+                        • {asset.name}
+                      </li>
+                    ))}
+                    {loader.failedAssets.length > 5 && (
+                      <li className="text-xs text-zinc-600 italic">
+                        +{loader.failedAssets.length - 5} more...
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              )}
+
+              {/* Consequence */}
+              <p className="text-xs text-zinc-500">
+                {t('vtt.loading.errorModal.consequence')}
+              </p>
+            </div>
+
+            {/* Progress bar for countdown */}
+            <div className="h-1 bg-zinc-800">
+              <div
+                className="h-full bg-gradient-to-r from-red-500 to-amber-500 transition-all duration-1000"
+                style={{ width: `${(errorCountdown / 3) * 100}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
