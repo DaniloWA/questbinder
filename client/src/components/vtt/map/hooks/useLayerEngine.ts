@@ -281,6 +281,8 @@ export function useLayerEngine(
     props.players, // CRITICAL: Update context when players change (viewports)
     props.permissions, // CRITICAL: Update context when permissions change
     props.rulerSettings, // CRITICAL: Update context when ruler settings change
+    props.hoveredTokenId, // Critical for hover card
+    props.hoveredObstacleId, // Critical for wall hover
   ]);
 
   // Sync SFX state

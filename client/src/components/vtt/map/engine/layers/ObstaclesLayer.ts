@@ -74,29 +74,49 @@ export class ObstaclesLayer extends BaseLayer {
   ): void {
     ctx.save();
 
-    // Set style based on type
+    // Professional Palette
+    // Wall: Neutral almost-white (Architectural)
+    // Door: Warm Amber (Interactive)
+    // Window: Cool Cyan (Transparent-ish logic)
     const colors = {
-      wall: isHovered ? '#a855f7' : '#ec4899',
-      door: isHovered ? '#84cc16' : '#22c55e',
-      window: isHovered ? '#38bdf8' : '#0ea5e9',
+      wall: isHovered ? '#b919e1ff' : '#cbd5e1', // Slate-300 -> Blue-400 (Hover)
+      door: isHovered ? '#fbbf24' : '#d97706', // Amber-600 -> Amber-400 (Hover)
+      window: isHovered ? '#38bdf8' : '#0284c7', // Sky-600 -> Sky-400 (Hover)
     };
 
     const color = colors[obstacle.type] || colors.wall;
     ctx.strokeStyle = color;
-    ctx.lineWidth = (isHovered ? 4 : 3) / zoom;
+
+    // Scale line width slightly by zoom, but clamp it to stay sharp
+    // Base width 3, max 5, min 1
+    ctx.lineWidth = 3 / zoom;
+
+    // Smooth corners for professional look
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+
+    // Hover Glow Effect
+    if (isHovered) {
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 10;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      // Increase width slightly
+      ctx.lineWidth = 5 / zoom;
+    }
 
     if ('points' in obstacle) {
       // Polygon obstacle (wall)
-      this.renderPolygon(ctx, obstacle as PolygonObstacle);
+      this.renderPolygon(ctx, obstacle as PolygonObstacle, isHovered);
     } else if ('p1' in obstacle && 'p2' in obstacle) {
       // Line obstacle (door, window)
-      this.renderLine(ctx, obstacle as LineObstacle);
+      this.renderLine(ctx, obstacle as LineObstacle, isHovered);
     }
 
     ctx.restore();
   }
 
-  private renderPolygon(ctx: CanvasRenderingContext2D, obstacle: PolygonObstacle): void {
+  private renderPolygon(ctx: CanvasRenderingContext2D, obstacle: PolygonObstacle, isHovered: boolean): void {
     const { points, open } = obstacle;
     if (points.length < 2) return;
 
@@ -111,19 +131,39 @@ export class ObstaclesLayer extends BaseLayer {
       ctx.closePath();
     }
 
+    // Hover Effect: Subtle Fill
+    if (isHovered) {
+      ctx.save();
+      // Disable shadow for fill to keep it clean
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = ctx.strokeStyle as string;
+      ctx.globalAlpha = 0.1; // Very subtle fill
+
+      if (!open) {
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
     ctx.stroke();
 
-    // Draw vertices
-    const vertexRadius = 4 / (ctx as any).__zoom || 4;
-    ctx.fillStyle = ctx.strokeStyle as string;
+    // Draw vertices - Much smaller and cleaner
+    const vertexRadius = (isHovered ? 3 : 2) / ((ctx as any).__zoom || 1);
+    ctx.fillStyle = isHovered ? '#ffffff' : (ctx.strokeStyle as string);
+
+    // Disable shadow for vertices to keep them crisp
+    ctx.save();
+    ctx.shadowBlur = 0;
+
     for (const point of points) {
       ctx.beginPath();
       ctx.arc(point.x, point.y, vertexRadius, 0, Math.PI * 2);
       ctx.fill();
     }
+    ctx.restore();
   }
 
-  private renderLine(ctx: CanvasRenderingContext2D, obstacle: LineObstacle): void {
+  private renderLine(ctx: CanvasRenderingContext2D, obstacle: LineObstacle, isHovered: boolean): void {
     const { p1, p2, type } = obstacle;
 
     ctx.beginPath();
@@ -132,17 +172,20 @@ export class ObstaclesLayer extends BaseLayer {
 
     // Different dash patterns for doors vs windows
     if (type === 'door') {
-      ctx.setLineDash([10, 5]);
+      ctx.setLineDash([10 / (ctx as any).__zoom, 5 / (ctx as any).__zoom]);
     } else if (type === 'window') {
-      ctx.setLineDash([4, 4]);
+      ctx.setLineDash([4 / (ctx as any).__zoom, 4 / (ctx as any).__zoom]);
     }
 
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Draw endpoints
-    const endpointRadius = 5 / (ctx as any).__zoom || 5;
-    ctx.fillStyle = ctx.strokeStyle as string;
+    // Draw endpoints - Minimalist
+    const endpointRadius = (isHovered ? 3.5 : 2.5) / ((ctx as any).__zoom || 1);
+    ctx.fillStyle = isHovered ? '#ffffff' : (ctx.strokeStyle as string);
+
+    ctx.save();
+    ctx.shadowBlur = 0;
 
     ctx.beginPath();
     ctx.arc(p1.x, p1.y, endpointRadius, 0, Math.PI * 2);
@@ -151,5 +194,7 @@ export class ObstaclesLayer extends BaseLayer {
     ctx.beginPath();
     ctx.arc(p2.x, p2.y, endpointRadius, 0, Math.PI * 2);
     ctx.fill();
+
+    ctx.restore();
   }
 }
