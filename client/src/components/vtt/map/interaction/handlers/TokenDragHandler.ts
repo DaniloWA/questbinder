@@ -67,7 +67,19 @@ export class TokenDragHandler extends BaseHandler {
       }
       // Right click (2) -> Context menu check
       if (ctx.button === 2) {
-        return token !== null && (ctx.isGM || ctx.currentUser?.id === token.ownerId || token.controlledBy?.includes(ctx.currentUser?.id || ''));
+        const canContext = token !== null && (ctx.isGM || ctx.currentUser?.id === token.ownerId || token.controlledBy?.includes(ctx.currentUser?.id || ''));
+
+        if (token && !canContext) {
+          console.warn('[TokenDragHandler] Right-click rejected:', {
+            tokenId: token.id,
+            tokenOwner: token.ownerId,
+            currentUserId: ctx.currentUser?.id,
+            isGM: ctx.isGM,
+            controlledBy: token.controlledBy
+          });
+        }
+
+        return canContext;
       }
     }
 
@@ -180,7 +192,7 @@ export class TokenDragHandler extends BaseHandler {
 
     // Emit cursor move to keep remote clients synced (even if hidden)
     // This prevents the "replay animation" effect when the cursor reappears after drag.
-    this.callbacks?.emitCursorMove?.(ctx.worldPos.x, ctx.worldPos.y, false);
+    this.callbacks?.emitCursorMove?.(ctx.worldPos.x, ctx.worldPos.y, 'select');
 
     return this.handled({ cursor: 'grabbing' });
   }

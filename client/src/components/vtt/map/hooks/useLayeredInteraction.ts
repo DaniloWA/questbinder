@@ -179,6 +179,56 @@ export const useLayeredInteraction = (
   useEffect(() => {
     if (!orchestratorRef.current) return;
 
+    // Update callbacks to prevent stale closures
+    const callbacks: InteractionCallbacks = {
+      setViewport: props.setViewport,
+      moveToken: props.moveToken,
+      moveTokens: props.moveTokens,
+      selectToken: props.selectToken,
+      clearSelection: props.clearSelection,
+      updateFog: props.updateFog,
+      setActiveTool: props.setActiveTool,
+      setMovementPath: props.setMovementPath,
+      addObstacles: props.addObstacles,
+      updateObstacle: props.updateObstacle,
+      setDrawingObstacle: props.setDrawingObstacle,
+      setDrawingLightZone: props.setDrawingLightZone,
+      addLightZones: props.addLightZones,
+      setDrawingAudioZone: props.setDrawingAudioZone,
+      addAudioZones: props.addAudioZones,
+      setDrawingTriggerZone: props.setDrawingTriggerZone,
+      addTriggerZones: props.addTriggerZones,
+      removeTriggerZone: props.removeTriggerZone,
+      setDraftPolyPoints: props.setDraftPolyPoints,
+      updateToken: props.updateToken,
+      emitTokenDrag: props.emitTokenDrag,
+      emitCursorMove: props.emitCursorMove,
+      onTokenContextMenu: props.onTokenContextMenu,
+      onMapContextMenu: props.onMapContextMenu,
+      onAttackZoneContextMenu: props.onAttackZoneContextMenu,
+      onUpdateAttackZone: props.onUpdateAttackZone,
+      onUpdatePreviewOrigin: props.onUpdatePreviewOrigin,
+      onConfirmAttackZonePlacement: props.onConfirmAttackZonePlacement,
+      onCancelAttackZonePlacement: props.onCancelAttackZonePlacement,
+      setCursorClickState: () => { },
+      setDragging: props.setDragging || (() => { }),
+      removeObstacle: () => { },
+      removeAudioZone: () => { },
+      setHoveredTokenId: props.setHoveredTokenId,
+      setHoveredObstacleId: props.setHoveredObstacleId,
+      removeDrawing: () => { },
+      addDrawing: props.addDrawing,
+      updateDrawingState: (points) => {
+        if (props.liveDrawingPointsRef) {
+          props.liveDrawingPointsRef.current = points;
+        }
+      },
+      openAudioZoneConfigModal: props.openAudioZoneConfigModal,
+      openTriggerZoneConfigModal: props.openTriggerZoneConfigModal,
+    };
+
+    orchestratorRef.current.setCallbacks(callbacks);
+
     orchestratorRef.current.updateContext({
       viewport: props.viewport,
       viewportRef: props.viewportRef,
@@ -221,6 +271,15 @@ export const useLayeredInteraction = (
     props.attackZoneResults,
     props.isPlacingAttackZone,
     props.campaignCharacters,
+    // Add callback dependencies
+    props.moveToken,
+    props.onTokenContextMenu,
+    props.onMapContextMenu,
+    props.onAttackZoneContextMenu,
+    props.updateToken,
+    props.emitTokenDrag,
+    props.emitCursorMove,
+    props.setDragging
   ]);
 
   // Event handlers

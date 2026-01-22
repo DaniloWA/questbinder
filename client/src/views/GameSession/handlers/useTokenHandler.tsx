@@ -96,16 +96,13 @@ export const useTokenHandler = (): UseTokenHandlerReturn => {
     if (!session.activeScene) return;
     const centerX = Math.floor((-session.viewport.x + (window.innerWidth / 2)) / session.viewport.zoom / session.activeScene.grid.size);
     const centerY = Math.floor((-session.viewport.y + (window.innerHeight / 2)) / session.viewport.zoom / session.activeScene.grid.size);
-    session.addToken({
-      type: tpl.type || 'npc', name: tpl.name, imgUrl: tpl.imgUrl, size: tpl.size, visionRange: tpl.visionRange, darkvisionRange: tpl.darkvisionRange,
-      visionColor: tpl.visionColor, displayMode: tpl.displayMode, textDetails: tpl.textDetails, isVisibleToPlayers: true, x: centerX, y: centerY, light: tpl.light
-    });
     session.setActiveTool('select');
   }, [isGM, session, show, t]);
 
   const handleTokenContextMenu = useCallback((e: React.MouseEvent, tokenId: string) => {
     if (!tokenId) { setTokenContextMenu(null); session.setCursorContextState(false); return; }
     const token = session.activeScene?.tokens.find(t => t.id === tokenId);
+
     if (token) {
       const isOwner = token.ownerId === currentUser?.id || token.controlledBy?.includes(currentUser?.id || '');
       if (isGM || isOwner) {
