@@ -3287,10 +3287,19 @@ export default {
       // Error Modal
       errorModal: {
         title: 'Alguns Recursos Não Foram Carregados',
+        titleSuccess: 'Entrada Forçada',
         description: 'Os seguintes recursos não puderam ser carregados. Isso pode causar tokens sem imagem, mapas incompletos ou outros problemas visuais.',
         consequence: 'A sessão continuará normalmente, mas alguns elementos podem não aparecer corretamente.',
         autoEntering: 'Entrando automaticamente em :seconds segundos...',
         failedAssets: 'Recursos com Falha:',
+        // Force entry reasons
+        reasons: {
+          button: 'Você optou por entrar antes do carregamento completo.',
+          stageTimeout: 'O carregamento está demorando muito. Forçando entrada...',
+          globalTimeout: 'Tempo limite de carregamento atingido. Forçando entrada...',
+          assetsComplete: 'Carregamento concluído com alguns erros.',
+        },
+        noErrors: 'Nenhum erro de carregamento detectado. A sessão está pronta!',
       },
     },
   },

@@ -3849,10 +3849,19 @@ export default {
       // Error Modal
       errorModal: {
         title: 'Some Resources Failed to Load',
+        titleSuccess: 'Forced Entry',
         description: 'The following resources could not be loaded. This may cause tokens without images, incomplete maps, or other visual issues.',
         consequence: 'The session will continue normally, but some elements may not display correctly.',
         autoEntering: 'Entering automatically in :seconds seconds...',
         failedAssets: 'Failed Resources:',
+        // Force entry reasons
+        reasons: {
+          button: 'You chose to enter before loading completed.',
+          stageTimeout: 'Loading is taking too long. Forcing entry...',
+          globalTimeout: 'Loading timeout reached. Forcing entry...',
+          assetsComplete: 'Loading completed with some errors.',
+        },
+        noErrors: 'No loading errors detected. Session is ready!',
       },
     },
   },

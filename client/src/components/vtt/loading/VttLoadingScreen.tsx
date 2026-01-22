@@ -98,6 +98,7 @@ export const VttLoadingScreen: React.FC<VttLoadingScreenProps> = ({
   const [showForceEntry, setShowForceEntry] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorCountdown, setErrorCountdown] = useState(3);
+  const [forceEntryReason, setForceEntryReason] = useState<'button' | 'stageTimeout' | 'globalTimeout' | 'assetsComplete' | null>(null);
 
   // Use the smart loader hook
   const loader = useSmartLoader({
@@ -137,38 +138,36 @@ export const VttLoadingScreen: React.FC<VttLoadingScreenProps> = ({
     return () => clearInterval(interval);
   }, [showForceEntry, loader.isComplete]);
 
-  // Global timeout (30s) - force entry with error modal if assets failed
+  // Global timeout - force entry with notification
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (!onReadyCalledRef.current && !loader.isComplete) {
-        handleForceEntry();
+        handleForceEntry('globalTimeout');
       }
     }, LOADER_CONFIG.MAX_LOADING_TIME_MS);
     return () => clearTimeout(timeout);
   }, []);
 
-  // Handle force entry (shows error modal if there are failed assets)
-  const handleForceEntry = () => {
+  // Handle force entry - ALWAYS shows modal with reason
+  const handleForceEntry = (reason: 'button' | 'stageTimeout' | 'globalTimeout' | 'assetsComplete') => {
     if (onReadyCalledRef.current) return;
 
-    if (loader.failedAssets.length > 0) {
-      setShowErrorModal(true);
-      // Countdown and auto-enter
-      let countdown = 3;
+    setForceEntryReason(reason);
+    setShowErrorModal(true);
+
+    // Countdown and auto-enter (uses ERROR_DISPLAY_MS)
+    const countdownSeconds = Math.ceil(LOADER_CONFIG.ERROR_DISPLAY_MS / 1000);
+    let countdown = countdownSeconds;
+    setErrorCountdown(countdown);
+    const countdownInterval = setInterval(() => {
+      countdown--;
       setErrorCountdown(countdown);
-      const countdownInterval = setInterval(() => {
-        countdown--;
-        setErrorCountdown(countdown);
-        if (countdown <= 0) {
-          clearInterval(countdownInterval);
-          onReadyCalledRef.current = true;
-          onReady();
-        }
-      }, 1000);
-    } else {
-      onReadyCalledRef.current = true;
-      onReady();
-    }
+      if (countdown <= 0) {
+        clearInterval(countdownInterval);
+        onReadyCalledRef.current = true;
+        onReady();
+      }
+    }, 1000);
   };
 
   // Handle finalization sequence when loading completes
@@ -176,9 +175,10 @@ export const VttLoadingScreen: React.FC<VttLoadingScreenProps> = ({
     if (loader.isComplete && !onReadyCalledRef.current && !isFinalizingRef) {
       // If there are failed assets, show error modal
       if (loader.failedAssets.length > 0) {
-        handleForceEntry();
+        handleForceEntry('assetsComplete');
         return;
       }
+
 
       setIsFinalizing(true);
 
@@ -313,7 +313,7 @@ export const VttLoadingScreen: React.FC<VttLoadingScreenProps> = ({
           {/* Force Entry */}
           {showForceEntry && !showErrorModal && (
             <button
-              onClick={handleForceEntry}
+              onClick={() => handleForceEntry('button')}
               className="flex items-center gap-2 px-4 py-2 text-sm bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-300 border border-amber-500/30 rounded-lg hover:from-amber-500/30 hover:to-orange-500/30 transition-all animate-pulse"
             >
               <Zap className="w-4 h-4" />
@@ -329,22 +329,37 @@ export const VttLoadingScreen: React.FC<VttLoadingScreenProps> = ({
         {t('vtt.loading.footer')}
       </div>
 
-      {/* Error Modal Overlay */}
+      {/* Force Entry Modal Overlay */}
       {showErrorModal && (
         <div className="absolute inset-0 z-[10000] bg-black/80 backdrop-blur-sm flex items-center justify-center animate-fadeIn">
-          <div className="w-[500px] bg-zinc-900 border border-red-500/30 rounded-2xl shadow-2xl shadow-red-900/30 overflow-hidden">
+          <div className={`w-[500px] bg-zinc-900 border rounded-2xl shadow-2xl overflow-hidden ${loader.failedAssets.length > 0
+            ? 'border-red-500/30 shadow-red-900/30'
+            : 'border-amber-500/30 shadow-amber-900/30'
+            }`}>
             {/* Modal Header */}
-            <div className="h-1 bg-gradient-to-r from-red-500 via-orange-500 to-amber-500" />
+            <div className={`h-1 bg-gradient-to-r ${loader.failedAssets.length > 0
+              ? 'from-red-500 via-orange-500 to-amber-500'
+              : 'from-amber-500 via-yellow-500 to-green-500'
+              }`} />
 
             <div className="p-8">
               {/* Icon & Title */}
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 rounded-xl bg-red-500/20 border border-red-500/30 flex items-center justify-center">
-                  <AlertTriangle className="w-6 h-6 text-red-400" />
+                <div className={`w-12 h-12 rounded-xl border flex items-center justify-center ${loader.failedAssets.length > 0
+                  ? 'bg-red-500/20 border-red-500/30'
+                  : 'bg-amber-500/20 border-amber-500/30'
+                  }`}>
+                  {loader.failedAssets.length > 0
+                    ? <AlertTriangle className="w-6 h-6 text-red-400" />
+                    : <Zap className="w-6 h-6 text-amber-400" />
+                  }
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-white">
-                    {t('vtt.loading.errorModal.title')}
+                    {loader.failedAssets.length > 0
+                      ? t('vtt.loading.errorModal.title')
+                      : t('vtt.loading.errorModal.titleSuccess')
+                    }
                   </h2>
                   <p className="text-xs text-zinc-500 mt-1">
                     {t('vtt.loading.errorModal.autoEntering', { seconds: errorCountdown })}
@@ -352,10 +367,26 @@ export const VttLoadingScreen: React.FC<VttLoadingScreenProps> = ({
                 </div>
               </div>
 
-              {/* Description */}
-              <p className="text-sm text-zinc-400 mb-4">
-                {t('vtt.loading.errorModal.description')}
-              </p>
+              {/* Reason Message */}
+              {forceEntryReason && (
+                <p className="text-sm text-amber-400 mb-4 p-3 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                  {t(`vtt.loading.errorModal.reasons.${forceEntryReason}`)}
+                </p>
+              )}
+
+              {/* Description (only if there are failed assets) */}
+              {loader.failedAssets.length > 0 && (
+                <p className="text-sm text-zinc-400 mb-4">
+                  {t('vtt.loading.errorModal.description')}
+                </p>
+              )}
+
+              {/* No Errors Message */}
+              {loader.failedAssets.length === 0 && (
+                <p className="text-sm text-green-400 mb-4">
+                  {t('vtt.loading.errorModal.noErrors')}
+                </p>
+              )}
 
               {/* Failed Assets List */}
               {loader.failedAssets.length > 0 && (
@@ -378,17 +409,22 @@ export const VttLoadingScreen: React.FC<VttLoadingScreenProps> = ({
                 </div>
               )}
 
-              {/* Consequence */}
-              <p className="text-xs text-zinc-500">
-                {t('vtt.loading.errorModal.consequence')}
-              </p>
+              {/* Consequence (only if there are failed assets) */}
+              {loader.failedAssets.length > 0 && (
+                <p className="text-xs text-zinc-500">
+                  {t('vtt.loading.errorModal.consequence')}
+                </p>
+              )}
             </div>
 
             {/* Progress bar for countdown */}
             <div className="h-1 bg-zinc-800">
               <div
-                className="h-full bg-gradient-to-r from-red-500 to-amber-500 transition-all duration-1000"
-                style={{ width: `${(errorCountdown / 3) * 100}%` }}
+                className={`h-full transition-all duration-1000 ${loader.failedAssets.length > 0
+                  ? 'bg-gradient-to-r from-red-500 to-amber-500'
+                  : 'bg-gradient-to-r from-amber-500 to-green-500'
+                  }`}
+                style={{ width: `${(errorCountdown / Math.ceil(LOADER_CONFIG.ERROR_DISPLAY_MS / 1000)) * 100}%` }}
               />
             </div>
           </div>
