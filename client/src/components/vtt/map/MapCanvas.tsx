@@ -150,6 +150,8 @@ export const MapCanvas = (props: MapCanvasProps) => {
 
   const interaction = useLayeredInteraction({
     ...props,
+    imageCache, // Explicitly pass the imageCache from useImageLoader
+    wandSettings: props.wandSettings,
     canvasRef,
     rulerSettings,
     ...mapState, // Keeping mapState for non-interaction state if needed (like hoveredTokenId)

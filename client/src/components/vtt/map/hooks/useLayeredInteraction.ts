@@ -44,6 +44,8 @@ export interface UseLayeredInteractionProps extends MapCanvasProps {
   openAudioZoneConfigModal?: (onSave: (config: { audioUrl: string; volume: number; radius: number; }) => void) => void;
   openTriggerZoneConfigModal?: (onSave: (handoutId: string) => void) => void;
   drawingSettings?: DrawingSettings;
+  imageCache: { [src: string]: HTMLImageElement; };
+  wandSettings: any;
 }
 
 export interface UseLayeredInteractionReturn {
@@ -236,7 +238,7 @@ export const useLayeredInteraction = (
       lastMousePos: props.lastMousePos,
       scene: props.scene,
       tokens: props.tokens,
-      imageCache: {},
+      imageCache: props.imageCache,
       isGM: props.isGM,
       gmViewMode: props.gmViewMode,
       currentUser: props.currentUser,
@@ -248,6 +250,7 @@ export const useLayeredInteraction = (
       cursorSettings: props.cursorSettings || null,
       rulerSettings: props.rulerSettings,
       drawingSettings: props.drawingSettings || { color: '#ffffff', width: 3, opacity: 1 },
+      wandSettings: props.wandSettings,
       attackZoneResults: props.attackZoneResults || [],
       isPlacingAttackZone: props.isPlacingAttackZone || false,
       campaignCharacters: props.campaignCharacters || [],
@@ -279,7 +282,8 @@ export const useLayeredInteraction = (
     props.updateToken,
     props.emitTokenDrag,
     props.emitCursorMove,
-    props.setDragging
+    props.setDragging,
+    props.imageCache
   ]);
 
   // Event handlers

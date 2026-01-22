@@ -194,7 +194,7 @@ export class ToolOverlayLayer extends BaseLayer {
       // SMART WALL (Edge Detection)
       // -----------------------------------------------------------------------
       case 'smart-wall':
-        this.renderSmartWallPreview(ctx, context);
+        // No preview needed - matches legacy behavior
         break;
 
       // -----------------------------------------------------------------------

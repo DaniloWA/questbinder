@@ -136,16 +136,30 @@ export const getContourFromPoint = (
   maxDimension: number = 512,
   simplification: number = 2.0
 ): Point[] => {
+  console.log('[ImageProcessing] 🎯 getContourFromPoint called');
+  console.log('[ImageProcessing] Input startX:', startX, 'startY:', startY);
+  console.log('[ImageProcessing] image.src:', image.src?.substring(0, 100) + '...');
+  console.log('[ImageProcessing] image.naturalWidth:', image.naturalWidth);
+  console.log('[ImageProcessing] image.naturalHeight:', image.naturalHeight);
+  console.log('[ImageProcessing] image.width (CSS):', image.width);
+  console.log('[ImageProcessing] image.height (CSS):', image.height);
+  console.log('[ImageProcessing] tolerance:', tolerance, 'maxDimension:', maxDimension);
+
   // 1. Downscale for performance
   const MAX_DIMENSION = maxDimension; // Cap max dimension
   let scale = 1;
-  let w = image.width;
-  let h = image.height;
+  let w = image.naturalWidth;
+  let h = image.naturalHeight;
+
+  console.log('[ImageProcessing] Original w:', w, 'h:', h);
 
   if (w > MAX_DIMENSION || h > MAX_DIMENSION) {
     scale = Math.min(MAX_DIMENSION / w, MAX_DIMENSION / h);
     w = Math.floor(w * scale);
     h = Math.floor(h * scale);
+    console.log('[ImageProcessing] Downscaled! scale:', scale, 'new w:', w, 'new h:', h);
+  } else {
+    console.log('[ImageProcessing] No downscale needed');
   }
 
   const canvas = document.createElement('canvas');
@@ -161,8 +175,13 @@ export const getContourFromPoint = (
   // Adjust start coordinates to scaled image
   const sx = Math.floor(startX * scale);
   const sy = Math.floor(startY * scale);
+  console.log('[ImageProcessing] Scaled coords: sx:', sx, 'sy:', sy);
+  console.log('[ImageProcessing] Canvas dimensions: width:', width, 'height:', height);
 
-  if (sx < 0 || sx >= width || sy < 0 || sy >= height) return [];
+  if (sx < 0 || sx >= width || sy < 0 || sy >= height) {
+    console.error('[ImageProcessing] ❌ Coords OUT OF BOUNDS! sx:', sx, 'sy:', sy, 'width:', width, 'height:', height);
+    return [];
+  }
 
   // Target Color
   const idx = (sy * width + sx) * 4;
@@ -170,6 +189,7 @@ export const getContourFromPoint = (
   const tg = data[idx + 1];
   const tb = data[idx + 2];
   const ta = data[idx + 3];
+  console.log('[ImageProcessing] Target color at click: RGBA(', tr, tg, tb, ta, ')');
 
   // Visited array: 0 = unvisited, 1 = in-region, 2 = visited/checked
   const visited = new Uint8Array(width * height);
@@ -267,6 +287,7 @@ export const getContourFromPoint = (
   }
 
   const contour = marchingSquares(mask, cropWidth, cropHeight);
+  console.log('[ImageProcessing] contour points from marchingSquares:', contour.length);
 
   // Transform back to world coordinates and upscale
   const worldContour = contour.map(p => ({
@@ -275,5 +296,10 @@ export const getContourFromPoint = (
   }));
 
   // Simplify
-  return simplifyPolygon(worldContour, simplification / scale); // Adjust epsilon for scale
+  const result = simplifyPolygon(worldContour, simplification / scale);
+  console.log('[ImageProcessing] ✅ Final contour points after simplify:', result.length);
+  if (result.length > 0) {
+    console.log('[ImageProcessing] First point:', result[0], 'Last point:', result[result.length - 1]);
+  }
+  return result;
 };

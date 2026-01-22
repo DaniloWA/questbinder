@@ -7,6 +7,7 @@
 import { BaseHandler } from '../core/BaseHandler';
 import type { EventPhase, HandlerResult, InteractionContext } from '../core/types';
 import { getContourFromPoint } from '../../../../../utils/imageProcessing';
+import { handleRightClickCancel } from '../utils/InteractionUtils';
 import type { Point } from '../../../../../types';
 
 /**
@@ -31,30 +32,64 @@ export class SmartWallHandler extends BaseHandler {
   }
 
   onMouseDown(ctx: InteractionContext): HandlerResult {
+    // Right-click: Exit tool (matches legacy behavior)
+    if (ctx.button === 2) {
+      return handleRightClickCancel(ctx, this.callbacks);
+    }
+
     if (ctx.button !== 0) return this.notHandled();
     if (!ctx.isGM) return this.notHandled();
 
     // Get map image from cache
     const imageUrl = ctx.scene?.imageUrl;
-    if (!imageUrl) return this.notHandled();
+    console.log('[SmartWall] 🔍 DEBUG START');
+    console.log('[SmartWall] imageUrl:', imageUrl);
+    console.log('[SmartWall] imageCache keys:', Object.keys(ctx.imageCache || {}));
+
+    if (!imageUrl) {
+      console.warn('[SmartWall] ❌ No imageUrl in scene!');
+      return this.notHandled();
+    }
 
     const img = ctx.imageCache[imageUrl];
-    if (!img || !img.complete) return this.notHandled();
+    console.log('[SmartWall] img found:', !!img);
+    console.log('[SmartWall] img.complete:', img?.complete);
+    console.log('[SmartWall] img.width (CSS):', img?.width);
+    console.log('[SmartWall] img.height (CSS):', img?.height);
+    console.log('[SmartWall] img.naturalWidth:', img?.naturalWidth);
+    console.log('[SmartWall] img.naturalHeight:', img?.naturalHeight);
+
+    if (!img || !img.complete) {
+      console.warn('[SmartWall] ❌ Image not loaded or not complete!');
+      return this.notHandled();
+    }
 
     // Get wand settings
     const tolerance = ctx.wandSettings?.tolerance ?? 30;
     const resolution = ctx.wandSettings?.resolution ?? 512;
     const simplification = ctx.wandSettings?.simplification ?? 2.0;
+    console.log('[SmartWall] wandSettings:', { tolerance, resolution, simplification });
 
-    // Get image dimensions - use grid cols/rows if available, else use image dimensions as-is
+    // Get image dimensions
     const grid = ctx.scene?.grid;
-    const mapWidth = grid ? grid.cols * grid.size : img.naturalWidth;
-    const mapHeight = grid ? grid.rows * grid.size : img.naturalHeight;
-    const scaleX = img.naturalWidth / mapWidth;
-    const scaleY = img.naturalHeight / mapHeight;
+    if (!grid) return this.notHandled();
 
-    const imgX = Math.floor(ctx.worldPos.x * scaleX);
-    const imgY = Math.floor(ctx.worldPos.y * scaleY);
+    const mapWidth = grid.size * grid.cols;
+    console.log('[SmartWall] grid:', { size: grid.size, cols: grid.cols, rows: grid.rows });
+    console.log('[SmartWall] mapWidth:', mapWidth);
+
+    // IMPORTANT: Map is rendered with uniform scale (aspect ratio preserved)
+    // The image is scaled to fit mapWidth, so we use the same scale for both X and Y
+    const scale = img.naturalWidth / mapWidth;
+    console.log('[SmartWall] Uniform scale:', scale);
+    console.log('[SmartWall] Image dimensions: ', img.naturalWidth, 'x', img.naturalHeight);
+    console.log('[SmartWall] Effective map height in world coords:', img.naturalHeight / scale);
+
+    console.log('[SmartWall] worldPos:', ctx.worldPos);
+    const imgX = Math.floor(ctx.worldPos.x * scale);
+    const imgY = Math.floor(ctx.worldPos.y * scale);
+    console.log('[SmartWall] imgX:', imgX, 'imgY:', imgY);
+    console.log('[SmartWall] 📍 Calling getContourFromPoint...');
 
     // Detect contour using marching squares
     try {
@@ -68,10 +103,10 @@ export class SmartWallHandler extends BaseHandler {
       );
 
       if (contour && contour.length >= 3) {
-        // Convert back to world coordinates
+        // Convert back to world coordinates using same uniform scale
         const worldContour: Point[] = contour.map(p => ({
-          x: p.x / scaleX,
-          y: p.y / scaleY,
+          x: p.x / scale,
+          y: p.y / scale,
         }));
 
         // Add as wall obstacle
@@ -80,6 +115,7 @@ export class SmartWallHandler extends BaseHandler {
           points: worldContour,
           blocksVision: true,
           blocksMovement: true,
+          open: false,  // Closed polygon - matches legacy
         }]);
 
         return this.handled({ cursor: 'crosshair' });
