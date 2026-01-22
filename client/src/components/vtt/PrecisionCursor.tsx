@@ -168,15 +168,27 @@ const PrecisionCursorComponent: React.FC<PrecisionCursorProps> = ({
       if (coordsRef.current) coordsRef.current.textContent = `${Math.round(worldX)}, ${Math.round(worldY)}`;
       if (offsetRef.current) offsetRef.current.textContent = `${Math.round(cellInternalX)} : ${Math.round(cellInternalY)}`;
       if (cellRef.current) {
-        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        let colLabel = '';
-        if (cellCol >= 0 && cellCol < cols) {
-          if (cellCol < 26) colLabel = letters[cellCol];
-          else colLabel = letters[Math.floor(cellCol / 26) - 1] + letters[cellCol % 26];
-        } else { colLabel = '?'; }
-        const rowLabel = (cellRow >= 0 && cellRow < rows) ? (cellRow + 1).toString() : '?';
+        // Universal Grid Labeling (Infinite)
+        const getColLabel = (n: number) => {
+          const isNegative = n < 0;
+          const absN = Math.abs(n);
+
+          let label = '';
+          let temp = absN;
+
+          do {
+            label = String.fromCharCode(65 + (temp % 26)) + label;
+            temp = Math.floor(temp / 26) - 1;
+          } while (temp >= 0);
+
+          return isNegative ? `-${label}` : label;
+        };
+
+        const colLabel = getColLabel(cellCol);
+        const rowLabel = (cellRow + 1).toString();
+
         cellRef.current.textContent = `${colLabel}${rowLabel}`;
-        cellRef.current.style.color = (colLabel === '?' || rowLabel === '?') ? '#ef4444' : '#ffffff';
+        cellRef.current.style.color = '#ffffff';
       }
 
       if (snapRef.current) {

@@ -38,7 +38,12 @@ export class ClickAnimationHandler extends BaseHandler {
   shouldHandle(phase: EventPhase, ctx: InteractionContext): boolean {
     // Only handle mouse down, and skip for grid tools
     if (phase !== 'down') return false;
-    if (ctx.activeTool.startsWith('map-align')) return false;
+
+    // Skip for precision tools (alignment, drawing, measuring)
+    const isPrecisionTool = ctx.activeTool.startsWith('map-align') ||
+      ['draw-', 'fog-', 'smart-', 'freehand-wall', 'measure-'].some(p => ctx.activeTool.startsWith(p));
+
+    if (isPrecisionTool) return false;
     return ctx.button === 0 || ctx.button === 2;
   }
 

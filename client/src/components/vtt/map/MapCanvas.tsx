@@ -14,6 +14,12 @@ import { PrecisionCursor } from '../PrecisionCursor';
 import { useGameSession } from '../../../context/GameSessionContext';
 import { useModal } from '../../../context/ModalContext';
 import { AudioZoneConfigModalContent, TriggerZoneConfigModalContent } from './modals';
+import {
+  shouldShowPrecisionCursor,
+  shouldShowLocalCursor,
+  getPrecisionCursorMode,
+  calculateHealthStatus
+} from './MapCanvasHelpers';
 
 /**
  * MapCanvas - Main VTT rendering component.
@@ -237,10 +243,13 @@ export const MapCanvas = (props: MapCanvasProps) => {
     };
     const settings = props.cursorSettings;
 
+    const isPrecision = shouldShowPrecisionCursor(props.activeTool);
+    const trailEnabled = isPrecision ? false : (overrides.trailEnabled ?? settings?.trailEnabled ?? false);
+
     return {
       shapeId: overrides.shape || settings?.shape || 'default',
       color: overrides.color || settings?.color || '#fbbf24',
-      trailEnabled: overrides.trailEnabled ?? settings?.trailEnabled ?? false,
+      trailEnabled,
       trailAnimation: overrides.trailAnimation || settings?.trailAnimation || 'line',
       trailColor: overrides.trailColor || settings?.trailColor || settings?.color || '#fbbf24',
       trailLength: overrides.trailLength ?? settings?.trailLength ?? 20,
@@ -250,6 +259,7 @@ export const MapCanvas = (props: MapCanvasProps) => {
       showMyTrail: overrides.showMyTrail ?? settings?.showMyTrail ?? true,
     };
   }, [
+    props.activeTool, // Add activeTool dependency
     props.currentUser?.id,
     props.permissions?.cursorOverrides,
     props.cursorSettings?.shape,
@@ -265,6 +275,23 @@ export const MapCanvas = (props: MapCanvasProps) => {
   ]);
 
   const { hoveredTokenId, dragState } = mapState;
+
+  // Hover Card Event Handlers
+  const handleHoverCardEnter = useCallback(() => {
+    if (mapState.hoverCloseTimerRef.current) {
+      clearTimeout(mapState.hoverCloseTimerRef.current);
+      mapState.hoverCloseTimerRef.current = null;
+    }
+  }, [mapState.hoverCloseTimerRef]);
+
+  const handleHoverCardLeave = useCallback(() => {
+    if (mapState.hoverCloseTimerRef.current) {
+      mapState.hoverCloseTimerRef.current = setTimeout(() => {
+        mapState.setHoveredTokenId(null);
+        mapState.hoverCloseTimerRef.current = null;
+      }, 300);
+    }
+  }, [mapState.hoverCloseTimerRef, mapState.setHoveredTokenId]);
 
   // Render TokenHoverCard
   const renderHoverCard = () => {
@@ -308,20 +335,8 @@ export const MapCanvas = (props: MapCanvasProps) => {
         onCharacterUpdate={props.onCharacterUpdate}
         onOpenSheet={props.onOpenSheet}
         onRoll={props.onRollDice}
-        onMouseEnter={() => {
-          if (mapState.hoverCloseTimerRef.current) {
-            clearTimeout(mapState.hoverCloseTimerRef.current);
-            mapState.hoverCloseTimerRef.current = null;
-          }
-        }}
-        onMouseLeave={() => {
-          if (mapState.hoverCloseTimerRef.current) {
-            mapState.hoverCloseTimerRef.current = setTimeout(() => {
-              mapState.setHoveredTokenId(null);
-              mapState.hoverCloseTimerRef.current = null;
-            }, 300);
-          }
-        }}
+        onMouseEnter={handleHoverCardEnter}
+        onMouseLeave={handleHoverCardLeave}
       />
     );
   };
@@ -358,7 +373,12 @@ export const MapCanvas = (props: MapCanvasProps) => {
       <LocalCursor
         shapeId={cursorConfig.shapeId}
         color={cursorConfig.color}
-        enabled={isMouseOverVTT && !mapState.hoveredTokenId && !mapState.isTokenDragging && !props.activeTool.startsWith('map-align') && !['draw-', 'fog-', 'smart-', 'freehand-wall'].some(prefix => props.activeTool.startsWith(prefix))}
+        enabled={shouldShowLocalCursor(
+          isMouseOverVTT,
+          mapState.hoveredTokenId,
+          mapState.isTokenDragging,
+          props.activeTool
+        )}
         trailEnabled={cursorConfig.trailEnabled && cursorConfig.showMyTrail && !props.activeTool.startsWith('map-align')}
         trailAnimation={cursorConfig.trailAnimation}
         trailColor={cursorConfig.trailColor}
@@ -369,21 +389,14 @@ export const MapCanvas = (props: MapCanvasProps) => {
         activeTool={props.activeTool}
         isContexting={props.isContexting}
         isChatting={props.isChatting}
-        isDragging={mapState.dragState.current.isDragging}
-        healthStatus={(() => {
-          if (!props.currentUser?.id || !props.campaignCharacters) return 'healthy';
-          const char = props.campaignCharacters.find(c => c.ownerId === props.currentUser?.id);
-          if (!char) return 'healthy';
-          if (char.hpCurrent <= 0) return 'unconscious';
-          if (char.hpCurrent <= (char.hpMax / 2)) return 'bloodied';
-          return 'healthy';
-        })()}
+        isDragging={mapState.dragState?.current?.isDragging || false}
+        healthStatus={calculateHealthStatus(props.currentUser?.id, props.campaignCharacters)}
       />
 
       {/* Precision Cursor for Grid Alignment AND Drawing Tools */}
       <PrecisionCursor
-        enabled={props.activeTool.startsWith('map-align') || ['draw-', 'fog-', 'smart-', 'freehand-wall'].some(prefix => props.activeTool.startsWith(prefix))}
-        mode={props.activeTool === 'map-align' ? 'inspect' : (props.activeTool.replace('map-align-', '') as any)}
+        enabled={shouldShowPrecisionCursor(props.activeTool)}
+        mode={getPrecisionCursorMode(props.activeTool) as any}
         tool={!props.activeTool.startsWith('map-align') ? props.activeTool : undefined}
         gridSize={props.scene?.grid.size || 70}
         offsetX={props.scene?.grid.offsetX || 0}
