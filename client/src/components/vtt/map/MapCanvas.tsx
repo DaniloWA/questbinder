@@ -84,7 +84,17 @@ export const MapCanvas = (props: MapCanvasProps) => {
   const visionTokens = useVisionLayer(props.tokens, props.isGM, props.gmViewMode, props.previewPlayerId, props.currentUser);
 
   // 4. Image Loader
-  const imageCache = useImageLoader(props.scene, props.tokens);
+  const { imageCache, isBackgroundLoaded, progress } = useImageLoader(props.scene, props.tokens);
+
+  // Notify parent when map is ready and report progress
+  useEffect(() => {
+    if (props.onAssetProgress) {
+      props.onAssetProgress(progress);
+    }
+    if (isBackgroundLoaded && props.onMapLoaded) {
+      props.onMapLoaded();
+    }
+  }, [isBackgroundLoaded, progress, props.onMapLoaded, props.onAssetProgress]);
 
   // Shared Ref for Click Animations (Visual Feedback)
   // Use imported types from interaction engine
@@ -163,6 +173,7 @@ export const MapCanvas = (props: MapCanvasProps) => {
       viewportRef, // Pass ref for immediate high-performance access
       visionTokens,
       imageCache,
+      isBackgroundLoaded, // Critical for initial render
       hoveredTokenId: mapState.hoveredTokenId,
       hoveredObstacleId: mapState.hoveredObstacleId,
       mouseWorldPos: mapState.mouseWorldPos,

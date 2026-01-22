@@ -7,6 +7,7 @@ interface ModalProps extends ModalOptions {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  forceHidden?: boolean;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -19,6 +20,7 @@ export const Modal: React.FC<ModalProps> = ({
   size = 'md',
   preventOutsideClick = false,
   hideCloseButton = false,
+  forceHidden = false,
 }) => {
   const overlayRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -141,16 +143,36 @@ export const Modal: React.FC<ModalProps> = ({
 
   // Animation Classes
   // Note: 'duration-300' aligns with the ModalContext close timeout
-  const animationClasses = isOpen
+  // If forceHidden is true, we disable animations to prevent flashes
+  const animationClasses = (isOpen && !forceHidden)
     ? 'animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-300'
-    : 'animate-out fade-out zoom-out-95 slide-out-to-bottom-4 duration-300';
+    : (!isOpen && !forceHidden)
+      ? 'animate-out fade-out zoom-out-95 slide-out-to-bottom-4 duration-300'
+      : '';
 
   // Portal rendering to document.body
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6"
-      aria-modal="true"
+      className={
+        forceHidden
+          ? 'fixed flex items-center justify-center p-4 sm:p-6 z-[-9999] invisible opacity-0 pointer-events-none'
+          : 'fixed inset-0 flex items-center justify-center p-4 sm:p-6 z-[9999]'
+      }
+      aria-modal={!forceHidden}
+      aria-hidden={forceHidden}
       role="dialog"
+      style={
+        forceHidden
+          ? {
+            visibility: 'hidden',
+            position: 'fixed',
+            top: '-200vh',
+            left: '-200vh',
+            width: '100vw',
+            height: '100vh',
+          }
+          : undefined
+      }
     >
       {/* Backdrop with blur and fade */}
       <div
@@ -158,7 +180,7 @@ export const Modal: React.FC<ModalProps> = ({
         onClick={handleBackdropClick}
         className={`
           absolute inset-0 bg-background/80 backdrop-blur-sm transition-opacity duration-300
-          ${isOpen ? 'opacity-100' : 'opacity-0'}
+          ${isOpen && !forceHidden ? 'opacity-100' : 'opacity-0'}
         `}
         aria-hidden="true"
       />

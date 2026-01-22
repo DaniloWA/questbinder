@@ -3,6 +3,8 @@ import { MapScene, Token, Viewport, Ping, Obstacle, User, PolygonObstacle, LineO
 import { TokenDragPayload, CursorMovePayload } from '../../../types/socket';
 
 export interface MapCanvasProps {
+  onMapLoaded?: () => void;
+  onAssetProgress?: (progress: { loaded: number, total: number, percent: number; }) => void;
   scene: MapScene | null;
   tokens: Token[];
   viewport: Viewport;

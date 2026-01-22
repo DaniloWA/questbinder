@@ -11,6 +11,7 @@ import { ColorPicker } from '../ui/ColorPicker';
 import { fileService } from '../../services/fileService';
 import { useNotification } from '../../context/NotificationContext';
 import { useTranslation } from '../../i18n/TranslationContext';
+import { Modal } from '../ui/Modal'; // Assuming Modal component is available here
 
 interface MapSettingsModalProps {
     scene: MapScene;

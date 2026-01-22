@@ -18,6 +18,7 @@ interface PermissionsModalProps {
     onUpdate: (perms: Partial<SessionPermissions>) => void;
     campaign: Campaign | null;
     players: User[];
+    forceHidden?: boolean;
 }
 
 type Tab = 'global' | 'players' | 'logs' | 'tokenHover';
@@ -72,7 +73,7 @@ const PRIVACY_PERMS: { key: 'shareCursor' | 'allowSpectate'; icon: React.ReactNo
 ];
 
 
-export const PermissionsModal: React.FC<PermissionsModalProps> = ({ isOpen, onClose, permissions, onUpdate, campaign, players }) => {
+export const PermissionsModal: React.FC<PermissionsModalProps> = ({ isOpen, onClose, permissions, onUpdate, campaign, players, forceHidden }) => {
     const { t } = useTranslation();
     const [localPerms, setLocalPerms] = useState<SessionPermissions>(permissions);
     const [activeTab, setActiveTab] = useState<Tab>('global');
@@ -220,6 +221,7 @@ export const PermissionsModal: React.FC<PermissionsModalProps> = ({ isOpen, onCl
             title={t('vtt.permissions.modal.title')}
             description={t('vtt.permissions.modal.desc')}
             size="lg"
+            forceHidden={forceHidden}
         >
             <div className="flex h-[600px] gap-0 border border-zinc-800 rounded-lg overflow-hidden bg-zinc-950">
 

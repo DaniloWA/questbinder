@@ -1,74 +1,24 @@
 {
   "translations": [
     {
-      "key": "vtt.cursor.editor.electric.label",
-      "en": "electric",
-      "pt": "electric"
+      "key": "vtt.vtt.loadingscreen.vttInitializationV10.text",
+      "en": "VTT Initialization v1.0",
+      "pt": "VTT Initialization v1.0"
     },
     {
-      "key": "vtt.cursor.editor.smoke.label",
-      "en": "smoke",
-      "pt": "smoke"
+      "key": "vtt.vtt.loadingscreen.loadModules.text",
+      "en": "Load Modules",
+      "pt": "Load Modules"
     },
     {
-      "key": "vtt.cursor.editor.sparkles.label",
-      "en": "sparkles",
-      "pt": "sparkles"
+      "key": "vtt.vtt.loadingscreen.done.label",
+      "en": "done",
+      "pt": "done"
     },
     {
-      "key": "vtt.cursor.editor.dice.label",
-      "en": "dice",
-      "pt": "dice"
-    },
-    {
-      "key": "vtt.cursor.editor.particles.label",
-      "en": "particles",
-      "pt": "particles"
-    },
-    {
-      "key": "vtt.cursor.editor.line.label",
-      "en": "line",
-      "pt": "line"
-    },
-    {
-      "key": "vtt.cursor.editor.color.label",
-      "en": "color",
-      "pt": "color"
-    },
-    {
-      "key": "vtt.cursor.editor.white.label",
-      "en": "white",
-      "pt": "white"
-    },
-    {
-      "key": "vtt.cursor.editor.translate3030Scale12.text",
-      "en": "translate(30, 30) scale(1.2)",
-      "pt": "translate(30, 30) scale(1.2)"
-    },
-    {
-      "key": "vtt.cursor.editor.options.label",
-      "en": "options",
-      "pt": "options"
-    },
-    {
-      "key": "vtt.cursor.editor.trail.label",
-      "en": "trail",
-      "pt": "trail"
-    },
-    {
-      "key": "vtt.cursor.editor.ping.label",
-      "en": "ping",
-      "pt": "ping"
-    },
-    {
-      "key": "vtt.cursor.editor.animations.label",
-      "en": "animations",
-      "pt": "animations"
-    },
-    {
-      "key": "vtt.cursor.editor.nome.label",
-      "en": "Nome",
-      "pt": "Nome"
+      "key": "vtt.vtt.loadingscreen.pending.label",
+      "en": "pending",
+      "pt": "pending"
     }
   ]
 }

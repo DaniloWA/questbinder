@@ -1,19 +1,14 @@
 {
   "translations": [
     {
-      "key": "vtt.cursor.editor.trail.size",
-      "pt": "Tamanho",
-      "en": "Size"
+      "key": "vtt.loading.ping",
+      "en": "Measuring Network Latency",
+      "pt": "Medindo Latência de Rede"
     },
     {
-      "key": "vtt.cursor.editor.trail.small",
-      "pt": "Pequeno",
-      "en": "Small"
-    },
-    {
-      "key": "vtt.cursor.editor.trail.large",
-      "pt": "Grande",
-      "en": "Large"
+      "key": "vtt.loading.ui",
+      "en": "Warming up Interface",
+      "pt": "Inicializando Interface"
     }
   ]
 }

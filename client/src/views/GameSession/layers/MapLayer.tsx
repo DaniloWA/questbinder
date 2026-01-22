@@ -14,15 +14,19 @@ interface MapLayerProps {
   mapHandler: ReturnType<typeof useMapHandler>;
   zoneHandler: ReturnType<typeof useZoneHandler>;
   isModalOpen: boolean;
+  onMapLoaded?: () => void;
+  onAssetProgress?: (progress: { loaded: number, total: number, percent: number; }) => void;
 }
 
-export const MapLayer = memo(({ session, tokenHandler, mapHandler, zoneHandler, isModalOpen }: MapLayerProps) => {
+export const MapLayer = memo(({ session, tokenHandler, mapHandler, zoneHandler, isModalOpen, onMapLoaded, onAssetProgress }: MapLayerProps) => {
   const { isGM } = useAccessControl();
   const { user: currentUser } = useAuth();
 
   return (
     <div className="absolute inset-0 z-0">
       <MapCanvas
+        onMapLoaded={onMapLoaded}
+        onAssetProgress={onAssetProgress}
         scene={session.activeScene}
         tokens={session.activeScene?.tokens || []}
         viewport={session.viewport}

@@ -37,6 +37,7 @@ interface ExtendedProps extends MapCanvasProps {
   remoteViewports?: Record<string, { x: number; y: number; zoom: number; w: number; h: number; }>;
   visionTokens?: Token[];
   imageCache?: Record<string, HTMLImageElement>;
+  isBackgroundLoaded?: boolean;
   hoveredTokenId?: string | null;
   hoveredObstacleId?: string | null;
   mouseWorldPos?: { x: number; y: number; };
@@ -273,6 +274,7 @@ export function useLayerEngine(
     props.campaignCharacters,
     props.remoteViewports,
     props.imageCache, // CRITICAL: Re-run when images load to update map dimensions
+    props.isBackgroundLoaded, // CRITICAL: Re-run when background specifically loads
     props.viewportRef, // Safety: Ensure context has ref
     props.calculatedPath, // CRITICAL: Update context when drag path changes (Ruler)
     props.dragState, // CRITICAL: Update context when drag state changes

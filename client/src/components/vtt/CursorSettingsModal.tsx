@@ -12,9 +12,10 @@ import { getCursorShape } from './constants/cursorShapes';
 interface CursorSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  forceHidden?: boolean;
 }
 
-export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen, onClose }) => {
+export const CursorSettingsModal: React.FC<CursorSettingsModalProps> = ({ isOpen, onClose, forceHidden }) => {
   const { cursorSettings, setCursorSettings, permissions, players, updatePermissions, campaign } = useGameSession();
   const { isGM } = useAccessControl();
   const { user } = useAuth();

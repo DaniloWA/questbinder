@@ -3777,6 +3777,62 @@ export default {
         round: 'ROUND :round',
       },
     },
+    loading: {
+      // Stage Labels
+      connection: 'Establishing Connection',
+      session: 'Synchronizing Session',
+      assets: 'Loading Visual Resources',
+      ping: 'Checking Network',
+      ui: 'Preparing Interface',
+      // Screen UI
+      title: 'SYSTEM INITIALIZATION',
+      subtitle: 'QUEST_BINDER_VTT // NEURAL_LINK_ESTABLISHED',
+      version: 'v2.4.0',
+      progressLabel: 'Installation Progress',
+      footer: 'SECURE CONNECTION // ENCRYPTED // QUID',
+      // Log Messages
+      logs: {
+        // Connection Stage
+        connectingWebSocket: 'Establishing secure WebSocket connection...',
+        handshakeComplete: 'Handshake complete. Protocol v2.0 active.',
+        startingNetworkDiag: 'Starting network diagnostics...',
+        // Ping Stage
+        sendingTestPackets: 'Sending test packets to server...',
+        latencyMeasured: 'Latency measured: :msms (:quality)',
+        qualityExcellent: 'EXCELLENT',
+        qualityGood: 'GOOD',
+        qualityAcceptable: 'ACCEPTABLE',
+        qualityHigh: 'HIGH',
+        connectingToSession: 'Connecting to game session...',
+        // Session Stage
+        activeMapFound: 'Active map found: ":name"',
+        sessionSynced: 'Session state synchronized successfully.',
+        preparingModules: 'Preparing interface modules...',
+        // Modules Stage
+        loadingTypography: 'Loading system typography...',
+        fontsLoaded: 'Fonts loaded: Inter, Mono, Icons.',
+        initializingModules: 'Initializing modules: Permissions, Sheets, Maps...',
+        compilingShaders: 'Pre-compiling render shaders...',
+        interfaceReady: 'Interface ready. Starting asset cache...',
+        // Assets Stage
+        cacheComplete: 'Cache complete: :count files ready.',
+        allResourcesLoaded: 'All resources loaded successfully!',
+      },
+      // Finalization Messages
+      finalization: {
+        preparing: 'Preparing game environment...',
+        syncing: 'Synchronizing session state...',
+        optimizing: 'Optimizing rendering...',
+        ready: 'Ready! Starting...',
+      },
+      // Status indicators
+      status: {
+        pending: 'Pending',
+        loading: 'Loading',
+        loaded: 'Complete',
+        error: 'Error',
+      },
+    },
   },
   rules: {
     status: {

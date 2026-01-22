@@ -4,24 +4,27 @@ import { useGameSession } from '../../../context/GameSessionContext';
 import { useAuth } from '../../../context/AuthContext';
 import { useAccessControl } from '../../../hooks/useAccessControl';
 import { Modal } from '../../../components/ui/Modal';
+import { Loader2 } from 'lucide-react';
 
-import { PermissionsModal } from '../../../components/vtt/PermissionsModal';
-import { CharacterSheetViewer } from '../../../components/vtt/CharacterSheetViewer';
-import { MapSettingsModal } from '../../../components/vtt/MapSettingsModal';
-import { HandoutFormModal } from '../../../components/vtt/HandoutFormModal';
-import { HandoutPreviewModal } from '../../../components/vtt/HandoutPreviewModal';
-import { HandoutShareModal } from '../../../components/vtt/HandoutShareModal';
+// Lazy Load Heavy Modals
+const PermissionsModal = lazy(() => import('../../../components/vtt/PermissionsModal').then(m => ({ default: m.PermissionsModal })));
+const CharacterSheetViewer = lazy(() => import('../../../components/vtt/CharacterSheetViewer').then(m => ({ default: m.CharacterSheetViewer })));
+const MapSettingsModal = lazy(() => import('../../../components/vtt/MapSettingsModal').then(m => ({ default: m.MapSettingsModal })));
+const HandoutFormModal = lazy(() => import('../../../components/vtt/HandoutFormModal').then(m => ({ default: m.HandoutFormModal })));
+const HandoutPreviewModal = lazy(() => import('../../../components/vtt/HandoutPreviewModal').then(m => ({ default: m.HandoutPreviewModal })));
+const HandoutShareModal = lazy(() => import('../../../components/vtt/HandoutShareModal').then(m => ({ default: m.HandoutShareModal })));
+const CursorSettingsModal = lazy(() => import('../../../components/vtt/CursorSettingsModal').then(m => ({ default: m.CursorSettingsModal })));
+const AttackZoneConfigModal = lazy(() => import('../../../components/vtt/AttackZoneConfigModal').then(m => ({ default: m.AttackZoneConfigModal })));
+const ViewSettingsModal = lazy(() => import('../../../components/vtt/settings/ViewSettingsModal').then(m => ({ default: m.ViewSettingsModal })));
+
+// Non-lazy (Lightweight or sub-components already loaded)
 import { TriggerZoneConfigModalContent, AudioZoneEditModalContent } from '../../../components/vtt/map/modals';
-import { AttackZoneConfigModal } from '../../../components/vtt/AttackZoneConfigModal';
-import { ViewSettingsModal } from '../../../components/vtt/settings/ViewSettingsModal';
 import { CombatInitiativeRoller } from '../../../components/vtt/CombatInitiativeRoller';
 
 import { useTokenHandler } from '../handlers/useTokenHandler';
 import { useMapHandler } from '../handlers/useMapHandler';
 import { useZoneHandler } from '../handlers/useZoneHandler';
 import { useHandoutHandler } from '../handlers/useHandoutHandler';
-
-const CursorSettingsModal = lazy(() => import('../../../components/vtt/CursorSettingsModal').then(m => ({ default: m.CursorSettingsModal })));
 
 interface ModalsLayerProps {
   session: ReturnType<typeof useGameSession>;
@@ -37,17 +40,14 @@ export const ModalsLayer = ({ session, tokenHandler, mapHandler, zoneHandler, ha
   const { t } = useTranslation();
   const { user: currentUser } = useAuth();
   const { isGM } = useAccessControl();
-  // Instead we can just use the show from the parent usage or assume handlers handled it.
-  // Actually the handlers use show. Here we just render.
 
   const viewingCharacter = session.campaignCharacters.find(c => c.id === tokenHandler.viewingCharacterId) || null;
   const editingTriggerZone = zoneHandler.editingTriggerZoneId ? session.activeScene?.triggerZones?.find(z => z.id === zoneHandler.editingTriggerZoneId) : null;
   const editingAudioZone = zoneHandler.editingAudioZoneId ? session.activeScene?.audioZones?.find(z => z.id === zoneHandler.editingAudioZoneId) : null;
   const editingAttackZone = zoneHandler.editingAttackZoneId ? zoneHandler.attackZones.activeZones.find(z => z.id === zoneHandler.editingAttackZoneId) : null;
 
-
   return (
-    <>
+    <Suspense fallback={null}>
       <PermissionsModal isOpen={mapHandler.isPermissionsOpen} onClose={() => mapHandler.setIsPermissionsOpen(false)} permissions={session.permissions} onUpdate={session.updatePermissions} campaign={session.campaign} players={session.players} />
 
       {viewingCharacter && (
@@ -177,6 +177,6 @@ export const ModalsLayer = ({ session, tokenHandler, mapHandler, zoneHandler, ha
           <ViewSettingsModal />
         </Modal>
       )}
-    </>
+    </Suspense>
   );
 };

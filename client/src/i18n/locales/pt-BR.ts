@@ -3215,6 +3215,62 @@ export default {
         round: 'RODADA :round',
       },
     },
+    loading: {
+      // Stage Labels
+      connection: 'Estabelecendo Conexão',
+      session: 'Sincronizando Sessão',
+      assets: 'Carregando Recursos Visuais',
+      ping: 'Verificando Rede',
+      ui: 'Preparando Interface',
+      // Screen UI
+      title: 'INICIALIZAÇÃO DO SISTEMA',
+      subtitle: 'QUEST_BINDER_VTT // NEURAL_LINK_ESTABLISHED',
+      version: 'v2.4.0',
+      progressLabel: 'Progresso de Instalação',
+      footer: 'CONEXÃO SEGURA // CRIPTOGRAFADO // QUID',
+      // Log Messages
+      logs: {
+        // Connection Stage
+        connectingWebSocket: 'Estabelecendo conexão WebSocket segura...',
+        handshakeComplete: 'Handshake concluído. Protocolo v2.0 ativo.',
+        startingNetworkDiag: 'Iniciando diagnóstico de rede...',
+        // Ping Stage
+        sendingTestPackets: 'Enviando pacotes de teste ao servidor...',
+        latencyMeasured: 'Latência medida: :msms (:quality)',
+        qualityExcellent: 'EXCELENTE',
+        qualityGood: 'BOM',
+        qualityAcceptable: 'ACEITÁVEL',
+        qualityHigh: 'ALTO',
+        connectingToSession: 'Conectando à sessão de jogo...',
+        // Session Stage
+        activeMapFound: 'Mapa ativo encontrado: ":name"',
+        sessionSynced: 'Estado da sessão sincronizado com sucesso.',
+        preparingModules: 'Preparando módulos da interface...',
+        // Modules Stage
+        loadingTypography: 'Carregando tipografia do sistema...',
+        fontsLoaded: 'Fontes carregadas: Inter, Mono, Icons.',
+        initializingModules: 'Inicializando módulos: Permissões, Fichas, Mapas...',
+        compilingShaders: 'Pré-compilando shaders de renderização...',
+        interfaceReady: 'Interface pronta. Iniciando cache de assets...',
+        // Assets Stage
+        cacheComplete: 'Cache completo: :count arquivos prontos.',
+        allResourcesLoaded: 'Todos os recursos carregados com sucesso!',
+      },
+      // Finalization Messages
+      finalization: {
+        preparing: 'Preparando ambiente de jogo...',
+        syncing: 'Sincronizando estado da sessão...',
+        optimizing: 'Otimizando renderização...',
+        ready: 'Pronto! Iniciando...',
+      },
+      // Status indicators
+      status: {
+        pending: 'Pendente',
+        loading: 'Carregando',
+        loaded: 'Concluído',
+        error: 'Erro',
+      },
+    },
   },
   dnd: {
     attributes: {

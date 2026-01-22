@@ -8,7 +8,7 @@ import { useTranslation } from '../../i18n/TranslationContext';
 import { Button } from '../../components/ui/Button';
 import { FollowModeIndicator } from '../../components/vtt/notifications/FollowModeIndicator';
 import { PullViewNotification } from '../../components/vtt/notifications/PullViewNotification';
-
+import { VttLoadingScreen } from '../../components/vtt/loading/VttLoadingScreen';
 
 // Handlers
 import { useTokenHandler } from './handlers/useTokenHandler';
@@ -38,11 +38,12 @@ const GameSessionUI: React.FC = () => {
   // It affects "isAnyModalOpen" heavily, let's keep it here or inside mapHandler.
   // Original code had it in local state. Putting in UI for simplicity or mapHandler if we want strictness.
   // Let's keep it here for now as it doesn't clearly fit "map" or "token".
+  // Initiative Roller State
   const [isInitiativeRollerOpen, setIsInitiativeRollerOpen] = useState(false);
 
-
-
-
+  // VTT Ready State (Controlled by "Load Modules" screen)
+  const [isVttReady, setIsVttReady] = useState(false);
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
 
   // PERFORMANCE: Compute modal open state to throttle Canvas
   const isAnyModalOpen = isGlobalModalOpen
@@ -63,16 +64,12 @@ const GameSessionUI: React.FC = () => {
     || !!zoneHandler.editingAttackZoneId
     || isInitiativeRollerOpen;
 
-  // Loading State
+  // Initial Data Loading (Before we even show the Load Modules screen)
   if (session.isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-950 text-white">
-        <div className="relative">
-          <div className="absolute -inset-8 bg-primary/20 blur-3xl rounded-full animate-pulse"></div>
-          <Sparkles className="w-16 h-16 text-primary animate-bounce relative z-10" />
-        </div>
-        <h1 className="text-2xl font-bold font-fantasy tracking-widest mt-8 animate-pulse text-transparent bg-clip-text bg-gradient-to-r from-primary to-white">{t('vtt.gameSession.loading.sync')}</h1>
-        <p className="text-zinc-500 mt-2 font-mono text-xs">{session.campaign?.name || t('vtt.gameSession.loading.default')}</p>
+        {/* Basic fallback just in case data takes too long before we can even mount the Loader */}
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
       </div>
     );
   }
@@ -83,8 +80,18 @@ const GameSessionUI: React.FC = () => {
 
   return (
     <div className="h-screen w-screen bg-zinc-900 text-white overflow-hidden flex flex-col font-sans antialiased relative">
+      {/* VTT Loading Screen Overlay */}
+      {!isVttReady && (
+        <VttLoadingScreen
+          onReady={() => setIsVttReady(true)}
+          tokens={session.activeScene?.tokens || []}
+          characters={session.campaignCharacters || []}
+          handouts={session.handouts || []}
+        />
+      )}
+
       {/* Reconnection Banner */}
-      {!session.isConnected && (
+      {!session.isConnected && isVttReady && (
         <div className="absolute top-0 left-0 right-0 z-[9999] bg-red-600/90 backdrop-blur text-white py-2 px-4 flex items-center justify-center gap-3 shadow-2xl animate-in slide-in-from-top-full duration-500">
           <Loader2 className="w-5 h-5 animate-spin" />
           <span className="font-bold tracking-wide">{t('vtt.gameSession.connection.lost')}</span>
@@ -96,21 +103,18 @@ const GameSessionUI: React.FC = () => {
       <PullViewNotification show={session.pullNotification} />
       <FollowModeIndicator />
 
+      {/* 
+        CRITICAL: We MUST render the MapLayer (and thus MapCanvas) even if !isVttReady 
+        so that useImageLoader runs and actually loads the images! 
+        The VttLoadingScreen sits on top z-index.
+      */}
       <MapLayer
         session={session}
         tokenHandler={tokenHandler}
         mapHandler={mapHandler}
         zoneHandler={zoneHandler}
         isModalOpen={isAnyModalOpen}
-      />
-
-      <InterfaceLayer
-        session={session}
-        tokenHandler={tokenHandler}
-        mapHandler={mapHandler}
-        zoneHandler={zoneHandler}
-        handoutHandler={handoutHandler}
-        onStartCombat={() => setIsInitiativeRollerOpen(true)}
+        onMapLoaded={() => setIsMapLoaded(true)}
       />
 
       <ModalsLayer
@@ -123,12 +127,26 @@ const GameSessionUI: React.FC = () => {
         onCloseInitiativeRoller={() => setIsInitiativeRollerOpen(false)}
       />
 
-      <ContextMenusLayer
-        session={session}
-        tokenHandler={tokenHandler}
-        mapHandler={mapHandler}
-        zoneHandler={zoneHandler}
-      />
+      {/* Interface can be hidden until ready if desired, or shown behind loader */}
+      {isVttReady && (
+        <>
+          <InterfaceLayer
+            session={session}
+            tokenHandler={tokenHandler}
+            mapHandler={mapHandler}
+            zoneHandler={zoneHandler}
+            handoutHandler={handoutHandler}
+            onStartCombat={() => setIsInitiativeRollerOpen(true)}
+          />
+
+          <ContextMenusLayer
+            session={session}
+            tokenHandler={tokenHandler}
+            mapHandler={mapHandler}
+            zoneHandler={zoneHandler}
+          />
+        </>
+      )}
     </div>
   );
 };

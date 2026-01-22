@@ -1,155 +1,55 @@
 {
-  "filePath": "src/components/vtt/CursorEditor.tsx",
+  "filePath": "src/components/vtt/loading/VttLoadingScreen.tsx",
   "strings": [
     {
-      "original": "electric",
-      "line": 623,
-      "context": "<div className=\"grid grid-cols-2 gap-1\">\r\n                    {['line', 'particles', 'dice', 'sparkles', 'smoke', 'electric'].map(style => (\r\n                      <button",
-      "suggestedKey": "vtt.cursor.editor.electric.label",
-      "contentType": "label",
-      "confidence": "high",
-      "start": 29989,
-      "end": 29999
-    },
-    {
-      "original": "smoke",
-      "line": 623,
-      "context": "<div className=\"grid grid-cols-2 gap-1\">\r\n                    {['line', 'particles', 'dice', 'sparkles', 'smoke', 'electric'].map(style => (\r\n                      <button",
-      "suggestedKey": "vtt.cursor.editor.smoke.label",
-      "contentType": "label",
-      "confidence": "high",
-      "start": 29980,
-      "end": 29987
-    },
-    {
-      "original": "sparkles",
-      "line": 623,
-      "context": "<div className=\"grid grid-cols-2 gap-1\">\r\n                    {['line', 'particles', 'dice', 'sparkles', 'smoke', 'electric'].map(style => (\r\n                      <button",
-      "suggestedKey": "vtt.cursor.editor.sparkles.label",
-      "contentType": "label",
-      "confidence": "high",
-      "start": 29968,
-      "end": 29978
-    },
-    {
-      "original": "dice",
-      "line": 623,
-      "context": "<div className=\"grid grid-cols-2 gap-1\">\r\n                    {['line', 'particles', 'dice', 'sparkles', 'smoke', 'electric'].map(style => (\r\n                      <button",
-      "suggestedKey": "vtt.cursor.editor.dice.label",
-      "contentType": "label",
-      "confidence": "high",
-      "start": 29960,
-      "end": 29966
-    },
-    {
-      "original": "particles",
-      "line": 623,
-      "context": "<div className=\"grid grid-cols-2 gap-1\">\r\n                    {['line', 'particles', 'dice', 'sparkles', 'smoke', 'electric'].map(style => (\r\n                      <button",
-      "suggestedKey": "vtt.cursor.editor.particles.label",
-      "contentType": "label",
-      "confidence": "high",
-      "start": 29947,
-      "end": 29958
-    },
-    {
-      "original": "line",
-      "line": 623,
-      "context": "<div className=\"grid grid-cols-2 gap-1\">\r\n                    {['line', 'particles', 'dice', 'sparkles', 'smoke', 'electric'].map(style => (\r\n                      <button",
-      "suggestedKey": "vtt.cursor.editor.line.label",
-      "contentType": "label",
-      "confidence": "high",
-      "start": 29939,
-      "end": 29945
-    },
-    {
-      "original": "color",
-      "line": 443,
-      "context": "value={values.color}\r\n                onChange={(c) => canEdit.color && onChange('color', c)}\r\n                disabled={!canEdit.color}",
-      "suggestedKey": "vtt.cursor.editor.color.label",
-      "contentType": "label",
-      "confidence": "high",
-      "start": 18902,
-      "end": 18909
-    },
-    {
-      "original": "color",
-      "line": 434,
-      "context": "key={c}\r\n                    onClick={() => canEdit.color && onChange('color', c)}\r\n                    disabled={!canEdit.color}",
-      "suggestedKey": "vtt.cursor.editor.color.label",
-      "contentType": "label",
-      "confidence": "high",
-      "start": 18375,
-      "end": 18382
-    },
-    {
-      "original": "white",
-      "line": 331,
-      "context": "<g transform={`scale(${selectedShape.scale || 1}) translate(${-selectedShape.hotspot.x}, ${-selectedShape.hotspot.y})`}>\r\n                    <path d={selectedShape.path} fill={values.color} stroke=\"white\" strokeWidth=\"1\" />\r\n                  </g>",
-      "suggestedKey": "vtt.cursor.editor.white.label",
-      "contentType": "label",
-      "confidence": "high",
-      "start": 12748,
-      "end": 12755
-    },
-    {
-      "original": "translate(30, 30) scale(1.2)",
-      "line": 329,
-      "context": "<svg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" fill=\"none\" style={{ filter: 'drop-shadow(1px 2px 3px rgba(0,0,0,0.3))' }}>\r\n                <g transform=\"translate(30, 30) scale(1.2)\">\r\n                  <g transform={`scale(${selectedShape.scale || 1}) translate(${-selectedShape.hotspot.x}, ${-selectedShape.hotspot.y})`}>",
-      "suggestedKey": "vtt.cursor.editor.translate3030Scale12.text",
+      "original": "VTT Initialization v1.0",
+      "line": 89,
+      "context": "<h2 className=\"text-xl font-bold font-fantasy tracking-wider\">Load Modules</h2>\r\n            <p className=\"text-xs text-zinc-500 font-mono\">VTT Initialization v1.0</p>\r\n          </div>",
+      "suggestedKey": "vtt.vtt.loadingscreen.vttInitializationV10.text",
       "contentType": "text",
       "confidence": "high",
-      "start": 12499,
-      "end": 12529
+      "start": 3414,
+      "end": 3437
     },
     {
-      "original": "options",
-      "line": 310,
-      "context": "const { t } = useTranslation();\r\n  const [activeTab, setActiveTab] = useState<'general' | 'animations' | 'ping' | 'trail' | 'options'>('general');",
-      "suggestedKey": "vtt.cursor.editor.options.label",
-      "contentType": "label",
+      "original": "Load Modules",
+      "line": 88,
+      "context": "<div>\r\n            <h2 className=\"text-xl font-bold font-fantasy tracking-wider\">Load Modules</h2>\r\n            <p className=\"text-xs text-zinc-500 font-mono\">VTT Initialization v1.0</p>",
+      "suggestedKey": "vtt.vtt.loadingscreen.loadModules.text",
+      "contentType": "text",
       "confidence": "high",
-      "start": 11526,
-      "end": 11535
+      "start": 3336,
+      "end": 3348
     },
     {
-      "original": "trail",
-      "line": 310,
-      "context": "const { t } = useTranslation();\r\n  const [activeTab, setActiveTab] = useState<'general' | 'animations' | 'ping' | 'trail' | 'options'>('general');",
-      "suggestedKey": "vtt.cursor.editor.trail.label",
+      "original": "done",
+      "line": 42,
+      "context": "if (session.activeScene) {\r\n      setStages(prev => ({ ...prev, assets: 'done' }));\r\n    } else if (session.isLoading) {",
+      "suggestedKey": "vtt.vtt.loadingscreen.done.label",
       "contentType": "label",
       "confidence": "high",
-      "start": 11516,
-      "end": 11523
+      "start": 1705,
+      "end": 1711
     },
     {
-      "original": "ping",
-      "line": 310,
-      "context": "const { t } = useTranslation();\r\n  const [activeTab, setActiveTab] = useState<'general' | 'animations' | 'ping' | 'trail' | 'options'>('general');",
-      "suggestedKey": "vtt.cursor.editor.ping.label",
+      "original": "done",
+      "line": 26,
+      "context": "if (session.isConnected) {\r\n      setStages(prev => ({ ...prev, connection: 'done' }));\r\n    } else {",
+      "suggestedKey": "vtt.vtt.loadingscreen.done.label",
       "contentType": "label",
       "confidence": "high",
-      "start": 11507,
-      "end": 11513
+      "start": 847,
+      "end": 853
     },
     {
-      "original": "animations",
-      "line": 310,
-      "context": "const { t } = useTranslation();\r\n  const [activeTab, setActiveTab] = useState<'general' | 'animations' | 'ping' | 'trail' | 'options'>('general');",
-      "suggestedKey": "vtt.cursor.editor.animations.label",
+      "original": "pending",
+      "line": 18,
+      "context": "assets: 'pending',\r\n    rendering: 'pending'\r\n  });",
+      "suggestedKey": "vtt.vtt.loadingscreen.pending.label",
       "contentType": "label",
       "confidence": "high",
-      "start": 11492,
-      "end": 11504
-    },
-    {
-      "original": "Nome",
-      "line": 306,
-      "context": "showPreview = true,\r\n  userName = 'Nome',\r\n  isGMMode = false,",
-      "suggestedKey": "vtt.cursor.editor.nome.label",
-      "contentType": "label",
-      "confidence": "high",
-      "start": 11361,
-      "end": 11367
+      "start": 651,
+      "end": 660
     }
   ]
 }
