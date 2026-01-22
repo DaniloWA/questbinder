@@ -9,6 +9,37 @@ const imageRetryCount: { [src: string]: number; } = {};
 const MAX_IMAGE_RETRIES = 3;
 const RETRY_INTERVAL_MS = 5000; // 5 seconds between retry attempts
 
+/**
+ * Update the global image cache with a loaded image.
+ * Can be called from other components (e.g., TokenHover) when they load an image.
+ */
+export const updateGlobalImageCache = (src: string, img: HTMLImageElement) => {
+  if (img.complete && img.naturalWidth > 0) {
+    globalImageCache[src] = img;
+    // Clear any failed status since it loaded successfully
+    delete imageRetryCount[src];
+  }
+};
+
+/**
+ * Get an image from the global cache, or null if not loaded.
+ */
+export const getFromImageCache = (src: string): HTMLImageElement | null => {
+  const cached = globalImageCache[src];
+  if (cached && cached.complete && cached.naturalWidth > 0) {
+    return cached;
+  }
+  return null;
+};
+
+/**
+ * Check if an image is in cache and successfully loaded.
+ */
+export const isImageCached = (src: string): boolean => {
+  const cached = globalImageCache[src];
+  return !!(cached && cached.complete && cached.naturalWidth > 0);
+};
+
 export const useImageLoader = (scene: MapScene | null, tokens: Token[]) => {
   // We can use a ref to expose the cache synchronously
   const imageCacheRef = useRef<{ [src: string]: HTMLImageElement; }>(globalImageCache);
@@ -67,18 +98,21 @@ export const useImageLoader = (scene: MapScene | null, tokens: Token[]) => {
     tokens.forEach(t => { if (t.imgUrl) imagesToLoad.add(t.imgUrl); });
 
     const total = imagesToLoad.size;
-    let loaded = 0;
+
+    // Use a ref-like object to track loaded count (avoids closure issues)
+    const loadState = { loaded: 0, processed: new Set<string>() };
 
     // Check what is already in global cache and successfully loaded
     imagesToLoad.forEach(src => {
       const cached = globalImageCache[src];
       if (cached && cached.complete && cached.naturalWidth > 0) {
-        loaded++;
+        loadState.loaded++;
+        loadState.processed.add(src);
       }
     });
 
     // Initial State update
-    setProgress({ loaded, total, percent: total === 0 ? 100 : Math.floor((loaded / total) * 100) });
+    setProgress({ loaded: loadState.loaded, total, percent: total === 0 ? 100 : Math.floor((loadState.loaded / total) * 100) });
 
     // Check BG status
     const bgImage = scene.imageUrl ? globalImageCache[scene.imageUrl] : null;
@@ -94,51 +128,56 @@ export const useImageLoader = (scene: MapScene | null, tokens: Token[]) => {
       return;
     }
 
+    // Shared handler that uses the loadState object (not closure variable)
+    const handleImageLoaded = (src: string) => {
+      // Prevent double-counting
+      if (loadState.processed.has(src)) return;
+      loadState.processed.add(src);
+
+      loadState.loaded++;
+      if (loadState.loaded > total) loadState.loaded = total;
+
+      // Update immediate state for background
+      const bgImg = globalImageCache[src];
+      if (src === scene.imageUrl && bgImg?.complete && bgImg.naturalWidth > 0) {
+        setBackgroundLoaded(true);
+      }
+
+      // Always update progress
+      setProgress({ loaded: loadState.loaded, total, percent: Math.floor((loadState.loaded / total) * 100) });
+    };
+
     // Load missing/pending images
     imagesToLoad.forEach(src => {
-      const handleLoad = () => {
-        loaded++;
-        if (loaded > total) loaded = total;
-
-        // Update immediate state for background but throttle progress for UI
-        const bgImg = globalImageCache[src];
-        if (src === scene.imageUrl && bgImg?.complete && bgImg.naturalWidth > 0) {
-          setBackgroundLoaded(true);
-        }
-
-        // Throttle check
-        const now = Date.now();
-        // Always update on last image or if enough time passed
-        if (loaded === total || (now - lastUpdateRef.current > 100)) {
-          setProgress({ loaded, total, percent: Math.floor((loaded / total) * 100) });
-          lastUpdateRef.current = now;
-        }
-      };
+      // Skip already processed
+      if (loadState.processed.has(src)) return;
 
       const cached = globalImageCache[src];
 
       if (cached && cached.complete && cached.naturalWidth > 0) {
-        // Already successfully loaded
-        handleLoad();
+        // Already successfully loaded (shouldn't happen due to initial check, but safety)
+        handleImageLoaded(src);
       } else if (cached && cached.complete && cached.naturalWidth === 0) {
-        // Broken image - needs retry
+        // Broken image - mark as processed but track for retry
         failedImagesRef.current.add(src);
-        handleLoad();
+        handleImageLoaded(src);
       } else if (!cached) {
         // Not in cache - load it
-        loadImage(src, handleLoad);
+        loadImage(src, () => handleImageLoaded(src));
       } else {
         // In progress - attach listeners
         const img = cached;
         const previous = img.onload;
         img.onload = (e) => {
           if (typeof previous === 'function') previous.call(img, e);
-          handleLoad();
+          handleImageLoaded(src);
         };
-        img.onerror = () => {
+        const previousError = img.onerror;
+        img.onerror = (e) => {
+          if (typeof previousError === 'function') previousError.call(img, e);
           imageRetryCount[src] = (imageRetryCount[src] || 0) + 1;
           failedImagesRef.current.add(src);
-          handleLoad();
+          handleImageLoaded(src);
           console.warn(`Failed to load asset (attempt ${imageRetryCount[src]}/${MAX_IMAGE_RETRIES}): ${src}`);
         };
       }
@@ -151,6 +190,22 @@ export const useImageLoader = (scene: MapScene | null, tokens: Token[]) => {
     const retryInterval = setInterval(() => {
       if (failedImagesRef.current.size === 0) return;
 
+      // First, check if any "failed" images were actually loaded successfully elsewhere
+      // (e.g., by TokenHover or another component)
+      const actuallyLoaded: string[] = [];
+      failedImagesRef.current.forEach(src => {
+        const cached = globalImageCache[src];
+        if (cached && cached.complete && cached.naturalWidth > 0) {
+          // Image was actually loaded successfully! Remove from failed list
+          actuallyLoaded.push(src);
+          delete imageRetryCount[src];
+        }
+      });
+
+      // Remove successfully loaded images from failed set
+      actuallyLoaded.forEach(src => failedImagesRef.current.delete(src));
+
+      // Filter to only images that need retry
       const toRetry = Array.from(failedImagesRef.current).filter(
         src => (imageRetryCount[src] || 0) < MAX_IMAGE_RETRIES
       );
@@ -160,6 +215,14 @@ export const useImageLoader = (scene: MapScene | null, tokens: Token[]) => {
       console.log(`Retrying ${toRetry.length} failed image(s)...`);
 
       toRetry.forEach(src => {
+        // Double-check cache one more time
+        const cached = globalImageCache[src];
+        if (cached && cached.complete && cached.naturalWidth > 0) {
+          failedImagesRef.current.delete(src);
+          delete imageRetryCount[src];
+          return;
+        }
+
         // Remove old broken image from cache
         delete globalImageCache[src];
         delete imageCacheRef.current[src];

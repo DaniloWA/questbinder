@@ -5,6 +5,7 @@ import { Tooltip } from '../../ui/Tooltip';
 import { STATUS_RULES, StatusDefinition } from '../../../data/rules';
 import { useGameSession } from '../../../context/GameSessionContext';
 import { useTranslation } from '../../../i18n/TranslationContext';
+import { updateGlobalImageCache, getFromImageCache } from './hooks/useImageLoader';
 
 interface TokenHoverCardProps {
   token: Token;
@@ -297,9 +298,25 @@ export const TokenHoverCard: React.FC<TokenHoverCardProps> = ({
               <span className="font-bold text-sm" style={{ color: token.textDetails?.textColor }}>{token.textDetails?.text || '?'}</span>
             </div>
           ) : (
-            token.imgUrl ? (
-              <img src={token.imgUrl} className="w-full h-full object-cover" />
-            ) : (
+            token.imgUrl ? (() => {
+              // Check if image is already cached to avoid duplicate requests
+              const cachedImg = getFromImageCache(token.imgUrl);
+              const imgSrc = cachedImg ? cachedImg.src : token.imgUrl;
+
+              return (
+                <img
+                  src={imgSrc}
+                  crossOrigin="anonymous"
+                  className="w-full h-full object-cover"
+                  onLoad={(e) => {
+                    const img = e.currentTarget;
+                    if (token.imgUrl && img.naturalWidth > 0) {
+                      updateGlobalImageCache(token.imgUrl, img);
+                    }
+                  }}
+                />
+              );
+            })() : (
               <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-zinc-600">
                 <Ghost className="w-6 h-6" />
               </div>
