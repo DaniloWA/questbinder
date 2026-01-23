@@ -90,6 +90,25 @@ export const STAGE_CONFIGS: LoaderStageConfig[] = [
  */
 export const CORE_MODULES: Omit<LoaderAsset, 'status' | 'retryCount'>[] = [
   {
+    id: 'module:worker-warmup',
+    url: 'module:worker-warmup',
+    type: 'module',
+    name: 'Inicializando: Sistema de Workers e Cálculos em Background',
+    loader: async () => {
+      // Import WorkerManager and warm up all modules
+      const { WorkerManager } = await import('../../../../workers/core/WorkerManager');
+      const manager = WorkerManager.getInstance();
+
+      // Ping system module to ensure worker is ready
+      await manager.execute('system', 'ping', {});
+
+      // Pre-initialize visibility module with empty obstacles
+      await manager.execute('visibility', 'setObstacles', { obstacles: [] });
+
+      return { workerReady: true };
+    },
+  },
+  {
     id: 'module:permissions',
     url: 'module:permissions',
     type: 'module',

@@ -196,9 +196,17 @@ export class LightingLayer extends BaseLayer {
       // Token light source
       if (token.light?.enabled) {
         const flicker = this.calculateFlicker(token, time);
-        const r = Math.max(token.light.brightRadius || 0, token.light.dimRadius || 0) * gridSize * flicker;
-        if (r > 0) {
-          lightSources.push({ x: cx, y: cy, r, isPersonal: false });
+        const maxFlicker = this.getMaxFlicker(token);
+        const baseRadius = Math.max(token.light.brightRadius || 0, token.light.dimRadius || 0) * gridSize;
+
+        if (baseRadius > 0) {
+          lightSources.push({
+            x: cx,
+            y: cy,
+            r: baseRadius * flicker,
+            stableR: baseRadius * maxFlicker,
+            isPersonal: false
+          });
         }
       }
 
@@ -207,10 +215,10 @@ export class LightingLayer extends BaseLayer {
       if (isControlled) {
         if ((token.darkvisionRange || 0) > 0) {
           const r = (token.darkvisionRange || 0) * gridSize;
-          lightSources.push({ x: cx, y: cy, r, isPersonal: true });
+          lightSources.push({ x: cx, y: cy, r, stableR: r, isPersonal: true });
         }
         const selfRadius = Math.max(gridSize * 0.6, (token.size * gridSize) * 0.6);
-        lightSources.push({ x: cx, y: cy, r: selfRadius, isPersonal: true });
+        lightSources.push({ x: cx, y: cy, r: selfRadius, stableR: selfRadius, isPersonal: true });
       }
     }
 
@@ -218,7 +226,8 @@ export class LightingLayer extends BaseLayer {
     for (const src of lightSources) {
       if (src.r <= 0) continue;
 
-      const poly = calculateVisibilityPolygon({ x: src.x, y: src.y }, obstacles, src.r);
+      // Use stableR for visibility calculation to prevent cache trashing
+      const poly = calculateVisibilityPolygon({ x: src.x, y: src.y }, obstacles, src.stableR);
 
       ctx.save();
 
@@ -349,11 +358,15 @@ export class LightingLayer extends BaseLayer {
       const cx = (token.x + token.size / 2) * gridSize;
       const cy = (token.y + token.size / 2) * gridSize;
       const flicker = this.calculateFlicker(token, time);
-      const maxRadius = Math.max(token.light.brightRadius || 0, token.light.dimRadius || 0) * gridSize * flicker;
+      const maxFlicker = this.getMaxFlicker(token);
+      const baseRadius = Math.max(token.light.brightRadius || 0, token.light.dimRadius || 0) * gridSize;
+      const maxRadius = baseRadius * flicker;
+      const stableRadius = baseRadius * maxFlicker;
 
       if (maxRadius <= 0.1) continue;
 
-      const poly = calculateVisibilityPolygon({ x: cx, y: cy }, obstacles, maxRadius);
+      // Use stableRadius for calculation
+      const poly = calculateVisibilityPolygon({ x: cx, y: cy }, obstacles, stableRadius);
 
       ctx.save();
 
@@ -384,6 +397,18 @@ export class LightingLayer extends BaseLayer {
   }
 
   /**
+   * Get maximum flicker value for stable cache key.
+   */
+  private getMaxFlicker(token: Token): number {
+    if (!token.light?.animation) return 1.0;
+    switch (token.light.animation) {
+      case 'torch': return 1.05; // Max possible value of flicker formula
+      case 'pulse': return 1.0; // Pulse goes down from 1.0 (0.8 + 0.2)
+      default: return 1.0;
+    }
+  }
+
+  /**
    * Calculate flicker effect for animated lights.
    */
   private calculateFlicker(token: Token, time: number): number {
@@ -392,9 +417,11 @@ export class LightingLayer extends BaseLayer {
     switch (token.light.animation) {
       case 'torch': {
         const seed = parseFloat(token.id.replace(/\D/g, '') || '0');
+        // Range: ~0.90 to ~1.02
         return 0.95 + Math.sin(time * 0.01 + seed) * 0.05 + Math.random() * 0.02;
       }
       case 'pulse':
+        // Range: 0.8 to 1.0
         return 0.8 + (Math.sin(time * 0.003) + 1) * 0.1;
       default:
         return 1.0;
@@ -429,6 +456,7 @@ export class LightingLayer extends BaseLayer {
 interface LightSource {
   x: number;
   y: number;
-  r: number;
+  r: number; // Visual radius (with flicker)
+  stableR: number; // Maximum radius for stable visibility calculation
   isPersonal: boolean;
 }

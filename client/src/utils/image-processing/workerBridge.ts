@@ -46,22 +46,23 @@ export const processImageInWorker = async (
   const sx = Math.floor(startX * scale);
   const sy = Math.floor(startY * scale);
 
-  // 4. Send to Worker
+  // 4. Send to Worker with zero-copy transfer
   const manager = WorkerManager.getInstance();
 
-  // We transfer the buffer to avoid copy overhead if possible, 
-  // though structuredClone is default. To transfer, we'd need to use the 
-  // transfer list API which our simple 'execute' might not expose yet.
-  // For now, let's just rely on structural cloning.
+  // Clone the data first since transfer will neuter the original buffer
+  const dataClone = new Uint8ClampedArray(imageData.data);
 
   const result = await manager.execute<Point[]>('image-processing', 'process', {
-    imageData: imageData.data, // Send the Uint8ClampedArray
+    imageData: dataClone,
     width: w,
     height: h,
     startX: sx,
     startY: sy,
-    scale, // Pass scale so worker can return world coords
+    scale,
     config: finalConfig
+  }, {
+    transferables: [dataClone.buffer], // Zero-copy transfer
+    timeout: 60000 // 60s timeout for large images
   });
 
   return result;

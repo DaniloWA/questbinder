@@ -41,6 +41,7 @@ export class TokenDragHandler extends BaseHandler {
 
   private calculatedPath: Point[] = [];
   private pathRequestId = 0;
+  private pathfindingTimer: number | null = null;
 
   constructor() {
     super({
@@ -175,28 +176,33 @@ export class TokenDragHandler extends BaseHandler {
       this.calculatedPath = [startPoint, endPoint];
       if (this.calculatedPathRef) this.calculatedPathRef.current = [...this.calculatedPath];
 
-      WorkerManager.getInstance().execute<Point[]>('pathfinding', 'findPath', {
-        startGrid: startPoint,
-        endGrid: endPoint,
-        grid: ctx.scene!.grid,
-        obstacles: ctx.scene!.obstacles
-      }).then(path => {
-        // Only apply if this is the latest request
-        if (this.pathRequestId === requestId && this.dragState.isDragging) {
-          this.calculatedPath = path;
-          if (this.calculatedPathRef) this.calculatedPathRef.current = [...this.calculatedPath];
+      // Debounce: 200ms
+      if (this.pathfindingTimer) window.clearTimeout(this.pathfindingTimer);
 
-          // Re-emit with correct path
-          this.callbacks?.emitTokenDrag?.(
-            this.dragState.token!.id,
-            this.dragState.lastCheckedGridX,
-            this.dragState.lastCheckedGridY,
-            this.calculatedPath
-          );
-        }
-      }).catch(err => {
-        console.error('[TokenDrag] Pathfinding error:', err);
-      });
+      this.pathfindingTimer = window.setTimeout(() => {
+        WorkerManager.getInstance().execute<Point[]>('pathfinding', 'findPath', {
+          startGrid: startPoint,
+          endGrid: endPoint,
+          grid: ctx.scene!.grid,
+          obstacles: ctx.scene!.obstacles
+        }).then(path => {
+          // Only apply if this is the latest request
+          if (this.pathRequestId === requestId && this.dragState.isDragging) {
+            this.calculatedPath = path;
+            if (this.calculatedPathRef) this.calculatedPathRef.current = [...this.calculatedPath];
+
+            // Re-emit with correct path
+            this.callbacks?.emitTokenDrag?.(
+              this.dragState.token!.id,
+              this.dragState.lastCheckedGridX,
+              this.dragState.lastCheckedGridY,
+              this.calculatedPath
+            );
+          }
+        }).catch(err => {
+          console.error('[TokenDrag] Pathfinding error:', err);
+        });
+      }, 200);
 
       // Emit drag to remote clients (immediate feedback with direct line or partial)
       this.callbacks?.emitTokenDrag?.(
@@ -364,6 +370,7 @@ export class TokenDragHandler extends BaseHandler {
     };
     this.calculatedPath = [];
     this.callbacks?.setDragging?.(false);
+    if (this.pathfindingTimer) window.clearTimeout(this.pathfindingTimer);
 
     // Sync to Refs
     if (this.dragStateRef) this.dragStateRef.current = { ...this.dragState };

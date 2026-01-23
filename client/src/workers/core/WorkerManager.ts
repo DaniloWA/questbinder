@@ -1,26 +1,50 @@
 import { WorkerMessage, WorkerRequest, WorkerResponse, WorkerError, WorkerEvent } from './types';
 
 /**
+ * Options for execute method
+ */
+export interface ExecuteOptions {
+  /** Timeout in milliseconds (default: 30000) */
+  timeout?: number;
+  /** Transferable objects for zero-copy transfer */
+  transferables?: Transferable[];
+}
+
+/**
  * WorkerManager (Main Thread)
  * 
  * Singleton that manages the Web Worker instance, handles message correlation,
  * and exposes a clean Promise-based API for executing tasks.
+ * 
+ * Features:
+ * - Promise-based API with correlation IDs
+ * - Transferable support for zero-copy buffer transfers
+ * - Configurable timeout handling
+ * - Health monitoring
+ * - Event subscription system
  */
 export class WorkerManager {
   private static instance: WorkerManager;
   private worker: Worker | null = null;
 
-  // Pending requests map: Correlation ID -> { resolve, reject }
+  // Pending requests map: Correlation ID -> { resolve, reject, timeoutId }
   private pending: Map<string, {
     resolve: (value: any) => void;
     reject: (reason: any) => void;
+    timeoutId?: ReturnType<typeof setTimeout>;
   }> = new Map();
 
   // Event listeners: Module -> Set of callbacks
   private listeners: Map<string, Set<(event: string, payload: any) => void>> = new Map();
 
+  // Health check interval
+  private healthCheckInterval: ReturnType<typeof setInterval> | null = null;
+
   // Debug mode
   private debug: boolean = true;
+
+  // Default timeout (30 seconds)
+  private defaultTimeout: number = 30000;
 
   private constructor() {
     this.initWorker();
@@ -35,6 +59,13 @@ export class WorkerManager {
 
   public setDebug(enabled: boolean) {
     this.debug = enabled;
+  }
+
+  /**
+   * Set default timeout for all execute calls.
+   */
+  public setDefaultTimeout(timeoutMs: number) {
+    this.defaultTimeout = timeoutMs;
   }
 
   /**
@@ -59,14 +90,34 @@ export class WorkerManager {
 
   /**
    * Execute an action on a specific module in the worker.
+   * 
+   * @param module - Target module name
+   * @param action - Action to execute
+   * @param payload - Action payload
+   * @param options - Execution options (timeout, transferables)
    */
-  public execute<T>(module: string, action: string, payload: any = {}): Promise<T> {
+  public execute<T>(
+    module: string,
+    action: string,
+    payload: any = {},
+    options: ExecuteOptions = {}
+  ): Promise<T> {
     if (!this.worker) this.initWorker();
 
+    const { timeout = this.defaultTimeout, transferables = [] } = options;
     const id = crypto.randomUUID();
 
     return new Promise((resolve, reject) => {
-      this.pending.set(id, { resolve, reject });
+      // Setup timeout
+      const timeoutId = timeout > 0 ? setTimeout(() => {
+        const pending = this.pending.get(id);
+        if (pending) {
+          this.pending.delete(id);
+          reject(new Error(`[Worker Timeout] ${module}.${action} exceeded ${timeout}ms`));
+        }
+      }, timeout) : undefined;
+
+      this.pending.set(id, { resolve, reject, timeoutId });
 
       const message: WorkerMessage<WorkerRequest> = {
         id,
@@ -74,7 +125,12 @@ export class WorkerManager {
         payload: { module, action, payload }
       };
 
-      this.worker!.postMessage(message);
+      // Use transferables for zero-copy transfer if provided
+      if (transferables.length > 0) {
+        this.worker!.postMessage(message, transferables);
+      } else {
+        this.worker!.postMessage(message);
+      }
     });
   }
 
@@ -100,6 +156,54 @@ export class WorkerManager {
   }
 
   /**
+   * Start periodic health checks.
+   * 
+   * @param intervalMs - Check interval in milliseconds (default: 30000)
+   */
+  public startHealthCheck(intervalMs: number = 30000): void {
+    this.stopHealthCheck();
+
+    this.healthCheckInterval = setInterval(async () => {
+      try {
+        await this.execute('system', 'ping', {}, { timeout: 5000 });
+        if (this.debug) {
+          console.log('[WorkerManager] Health check OK');
+        }
+      } catch (err) {
+        console.error('[WorkerManager] Health check failed, reinitializing worker...', err);
+        this.reinitializeWithPendingRejection();
+      }
+    }, intervalMs);
+  }
+
+  /**
+   * Stop health checks.
+   */
+  public stopHealthCheck(): void {
+    if (this.healthCheckInterval) {
+      clearInterval(this.healthCheckInterval);
+      this.healthCheckInterval = null;
+    }
+  }
+
+  /**
+   * Reinitialize worker and reject all pending requests.
+   */
+  private reinitializeWithPendingRejection(): void {
+    // Reject all pending requests
+    for (const [id, pending] of this.pending.entries()) {
+      if (pending.timeoutId) {
+        clearTimeout(pending.timeoutId);
+      }
+      pending.reject(new Error('[Worker] Worker crashed and was reinitialized'));
+    }
+    this.pending.clear();
+
+    // Reinitialize
+    this.initWorker();
+  }
+
+  /**
    * Handle incoming messages from the worker.
    */
   private handleMessage(event: MessageEvent) {
@@ -110,6 +214,9 @@ export class WorkerManager {
     if (type === 'RESPONSE') {
       const resolver = this.pending.get(id);
       if (resolver) {
+        if (resolver.timeoutId) {
+          clearTimeout(resolver.timeoutId);
+        }
         resolver.resolve((payload as WorkerResponse).data);
         this.pending.delete(id);
       }
@@ -117,6 +224,9 @@ export class WorkerManager {
     else if (type === 'ERROR') {
       const resolver = this.pending.get(id);
       if (resolver) {
+        if (resolver.timeoutId) {
+          clearTimeout(resolver.timeoutId);
+        }
         const error = payload as WorkerError;
         resolver.reject(new Error(`[Worker Error] ${error.code}: ${error.message}`));
         this.pending.delete(id);
@@ -138,13 +248,34 @@ export class WorkerManager {
    */
   private handleError(error: ErrorEvent) {
     console.error('[WorkerManager] Worker crash:', error);
-    // Optionally restart worker here if critical
-    // this.pending.forEach(p => p.reject(new Error('Worker crashed')));
-    // this.pending.clear();
-    // this.initWorker();
+    this.reinitializeWithPendingRejection();
+  }
+
+  /**
+   * Get number of pending requests.
+   */
+  public getPendingCount(): number {
+    return this.pending.size;
+  }
+
+  /**
+   * Check if worker is initialized.
+   */
+  public isReady(): boolean {
+    return this.worker !== null;
   }
 
   public terminate() {
+    this.stopHealthCheck();
+
+    // Clear all pending timeouts
+    for (const pending of this.pending.values()) {
+      if (pending.timeoutId) {
+        clearTimeout(pending.timeoutId);
+      }
+    }
+    this.pending.clear();
+
     if (this.worker) {
       this.worker.terminate();
       this.worker = null;
