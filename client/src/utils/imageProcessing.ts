@@ -95,6 +95,120 @@ export const smoothPolygon = (points: Point[], iterations: number = 2, closed: b
   return result;
 };
 
+/**
+ * Remove duplicate/near-duplicate points (overlapping lines fix)
+ * O(n) - very fast
+ */
+export const removeDuplicatePoints = (points: Point[], minDistance: number = 1): Point[] => {
+  if (points.length < 2) return points;
+
+  const result: Point[] = [points[0]];
+  const minDistSq = minDistance * minDistance;
+
+  for (let i = 1; i < points.length; i++) {
+    const prev = result[result.length - 1];
+    const curr = points[i];
+    const dx = curr.x - prev.x;
+    const dy = curr.y - prev.y;
+
+    // Only add if far enough from previous point
+    if (dx * dx + dy * dy >= minDistSq) {
+      result.push(curr);
+    }
+  }
+
+  // Check if last point is too close to first (for closed polygons)
+  if (result.length > 2) {
+    const first = result[0];
+    const last = result[result.length - 1];
+    const dx = last.x - first.x;
+    const dy = last.y - first.y;
+    if (dx * dx + dy * dy < minDistSq) {
+      result.pop();
+    }
+  }
+
+  return result;
+};
+
+/**
+ * Remove collinear points (points on straight lines)
+ * This aggressively removes points that lie on the same line
+ * O(n) - very fast
+ */
+export const removeCollinearPoints = (points: Point[], angleThreshold: number = 0.05): Point[] => {
+  if (points.length < 3) return points;
+
+  const result: Point[] = [points[0]];
+
+  for (let i = 1; i < points.length - 1; i++) {
+    const prev = result[result.length - 1];
+    const curr = points[i];
+    const next = points[i + 1];
+
+    // Calculate angles of segments
+    const angle1 = Math.atan2(curr.y - prev.y, curr.x - prev.x);
+    const angle2 = Math.atan2(next.y - curr.y, next.x - curr.x);
+
+    // Normalize angle difference to [-PI, PI]
+    let angleDiff = angle2 - angle1;
+    while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+    while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+
+    // Keep point only if there's a significant direction change
+    if (Math.abs(angleDiff) > angleThreshold) {
+      result.push(curr);
+    }
+  }
+
+  // Always keep the last point
+  result.push(points[points.length - 1]);
+
+  return result;
+};
+
+/**
+ * Optimized contour processing pipeline
+ * Order: Remove duplicates → Remove collinear → Simplify → Smooth
+ */
+export const optimizeContour = (
+  points: Point[],
+  options: {
+    minPointDistance?: number;      // Min distance between points (default 2)
+    collinearThreshold?: number;    // Angle threshold for collinear (default 0.1 rad ~6°)
+    simplifyEpsilon?: number;       // RDP simplification (default 3)
+    smoothIterations?: number;      // Chaikin iterations (default 1)
+  } = {}
+): Point[] => {
+  const {
+    minPointDistance = 2,
+    collinearThreshold = 0.1,
+    simplifyEpsilon = 3,
+    smoothIterations = 1
+  } = options;
+
+  if (points.length < 3) return points;
+
+  // Step 1: Remove near-duplicate points
+  let result = removeDuplicatePoints(points, minPointDistance);
+
+  // Step 2: Remove collinear points (straight line optimization)
+  result = removeCollinearPoints(result, collinearThreshold);
+
+  // Step 3: RDP simplification for remaining curves
+  result = simplifyPolygon(result, simplifyEpsilon);
+
+  // Step 4: Light smoothing to soften corners (only 1 iteration to not add too many points)
+  if (smoothIterations > 0) {
+    result = smoothPolygon(result, smoothIterations, true);
+  }
+
+  // Step 5: Final cleanup - remove any new duplicates created by smoothing
+  result = removeDuplicatePoints(result, minPointDistance);
+
+  return result;
+};
+
 // Marching Squares to find contour
 const marchingSquares = (data: Uint8Array, width: number, height: number): Point[] => {
   // Find a starting point on the boundary
@@ -336,26 +450,27 @@ export const getContourFromPoint = (
   }
 
   const contour = marchingSquares(mask, cropWidth, cropHeight);
-  console.log('[ImageProcessing] contour points from marchingSquares:', contour.length);
+  console.log('[ImageProcessing] Raw contour points from marchingSquares:', contour.length);
 
-  // Transform back to world coordinates and upscale
+  // Transform back to original image coordinates and upscale
   const worldContour = contour.map(p => ({
     x: (p.x + minX - 1) / scale,
     y: (p.y + minY - 1) / scale
   }));
 
-  // Simplify first to reduce points
-  const simplified = simplifyPolygon(worldContour, simplification / scale);
-  console.log('[ImageProcessing] Points after simplify:', simplified.length);
+  // Use optimized pipeline: duplicates → collinear → simplify → smooth → cleanup
+  const result = optimizeContour(worldContour, {
+    minPointDistance: 2 / scale,           // Adjusted for image scale
+    collinearThreshold: 0.1,               // ~6° angle threshold
+    simplifyEpsilon: simplification / scale,
+    smoothIterations: smoothingIterations
+  });
 
-  // Then smooth for nicer curves (if enabled)
-  const result = smoothingIterations > 0
-    ? smoothPolygon(simplified, smoothingIterations, true)
-    : simplified;
+  console.log('[ImageProcessing] ✅ Optimized contour points:', result.length);
+  console.log('[ImageProcessing] Reduction:',
+    ((1 - result.length / contour.length) * 100).toFixed(1) + '%',
+    '(' + contour.length + ' → ' + result.length + ')'
+  );
 
-  console.log('[ImageProcessing] ✅ Final contour points after smooth:', result.length);
-  if (result.length > 0) {
-    console.log('[ImageProcessing] First point:', result[0], 'Last point:', result[result.length - 1]);
-  }
   return result;
 };
