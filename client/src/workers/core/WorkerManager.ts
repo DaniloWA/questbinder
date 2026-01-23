@@ -19,6 +19,9 @@ export class WorkerManager {
   // Event listeners: Module -> Set of callbacks
   private listeners: Map<string, Set<(event: string, payload: any) => void>> = new Map();
 
+  // Debug mode
+  private debug: boolean = true;
+
   private constructor() {
     this.initWorker();
   }
@@ -28,6 +31,10 @@ export class WorkerManager {
       WorkerManager.instance = new WorkerManager();
     }
     return WorkerManager.instance;
+  }
+
+  public setDebug(enabled: boolean) {
+    this.debug = enabled;
   }
 
   /**

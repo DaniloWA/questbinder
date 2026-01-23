@@ -106,9 +106,9 @@ export class InteractionOrchestrator {
       handler.onContextUpdate?.(this.context as InteractionContext, changedKeys);
     }
 
-    if (changedKeys.includes('tokens')) {
-      console.log('[Orchestrator] Context Tokens Updated:', this.context.tokens?.length);
-    }
+    // if (changedKeys.includes('tokens')) {
+    //   console.log('[Orchestrator] Context Tokens Updated:', this.context.tokens?.length);
+    // }
 
     this.emit({ type: 'context:updated', keys: changedKeys });
   }
@@ -385,7 +385,13 @@ export class InteractionOrchestrator {
       remoteCursors: {},
       cursorSettings: null,
       rulerSettings: { snapToGrid: true, metric: 'chebyshev' },
-      wandSettings: { tolerance: 30, resolution: 512, simplification: 2.0 },
+      wandSettings: {
+        tolerance: 30,
+        resolution: 512,
+        simplification: 2.0,
+        smoothing: true,
+        smoothingIterations: 1
+      },
       drawingSettings: { color: '#ffffff', width: 3, opacity: 1 },
       attackZoneResults: [],
       isPlacingAttackZone: false,

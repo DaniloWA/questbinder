@@ -16,7 +16,7 @@ import type {
 } from '../core/types';
 import { findTokenAt, canDragToken } from '../utils/hitTesting';
 import { roundToGrid } from '../utils/coordConversion';
-import { findPath } from '../../../../../utils/pathfinding';
+import { WorkerManager } from '../../../../../workers/core/WorkerManager';
 import type { Token, Point } from '../../../../../types';
 
 /**
@@ -40,6 +40,7 @@ export class TokenDragHandler extends BaseHandler {
   };
 
   private calculatedPath: Point[] = [];
+  private pathRequestId = 0;
 
   constructor() {
     super({
@@ -166,24 +167,44 @@ export class TokenDragHandler extends BaseHandler {
       };
       const endPoint = newGridPos;
 
-      // A* pathfinding
-      this.calculatedPath = findPath(
-        startPoint,
-        endPoint,
-        ctx.scene!.grid,
-        ctx.scene!.obstacles
-      );
+      // START ASYNC PATHFINDING
+      const requestId = ++this.pathRequestId;
 
-      // Emit drag to remote clients
+      // Initially show direct line while calculating (or keep previous if close?)
+      // We'll set a direct line for responsiveness
+      this.calculatedPath = [startPoint, endPoint];
+      if (this.calculatedPathRef) this.calculatedPathRef.current = [...this.calculatedPath];
+
+      WorkerManager.getInstance().execute<Point[]>('pathfinding', 'findPath', {
+        startGrid: startPoint,
+        endGrid: endPoint,
+        grid: ctx.scene!.grid,
+        obstacles: ctx.scene!.obstacles
+      }).then(path => {
+        // Only apply if this is the latest request
+        if (this.pathRequestId === requestId && this.dragState.isDragging) {
+          this.calculatedPath = path;
+          if (this.calculatedPathRef) this.calculatedPathRef.current = [...this.calculatedPath];
+
+          // Re-emit with correct path
+          this.callbacks?.emitTokenDrag?.(
+            this.dragState.token!.id,
+            this.dragState.lastCheckedGridX,
+            this.dragState.lastCheckedGridY,
+            this.calculatedPath
+          );
+        }
+      }).catch(err => {
+        console.error('[TokenDrag] Pathfinding error:', err);
+      });
+
+      // Emit drag to remote clients (immediate feedback with direct line or partial)
       this.callbacks?.emitTokenDrag?.(
         this.dragState.token.id,
         newGridPos.x,
         newGridPos.y,
         this.calculatedPath
       );
-
-      // Sync refs
-      if (this.calculatedPathRef) this.calculatedPathRef.current = [...this.calculatedPath];
     }
 
     // Always sync dragState (offset might change in future, but mainly to keep it alive)

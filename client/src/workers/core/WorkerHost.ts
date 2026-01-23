@@ -58,8 +58,14 @@ export class WorkerHost implements IWorkerHost {
         throw new Error(`Module '${moduleName}' not found`);
       }
 
+      console.log(`[WorkerHost] ⚙️ Processing: ${moduleName}.${action}`, { id });
+      const start = performance.now();
+
       // Execute action
       const result = await module.handle(action, actionPayload);
+
+      const duration = (performance.now() - start).toFixed(2);
+      console.log(`[WorkerHost] ✅ Done: ${moduleName}.${action} (${duration}ms)`);
 
       // Send Response
       const response: WorkerMessage<WorkerResponse> = {
