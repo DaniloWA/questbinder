@@ -13,6 +13,7 @@ import { LocalCursor } from '../LocalCursor';
 import { PrecisionCursor } from '../PrecisionCursor';
 import { useGameSession } from '../../../context/GameSessionContext';
 import { useModal } from '../../../context/ModalContext';
+import { LoadingOverlay } from '../../ui/Loading';
 import { AudioZoneConfigModalContent, TriggerZoneConfigModalContent } from './modals';
 import {
   shouldShowPrecisionCursor,
@@ -61,6 +62,15 @@ export const MapCanvas = (props: MapCanvasProps) => {
       { title: 'Configurar Gatilho', size: 'sm' }
     );
   }, [handouts, openModal, closeModal]);
+
+  // Loading/Processing State
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [processingMessage, setProcessingMessage] = useState<string | undefined>(undefined);
+
+  const setProcessing = useCallback((processing: boolean, message?: string) => {
+    setIsProcessing(processing);
+    setProcessingMessage(message);
+  }, []);
 
   // 1. State Management
   const mapState = useMapState();
@@ -168,6 +178,8 @@ export const MapCanvas = (props: MapCanvasProps) => {
     // Modal callbacks for zone configuration
     openAudioZoneConfigModal,
     openTriggerZoneConfigModal,
+    // Processing state
+    setProcessing,
   });
 
   const isInteracting = mapState.isPanning || interaction?.getPanZoomHandler?.()?.getIsPanning?.();
@@ -411,6 +423,8 @@ export const MapCanvas = (props: MapCanvasProps) => {
         onCancelCalibration={interaction.cancel3PointCalibration}
         canvasRef={canvasRef}
       />
+
+      <LoadingOverlay isLoading={isProcessing} message={processingMessage} />
     </div>
   );
 };

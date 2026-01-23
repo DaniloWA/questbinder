@@ -113,6 +113,9 @@ export interface InteractionContext {
   // ===== Campaign =====
   campaignCharacters: Character[];
   campaign: any;
+
+  // ===== Meta =====
+  setProcessing?: (isProcessing: boolean, message?: string) => void;
 }
 
 // ============================================================================
@@ -339,4 +342,7 @@ export interface InteractionCallbacks {
 
   // Token drag state
   setIsTokenDragging?: (isDragging: boolean) => void;
+
+  // Processing state
+  setProcessing?: (isProcessing: boolean, message?: string) => void;
 }

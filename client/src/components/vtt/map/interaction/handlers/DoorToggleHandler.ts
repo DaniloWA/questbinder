@@ -26,33 +26,12 @@ export class DoorToggleHandler extends BaseHandler {
   }
 
   shouldHandle(phase: EventPhase, ctx: InteractionContext): boolean {
-    // Handle hover
-    if (phase === 'move') return true;
-
+    // Only handle click down
     if (phase !== 'down' || ctx.button !== 0) return false;
     if (ctx.activeTool !== 'select') return false;
 
     const obstacle = findObstacleAt(ctx.worldPos.x, ctx.worldPos.y, ctx);
     return obstacle !== null && (obstacle.type === 'door' || obstacle.type === 'window');
-  }
-
-  onMouseMove(ctx: InteractionContext): HandlerResult {
-    // Only process hover if not dragging
-    if (ctx.activeTool !== 'select') return this.notHandled();
-
-    const obstacle = findObstacleAt(ctx.worldPos.x, ctx.worldPos.y, ctx);
-    if (obstacle) {
-      this.callbacks?.setHoveredObstacleId?.(obstacle.id);
-      // Change cursor if it's a door/window we can toggle
-      if (obstacle.type === 'door' || obstacle.type === 'window') {
-        const canControl = ctx.isGM || ctx.permissions?.doorControl;
-        if (canControl) return { handled: false, cursor: 'pointer' };
-      }
-    } else {
-      this.callbacks?.setHoveredObstacleId?.(null);
-    }
-
-    return this.notHandled();
   }
 
   onMouseDown(ctx: InteractionContext): HandlerResult {

@@ -91,43 +91,49 @@ export class SmartWallHandler extends BaseHandler {
     console.log('[SmartWall] imgX:', imgX, 'imgY:', imgY);
     console.log('[SmartWall] 📍 Calling getContourFromPoint...');
 
-    // Detect contour using marching squares
-    try {
-      const contour = getContourFromPoint(
-        img,
-        imgX,
-        imgY,
-        {
-          tolerance,
-          maxDimension: resolution,
-          simplification,
-          smoothing: ctx.wandSettings?.smoothing ?? true,
-          smoothingIterations: ctx.wandSettings?.smoothingIterations ?? 2
+    // Trigger loading state via callback
+    this.callbacks?.setProcessing?.(true, 'Detecting wall...');
+
+    // Use setTimeout to allow UI to render loading state before heavy processing
+    setTimeout(() => {
+      try {
+        const contour = getContourFromPoint(
+          img,
+          imgX,
+          imgY,
+          {
+            tolerance,
+            maxDimension: resolution,
+            simplification,
+            smoothing: ctx.wandSettings?.smoothing ?? true,
+            smoothingIterations: ctx.wandSettings?.smoothingIterations ?? 1
+          }
+        );
+
+        if (contour && contour.length >= 3) {
+          // Convert back to world coordinates using same uniform scale
+          const worldContour: Point[] = contour.map(p => ({
+            x: p.x / scale,
+            y: p.y / scale,
+          }));
+
+          // Add as wall obstacle
+          this.callbacks?.addObstacles([{
+            type: 'wall',
+            points: worldContour,
+            blocksVision: true,
+            blocksMovement: true,
+            open: false,  // Closed polygon - matches legacy
+          }]);
         }
-      );
-
-      if (contour && contour.length >= 3) {
-        // Convert back to world coordinates using same uniform scale
-        const worldContour: Point[] = contour.map(p => ({
-          x: p.x / scale,
-          y: p.y / scale,
-        }));
-
-        // Add as wall obstacle
-        this.callbacks?.addObstacles([{
-          type: 'wall',
-          points: worldContour,
-          blocksVision: true,
-          blocksMovement: true,
-          open: false,  // Closed polygon - matches legacy
-        }]);
-
-        return this.handled({ cursor: 'crosshair' });
+      } catch (error) {
+        console.error('[SmartWallHandler] Error detecting contour:', error);
+      } finally {
+        // Clear loading state
+        this.callbacks?.setProcessing?.(false);
       }
-    } catch (error) {
-      console.error('[SmartWallHandler] Error detecting contour:', error);
-    }
+    }, 50); // Small delay to ensure render cycle happens
 
-    return this.notHandled();
+    return this.handled({ cursor: 'wait' });
   }
 }

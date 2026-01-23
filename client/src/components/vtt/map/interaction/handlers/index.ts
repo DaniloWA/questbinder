@@ -19,3 +19,4 @@ export { SmartWallHandler } from './SmartWallHandler';
 export { AttackZoneHandler } from './AttackZoneHandler';
 export { EraserHandler } from './EraserHandler';
 export { DoorToggleHandler } from './DoorToggleHandler';
+export { WallHoverHandler } from './WallHoverHandler';

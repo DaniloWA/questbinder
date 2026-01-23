@@ -20,6 +20,7 @@ import { BrushCanvasHandler } from '../interaction/handlers/BrushCanvasHandler';
 import { SmartWallHandler } from '../interaction/handlers/SmartWallHandler';
 import { AttackZoneHandler } from '../interaction/handlers/AttackZoneHandler';
 import { EraserHandler } from '../interaction/handlers/EraserHandler';
+import { WallHoverHandler } from '../interaction/handlers/WallHoverHandler';
 import { DoorToggleHandler } from '../interaction/handlers/DoorToggleHandler';
 import type { InteractionCallbacks } from '../interaction/core/types';
 import type { ClickAnimation } from '../interaction/utils/clickAnimations';
@@ -46,7 +47,9 @@ export interface UseLayeredInteractionProps extends MapCanvasProps {
   drawingSettings?: DrawingSettings;
   imageCache: { [src: string]: HTMLImageElement; };
   wandSettings: any;
+  setProcessing?: (isProcessing: boolean, message?: string) => void;
 }
+
 
 export interface UseLayeredInteractionReturn {
   // Event handlers for canvas
@@ -149,6 +152,7 @@ export const useLayeredInteraction = (
     orchestrator.addHandler(new BrushCanvasHandler());    // 600
     orchestrator.addHandler(new SmartWallHandler());      // 600
     orchestrator.addHandler(new EraserHandler());         // 600
+    orchestrator.addHandler(new WallHoverHandler());      // 560
     orchestrator.addHandler(new DoorToggleHandler());     // 550
     orchestrator.addHandler(new TokenDragHandler());      // 500
     orchestrator.addHandler(new ClickAnimationHandler()); // 200
@@ -227,6 +231,7 @@ export const useLayeredInteraction = (
       },
       openAudioZoneConfigModal: props.openAudioZoneConfigModal,
       openTriggerZoneConfigModal: props.openTriggerZoneConfigModal,
+      setProcessing: props.setProcessing,
     };
 
     orchestratorRef.current.setCallbacks(callbacks);
