@@ -6,7 +6,7 @@
 
 import { BaseHandler } from '../core/BaseHandler';
 import type { EventPhase, HandlerResult, InteractionContext } from '../core/types';
-import { getContourFromPoint } from '../../../../../utils/image-processing';
+import { processImageInWorker } from '../../../../../utils/image-processing/workerBridge';
 import { handleRightClickCancel } from '../utils/InteractionUtils';
 import type { Point } from '../../../../../types';
 
@@ -97,7 +97,8 @@ export class SmartWallHandler extends BaseHandler {
     // Use setTimeout to allow UI to render loading state before heavy processing
     setTimeout(() => {
       try {
-        const contour = getContourFromPoint(
+        // Async execution via Worker
+        processImageInWorker(
           img,
           imgX,
           imgY,
@@ -108,28 +109,31 @@ export class SmartWallHandler extends BaseHandler {
             smoothing: ctx.wandSettings?.smoothing ?? true,
             smoothingIterations: ctx.wandSettings?.smoothingIterations ?? 1
           }
-        );
+        ).then(contour => {
+          if (contour && contour.length >= 3) {
+            // Convert back to world coordinates using same uniform scale
+            const worldContour: Point[] = contour.map(p => ({
+              x: p.x / scale,
+              y: p.y / scale,
+            }));
 
-        if (contour && contour.length >= 3) {
-          // Convert back to world coordinates using same uniform scale
-          const worldContour: Point[] = contour.map(p => ({
-            x: p.x / scale,
-            y: p.y / scale,
-          }));
-
-          // Add as wall obstacle
-          this.callbacks?.addObstacles([{
-            type: 'wall',
-            points: worldContour,
-            blocksVision: true,
-            blocksMovement: true,
-            open: false,  // Closed polygon - matches legacy
-          }]);
-        }
+            // Add as wall obstacle
+            this.callbacks?.addObstacles([{
+              type: 'wall',
+              points: worldContour,
+              blocksVision: true,
+              blocksMovement: true,
+              open: false,  // Closed polygon - matches legacy
+            }]);
+          }
+        }).catch(err => {
+          console.error('[SmartWallHandler] Worker error:', err);
+        }).finally(() => {
+          // Clear loading state
+          this.callbacks?.setProcessing?.(false);
+        });
       } catch (error) {
-        console.error('[SmartWallHandler] Error detecting contour:', error);
-      } finally {
-        // Clear loading state
+        console.error('[SmartWallHandler] Error in setTimeout:', error);
         this.callbacks?.setProcessing?.(false);
       }
     }, 50); // Small delay to ensure render cycle happens

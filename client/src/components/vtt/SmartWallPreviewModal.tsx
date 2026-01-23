@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { getContourFromPoint } from '../../utils/image-processing';
+import { processImageInWorker } from '../../utils/image-processing/workerBridge';
 import { Sparkles, MousePointer2, RefreshCw } from 'lucide-react';
 import { WandSettings } from '../../context/gameSession/types';
 import { useTranslation } from '../../i18n/TranslationContext';
@@ -62,45 +62,49 @@ export const SmartWallPreviewModal: React.FC<SmartWallPreviewModalProps> = ({ wa
     ctx.stroke();
 
     // Run algorithm
-    try {
-      const contour = getContourFromPoint(
-        image,
-        clickPos.x,
-        clickPos.y,
-        {
-          tolerance: wandSettings.tolerance,
-          maxDimension: wandSettings.resolution,
-          simplification: wandSettings.simplification,
-          smoothing: wandSettings.smoothing,
-          smoothingIterations: wandSettings.smoothingIterations
-        }
-      );
+    const runPreview = async () => {
+      try {
+        const contour = await processImageInWorker(
+          image,
+          clickPos.x,
+          clickPos.y,
+          {
+            tolerance: wandSettings.tolerance,
+            maxDimension: wandSettings.resolution,
+            simplification: wandSettings.simplification,
+            smoothing: wandSettings.smoothing,
+            smoothingIterations: wandSettings.smoothingIterations
+          }
+        );
 
-      if (contour.length > 2) {
-        ctx.strokeStyle = '#ef4444';
-        ctx.lineWidth = 3;
-        ctx.shadowColor = 'rgba(239, 68, 68, 0.5)';
-        ctx.shadowBlur = 10;
-        ctx.beginPath();
-        ctx.moveTo(contour[0].x, contour[0].y);
-        for (let i = 1; i < contour.length; i++) {
-          ctx.lineTo(contour[i].x, contour[i].y);
-        }
-        ctx.closePath();
-        ctx.stroke();
-
-        // Highlight points
-        ctx.fillStyle = '#ffffff';
-        ctx.shadowBlur = 0;
-        contour.forEach(p => {
+        if (contour.length > 2) {
+          ctx.strokeStyle = '#ef4444';
+          ctx.lineWidth = 3;
+          ctx.shadowColor = 'rgba(239, 68, 68, 0.5)';
+          ctx.shadowBlur = 10;
           ctx.beginPath();
-          ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
-          ctx.fill();
-        });
+          ctx.moveTo(contour[0].x, contour[0].y);
+          for (let i = 1; i < contour.length; i++) {
+            ctx.lineTo(contour[i].x, contour[i].y);
+          }
+          ctx.closePath();
+          ctx.stroke();
+
+          // Highlight points
+          ctx.fillStyle = '#ffffff';
+          ctx.shadowBlur = 0;
+          contour.forEach(p => {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+            ctx.fill();
+          });
+        }
+      } catch (e) {
+        console.error('Preview error:', e);
       }
-    } catch (e) {
-      console.error('Preview error:', e);
-    }
+    };
+
+    runPreview();
   }, [image, clickPos, wandSettings]);
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
