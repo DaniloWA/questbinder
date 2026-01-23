@@ -47,6 +47,54 @@ export const simplifyPolygon = (points: Point[], epsilon: number): Point[] => {
   }
 };
 
+/**
+ * Chaikin's Corner Cutting Algorithm
+ * Creates smooth curves by cutting corners - O(n) per iteration
+ * Very efficient for real-time smoothing
+ * 
+ * @param points - Input polygon points
+ * @param iterations - Number of smoothing passes (1-3 recommended)
+ * @param closed - Whether the polygon is closed
+ */
+export const smoothPolygon = (points: Point[], iterations: number = 2, closed: boolean = true): Point[] => {
+  if (points.length < 3 || iterations <= 0) return points;
+
+  let result = points;
+
+  for (let iter = 0; iter < iterations; iter++) {
+    const smoothed: Point[] = [];
+    const len = result.length;
+
+    for (let i = 0; i < len; i++) {
+      const p0 = result[i];
+      const p1 = result[(i + 1) % len];
+
+      // Chaikin's ratios: 0.75/0.25 creates Q and R points
+      const q: Point = {
+        x: 0.75 * p0.x + 0.25 * p1.x,
+        y: 0.75 * p0.y + 0.25 * p1.y,
+      };
+      const r: Point = {
+        x: 0.25 * p0.x + 0.75 * p1.x,
+        y: 0.25 * p0.y + 0.75 * p1.y,
+      };
+
+      smoothed.push(q, r);
+    }
+
+    // For closed polygons, connect back to start
+    if (!closed && smoothed.length > 0) {
+      // Keep original start and end for open polygons
+      smoothed[0] = result[0];
+      smoothed[smoothed.length - 1] = result[result.length - 1];
+    }
+
+    result = smoothed;
+  }
+
+  return result;
+};
+
 // Marching Squares to find contour
 const marchingSquares = (data: Uint8Array, width: number, height: number): Point[] => {
   // Find a starting point on the boundary
@@ -134,7 +182,8 @@ export const getContourFromPoint = (
   startY: number,
   tolerance: number = 30,
   maxDimension: number = 512,
-  simplification: number = 2.0
+  simplification: number = 2.0,
+  smoothingIterations: number = 2  // Chaikin smoothing passes (0 = off, 1-3 recommended)
 ): Point[] => {
   console.log('[ImageProcessing] 🎯 getContourFromPoint called');
   console.log('[ImageProcessing] Input startX:', startX, 'startY:', startY);
@@ -295,9 +344,16 @@ export const getContourFromPoint = (
     y: (p.y + minY - 1) / scale
   }));
 
-  // Simplify
-  const result = simplifyPolygon(worldContour, simplification / scale);
-  console.log('[ImageProcessing] ✅ Final contour points after simplify:', result.length);
+  // Simplify first to reduce points
+  const simplified = simplifyPolygon(worldContour, simplification / scale);
+  console.log('[ImageProcessing] Points after simplify:', simplified.length);
+
+  // Then smooth for nicer curves (if enabled)
+  const result = smoothingIterations > 0
+    ? smoothPolygon(simplified, smoothingIterations, true)
+    : simplified;
+
+  console.log('[ImageProcessing] ✅ Final contour points after smooth:', result.length);
   if (result.length > 0) {
     console.log('[ImageProcessing] First point:', result[0], 'Last point:', result[result.length - 1]);
   }
