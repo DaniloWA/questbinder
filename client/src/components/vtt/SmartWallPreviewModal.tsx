@@ -70,7 +70,9 @@ export const SmartWallPreviewModal: React.FC<SmartWallPreviewModalProps> = ({ wa
         {
           tolerance: wandSettings.tolerance,
           maxDimension: wandSettings.resolution,
-          simplification: wandSettings.simplification
+          simplification: wandSettings.simplification,
+          smoothing: wandSettings.smoothing,
+          smoothingIterations: wandSettings.smoothingIterations
         }
       );
 
@@ -184,7 +186,7 @@ export const SmartWallPreviewModal: React.FC<SmartWallPreviewModalProps> = ({ wa
             <input
               type="range"
               min="128"
-              max="1024"
+              max="4096"
               step="64"
               value={wandSettings.resolution}
               onChange={(e) => setLocalWandSettings({ ...wandSettings, resolution: parseInt(e.target.value) })}
@@ -193,6 +195,37 @@ export const SmartWallPreviewModal: React.FC<SmartWallPreviewModalProps> = ({ wa
             <span className="text-xs font-mono text-zinc-300 w-12">{wandSettings.resolution}px</span>
           </div>
         </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="text-[10px] font-bold text-zinc-500 uppercase flex items-center gap-2">
+            Smoothing
+            <input
+              type="checkbox"
+              checked={wandSettings.smoothing}
+              onChange={(e) => setLocalWandSettings({ ...wandSettings, smoothing: e.target.checked })}
+              className="accent-primary w-3 h-3 cursor-pointer"
+            />
+          </label>
+        </div>
+
+        {wandSettings.smoothing && (
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-zinc-500 uppercase">Iterations</label>
+            <div className="flex items-center gap-3">
+              <input
+                type="range"
+                min="1"
+                max="10"
+                value={wandSettings.smoothingIterations}
+                onChange={(e) => setLocalWandSettings({ ...wandSettings, smoothingIterations: parseInt(e.target.value) })}
+                className="h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-primary grow"
+              />
+              <span className="text-xs font-mono text-zinc-300 w-4">{wandSettings.smoothingIterations}</span>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="mt-2 text-[11px] text-zinc-500 leading-relaxed border-t border-zinc-800 pt-4 italic">

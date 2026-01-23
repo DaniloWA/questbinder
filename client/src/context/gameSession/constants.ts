@@ -24,7 +24,7 @@ export const INITIAL_STATE: GameSessionState = {
   draftPolyPoints: [],
   drawingSettings: { color: '#ffffff', width: 3, opacity: 1.0 },
   rulerSettings: { snapToGrid: true, metric: 'chebyshev' },
-  wandSettings: { tolerance: 40, resolution: 512, simplification: 2.0 },
+  wandSettings: { tolerance: 40, resolution: 512, simplification: 2.0, smoothing: true, smoothingIterations: 2 },
   pings: [],
   remoteDrags: {},
   remoteCursors: {},

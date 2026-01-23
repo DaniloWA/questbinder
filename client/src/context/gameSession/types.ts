@@ -24,6 +24,8 @@ export interface WandSettings {
   tolerance: number;   // 0-255
   resolution: number;  // Max dimension for processing
   simplification: number; // RDP Epsilon
+  smoothing: boolean;
+  smoothingIterations: number;
 }
 
 export interface GameSessionState {

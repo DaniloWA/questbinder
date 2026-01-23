@@ -193,21 +193,33 @@ export class PolygonOptimizer {
 
     // Step 1: Remove near-duplicate points
     let result = PolygonOptimizer.removeDuplicates(points, minPointDistance);
+    console.log(`[Optimizer] 1️⃣ Duplicates: ${points.length} -> ${result.length}`);
 
     // Step 2: Remove collinear points (straight line optimization)
-    result = PolygonOptimizer.removeCollinear(result, collinearThreshold);
+    const afterCollinear = PolygonOptimizer.removeCollinear(result, collinearThreshold);
+    console.log(`[Optimizer] 2️⃣ Collinear: ${result.length} -> ${afterCollinear.length}`);
+    result = afterCollinear;
 
     // Step 3: RDP simplification for remaining curves
-    result = PolygonOptimizer.simplifyRDP(result, simplifyEpsilon);
+    const afterRDP = PolygonOptimizer.simplifyRDP(result, simplifyEpsilon);
+    console.log(`[Optimizer] 3️⃣ RDP: ${result.length} -> ${afterRDP.length}`);
+    result = afterRDP;
 
     // Step 4: Light smoothing to soften corners (assuming closed contour)
     if (smoothIterations > 0) {
-      result = PolygonOptimizer.smoothChaikin(result, smoothIterations, true);
+      const afterSmooth = PolygonOptimizer.smoothChaikin(result, smoothIterations, true);
+      console.log(`[Optimizer] 4️⃣ Smoothing: ${result.length} -> ${afterSmooth.length} (Iterations: ${smoothIterations})`);
+      result = afterSmooth;
     }
 
-    // Step 5: Final cleanup - remove any new duplicates created by smoothing
-    result = PolygonOptimizer.removeDuplicates(result, minPointDistance);
+    // Step 5: Cleanup - remove any new duplicates created by smoothing
+    const afterCleanup = PolygonOptimizer.removeDuplicates(result, minPointDistance);
+    console.log(`[Optimizer] 5️⃣ Cleanup: ${result.length} -> ${afterCleanup.length}`);
+    result = afterCleanup;
 
-    return result;
+    // Step 6: Cleanup - remove any new collinear points created by smoothing
+    const finalResult = PolygonOptimizer.removeCollinear(result, collinearThreshold);
+    console.log(`[Optimizer] 6️⃣ Final: ${result.length}`);
+    return finalResult;
   }
 }

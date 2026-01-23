@@ -148,6 +148,8 @@ export interface WandSettings {
   tolerance: number;
   resolution: number;
   simplification: number;
+  smoothing: boolean;
+  smoothingIterations: number;
 }
 
 export interface DrawingSettings {

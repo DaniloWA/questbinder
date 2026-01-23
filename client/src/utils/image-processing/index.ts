@@ -66,6 +66,9 @@ export const getContourFromPoint = (
   const targetRGBA = ColorSampler.getSample(data, sx, sy, width, height, 3);
   const variance = ColorSampler.getVariance(data, sx, sy, width, height, 5);
 
+  console.log('[ImageProcessing] 🎯 Target Color:', targetRGBA);
+  console.log('[ImageProcessing] 📊 Variance:', variance.toFixed(2));
+
   // 3. Initialize Processors with Adaptive Config
   // First, create matcher to calculate adaptive tolerance
   const tempMatcher = new ColorMatcher(targetRGBA, finalConfig);
@@ -73,16 +76,23 @@ export const getContourFromPoint = (
 
   // Update config with adaptive tolerance
   const adaptiveConfig = { ...finalConfig, tolerance: adaptiveTolerance };
-  console.log('[ImageProcessing] Adaptive Tolerance:', adaptiveTolerance.toFixed(1), '(Variance:', variance.toFixed(1) + ')');
+  console.log('[ImageProcessing] ⚙️ Final Config:', { ...adaptiveConfig, scale: scale.toFixed(2), scaledWidth: w, scaledHeight: h });
 
   const colorMatcher = new ColorMatcher(targetRGBA, adaptiveConfig);
   const edgeDetector = new EdgeDetector(data, width, height, adaptiveConfig.gradientThreshold);
   const floodFiller = new FloodFiller(data, width, height, colorMatcher, edgeDetector);
 
   // 4. Perform Flood Fill
+  const floodStart = performance.now();
   floodFiller.fill(sx, sy);
+  const floodEnd = performance.now();
   const visitedMask = floodFiller.getVisited();
   const bbox = floodFiller.getBoundingBox();
+
+  // Calculate mask area (pixels filled)
+  let filledPixels = 0;
+  for (let i = 0; i < visitedMask.length; i++) if (visitedMask[i] === 1) filledPixels++;
+  console.log(`[ImageProcessing] 🌊 Flood Fill: ${filledPixels} pixels in ${(floodEnd - floodStart).toFixed(2)}ms`);
 
   // 5. Create Cropped Mask
   const minX = bbox.minX;
@@ -116,9 +126,15 @@ export const getContourFromPoint = (
   mask = MorphologyProcessor.close(mask, cropWidth, cropHeight, 1);
 
   // 7. Contour Extraction (Moore-Neighbor Trace)
+  const traceStart = performance.now();
   const contour = ContourTracer.trace(mask, cropWidth, cropHeight);
+  const traceEnd = performance.now();
 
-  if (contour.length === 0) return [];
+  if (contour.length === 0) {
+    console.warn('[ImageProcessing] ⚠️ No contour found!');
+    return [];
+  }
+  console.log(`[ImageProcessing] 🖍️ Raw Contour Points: ${contour.length} (Traced in ${(traceEnd - traceStart).toFixed(2)}ms)`);
 
   // 8. Transform back to original image coordinates and upscale
   const worldContour = contour.map(p => ({
@@ -128,12 +144,17 @@ export const getContourFromPoint = (
   }));
 
   // 9. Optimization Pipeline
+  const optStart = performance.now();
   const result = PolygonOptimizer.optimizeContour(worldContour, {
     minPointDistance: finalConfig.simplification / scale,
     collinearThreshold: finalConfig.collinearThreshold,
     simplifyEpsilon: finalConfig.simplification / scale,
-    smoothIterations: finalConfig.smoothingIterations
+    smoothIterations: finalConfig.smoothing ? finalConfig.smoothingIterations : 0
   });
+  const optEnd = performance.now();
+
+  console.log(`[ImageProcessing] ✨ Optimized Contour: ${result.length} points (Reduction: ${Math.round((1 - result.length / contour.length) * 100)}%)`);
+  console.log(`[ImageProcessing] ⏱️ Optimization Time: ${(optEnd - optStart).toFixed(2)}ms`);
 
   return result;
 };

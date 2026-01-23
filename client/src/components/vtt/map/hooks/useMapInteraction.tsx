@@ -497,7 +497,9 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
               {
                 tolerance: wandSettings.tolerance,
                 maxDimension: wandSettings.resolution,
-                simplification: wandSettings.simplification
+                simplification: wandSettings.simplification,
+                smoothing: wandSettings.smoothing,
+                smoothingIterations: wandSettings.smoothingIterations
               }
             );
             if (contour.length > 2) {

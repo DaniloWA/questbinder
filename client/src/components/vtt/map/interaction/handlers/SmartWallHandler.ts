@@ -100,7 +100,9 @@ export class SmartWallHandler extends BaseHandler {
         {
           tolerance,
           maxDimension: resolution,
-          simplification
+          simplification,
+          smoothing: ctx.wandSettings?.smoothing ?? true,
+          smoothingIterations: ctx.wandSettings?.smoothingIterations ?? 2
         }
       );
 

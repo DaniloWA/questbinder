@@ -25,6 +25,7 @@ export interface ProcessingConfig {
   tolerance: number;
   maxDimension: number;
   simplification: number;
+  smoothing: boolean;
   smoothingIterations: number;
   gradientThreshold: number;
   hueTolerance: number;

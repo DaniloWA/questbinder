@@ -185,12 +185,40 @@ export const DrawingToolbar: React.FC = () => {
                         <input
                             type="range"
                             min="128"
-                            max="1024"
+                            max="4096"
                             step="64"
                             value={wandSettings.resolution}
                             onChange={handleWandResolutionChange}
                             className="h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-primary w-full"
                         />
+                    </div>
+
+                    <div className="flex flex-col gap-2 w-32">
+                        <div className="flex items-center justify-between text-[10px] text-zinc-400 font-bold uppercase">
+                            <span>Smoothing</span>
+                            <div className="flex items-center gap-2">
+                                <span className="text-white font-mono text-[9px]">{wandSettings.smoothing ? 'ON' : 'OFF'}</span>
+                                <input
+                                    type="checkbox"
+                                    checked={wandSettings.smoothing}
+                                    onChange={(e) => setWandSettings({ ...wandSettings, smoothing: e.target.checked })}
+                                    className="accent-primary w-3 h-3 cursor-pointer"
+                                />
+                            </div>
+                        </div>
+                        {wandSettings.smoothing && (
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="range"
+                                    min="1"
+                                    max="10"
+                                    value={wandSettings.smoothingIterations}
+                                    onChange={(e) => setWandSettings({ ...wandSettings, smoothingIterations: parseInt(e.target.value) })}
+                                    className="h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-primary w-full"
+                                />
+                                <span className="text-xs text-white w-3">{wandSettings.smoothingIterations}</span>
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex flex-col gap-1 items-center px-1">
