@@ -6,7 +6,7 @@
 
 import { BaseHandler } from '../core/BaseHandler';
 import type { EventPhase, HandlerResult, InteractionContext } from '../core/types';
-import { getContourFromPoint } from '../../../../../utils/imageProcessing';
+import { getContourFromPoint } from '../../../../../utils/image-processing';
 import { handleRightClickCancel } from '../utils/InteractionUtils';
 import type { Point } from '../../../../../types';
 
@@ -97,9 +97,11 @@ export class SmartWallHandler extends BaseHandler {
         img,
         imgX,
         imgY,
-        tolerance,
-        resolution,
-        simplification
+        {
+          tolerance,
+          maxDimension: resolution,
+          simplification
+        }
       );
 
       if (contour && contour.length >= 3) {

@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { getContourFromPoint } from '../../utils/imageProcessing';
+import { getContourFromPoint } from '../../utils/image-processing';
 import { Sparkles, MousePointer2, RefreshCw } from 'lucide-react';
 import { WandSettings } from '../../context/gameSession/types';
 import { useTranslation } from '../../i18n/TranslationContext';
@@ -67,9 +67,11 @@ export const SmartWallPreviewModal: React.FC<SmartWallPreviewModalProps> = ({ wa
         image,
         clickPos.x,
         clickPos.y,
-        wandSettings.tolerance,
-        wandSettings.resolution,
-        wandSettings.simplification
+        {
+          tolerance: wandSettings.tolerance,
+          maxDimension: wandSettings.resolution,
+          simplification: wandSettings.simplification
+        }
       );
 
       if (contour.length > 2) {

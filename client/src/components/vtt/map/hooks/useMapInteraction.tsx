@@ -3,7 +3,7 @@ import { MapCanvasProps, DragState } from '../types';
 import { useGameSession } from '../../../../context/GameSessionContext';
 import { useModal } from '../../../../context/ModalContext';
 import { findPath } from '../../../../utils/pathfinding';
-import { getContourFromPoint } from '../../../../utils/imageProcessing';
+import { getContourFromPoint } from '../../../../utils/image-processing';
 import { isPointInPolygon, distanceToSegment } from '../../../../utils/geometry';
 import { AudioZoneConfigModalContent, TriggerZoneConfigModalContent } from '../modals';
 import { AudioZone, TriggerZone, MapDrawing } from '../../../../types';
@@ -494,9 +494,11 @@ export const useMapInteraction = (props: UseMapInteractionProps) => {
               img,
               ix,
               iy,
-              wandSettings.tolerance,
-              wandSettings.resolution,
-              wandSettings.simplification
+              {
+                tolerance: wandSettings.tolerance,
+                maxDimension: wandSettings.resolution,
+                simplification: wandSettings.simplification
+              }
             );
             if (contour.length > 2) {
               const worldContour = contour.map(p => ({ x: p.x / scaleX, y: p.y / scaleY }));
