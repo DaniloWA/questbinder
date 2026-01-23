@@ -79,7 +79,7 @@ export const DrawingToolbar: React.FC = () => {
                                 <button
                                     key={c}
                                     onClick={() => handleColorChange(c)}
-                                    className={`w-5 h-5 rounded-full border transition-transform hover:scale-110 ${drawingSettings.color === c ? 'border-white ring-1 ring-primary' : 'border-zinc-700'}`}
+                                    className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border transition-transform hover:scale-110 ${drawingSettings.color === c ? 'border-white ring-1 ring-primary' : 'border-zinc-700'}`}
                                     style={{ backgroundColor: c }}
                                 />
                             ))}
@@ -87,47 +87,49 @@ export const DrawingToolbar: React.FC = () => {
                                 <button
                                     key={c}
                                     onClick={() => handleColorChange(c)}
-                                    className={`w-5 h-5 rounded-full border transition-transform hover:scale-110 ${drawingSettings.color === c ? 'border-white ring-1 ring-primary' : 'border-zinc-700'}`}
+                                    className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border transition-transform hover:scale-110 ${drawingSettings.color === c ? 'border-white ring-1 ring-primary' : 'border-zinc-700'}`}
                                     style={{ backgroundColor: c }}
                                 />
                             ))}
                         </div>
-                        <div className="w-px h-8 bg-zinc-800 mx-1"></div>
+                        <div className="w-px h-8 bg-zinc-800 mx-1 hidden sm:block"></div>
                         <ColorPicker value={drawingSettings.color} onChange={handleColorChange} />
                     </div>
 
                     <div className="w-px h-6 sm:h-8 bg-zinc-800 hidden sm:block"></div>
 
-                    {/* Sliders Section */}
-                    <div className="flex flex-col gap-2 w-24 sm:w-32">
-                        <div className="flex items-center gap-2 text-[10px] text-zinc-400 font-bold uppercase">
-                            <span>{t('vtt.drawing.toolbar.tamanho.label')}</span>
-                            <span className="text-white">{drawingSettings.width}px</span>
+                    {/* Sliders Section - Stacked on super small screens, side-by-side on larger */}
+                    <div className="flex flex-row gap-4">
+                        <div className="flex flex-col gap-1 w-24 sm:w-32">
+                            <div className="flex items-center justify-between text-[10px] text-zinc-400 font-bold uppercase">
+                                <span>{t('vtt.drawing.toolbar.tamanho.label')}</span>
+                                <span className="text-white">{drawingSettings.width}px</span>
+                            </div>
+                            <input
+                                type="range"
+                                min="1"
+                                max="20"
+                                value={drawingSettings.width}
+                                onChange={handleWidthChange}
+                                className="h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-primary w-full touch-none"
+                            />
                         </div>
-                        <input
-                            type="range"
-                            min="1"
-                            max="20"
-                            value={drawingSettings.width}
-                            onChange={handleWidthChange}
-                            className="h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-primary w-full"
-                        />
-                    </div>
 
-                    <div className="flex flex-col gap-2 w-32">
-                        <div className="flex items-center gap-2 text-[10px] text-zinc-400 font-bold uppercase">
-                            <span>{t('vtt.drawing.toolbar.opacidade.label')}</span>
-                            <span className="text-white">{Math.round(drawingSettings.opacity * 100)}%</span>
+                        <div className="flex flex-col gap-1 w-24 sm:w-32">
+                            <div className="flex items-center justify-between text-[10px] text-zinc-400 font-bold uppercase">
+                                <span>{t('vtt.drawing.toolbar.opacidade.label')}</span>
+                                <span className="text-white">{Math.round(drawingSettings.opacity * 100)}%</span>
+                            </div>
+                            <input
+                                type="range"
+                                min="0.1"
+                                max="1"
+                                step="0.1"
+                                value={drawingSettings.opacity}
+                                onChange={handleOpacityChange}
+                                className="h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-primary w-full touch-none"
+                            />
                         </div>
-                        <input
-                            type="range"
-                            min="0.1"
-                            max="1"
-                            step="0.1"
-                            value={drawingSettings.opacity}
-                            onChange={handleOpacityChange}
-                            className="h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-primary w-full"
-                        />
                     </div>
                 </>
             )}
@@ -138,102 +140,110 @@ export const DrawingToolbar: React.FC = () => {
                         <div className="p-2 bg-primary/10 rounded-lg">
                             <Sparkles className="w-4 h-4 text-primary" />
                         </div>
-                        <div className="flex flex-col">
+                        <div className="flex flex-col hidden sm:flex">
                             <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider leading-none">{t('vtt.drawing.toolbar.smartWall.text')}</span>
                             <span className="text-[9px] text-zinc-500 italic mt-0.5">{t('vtt.drawing.toolbar.configuraesDaVarinha.text')}</span>
                         </div>
                     </div>
 
-                    <div className="w-px h-8 bg-zinc-800"></div>
+                    <div className="w-px h-8 bg-zinc-800 hidden sm:block"></div>
 
-                    <div className="flex flex-col gap-2 w-32">
-                        <div className="flex items-center justify-between text-[10px] text-zinc-400 font-bold uppercase">
-                            <span>{t('vtt.drawing.toolbar.tolerncia.label')}</span>
-                            <span className="text-white font-mono">{wandSettings.tolerance}</span>
-                        </div>
-                        <input
-                            type="range"
-                            min="1"
-                            max="255"
-                            value={wandSettings.tolerance}
-                            onChange={handleWandToleranceChange}
-                            className="h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-primary w-full"
-                        />
-                    </div>
-
-                    <div className="flex flex-col gap-2 w-32">
-                        <div className="flex items-center justify-between text-[10px] text-zinc-400 font-bold uppercase">
-                            <span>{t('vtt.drawing.toolbar.simplificao.label')}</span>
-                            <span className="text-white font-mono">{wandSettings.simplification.toFixed(1)}</span>
-                        </div>
-                        <input
-                            type="range"
-                            min="0.1"
-                            max="10"
-                            step="0.1"
-                            value={wandSettings.simplification}
-                            onChange={handleWandSimplificationChange}
-                            className="h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-primary w-full"
-                        />
-                    </div>
-
-                    <div className="flex flex-col gap-2 w-32">
-                        <div className="flex items-center justify-between text-[10px] text-zinc-400 font-bold uppercase">
-                            <span>{t('vtt.drawing.toolbar.resoluo.label')}</span>
-                            <span className="text-white font-mono">{wandSettings.resolution}px</span>
-                        </div>
-                        <input
-                            type="range"
-                            min="128"
-                            max="4096"
-                            step="64"
-                            value={wandSettings.resolution}
-                            onChange={handleWandResolutionChange}
-                            className="h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-primary w-full"
-                        />
-                    </div>
-
-                    <div className="flex flex-col gap-2 w-32">
-                        <div className="flex items-center justify-between text-[10px] text-zinc-400 font-bold uppercase">
-                            <span>Smoothing</span>
-                            <div className="flex items-center gap-2">
-                                <span className="text-white font-mono text-[9px]">{wandSettings.smoothing ? 'ON' : 'OFF'}</span>
-                                <input
-                                    type="checkbox"
-                                    checked={wandSettings.smoothing}
-                                    onChange={(e) => setWandSettings({ ...wandSettings, smoothing: e.target.checked })}
-                                    className="accent-primary w-3 h-3 cursor-pointer"
-                                />
+                    <div className="flex flex-wrap items-center gap-3 sm:gap-4 justify-center">
+                        {/* Tolerance */}
+                        <div className="flex flex-col gap-1 w-24 sm:w-28">
+                            <div className="flex items-center justify-between text-[10px] text-zinc-400 font-bold uppercase">
+                                <span>{t('vtt.drawing.toolbar.tolerncia.label')}</span>
+                                <span className="text-white font-mono">{wandSettings.tolerance}</span>
                             </div>
+                            <input
+                                type="range"
+                                min="1"
+                                max="255"
+                                value={wandSettings.tolerance}
+                                onChange={handleWandToleranceChange}
+                                className="h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-primary w-full touch-none"
+                            />
                         </div>
-                        {wandSettings.smoothing && (
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="range"
-                                    min="1"
-                                    max="10"
-                                    value={wandSettings.smoothingIterations}
-                                    onChange={(e) => setWandSettings({ ...wandSettings, smoothingIterations: parseInt(e.target.value) })}
-                                    className="h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-primary w-full"
-                                />
-                                <span className="text-xs text-white w-3">{wandSettings.smoothingIterations}</span>
-                            </div>
-                        )}
-                    </div>
 
-                    <div className="flex flex-col gap-1 items-center px-1">
-                        <button
-                            onClick={() => openModal(<SmartWallPreviewModal wandSettings={wandSettings} setWandSettings={setWandSettings} />, { title: t('vtt.drawing.toolbar.sandboxDoSmart.label'), size: 'lg' })}
-                            className="p-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-all group shadow-lg shadow-primary/5 hover:scale-110 active:scale-95 border border-primary/20"
-                        >
-                            <Eye className="w-4 h-4" />
-                        </button>
-                        <span className="text-[8px] font-bold text-primary uppercase tracking-tighter">{t('vtt.drawing.toolbar.preview.label')}</span>
+                        {/* Simplification */}
+                        <div className="flex flex-col gap-1 w-24 sm:w-28">
+                            <div className="flex items-center justify-between text-[10px] text-zinc-400 font-bold uppercase">
+                                <span>{t('vtt.drawing.toolbar.simplificao.label')}</span>
+                                <span className="text-white font-mono">{wandSettings.simplification.toFixed(1)}</span>
+                            </div>
+                            <input
+                                type="range"
+                                min="0.1"
+                                max="10"
+                                step="0.1"
+                                value={wandSettings.simplification}
+                                onChange={handleWandSimplificationChange}
+                                className="h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-primary w-full touch-none"
+                            />
+                        </div>
+
+                        {/* Resolution */}
+                        <div className="flex flex-col gap-1 w-24 sm:w-28">
+                            <div className="flex items-center justify-between text-[10px] text-zinc-400 font-bold uppercase">
+                                <span>{t('vtt.drawing.toolbar.resoluo.label')}</span>
+                                <span className="text-white font-mono">{wandSettings.resolution}px</span>
+                            </div>
+                            <input
+                                type="range"
+                                min="128"
+                                max="4096"
+                                step="64"
+                                value={wandSettings.resolution}
+                                onChange={handleWandResolutionChange}
+                                className="h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-primary w-full touch-none"
+                            />
+                        </div>
+
+                        {/* Smoothing */}
+                        <div className="flex flex-col gap-1 w-24 sm:w-28">
+                            <div className="flex items-center justify-between text-[10px] text-zinc-400 font-bold uppercase">
+                                <span>Smoothing</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-white font-mono text-[9px]">{wandSettings.smoothing ? 'ON' : 'OFF'}</span>
+                                    <input
+                                        type="checkbox"
+                                        checked={wandSettings.smoothing}
+                                        onChange={(e) => setWandSettings({ ...wandSettings, smoothing: e.target.checked })}
+                                        className="accent-primary w-3 h-3 cursor-pointer"
+                                    />
+                                </div>
+                            </div>
+                            {wandSettings.smoothing ? (
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="range"
+                                        min="1"
+                                        max="10"
+                                        value={wandSettings.smoothingIterations}
+                                        onChange={(e) => setWandSettings({ ...wandSettings, smoothingIterations: parseInt(e.target.value) })}
+                                        className="h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-primary w-full touch-none"
+                                    />
+                                    <span className="text-xs text-white w-3">{wandSettings.smoothingIterations}</span>
+                                </div>
+                            ) : (
+                                <div className="h-4"></div> // Spacer to keep alignment
+                            )}
+                        </div>
+
+                        <div className="flex flex-col gap-1 items-center px-1">
+                            <button
+                                onClick={() => openModal(<SmartWallPreviewModal wandSettings={wandSettings} setWandSettings={setWandSettings} />, { title: t('vtt.drawing.toolbar.sandboxDoSmart.label'), size: 'lg' })}
+                                className="p-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-all group shadow-lg shadow-primary/5 hover:scale-110 active:scale-95 border border-primary/20"
+                            >
+                                <Eye className="w-4 h-4" />
+                            </button>
+                            <span className="text-[8px] font-bold text-primary uppercase tracking-tighter hidden sm:block">{t('vtt.drawing.toolbar.preview.label')}</span>
+                        </div>
                     </div>
                 </>
             )}
 
-            <div className="w-px h-8 bg-zinc-800"></div>
+            <div className="w-px h-8 bg-zinc-800 hidden sm:block"></div>
 
             {/* Actions Section */}
             <div className="flex gap-2">

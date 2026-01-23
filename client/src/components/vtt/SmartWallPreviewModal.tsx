@@ -148,10 +148,10 @@ export const SmartWallPreviewModal: React.FC<SmartWallPreviewModalProps> = ({ wa
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <div className="space-y-2">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+        <div className="space-y-1 sm:space-y-2">
           <label className="text-[10px] font-bold text-zinc-500 uppercase">{t('vtt.smartWall.preview.tolerance')}</label>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <input
               type="range"
               min="1"
@@ -164,9 +164,9 @@ export const SmartWallPreviewModal: React.FC<SmartWallPreviewModalProps> = ({ wa
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1 sm:space-y-2">
           <label className="text-[10px] font-bold text-zinc-500 uppercase">{t('vtt.smartWall.preview.simplification')}</label>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <input
               type="range"
               min="0.1"
@@ -180,9 +180,9 @@ export const SmartWallPreviewModal: React.FC<SmartWallPreviewModalProps> = ({ wa
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1 sm:space-y-2">
           <label className="text-[10px] font-bold text-zinc-500 uppercase">{t('vtt.smartWall.preview.resolution')}</label>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <input
               type="range"
               min="128"
@@ -197,8 +197,8 @@ export const SmartWallPreviewModal: React.FC<SmartWallPreviewModalProps> = ({ wa
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 border-t border-zinc-800 pt-2 sm:pt-4">
+        <div className="space-y-1 sm:space-y-2">
           <label className="text-[10px] font-bold text-zinc-500 uppercase flex items-center gap-2">
             Smoothing
             <input
@@ -211,9 +211,9 @@ export const SmartWallPreviewModal: React.FC<SmartWallPreviewModalProps> = ({ wa
         </div>
 
         {wandSettings.smoothing && (
-          <div className="space-y-2">
+          <div className="space-y-1 sm:space-y-2">
             <label className="text-[10px] font-bold text-zinc-500 uppercase">Iterations</label>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <input
                 type="range"
                 min="1"
