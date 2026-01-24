@@ -46,7 +46,43 @@ export const DrawingToolbar: React.FC = () => {
     };
 
     const handleWandResolutionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setWandSettings({ ...wandSettings, resolution: parseInt(e.target.value) });
+        const newValue = parseInt(e.target.value);
+        if (newValue > wandSettings.resolution && newValue > 512) {
+            openModal(
+                <div className="space-y-4">
+                    <p className="text-zinc-400">{t('vtt.smartWall.warning.description')}</p>
+                    <div className="flex justify-end gap-2 pt-2">
+                        <Button variant="ghost" onClick={closeModal}>{t('vtt.smartWall.warning.cancel')}</Button>
+                        <Button variant="primary" onClick={() => { setWandSettings({ ...wandSettings, resolution: newValue }); closeModal(); }}>
+                            {t('vtt.smartWall.warning.continue')}
+                        </Button>
+                    </div>
+                </div>,
+                { title: t('vtt.smartWall.warning.title'), variant: 'alert', size: 'sm' }
+            );
+        } else {
+            setWandSettings({ ...wandSettings, resolution: newValue });
+        }
+    };
+
+    const handleSmoothingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const isChecked = e.target.checked;
+        if (isChecked) {
+            openModal(
+                <div className="space-y-4">
+                    <p className="text-zinc-400">{t('vtt.smartWall.warning.description')}</p>
+                    <div className="flex justify-end gap-2 pt-2">
+                        <Button variant="ghost" onClick={closeModal}>{t('vtt.smartWall.warning.cancel')}</Button>
+                        <Button variant="primary" onClick={() => { setWandSettings({ ...wandSettings, smoothing: true }); closeModal(); }}>
+                            {t('vtt.smartWall.warning.continue')}
+                        </Button>
+                    </div>
+                </div>,
+                { title: t('vtt.smartWall.warning.title'), variant: 'alert', size: 'sm' }
+            );
+        } else {
+            setWandSettings({ ...wandSettings, smoothing: false });
+        }
     };
 
     const handleClearAll = () => {
@@ -208,7 +244,7 @@ export const DrawingToolbar: React.FC = () => {
                                     <input
                                         type="checkbox"
                                         checked={wandSettings.smoothing}
-                                        onChange={(e) => setWandSettings({ ...wandSettings, smoothing: e.target.checked })}
+                                        onChange={handleSmoothingChange}
                                         className="accent-primary w-3 h-3 cursor-pointer"
                                     />
                                 </div>

@@ -3697,18 +3697,23 @@ export default {
     },
     smartWall: {
       preview: {
-        clickInstruction: 'Click on the image below to simulate where you would click on the map. The red outline shows how the wall will be generated.',
-        clickToTest: 'Click to test',
-        title: 'Preview Mode (Sandbox)',
-        description: 'Click on the image below to simulate where you would click on the map. The red outline shows how the wall will be generated.',
-        loading: 'Loading test image...',
-        tolerance: 'TOLERANCE',
-        simplification: 'SIMPLIFICATION',
-        resolution: 'RESOLUTION',
+        title: 'Magic Wand Preview',
+        description: 'Adjust parameters to see how the wall will be generated. Red areas indicate where the wall will be created.',
+        loading: 'Generating preview...',
+        clickToTest: 'Click to Test',
+        tolerance: 'Tolerance (Color)',
+        simplification: 'Simplification',
+        resolution: 'Resolution (Max)',
         tip: {
           label: 'Tip:',
-          text: 'Use low tolerance for very specific colors and high for larger areas. Resolution affects precision and performance.',
+          text: 'Use Alt + Scroll to zoom. Click anywhere to test detection in real time.',
         },
+      },
+      warning: {
+        title: 'Performance Warning',
+        description: 'Increasing resolution or enabling smoothing may cause significant lag on slower computers. We recommend keeping resolution at 512 and smoothing disabled for best performance.',
+        continue: 'Continue',
+        cancel: 'Cancel',
       },
     },
     gameSession: {

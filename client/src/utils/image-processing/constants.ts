@@ -3,9 +3,9 @@ import { ProcessingConfig } from './types';
 export const DEFAULT_CONFIG: ProcessingConfig = {
   tolerance: 30,
   maxDimension: 512,
-  simplification: 2.0,
-  smoothing: true,
-  smoothingIterations: 2,
+  simplification: 1.5,
+  smoothing: false,
+  smoothingIterations: 1,
   gradientThreshold: 80,
   hueTolerance: 25,
   saturationThreshold: 0.05,

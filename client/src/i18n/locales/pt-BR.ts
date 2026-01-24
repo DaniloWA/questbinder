@@ -3130,18 +3130,23 @@ export default {
     },
     smartWall: {
       preview: {
-        clickInstruction: 'Clique na imagem abaixo para simular onde você clicaria no mapa. O contorno vermelho mostra como a parede será gerada.',
-        clickToTest: 'Clique para testar',
-        title: 'Modo de Visualização (Sandbox)',
-        description: 'Clique na imagem abaixo para simular onde você clicaria no mapa. O contorno vermelho mostra como a parede será gerada.',
-        loading: 'Carregando imagem de teste...',
-        tolerance: 'TOLERÂNCIA',
-        simplification: 'SIMPLIFICAÇÃO',
-        resolution: 'RESOLUÇÃO',
+        title: 'Preview da Varinha Mágica',
+        description: 'Ajuste os parâmetros para ver como a parede será gerada. Áreas vermelhas indicam onde a parede será criada.',
+        loading: 'Gerando preview...',
+        clickToTest: 'Clique para Testar',
+        tolerance: 'Tolerância (Cor)',
+        simplification: 'Simplificação',
+        resolution: 'Resolução (Max)',
         tip: {
           label: 'Dica:',
-          text: 'Use tolerância baixa para cores muito específicas e alta para áreas maiores. A resolução afeta a precisão e o desempenho.',
+          text: 'Use Alt + Scroll para zoom. Clique em qualquer lugar para testar a detecção em tempo real.',
         },
+      },
+      warning: {
+        title: 'Aviso de Desempenho',
+        description: 'Aumentar a resolução ou ativar o suavizamento pode causar lentidão significativa em computadores mais lentos. Recomendamos manter a resolução em 512 e o suavizamento desligado para melhor desempenho.',
+        continue: 'Continuar',
+        cancel: 'Cancelar',
       },
     },
     gameSession: {
