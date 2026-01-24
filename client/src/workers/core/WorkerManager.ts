@@ -23,6 +23,7 @@ export interface ExecuteOptions {
  * - Configurable timeout handling
  * - Health monitoring
  * - Event subscription system
+ * - Crash Loop Protection (Backoff)
  */
 export class WorkerManager {
   private static instance: WorkerManager;
@@ -48,14 +49,73 @@ export class WorkerManager {
   // Default timeout (30 seconds)
   private defaultTimeout: number = 30000;
 
+  // Crash Loop Protection
+  private restartCount: number = 0;
+  private lastRestartTime: number = 0;
+  private isRestoring: boolean = false;
+  private readonly MAX_RESTARTS = 5;
+  private readonly RESET_TIMEOUT = 10000; // Reset count if worker lives this long
+
+
   private constructor() {
+    DebugLogger.log('worker', 'WorkerManager', 'Constructor', `🏗️ Constructor called for ${this._debugId}`);
+
+    if (typeof window !== 'undefined') {
+      // 1. Check for Duplicate Instances (Same Page)
+      if ((window as any).__QB_WORKER_MANAGER__ && (window as any).__QB_WORKER_MANAGER__ !== this) {
+        DebugLogger.error('worker', 'WorkerManager', 'Singleton', `🚨 CRITICAL: Duplicate instance created! Global: ${(window as any).__QB_WORKER_MANAGER__._debugId}, New: ${this._debugId}`);
+      }
+    }
+
     this.initWorker();
   }
 
+  // Debug ID to track instances
+  public readonly _debugId = Math.random().toString(36).slice(2, 7);
+
   public static getInstance(): WorkerManager {
-    if (!WorkerManager.instance) {
-      WorkerManager.instance = new WorkerManager();
+    // 0. CRITICAL: Detect Worker Context FIRST
+    // Some environments (or polyfills) might define 'window' inside a worker, fooling the check.
+    // We must check for specific Worker globals first.
+    const isWorker =
+      (typeof self !== 'undefined' && self.constructor.name === 'DedicatedWorkerGlobalScope') ||
+      // @ts-ignore - Worker global
+      typeof importScripts === 'function';
+
+    if (isWorker) {
+      // We are definitely in a worker. Do NOT create a manager.
+      // We can return a specific error or a dummy object if needed, but throwing is safest to highlight the logic error.
+      // However, to avoid crashing the worker completely if a module imports it safely but doesn't use it:
+      DebugLogger.warn('worker', 'WorkerManager', 'Singleton', 'Warning: WorkerManager imported inside Worker context. This is likely a mistake.');
+      throw new Error('[WorkerManager] Critical: Attempted to instantiate WorkerManager inside a Worker.');
     }
+
+    // 1. Basic Singleton
+    if (WorkerManager.instance) {
+      return WorkerManager.instance;
+    }
+
+    // 2. Global Singleton (HMR/Hot-Reload Survival)
+    if (typeof window !== 'undefined') {
+      const globalKey = '__QB_WORKER_MANAGER__';
+      const globalInstance = (window as any)[globalKey];
+
+      if (globalInstance) {
+        DebugLogger.log('worker', 'WorkerManager', 'Singleton', `♻️ Reusing global instance: ${globalInstance._debugId}`);
+        WorkerManager.instance = globalInstance;
+        // Re-attach debug logger if needed or ensure state is clean
+        return WorkerManager.instance;
+      }
+
+      DebugLogger.log('worker', 'WorkerManager', 'Singleton', `✨ Creating NEW global instance...`);
+      WorkerManager.instance = new WorkerManager();
+      (window as any)[globalKey] = WorkerManager.instance;
+      return WorkerManager.instance;
+    }
+
+    // 3. Fail-safe for non-browser envs (Node.js/Test)
+    // Only reach here if no window and no worker
+    WorkerManager.instance = new WorkerManager();
     return WorkerManager.instance;
   }
 
@@ -78,19 +138,34 @@ export class WorkerManager {
       this.worker.terminate();
     }
 
-    // Initialize the worker using Vite's worker import syntax
-    // @ts-ignore - Vite specific import
-    this.worker = new Worker(new URL('../main.worker.ts', import.meta.url), {
-      type: 'module',
-    });
+    // Reset loop protection if enough time has passed since last restart (and we aren't in a crash loop)
+    const now = Date.now();
+    if (now - this.lastRestartTime > this.RESET_TIMEOUT && !this.isRestoring) {
+      this.restartCount = 0;
+    }
+    this.lastRestartTime = now;
 
-    this.worker.onmessage = this.handleMessage.bind(this);
-    this.worker.onerror = this.handleError.bind(this);
+    try {
+      // Initialize the worker using Vite's worker import syntax
+      // @ts-ignore - Vite specific import
+      this.worker = new Worker(new URL('../main.worker.ts', import.meta.url), {
+        type: 'module',
+      });
 
-    // Notify listeners of restart/init
-    this.restartListeners.forEach(cb => cb());
+      this.worker.onmessage = this.handleMessage.bind(this);
+      this.worker.onerror = this.handleError.bind(this);
 
-    DebugLogger.log('worker', 'WorkerManager', 'Init', 'Worker initialized');
+      this.isRestoring = false;
+
+      // Notify listeners of restart/init
+      this.restartListeners.forEach(cb => cb());
+
+      DebugLogger.log('worker', 'WorkerManager', 'Init', `Worker initialized (Attempt ${this.restartCount + 1})`);
+    } catch (e) {
+      DebugLogger.error('worker', 'WorkerManager', 'Init', `Worker initialization failed: ${e}`);
+      // If we can't even construct the worker, we are likely in a fatal environment state.
+      // We should not loop here.
+    }
   }
 
   /**
@@ -107,7 +182,15 @@ export class WorkerManager {
     payload: any = {},
     options: ExecuteOptions = {}
   ): Promise<T> {
-    if (!this.worker) this.initWorker();
+    if (!this.worker) {
+      // If we are in backoff, we might not have a worker.
+      // Try to revive if we aren't permanently stopped.
+      if (this.restartCount < this.MAX_RESTARTS) {
+        this.initWorker();
+      } else {
+        return Promise.reject(new Error('[WorkerManager] Worker is dead (Maximum restart attempts exceeded)'));
+      }
+    }
 
     const { timeout = this.defaultTimeout, transferables = [] } = options;
     const id = crypto.randomUUID();
@@ -130,11 +213,20 @@ export class WorkerManager {
         payload: { module, action, payload }
       };
 
-      // Use transferables for zero-copy transfer if provided
-      if (transferables.length > 0) {
-        this.worker!.postMessage(message, transferables);
-      } else {
-        this.worker!.postMessage(message);
+      try {
+        // Use transferables for zero-copy transfer if provided
+        if (transferables.length > 0) {
+          this.worker!.postMessage(message, transferables);
+        } else {
+          this.worker!.postMessage(message);
+        }
+      } catch (err) {
+        // Handle immediate postMessage failures (e.g., DataCloneError)
+        if (this.pending.has(id)) {
+          clearTimeout(timeoutId);
+          this.pending.delete(id);
+          reject(err);
+        }
       }
     });
   }
@@ -177,6 +269,9 @@ export class WorkerManager {
     this.stopHealthCheck();
 
     this.healthCheckInterval = setInterval(async () => {
+      // Don't ping if we are dead
+      if (!this.worker && this.restartCount >= this.MAX_RESTARTS) return;
+
       try {
         await this.execute('system', 'ping', {}, { timeout: 5000 });
         if (this.debug) {
@@ -184,7 +279,7 @@ export class WorkerManager {
         }
       } catch (err) {
         DebugLogger.error('worker', 'WorkerManager', 'HealthCheck', 'Health check failed, reinitializing worker...', err);
-        this.reinitializeWithPendingRejection();
+        this.reinitializeWithBackoff();
       }
     }, intervalMs);
   }
@@ -200,11 +295,13 @@ export class WorkerManager {
   }
 
   /**
-   * Reinitialize worker and reject all pending requests.
+   * Reinitialize worker with exponential backoff handling.
    */
-  private reinitializeWithPendingRejection(): void {
-    DebugLogger.error('worker', 'WorkerManager', 'ReinitializeWithPendingRejection', 'Worker crash, reinitializing...');
-    console.trace();
+  private reinitializeWithBackoff(): void {
+    if (this.isRestoring) return; // Prevent double-trigger
+    this.isRestoring = true;
+
+    DebugLogger.error('worker', 'WorkerManager', 'Crash', `Worker crashed. Restart attempt ${this.restartCount + 1}/${this.MAX_RESTARTS}`);
 
     // Reject all pending requests
     for (const [id, pending] of this.pending.entries()) {
@@ -215,8 +312,22 @@ export class WorkerManager {
     }
     this.pending.clear();
 
-    // Reinitialize
-    this.initWorker();
+    // Check restart limits
+    if (this.restartCount >= this.MAX_RESTARTS) {
+      DebugLogger.error('worker', 'WorkerManager', 'Fatal', '[WorkerManager] 🚨 FATAL: Worker keeps crashing. Stopping restart loop.');
+      this.terminate();
+      return;
+    }
+
+    // Exponential Backoff: 1s, 2s, 4s, 8s, 16s...
+    const backoffTime = Math.pow(2, this.restartCount) * 1000;
+    this.restartCount++;
+
+    DebugLogger.log('worker', 'WorkerManager', 'Backoff', `Waiting ${backoffTime}ms before restart...`);
+
+    setTimeout(() => {
+      this.initWorker();
+    }, backoffTime);
   }
 
   /**
@@ -224,9 +335,14 @@ export class WorkerManager {
    */
   private handleError(error: ErrorEvent) {
     // Critical: Raw log to ensure we see this even if DebugLogger fails or is filtered
-    console.error('[WorkerManager] 🚨 RAW WORKER CRASH:', error.message, error.filename, error.lineno, error.colno, error.error);
-    DebugLogger.error('worker', 'WorkerManager', 'HandleError', 'Worker crash:', error);
-    this.reinitializeWithPendingRejection();
+    DebugLogger.error('worker', 'WorkerManager', 'HandleError', '[WorkerManager] 🚨 RAW WORKER CRASH', {
+      message: error.message,
+      filename: error.filename,
+      lineno: error.lineno,
+      colno: error.colno,
+      error: error.error
+    });
+    this.reinitializeWithBackoff();
   }
 
   /**

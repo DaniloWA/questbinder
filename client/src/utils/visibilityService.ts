@@ -61,10 +61,18 @@ let lastObstacleHash = '';
 const isWorkerAvailable = () => true;
 
 // Listen for worker restarts (crashes/HMR) to invalidate state
-WorkerManager.getInstance().onWorkerRestart(() => {
-  DebugLogger.warn('vision', 'VisibilityService', 'WorkerRestart', 'Worker restarted, invalidating obstacle state');
-  lastObstacleHash = '';
-});
+// CRITICAL: Only run this on the main thread.
+if (typeof window !== 'undefined' && !((typeof self !== 'undefined' && self.constructor.name === 'DedicatedWorkerGlobalScope') || typeof importScripts === 'function')) {
+  try {
+    WorkerManager.getInstance().onWorkerRestart(() => {
+      DebugLogger.warn('vision', 'VisibilityService', 'WorkerRestart', 'Worker restarted, invalidating obstacle state');
+      lastObstacleHash = '';
+    });
+  } catch (e) {
+    // Ignore errors if WorkerManager fails to init (e.g. inside worker context that slipped through)
+    console.warn('Skipped WorkerManager init in potential worker context', e);
+  }
+}
 
 
 /**
