@@ -1,4 +1,5 @@
 import { WorkerMessage, WorkerRequest, WorkerResponse, WorkerError, WorkerEvent } from './types';
+import { DebugLogger } from '../../utils/DebugLogger';
 
 /**
  * Options for execute method
@@ -85,7 +86,7 @@ export class WorkerManager {
     this.worker.onmessage = this.handleMessage.bind(this);
     this.worker.onerror = this.handleError.bind(this);
 
-    console.log('[WorkerManager] Worker initialized');
+    DebugLogger.log('worker', 'Worker initialized');
   }
 
   /**
@@ -167,10 +168,10 @@ export class WorkerManager {
       try {
         await this.execute('system', 'ping', {}, { timeout: 5000 });
         if (this.debug) {
-          console.log('[WorkerManager] Health check OK');
+          DebugLogger.log('worker', 'Health check OK');
         }
       } catch (err) {
-        console.error('[WorkerManager] Health check failed, reinitializing worker...', err);
+        DebugLogger.error('worker', 'Health check failed, reinitializing worker...', err);
         this.reinitializeWithPendingRejection();
       }
     }, intervalMs);
@@ -231,7 +232,7 @@ export class WorkerManager {
         resolver.reject(new Error(`[Worker Error] ${error.code}: ${error.message}`));
         this.pending.delete(id);
       } else {
-        console.error('[WorkerManager] Unhandled worker error:', payload);
+        DebugLogger.error('worker', 'Unhandled worker error:', payload);
       }
     }
     else if (type === 'EVENT') {
@@ -247,7 +248,7 @@ export class WorkerManager {
    * Handle worker-level errors (e.g., syntax errors, crashes).
    */
   private handleError(error: ErrorEvent) {
-    console.error('[WorkerManager] Worker crash:', error);
+    DebugLogger.error('worker', 'Worker crash:', error);
     this.reinitializeWithPendingRejection();
   }
 

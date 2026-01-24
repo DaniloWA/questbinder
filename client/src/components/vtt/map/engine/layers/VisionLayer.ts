@@ -9,6 +9,7 @@ import { BaseLayer } from '../core/BaseLayer';
 import { RenderContext } from '../core/types';
 import { Token, Point, Obstacle } from '../../../../../types';
 import { calculateVisibilityPolygon, isPointInPolygon } from '../../../../../utils/geometry';
+import { DebugLogger } from '../../../../../utils/DebugLogger';
 
 /**
  * VisionLayer - Handles player visibility and fog of war.
@@ -131,6 +132,9 @@ export class VisionLayer extends BaseLayer {
       const effectiveRadius = Math.max(gridSize * 0.6, Math.max(visionRangePx, darkvisionRangePx));
 
       if (effectiveRadius <= 0) continue;
+
+      // Validar obstáculos antes do cálculo para evitar "visão infinita"
+      if (!obstacles || obstacles.length === 0) continue;
 
       const polygon = calculateVisibilityPolygon(
         { x: cx, y: cy },

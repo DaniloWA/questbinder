@@ -1,5 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 import { SocketEventMap } from '../types/socket';
+import { DebugLogger } from '../utils/DebugLogger';
 
 class RealSocketService {
   private socket: Socket | null = null;
@@ -27,7 +28,7 @@ class RealSocketService {
     const reconnectionDelay = parseInt(import.meta.env.VITE_WS_RECONNECTION_DELAY || '1000');
     const reconnectionDelayMax = parseInt(import.meta.env.VITE_WS_RECONNECTION_DELAY_MAX || '5000');
 
-    console.log('[WS] Connecting to:', wsUrl);
+    DebugLogger.log('system', 'Connecting to:', wsUrl);
 
     this.socket = io(wsUrl, {
       transports: ['websocket'],
@@ -39,7 +40,7 @@ class RealSocketService {
 
     return new Promise((resolve) => {
       this.socket?.on('connect', () => {
-        console.log('[WS] Connected to Server');
+        DebugLogger.log('system', 'Connected to Server');
         if (this.userId && this.campaignId) {
           this.socket?.emit('room:join', { userId: this.userId, campaignId: this.campaignId });
         }
@@ -56,16 +57,16 @@ class RealSocketService {
 
       this.socket?.onAny((event, ...args) => {
         if (event !== 'cursor:move' && event !== 'token:drag') {
-          console.log(`[WS] Listener received: ${event}`, args);
+          DebugLogger.log('system', `Listener received: ${event}`, args);
         }
       });
 
       this.socket?.on('connect_error', (err) => {
-        console.error('[WS] Connection Error:', err);
+        DebugLogger.error('system', 'Connection Error:', err);
       });
 
       this.socket?.on('disconnect', (reason) => {
-        console.warn('[WS] Disconnected:', reason);
+        DebugLogger.warn('system', 'Disconnected:', reason);
       });
     });
   }
@@ -74,7 +75,7 @@ class RealSocketService {
     if (this.socket) {
       this.socket.disconnect();
       this.socket = null;
-      console.log('[WS] Disconnected');
+      DebugLogger.log('system', 'Disconnected');
     }
   }
 
@@ -94,7 +95,7 @@ class RealSocketService {
       return;
     }
     if (event != 'cursor:move' && event != 'token:drag' && event != 'cursor:keep_alive') {
-      console.log('[WS] Emitting:', event, payload);
+      DebugLogger.log('system', 'Emitting:', { event, payload });
     }
     this.socket.emit(event, payload);
   }

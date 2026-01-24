@@ -2,6 +2,7 @@ import { GameSessionState, BooleanPermissionKey } from './types';
 import { MapScene, Token, MapDrawing, Obstacle, Zone } from '../../types';
 import { campaignService } from '../../services/campaignService';
 import { socketService } from '../../services/socketService';
+import { DebugLogger } from '../../utils/DebugLogger';
 
 // --- Types ---
 type SceneItem = Token | MapDrawing | Obstacle | Zone;
@@ -154,12 +155,12 @@ export const ActionHandlers = {
     if (validate) {
       const validationResult = validate();
       if (typeof validationResult === 'string') {
-        console.warn('[ActionHandler] Validation failed (string):', validationResult);
+        DebugLogger.warn('input', 'Validation failed (string):', validationResult);
         if (onFailure) onFailure(validationResult);
         return;
       }
       if (validationResult === false) {
-        console.warn('[ActionHandler] Validation failed (false)');
+        DebugLogger.warn('input', 'Validation failed (false)');
         if (onFailure) onFailure('Validation failed');
         return;
       }
@@ -169,22 +170,22 @@ export const ActionHandlers = {
     // REGRA MILENAR: Prefer PermissionHelper
     if (permissionHelper) {
       if (isGMOnly && !permissionHelper.isGameMaster()) {
-        console.warn('[Action] Permission denied: GM only');
+        DebugLogger.warn('input', 'Permission denied: GM only');
         return;
       }
       if (requiredPermission && !permissionHelper.canAsGMOr(requiredPermission)) {
-        console.warn(`[Action] Permission denied: ${requiredPermission} required`);
+        DebugLogger.warn('input', `Permission denied: ${requiredPermission} required`);
         return;
       }
     } else if (isGMOnly && !state.isGM) {
       // Fallback for when permissionHelper is not passed (e.g. useSceneActions currently)
       // We should aim to pass permissionHelper everywhere, but for now this keeps it working.
-      console.warn('[Action] Permission denied: GM only (fallback check)');
+      DebugLogger.warn('input', 'Permission denied: GM only (fallback check)');
       return;
     }
 
     // 3. Optimistic Update
-    console.log('[ActionHandler] 3. Optimistic Update');
+    DebugLogger.log('input', 'Optimistic Update');
     const prevState = state;
     if (optimisticUpdate) {
       setState(prev => optimisticUpdate(prev));
@@ -192,11 +193,11 @@ export const ActionHandlers = {
 
     // 4. API Call
     if (apiCall) {
-      console.log('[ActionHandler] 4. API Call');
+      DebugLogger.log('input', 'API Call');
       try {
         await apiCall();
       } catch (error) {
-        console.error('[Action] API call failed:', error);
+        DebugLogger.error('input', 'API call failed:', error);
         // Revert state on failure
         setState(prevState);
         if (onFailure) onFailure('API call failed');
@@ -206,10 +207,10 @@ export const ActionHandlers = {
 
     // 5. Socket Emit
     if (socketEmit) {
-      console.log('[ActionHandler] 5. Socket Emit');
+      DebugLogger.log('input', 'Socket Emit');
       socketEmit();
     } else {
-      console.warn('[ActionHandler] 5. No Socket Emit provided');
+      DebugLogger.warn('input', 'No Socket Emit provided');
     }
   }
 };

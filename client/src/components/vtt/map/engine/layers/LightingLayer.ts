@@ -237,7 +237,7 @@ export class LightingLayer extends BaseLayer {
         // If `LightingLayer.ts` is used, it reads `token.x`.
         // I will add animation lookups if `context.animations` exists.
 
-        const anim = (context as any).animations?.get(token.id);
+        const anim = animations?.get(token.id);
         if (anim) {
           const progress = Math.min(1, (time - anim.startTime) / anim.duration);
           const ease = 1 - Math.pow(1 - progress, 3); // EaseOutCubic

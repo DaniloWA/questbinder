@@ -6,6 +6,7 @@ import {
   WorkerRequest,
   WorkerResponse
 } from './types';
+import { DebugLogger } from '../../utils/DebugLogger';
 
 /**
  * WorkerHost (Worker Thread)
@@ -18,17 +19,17 @@ export class WorkerHost implements IWorkerHost {
 
   constructor() {
     self.onmessage = this.handleMessage.bind(this);
-    console.log('[WorkerHost] Initialized');
+    DebugLogger.log('worker', 'Initialized');
   }
 
   public register(ModuleClass: ModuleConstructor) {
     const module = new ModuleClass(this);
     if (this.modules.has(module.name)) {
-      console.warn(`[WorkerHost] Module '${module.name}' already registered. Overwriting.`);
+      DebugLogger.warn('worker', `Module '${module.name}' already registered. Overwriting.`);
     }
 
     this.modules.set(module.name, module);
-    console.log(`[WorkerHost] Module registered: ${module.name}`);
+    DebugLogger.log('worker', `Module registered: ${module.name}`);
 
     if (module.onInit) {
       module.onInit();
@@ -58,14 +59,18 @@ export class WorkerHost implements IWorkerHost {
         throw new Error(`Module '${moduleName}' not found`);
       }
 
-      console.log(`[WorkerHost] ⚙️ Processing: ${moduleName}.${action}`, { id });
+      DebugLogger.log('worker', `⚙️ Processing: ${moduleName}.${action}`, { id });
+      // DebugLogger.log('worker', `⚙️ Processing: ${moduleName}.${action}`, { id }); 
+      // Keep console.log for worker raw output if DebugLogger fails in worker context?
+      // No, DebugLogger sends to console anyway.
+
       const start = performance.now();
 
       // Execute action
       const result = await module.handle(action, actionPayload);
 
       const duration = (performance.now() - start).toFixed(2);
-      console.log(`[WorkerHost] ✅ Done: ${moduleName}.${action} (${duration}ms)`);
+      DebugLogger.log('worker', `✅ Done: ${moduleName}.${action} (${duration}ms)`);
 
       // Send Response
       const response: WorkerMessage<WorkerResponse> = {

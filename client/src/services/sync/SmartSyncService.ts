@@ -14,6 +14,7 @@ import { socketService } from '../socketService';
 import { syncCache, SyncCache } from './SyncCache';
 import { syncQueue, SyncQueue } from './SyncQueue';
 import { retryManager, RetryManager } from './RetryManager';
+import { DebugLogger } from '../../utils/DebugLogger';
 import { connectionManager, ConnectionManager, ConnectionStatus } from './ConnectionManager';
 import { resolveConflict, getMergeStrategy } from './strategies';
 import {
@@ -106,7 +107,7 @@ export class SmartSyncService {
     }
 
     if (this.options.debug) {
-      console.log('[SmartSync] Initialized', { options: this.options, hydrated: !!initialState });
+      DebugLogger.log('sync', 'Initialized', { options: this.options, hydrated: !!initialState });
     }
   }
 
@@ -144,7 +145,7 @@ export class SmartSyncService {
     });
 
     if (this.options.debug) {
-      console.log('[SmartSync] Hydrated from state:', this.cache.getStats());
+      DebugLogger.log('sync', 'Hydrated from state:', this.cache.getStats());
     }
   }
 
@@ -156,7 +157,7 @@ export class SmartSyncService {
       if (status.state === 'connected' && this.queue.getPendingCount() > 0) {
         // Reconnected - flush pending changes
         if (this.options.debug) {
-          console.log('[SmartSync] Reconnected, flushing pending changes');
+          DebugLogger.log('sync', 'Reconnected, flushing pending changes');
         }
         this.queue.flushAll();
       }
@@ -225,7 +226,7 @@ export class SmartSyncService {
     this.notifySubscribers(entityType, entityId, data as T, changeType, parentId);
 
     if (this.options.debug) {
-      console.log('[SmartSync] Applied:', { entityType, entityId, changeType, data });
+      DebugLogger.log('sync', 'Applied:', { entityType, entityId, changeType, data });
     }
 
     return changeId;
@@ -270,7 +271,7 @@ export class SmartSyncService {
       // For now, protect local state against overwrites.
       if (changeType !== 'create') { // Create confirmation is handled below
         if (this.options.debug) {
-          console.warn('[SmartSync] Ignored remote update for dirty entity:', entityId);
+          DebugLogger.warn('sync', 'Ignored remote update for dirty entity:', entityId);
         }
         return;
       }
@@ -295,7 +296,7 @@ export class SmartSyncService {
         this.queue.dequeue(changeId);
       }
       if (this.options.debug) {
-        console.log('[SmartSync] Server confirmed creation, cleared pending state for:', entityId);
+        DebugLogger.log('sync', 'Server confirmed creation, cleared pending state for:', entityId);
       }
     }
 
@@ -310,7 +311,7 @@ export class SmartSyncService {
     this.notifySubscribers(entityType, entityId, changeType === 'delete' ? null : data, changeType, parentId);
 
     if (this.options.debug) {
-      console.log('[SmartSync] Received:', { entityType, entityId, changeType });
+      DebugLogger.log('sync', 'Received:', { entityType, entityId, changeType });
     }
   }
 
@@ -383,7 +384,7 @@ export class SmartSyncService {
       try {
         (callback as ChangeCallback<T>)(entityId, data, changeType, parentId);
       } catch (error) {
-        console.error('[SmartSync] Subscriber error:', error);
+        DebugLogger.error('sync', 'Subscriber error:', error);
       }
     }
   }
@@ -432,7 +433,7 @@ export class SmartSyncService {
     const strategy = this.options.defaultConflictStrategy || 'remote-wins';
 
     if (this.options.debug) {
-      console.warn('[SmartSync] Conflict detected:', conflict);
+      DebugLogger.warn('sync', 'Conflict detected:', conflict);
     }
 
     this.conflicts.push(conflict as SyncConflict);
@@ -507,7 +508,7 @@ export class SmartSyncService {
    */
   private handleRetry(change: PendingChange): void {
     if (this.options.debug) {
-      console.log('[SmartSync] Retrying change:', change.id);
+      DebugLogger.log('sync', 'Retrying change:', change.id);
     }
 
     // Re-queue the change
@@ -525,7 +526,7 @@ export class SmartSyncService {
    * Handle when max retries are exceeded.
    */
   private handleMaxRetriesExceeded(change: PendingChange, error: string): void {
-    console.error('[SmartSync] Max retries exceeded for change:', change.id, error);
+    DebugLogger.error('sync', 'Max retries exceeded for change:', { id: change.id, error });
 
     // Remove from cache's pending list
     const entry = this.cache.getEntry(change.entityType, change.entityId);
@@ -574,7 +575,7 @@ export class SmartSyncService {
   private handleAck(payload: any) {
     const { changeId, version } = payload;
     if (this.options.debug) {
-      console.log('[SmartSync] ACK received:', payload);
+      DebugLogger.log('sync', 'ACK received:', payload);
     }
 
     // Remove from queue (confirmed)
@@ -586,27 +587,46 @@ export class SmartSyncService {
 
   private handleReject(payload: any) {
     const { changeId, version, data } = payload;
-    console.warn('[SmartSync] REJECT received:', payload);
+    DebugLogger.warn('sync', 'REJECT received:', payload);
+
+    // Retrieve pending change before dequeuing
+    const pendingChange = this.queue.getChange(changeId);
 
     // Remove from queue (failed)
     this.queue.dequeue(changeId);
 
-    // Rollback or Apply Server Data
-    // We should treat this as a forced update from server
-    // Find the entity type from the rejected change?
-    // We don't track changeId -> entityType mapping easily unless we check queue BEFORE dequeue
-    // But we just dequeued.
-    // Ideally queue.dequeue returns the entry.
+    if (pendingChange) {
+      if (data && data.id) {
+        // Server sent the correct state - apply it immediately to fix desync
+        // This essentially works like "Server Wins" on conflict
+        this.cache.set(
+          pendingChange.entityType,
+          data.id,
+          data,
+          version || pendingChange.version + 1, // Ensure version bump
+          pendingChange.parentId,
+          false // Not optimistic, this is confirmed server truth
+        );
 
-    // For now, assume broadcast will follow or we interpret payload.data
-    // If payload contains data, we update cache.
-    // But we need entityType/Id.
-    if (data && data.id) {
-      // Try to infer type? Or server should send type?
-      // Token has id, Scene has id... 
+        // Notify subscribers of the "fix"
+        this.notifySubscribers(
+          pendingChange.entityType,
+          data.id,
+          data,
+          'update',
+          pendingChange.parentId
+        );
+
+        console.log('[SmartSync] Applied server state for rejected change:', pendingChange.entityId);
+      } else {
+        // No data provided, try to rollback
+        // ... (This logic is tricky without baseData, but "Server Wins" above is the main fix)
+        console.warn('[SmartSync] Rejected without server data, requesting fresh state...');
+        // Ideally trigger a re-fetch or let regular sync handle it
+      }
+    } else {
+      console.warn('[SmartSync] Rejected change not found in queue:', changeId);
     }
-
-    // Note: Better implementation would be to look up the change in queue first.
   }
 
   // ===========================================================================

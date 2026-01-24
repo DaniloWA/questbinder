@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useMemo, useState, useCallback } from 'react';
 import { socketService } from '../../../services/socketService';
+import { DebugLogger } from '../../../utils/DebugLogger';
 import { CursorClickPayload } from '../../../types/socket';
 import { MapCanvasProps } from './types';
 import { useMapState } from './hooks/useMapState';
@@ -82,7 +83,7 @@ export const MapCanvas = (props: MapCanvasProps) => {
   useEffect(() => {
     const newToken = props.tokens[props.tokens.length - 1];
     if (newToken) {
-      console.log('[MapCanvas] Tokens Updated:', {
+      DebugLogger.log('render', 'Tokens Updated:', {
         count: props.tokens.length,
         lastTokenId: newToken.id,
         owner: newToken.ownerId,
@@ -93,7 +94,7 @@ export const MapCanvas = (props: MapCanvasProps) => {
 
   // Debug Props
   useEffect(() => {
-    // console.log('[MapCanvas] Props update:', { isGM: props.isGM, tokens: props.tokens.length });
+    // DebugLogger.log('render', 'Props update:', { isGM: props.isGM, tokens: props.tokens.length });
   }, [props.isGM, props.tokens.length]);
 
   // 3. Vision Layer (Filtering)

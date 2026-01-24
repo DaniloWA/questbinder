@@ -6,6 +6,7 @@
  */
 
 import { socketService } from '../socketService';
+import { DebugLogger } from '../../utils/DebugLogger';
 import {
   EntityType,
   PendingChange,
@@ -136,6 +137,20 @@ export class SyncQueue {
       }
     }
     return false;
+  }
+
+  /**
+   * Get a pending change by ID.
+   */
+  getChange(changeId: string): PendingChange | null {
+    for (const queue of this.queues.values()) {
+      for (const entry of queue.values()) {
+        if (entry.change.id === changeId) {
+          return entry.change;
+        }
+      }
+    }
+    return null;
   }
 
   /**
@@ -278,7 +293,7 @@ export class SyncQueue {
     const event = eventMap[eventKey];
 
     if (!event) {
-      console.warn('[SyncQueue] Unknown event mapping:', eventKey);
+      DebugLogger.warn('sync', 'Unknown event mapping:', eventKey);
       return;
     }
 

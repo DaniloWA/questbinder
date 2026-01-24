@@ -69,7 +69,7 @@ const updateWorkerMap = (obstacles: Obstacle[], hash: string) => {
 
   lastObstacleHash = hash;
   WorkerManager.getInstance().execute('visibility', 'setObstacles', { obstacles })
-    .catch(err => console.error('[VisibilityService] Failed to update map', err));
+    .catch(err => DebugLogger.error('vision', 'Failed to update map', err));
 };
 
 
@@ -164,7 +164,19 @@ const simplifyResult = (points: Point[], tolerance: number): Point[] => {
 
 const calculateSync = (origin: Point, obstacles: Obstacle[], visionRadius: number): Point[] => {
   try {
-    if (!origin || !obstacles) return [];
+    if (!origin) return [];
+
+    // Fallback 3: Empty polygon if no obstacles (Validation)
+    if (!obstacles || obstacles.length === 0) {
+      if (visionRadius > 0) {
+        // Intelligent Log: Only warn if we EXPECT walls (visionRadius > 0) but see none
+        // Use frequency throttling to avoid spam
+        if (Math.random() < 0.01) {
+          DebugLogger.warn('vision', 'calculateSync: No obstacles provided!', { origin });
+        }
+      }
+      return [];
+    }
 
     const lineSegments: { p1: Point, p2: Point; }[] = [];
     const minX = origin.x - visionRadius;
@@ -282,7 +294,7 @@ const calculateSync = (origin: Point, obstacles: Obstacle[], visionRadius: numbe
 
     return simplified;
   } catch (e) {
-    console.error('[VisibilityService] Sync calculation failed:', e);
+    DebugLogger.error('vision', 'Sync calculation failed:', e);
     return []; // Fallback 3: Empty polygon
   }
 };
@@ -367,7 +379,7 @@ export const calculateVisibilityPolygon = (
 
     return syncResult;
   } catch (e) {
-    console.error('[VisibilityService] Unexpected error:', e);
+    DebugLogger.error('vision', 'Unexpected error:', e);
     return []; // Ultimate fallback
   }
 };
