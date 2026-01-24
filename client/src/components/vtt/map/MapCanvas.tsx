@@ -83,7 +83,7 @@ export const MapCanvas = (props: MapCanvasProps) => {
   useEffect(() => {
     const newToken = props.tokens[props.tokens.length - 1];
     if (newToken) {
-      DebugLogger.log('render', 'Tokens Updated:', {
+      DebugLogger.log('render', 'MapCanvas', 'Update', 'Tokens Updated:', {
         count: props.tokens.length,
         lastTokenId: newToken.id,
         owner: newToken.ownerId,

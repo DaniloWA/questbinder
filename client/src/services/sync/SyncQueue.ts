@@ -293,7 +293,7 @@ export class SyncQueue {
     const event = eventMap[eventKey];
 
     if (!event) {
-      DebugLogger.warn('sync', 'Unknown event mapping:', eventKey);
+      DebugLogger.warn('sync', 'SyncQueue', 'Send', 'Unknown event mapping:', eventKey);
       return;
     }
 

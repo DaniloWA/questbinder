@@ -1,5 +1,6 @@
 
 import { ApiResponse } from '../types';
+import { DebugLogger } from '../utils/DebugLogger';
 
 /**
  * Serviço de Gerenciamento de Arquivos
@@ -71,7 +72,7 @@ export const fileService = {
       };
     }
 
-    console.log(`[FileService] Uploading: ${file.name} (${fileSizeMB}MB, ${file.type})`);
+    DebugLogger.log('system', 'FileService', 'Upload', `Uploading: ${file.name} (${fileSizeMB}MB, ${file.type})`);
 
     // SIMULAÇÃO (MOCK): Converte para Base64
     return new Promise((resolve) => {
@@ -89,7 +90,7 @@ export const fileService = {
           return;
         }
 
-        console.log(`[FileService] Upload successful: ${file.name}`);
+        DebugLogger.log('system', 'FileService', 'Upload', `Upload successful: ${file.name}`);
 
         // Simula um delay de rede
         setTimeout(() => {
@@ -102,7 +103,7 @@ export const fileService = {
       };
 
       reader.onerror = (error) => {
-        console.error('[FileService] Upload error:', error);
+        DebugLogger.error('system', 'FileService', 'Upload', 'Upload error:', error);
         resolve({
           success: false,
           message: '❌ Erro ao ler o arquivo.\nTente novamente ou escolha outro arquivo.'
@@ -110,7 +111,7 @@ export const fileService = {
       };
 
       reader.onabort = () => {
-        console.warn('[FileService] Upload aborted');
+        DebugLogger.warn('system', 'FileService', 'Upload', 'Upload aborted');
         resolve({
           success: false,
           message: '⚠️ Upload cancelado pelo usuário.'
@@ -120,7 +121,7 @@ export const fileService = {
       try {
         reader.readAsDataURL(file);
       } catch (error) {
-        console.error('[FileService] Exception during upload:', error);
+        DebugLogger.error('system', 'FileService', 'Upload', 'Exception during upload:', error);
         resolve({
           success: false,
           message: '❌ Erro inesperado ao processar o arquivo.'

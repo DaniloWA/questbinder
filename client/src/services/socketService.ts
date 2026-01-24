@@ -28,7 +28,7 @@ class RealSocketService {
     const reconnectionDelay = parseInt(import.meta.env.VITE_WS_RECONNECTION_DELAY || '1000');
     const reconnectionDelayMax = parseInt(import.meta.env.VITE_WS_RECONNECTION_DELAY_MAX || '5000');
 
-    DebugLogger.log('system', 'Connecting to:', wsUrl);
+    DebugLogger.log('system', 'Socket', 'Connect', 'Connecting to:', wsUrl);
 
     this.socket = io(wsUrl, {
       transports: ['websocket'],
@@ -40,7 +40,7 @@ class RealSocketService {
 
     return new Promise((resolve) => {
       this.socket?.on('connect', () => {
-        DebugLogger.log('system', 'Connected to Server');
+        DebugLogger.log('system', 'Socket', 'Connect', 'Connected to Server');
         if (this.userId && this.campaignId) {
           this.socket?.emit('room:join', { userId: this.userId, campaignId: this.campaignId });
         }
@@ -57,16 +57,16 @@ class RealSocketService {
 
       this.socket?.onAny((event, ...args) => {
         if (event !== 'cursor:move' && event !== 'token:drag') {
-          DebugLogger.log('system', `Listener received: ${event}`, args);
+          DebugLogger.log('system', 'Socket', 'Listener', `Listener received: ${event}`, args);
         }
       });
 
       this.socket?.on('connect_error', (err) => {
-        DebugLogger.error('system', 'Connection Error:', err);
+        DebugLogger.error('system', 'Socket', 'Error', 'Connection Error:', err);
       });
 
       this.socket?.on('disconnect', (reason) => {
-        DebugLogger.warn('system', 'Disconnected:', reason);
+        DebugLogger.warn('system', 'Socket', 'Disconnect', 'Disconnected:', reason);
       });
     });
   }
@@ -75,7 +75,7 @@ class RealSocketService {
     if (this.socket) {
       this.socket.disconnect();
       this.socket = null;
-      DebugLogger.log('system', 'Disconnected');
+      DebugLogger.log('system', 'Socket', 'Disconnect', 'Disconnected manually');
     }
   }
 
@@ -95,7 +95,7 @@ class RealSocketService {
       return;
     }
     if (event != 'cursor:move' && event != 'token:drag' && event != 'cursor:keep_alive') {
-      DebugLogger.log('system', 'Emitting:', { event, payload });
+      DebugLogger.log('system', 'Socket', 'Emit', 'Emitting:', { event, payload });
     }
     this.socket.emit(event, payload);
   }

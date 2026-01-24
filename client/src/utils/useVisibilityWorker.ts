@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { Point, Obstacle } from '../types';
 import { calculateVisibilityPolygon } from './geometry';
+import { DebugLogger } from './DebugLogger';
 
 interface PendingRequest {
   resolve: (polygon: Point[]) => void;
@@ -130,7 +131,7 @@ export const useVisibilityWorker = () => {
       };
 
       workerRef.current.onerror = (error) => {
-        console.error('[VisibilityWorker] Error:', error);
+        DebugLogger.error('vision', 'VisibilityWorker', 'Error', 'Worker Error:', error);
         // Reject all pending requests on error
         pendingRequests.current.forEach((pending, id) => {
           pending.reject(new Error('Worker error'));
@@ -139,12 +140,12 @@ export const useVisibilityWorker = () => {
       };
 
       isReady.current = true;
-      console.log('[VisibilityWorker] Initialized successfully');
+      DebugLogger.log('vision', 'VisibilityWorker', 'Init', 'Worker Initialized successfully');
 
       // Cleanup blob URL
       URL.revokeObjectURL(workerUrl);
     } catch (error) {
-      console.warn('[VisibilityWorker] Failed to initialize, using fallback:', error);
+      DebugLogger.warn('vision', 'VisibilityWorker', 'Init', 'Failed to initialize worker, using fallback:', error);
       isReady.current = false;
     }
 
@@ -197,7 +198,7 @@ export const useVisibilityWorker = () => {
       setTimeout(() => {
         const pending = pendingRequests.current.get(id);
         if (pending) {
-          console.warn('[VisibilityWorker] Timeout, falling back to sync');
+          DebugLogger.warn('vision', 'VisibilityWorker', 'Timeout', 'Worker timeout, falling back to sync');
           pendingRequests.current.delete(id);
           try {
             const result = calculateVisibilityPolygon(origin, obstacles, visionRadius);

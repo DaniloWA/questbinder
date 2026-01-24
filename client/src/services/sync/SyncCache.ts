@@ -12,6 +12,7 @@ import {
   ChangeType,
   PendingChange,
 } from './types';
+import { DebugLogger } from '../../utils/DebugLogger';
 
 /**
  * SyncCache - Versioned entity cache with dirty tracking.
@@ -347,11 +348,11 @@ export class SyncCache {
    */
   debug(): void {
     console.group('[SyncCache] State');
-    console.log('Stats:', this.getStats());
+    DebugLogger.log('sync', 'SyncCache', 'Debug', 'Stats:', this.getStats());
 
     for (const [entityType, typeCache] of this.cache) {
       if (typeCache.size > 0) {
-        console.log(`${entityType}: ${typeCache.size} entries`);
+        DebugLogger.log('sync', 'SyncCache', 'Contents', `${entityType}: ${typeCache.size} entries`);
       }
     }
 

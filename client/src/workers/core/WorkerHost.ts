@@ -19,17 +19,17 @@ export class WorkerHost implements IWorkerHost {
 
   constructor() {
     self.onmessage = this.handleMessage.bind(this);
-    DebugLogger.log('worker', 'Initialized');
+    DebugLogger.log('worker', 'WorkerHost', 'Init', 'Initialized');
   }
 
   public register(ModuleClass: ModuleConstructor) {
     const module = new ModuleClass(this);
     if (this.modules.has(module.name)) {
-      DebugLogger.warn('worker', `Module '${module.name}' already registered. Overwriting.`);
+      DebugLogger.warn('worker', 'WorkerHost', 'Register', `Module '${module.name}' already registered. Overwriting.`);
     }
 
     this.modules.set(module.name, module);
-    DebugLogger.log('worker', `Module registered: ${module.name}`);
+    DebugLogger.log('worker', 'WorkerHost', 'Register', `Module registered: ${module.name}`);
 
     if (module.onInit) {
       module.onInit();
@@ -59,7 +59,7 @@ export class WorkerHost implements IWorkerHost {
         throw new Error(`Module '${moduleName}' not found`);
       }
 
-      DebugLogger.log('worker', `⚙️ Processing: ${moduleName}.${action}`, { id });
+      DebugLogger.log('worker', 'WorkerHost', 'Process', `⚙️ Processing: ${moduleName}.${action}`, { id });
       // DebugLogger.log('worker', `⚙️ Processing: ${moduleName}.${action}`, { id }); 
       // Keep console.log for worker raw output if DebugLogger fails in worker context?
       // No, DebugLogger sends to console anyway.
@@ -70,7 +70,7 @@ export class WorkerHost implements IWorkerHost {
       const result = await module.handle(action, actionPayload);
 
       const duration = (performance.now() - start).toFixed(2);
-      DebugLogger.log('worker', `✅ Done: ${moduleName}.${action} (${duration}ms)`);
+      DebugLogger.log('worker', 'WorkerHost', 'Process', `✅ Done: ${moduleName}.${action} (${duration}ms)`);
 
       // Send Response
       const response: WorkerMessage<WorkerResponse> = {

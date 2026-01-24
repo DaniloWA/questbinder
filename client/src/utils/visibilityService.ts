@@ -69,7 +69,7 @@ const updateWorkerMap = (obstacles: Obstacle[], hash: string) => {
 
   lastObstacleHash = hash;
   WorkerManager.getInstance().execute('visibility', 'setObstacles', { obstacles })
-    .catch(err => DebugLogger.error('vision', 'Failed to update map', err));
+    .catch(err => DebugLogger.error('vision', 'VisibilityService', 'UpdateMap', 'Failed to update map', err));
 };
 
 
@@ -172,7 +172,7 @@ const calculateSync = (origin: Point, obstacles: Obstacle[], visionRadius: numbe
         // Intelligent Log: Only warn if we EXPECT walls (visionRadius > 0) but see none
         // Use frequency throttling to avoid spam
         if (Math.random() < 0.01) {
-          DebugLogger.warn('vision', 'calculateSync: No obstacles provided!', { origin });
+          DebugLogger.warn('vision', 'VisibilityService', 'CalcSync', 'calculateSync: No obstacles provided!', { origin });
         }
       }
       return [];
@@ -294,7 +294,7 @@ const calculateSync = (origin: Point, obstacles: Obstacle[], visionRadius: numbe
 
     return simplified;
   } catch (e) {
-    DebugLogger.error('vision', 'Sync calculation failed:', e);
+    DebugLogger.error('vision', 'VisibilityService', 'CalcSync', 'Sync calculation failed:', e);
     return []; // Fallback 3: Empty polygon
   }
 };
@@ -346,11 +346,11 @@ export const calculateVisibilityPolygon = (
           origin,
           visionRadius
         }).then(polygon => {
-          DebugLogger.log('vision', `Worker Result: ${polygon.length} points`, { cacheKey });
+          DebugLogger.log('vision', 'VisibilityService', 'Worker', `Worker Result: ${polygon.length} points`, { cacheKey });
           cache.set(cacheKey, { polygon, timestamp: Date.now(), obstacleHash, origin });
           pendingRequests.delete(id);
         }).catch(err => {
-          DebugLogger.error('worker', 'Visibility calculation failed', err);
+          DebugLogger.error('worker', 'VisibilityService', 'Worker', 'Visibility calculation failed', err);
           pendingRequests.delete(id);
         });
 
@@ -368,18 +368,18 @@ export const calculateVisibilityPolygon = (
     if (cached) return cached.polygon;
 
     // Last resort: Use sync calculation for first-time calculations
-    DebugLogger.warn('vision', 'Fallback to SYNC calculation', { cacheKey });
+    DebugLogger.warn('vision', 'VisibilityService', 'Fallback', 'Fallback to SYNC calculation', { cacheKey });
     DebugLogger.time('sync-vis');
     const syncResult = calculateSync(origin, obstacles, visionRadius);
     DebugLogger.timeEnd('vision', 'sync-vis', 5); // Warn if > 5ms
-    DebugLogger.log('vision', `Sync Result: ${syncResult.length} points`);
+    DebugLogger.log('vision', 'VisibilityService', 'Fallback', `Sync Result: ${syncResult.length} points`);
 
     // Cache the sync result immediately so next frame doesn't recalculate
     cache.set(cacheKey, { polygon: syncResult, timestamp: now, obstacleHash, origin });
 
     return syncResult;
   } catch (e) {
-    DebugLogger.error('vision', 'Unexpected error:', e);
+    DebugLogger.error('vision', 'VisibilityService', 'Error', 'Unexpected error:', e);
     return []; // Ultimate fallback
   }
 };

@@ -18,6 +18,7 @@ import { findTokenAt, canDragToken } from '../utils/hitTesting';
 import { roundToGrid } from '../utils/coordConversion';
 import { WorkerManager } from '../../../../../workers/core/WorkerManager';
 import type { Token, Point } from '../../../../../types';
+import { DebugLogger } from '../../../../../utils/DebugLogger';
 
 /**
  * TokenDragHandler - Token selection and movement.
@@ -98,13 +99,14 @@ export class TokenDragHandler extends BaseHandler {
     const token = findTokenAt(ctx.worldPos.x, ctx.worldPos.y, ctx);
 
     if (ctx.button === 0 || ctx.button === 2) {
-      console.log('[TokenDrag] Hit Test:', {
-        found: !!token,
-        tokenId: token?.id,
-        owner: token?.ownerId,
-        canDrag: token ? canDragToken(token, ctx) : false,
-        worldPos: ctx.worldPos
-      });
+      if (token) {
+        DebugLogger.log('input', 'TokenDrag', 'HitTest', 'Token Found', {
+          tokenId: token.id,
+          owner: token.ownerId,
+          canDrag: canDragToken(token, ctx),
+          worldPos: ctx.worldPos
+        });
+      }
     }
 
     if (!token) return this.notHandled();
@@ -268,7 +270,7 @@ export class TokenDragHandler extends BaseHandler {
 
   onMouseLeave(_ctx: InteractionContext): HandlerResult {
     if (this.dragState.isDragging) {
-      console.log('[TokenDrag] MouseLeave - Drag Cancelled');
+      DebugLogger.log('input', 'TokenDrag', 'Cancel', 'MouseLeave - Drag Cancelled');
       // Cancel drag on leave
       this.endDrag();
       return this.handled();
@@ -300,9 +302,8 @@ export class TokenDragHandler extends BaseHandler {
     this.calculatedPathRef = calculatedPathRef;
   }
 
-  // Private methods
   private startDrag(token: Token, ctx: InteractionContext): void {
-    console.log('[TokenDrag] Start Drag Real:', { id: token.id });
+    DebugLogger.log('input', 'TokenDrag', 'Start', 'Starting Drag', { id: token.id });
     const gridSize = ctx.gridSize;
 
     this.dragState = {

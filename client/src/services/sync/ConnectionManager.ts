@@ -5,6 +5,7 @@
  */
 
 import { socketService } from '../socketService';
+import { DebugLogger } from '../../utils/DebugLogger';
 
 // =============================================================================
 // CONNECTION STATE
@@ -146,7 +147,7 @@ export class ConnectionManager {
       try {
         listener(this.getStatus());
       } catch (e) {
-        console.error('[ConnectionManager] Listener error:', e);
+        DebugLogger.error('system', 'ConnectionManager', 'Notify', 'Listener error:', e);
       }
     }
   }
@@ -208,7 +209,7 @@ export class ConnectionManager {
    * Debug log connection state.
    */
   debug(): void {
-    console.log('[ConnectionManager]', this.status);
+    DebugLogger.log('system', 'ConnectionManager', 'Debug', 'Status:', this.status);
   }
 }
 

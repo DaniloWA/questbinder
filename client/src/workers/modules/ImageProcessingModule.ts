@@ -1,4 +1,5 @@
 import { BaseModule } from './BaseModule';
+import { DebugLogger } from '../../utils/DebugLogger';
 import { EdgeDetector } from '../../utils/image-processing/analysis/edge';
 import { FloodFiller } from '../../utils/image-processing/analysis/flood';
 import { ColorMatcher } from '../../utils/image-processing/color/matcher';
@@ -42,7 +43,7 @@ export class ImageProcessingModule extends BaseModule {
 
     const finalConfig: ProcessingConfig = { ...DEFAULT_CONFIG, ...config };
 
-    console.log('[ImageWorker] Starting processing...');
+    DebugLogger.log('worker', 'ImageProcessing', 'Init', 'Starting processing...');
     const startTotal = performance.now();
 
     // 1. Target Color & Adaptive Tolerance
@@ -112,7 +113,7 @@ export class ImageProcessingModule extends BaseModule {
     });
 
     const endTotal = performance.now();
-    console.log(`[ImageWorker] Finished in ${(endTotal - startTotal).toFixed(2)}ms`);
+    DebugLogger.log('worker', 'ImageProcessing', 'Complete', `Finished in ${(endTotal - startTotal).toFixed(2)}ms`);
 
     return result;
   }

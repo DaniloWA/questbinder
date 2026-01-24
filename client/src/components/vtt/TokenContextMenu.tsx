@@ -143,7 +143,11 @@ export const TokenContextMenu: React.FC<TokenContextMenuProps> = ({
                             <span className="font-bold text-xs" style={{ color: liveToken.textDetails?.textColor }}>{liveToken.textDetails?.text}</span>
                         </div>
                     ) : (
-                        <img src={liveToken.imgUrl} className="w-full h-full object-cover" />
+                        liveToken.imgUrl ? (
+                            <img src={liveToken.imgUrl} className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="w-full h-full bg-zinc-800" />
+                        )
                     )}
                 </div>
                 <div className="min-w-0">

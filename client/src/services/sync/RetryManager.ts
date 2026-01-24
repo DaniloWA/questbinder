@@ -5,6 +5,7 @@
  */
 
 import { PendingChange, generateChangeId } from './types';
+import { DebugLogger } from '../../utils/DebugLogger';
 
 // =============================================================================
 // RETRY CONFIGURATION
@@ -197,9 +198,9 @@ export class RetryManager {
    */
   debug(): void {
     console.group('[RetryManager] State');
-    console.log('Pending:', this.retryQueue.size);
+    DebugLogger.log('sync', 'RetryManager', 'Debug', 'Pending Retries:', this.retryQueue.size);
     for (const [key, state] of this.retryQueue) {
-      console.log(`  ${key}: attempt ${state.attempts}, next in ${state.nextRetry - Date.now()}ms`);
+      DebugLogger.log('sync', 'RetryManager', 'Debug', `  ${key}: attempt ${state.attempts}, next in ${state.nextRetry - Date.now()}ms`);
     }
     console.groupEnd();
   }
