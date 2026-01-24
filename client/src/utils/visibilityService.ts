@@ -62,7 +62,7 @@ const isWorkerAvailable = () => true;
 
 // Listen for worker restarts (crashes/HMR) to invalidate state
 // CRITICAL: Only run this on the main thread.
-if (typeof window !== 'undefined' && !((typeof self !== 'undefined' && self.constructor.name === 'DedicatedWorkerGlobalScope') || typeof importScripts === 'function')) {
+if (typeof window !== 'undefined' && !((typeof self !== 'undefined' && self.constructor.name === 'DedicatedWorkerGlobalScope') || typeof (self as any).importScripts === 'function')) {
   try {
     WorkerManager.getInstance().onWorkerRestart(() => {
       DebugLogger.warn('vision', 'VisibilityService', 'WorkerRestart', 'Worker restarted, invalidating obstacle state');
