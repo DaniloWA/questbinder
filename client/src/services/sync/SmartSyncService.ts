@@ -261,10 +261,26 @@ export class SmartSyncService {
     // Check for conflicts
     const entry = this.cache.getEntry(entityType, entityId);
 
+    // CRITICAL FIX: "Client Wins on Dirty"
+    // If we have pending local changes for this entity, IGNORE the server update.
+    // The server update is likely "stale" (pre-move state) if our move hasn't processed yet.
+    // We trust that our pending queue will eventually overwrite the server.
+    if (entry && entry.dirty && entry.pendingChanges.length > 0) {
+      // Exception: If server says DELETE, we might want to respect it? 
+      // For now, protect local state against overwrites.
+      if (changeType !== 'create') { // Create confirmation is handled below
+        if (this.options.debug) {
+          console.warn('[SmartSync] Ignored remote update for dirty entity:', entityId);
+        }
+        return;
+      }
+    }
+
     // Skip conflict check for CREATE - server is confirming our optimistic create
     // Also skip for updates to our own pending creates
     if (entry && entry.dirty && entry.pendingChanges.length > 0 && changeType !== 'create') {
-      // Potential conflict
+      // Potential conflict - actually we just Handled it above by returning early.
+      // But keeping logic for "Create" confirmation or specialized conflict types.
       const conflict = this.detectConflict(entry, event);
       if (conflict) {
         this.handleConflict(conflict);

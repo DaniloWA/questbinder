@@ -322,6 +322,10 @@ export const drawLightingLayer = (
             const isControlled = visionTokens.some(vt => vt.id === t.id);
 
             if (isControlled) {
+                // Use interpolated coords (tx, ty are already interpolated above for lights)
+                const cx = (tx + t.size / 2) * gridSize;
+                const cy = (ty + t.size / 2) * gridSize;
+
                 if ((t.darkvisionRange || 0) > 0) {
                     const r = (t.darkvisionRange || 0) * gridSize;
                     visionSources.push({ x: cx, y: cy, r, soft: false, isPersonal: true });

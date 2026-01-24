@@ -292,7 +292,7 @@ export class SyncQueue {
           ? { sceneId: parentId, token: data, ...common }
           : changeType === 'delete'
             ? { sceneId: parentId, id: entityId, ...common }
-            : { sceneId: parentId, id: entityId, changes: data, ...common };
+            : { sceneId: parentId, id: entityId, changes: data, token: data, ...data, ...common };
         break;
 
       case 'scene':

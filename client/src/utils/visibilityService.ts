@@ -39,6 +39,7 @@ const MAX_PENDING_REQUESTS = 5; // Strict limit to prevent animation loop overlo
 // ============================================================================
 
 import { WorkerManager } from '../workers/core/WorkerManager';
+import { DebugLogger } from './DebugLogger';
 
 // ============================================================================
 // STATE (Module-level singleton)
@@ -165,61 +166,89 @@ const calculateSync = (origin: Point, obstacles: Obstacle[], visionRadius: numbe
   try {
     if (!origin || !obstacles) return [];
 
-    // DEBUG: Trace sync calls
-    console.log('[VisSync] Calculating for', origin.x.toFixed(0), origin.y.toFixed(0), obstacles.length);
-
     const lineSegments: { p1: Point, p2: Point; }[] = [];
     const minX = origin.x - visionRadius;
     const maxX = origin.x + visionRadius;
     const minY = origin.y - visionRadius;
     const maxY = origin.y + visionRadius;
 
+    // Helper: Extend segment slightly to overlap corners (Fixes Light Leaks)
+    const extend = (p1: Point, p2: Point) => {
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      const len = Math.hypot(dx, dy);
+      if (len === 0) return { p1, p2 };
+      const ex = (dx / len) * 0.1; // Extend by 0.1px 
+      const ey = (dy / len) * 0.1;
+      return {
+        p1: { x: p1.x - ex, y: p1.y - ey },
+        p2: { x: p2.x + ex, y: p2.y + ey }
+      };
+    };
+
+    // 1. Extract Segments
     for (const obs of obstacles) {
       if (!obs.blocksVision) continue;
+
       if (obs.type === 'wall' && obs.points) {
         const len = obs.points.length;
         if (len < 2) continue;
         const loopCount = obs.open ? len - 1 : len;
+
         for (let i = 0; i < loopCount; i++) {
           const p1 = obs.points[i];
           const p2 = obs.points[(i + 1) % len];
           if (!p1 || !p2) continue;
+
+          // Simple bounding box check
           if (Math.max(p1.x, p2.x) < minX || Math.min(p1.x, p2.x) > maxX ||
             Math.max(p1.y, p2.y) < minY || Math.min(p1.y, p2.y) > maxY) continue;
-          lineSegments.push({ p1, p2 });
+
+          lineSegments.push(extend(p1, p2));
         }
       } else if (obs.type === 'door' || obs.type === 'window') {
-        // LineObstacle type (door or window)
+        // LineObstacle type
         if (Math.max(obs.p1.x, obs.p2.x) < minX || Math.min(obs.p1.x, obs.p2.x) > maxX ||
           Math.max(obs.p1.y, obs.p2.y) < minY || Math.min(obs.p1.y, obs.p2.y) > maxY) continue;
-        lineSegments.push({ p1: obs.p1, p2: obs.p2 });
+        lineSegments.push(extend(obs.p1, obs.p2));
+      } else if ((obs as any).p1 && (obs as any).p2) {
+        // Legacy support
+        const p1 = (obs as any).p1;
+        const p2 = (obs as any).p2;
+        if (Math.max(p1.x, p2.x) < minX || Math.min(p1.x, p2.x) > maxX ||
+          Math.max(p1.y, p2.y) < minY || Math.min(p1.y, p2.y) > maxY) continue;
+        lineSegments.push(extend(p1, p2));
       }
     }
 
-    // DEBUG: Trace segments
-    console.log('[VisSync] Segments:', lineSegments.length);
-
+    // 2. Generate Casting Angles
     const uniqueAngles: number[] = [];
-    // Adaptive precision: huge geometries get fewer rays (2 vs 4 per segment)
-    const exactOnly = lineSegments.length > 500;
+
+    // Adaptive precision: if HUGE number of segments, degrade gracefully
+    const useHighPrecision = lineSegments.length < 1000;
 
     for (const s of lineSegments) {
       const a1 = Math.atan2(s.p1.y - origin.y, s.p1.x - origin.x);
       const a2 = Math.atan2(s.p2.y - origin.y, s.p2.x - origin.x);
 
-      if (exactOnly) {
-        uniqueAngles.push(a1, a2);
+      if (useHighPrecision) {
+        // Robust 3-ray approach: Target, slightly left, slightly right
+        uniqueAngles.push(a1 - 0.0001, a1, a1 + 0.0001);
+        uniqueAngles.push(a2 - 0.0001, a2, a2 + 0.0001);
       } else {
-        uniqueAngles.push(a1 - 0.00001, a1 + 0.00001, a2 - 0.00001, a2 + 0.00001);
+        // Fallback for extreme cases
+        uniqueAngles.push(a1, a2);
       }
     }
-    // Optimization: Add fixed angles only if few segments
-    if (uniqueAngles.length < 360) {
-      for (let i = 0; i < 360; i += 15) uniqueAngles.push(i * Math.PI / 180);
+
+    // Always add cardinal directions/fixed intervals to ensure basic shape even without walls
+    // (This ensures "circular" vision in open areas)
+    const fixedCounts = 24; // Every ~15 degrees
+    for (let i = 0; i < fixedCounts; i++) {
+      uniqueAngles.push(i * (Math.PI * 2) / fixedCounts);
     }
 
-    console.log('[VisSync] Angles:', uniqueAngles.length, exactOnly ? '(Low Precision)' : '(High Precision)');
-
+    // 3. Raycast
     const intersections = uniqueAngles.map(angle => {
       const dx = Math.cos(angle);
       const dy = Math.sin(angle);
@@ -241,13 +270,15 @@ const calculateSync = (origin: Point, obstacles: Obstacle[], visionRadius: numbe
       return closestIntersection || rayEnd;
     });
 
+    // 4. Sort Vertices
     intersections.sort((a, b) =>
       Math.atan2(a.y - origin.y, a.x - origin.x) - Math.atan2(b.y - origin.y, b.x - origin.x)
     );
 
-    // Simplify the result (0.5 grid unit tolerance)
+    // 5. Simplify
+    // Use a small tolerance to merge colinear points but keep corners sharp
+    // 0.5 is usually 1/3 of a pixel or 1/140 of a grid cell
     const simplified = simplifyResult(intersections, 0.5);
-    console.log('[VisSync] Simplified:', intersections.length, '->', simplified.length);
 
     return simplified;
   } catch (e) {
@@ -303,11 +334,11 @@ export const calculateVisibilityPolygon = (
           origin,
           visionRadius
         }).then(polygon => {
-          console.log('[Vis] Worker Result for', cacheKey, polygon.length);
+          DebugLogger.log('vision', `Worker Result: ${polygon.length} points`, { cacheKey });
           cache.set(cacheKey, { polygon, timestamp: Date.now(), obstacleHash, origin });
           pendingRequests.delete(id);
         }).catch(err => {
-          console.error('[VisibilityService] Worker failed', err);
+          DebugLogger.error('worker', 'Visibility calculation failed', err);
           pendingRequests.delete(id);
         });
 
@@ -325,9 +356,11 @@ export const calculateVisibilityPolygon = (
     if (cached) return cached.polygon;
 
     // Last resort: Use sync calculation for first-time calculations
-    console.log('[Vis] Sync Fallback for', cacheKey);
+    DebugLogger.warn('vision', 'Fallback to SYNC calculation', { cacheKey });
+    DebugLogger.time('sync-vis');
     const syncResult = calculateSync(origin, obstacles, visionRadius);
-    console.log('[Vis] Sync Result:', syncResult.length, 'points');
+    DebugLogger.timeEnd('vision', 'sync-vis', 5); // Warn if > 5ms
+    DebugLogger.log('vision', `Sync Result: ${syncResult.length} points`);
 
     // Cache the sync result immediately so next frame doesn't recalculate
     cache.set(cacheKey, { polygon: syncResult, timestamp: now, obstacleHash, origin });

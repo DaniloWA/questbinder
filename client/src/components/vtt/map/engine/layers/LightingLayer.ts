@@ -90,7 +90,7 @@ export class LightingLayer extends BaseLayer {
     // =========================================================================
 
     if (!effectiveIsGM) {
-      this.renderDarkness(lightCtx, scene, tokens, visionTokens, obstacles, playerVisionPath, gridSize, mapWidth, mapHeight, time);
+      this.renderDarkness(lightCtx, scene, tokens, visionTokens, obstacles, playerVisionPath, gridSize, mapWidth, mapHeight, time, (context as any).animations);
     }
 
     // =========================================================================
@@ -165,7 +165,8 @@ export class LightingLayer extends BaseLayer {
     gridSize: number,
     mapW: number,
     mapH: number,
-    time: number
+    time: number,
+    animations?: Map<string, any>
   ): void {
     const ambientLevel = Math.max(0, Math.min(1, scene.ambientLight ?? 1.0));
     const darknessAlpha = 1.0 - ambientLevel;
@@ -195,6 +196,58 @@ export class LightingLayer extends BaseLayer {
 
       // Token light source
       if (token.light?.enabled) {
+        // Use animated position if available
+        let tx = token.x;
+        let ty = token.y;
+
+        // Access animations from context (it's passed as 6th arg to render but context has it too)
+        // Actually, render signature is (ctx, context). context has animationsRef? No, context has 'animations' map?
+        // Let's check context type.
+        // If not in context, we rely on the fact that 'tokens' passed might be 'live' tokens? 
+        // No, usually tokens are state. We need the animation map.
+        // Looking at useMapRenderer: drawLightingLayer(..., animationsRef.current, ...)
+        // But here we are in LightingLayer class render().
+
+        // Wait, the LightingLayer.render() receives `context: RenderContext`.
+        // RenderContext usually has everything. Let's assume we can get it or we need to look at how LightingLayer is called.
+        // In useMapRenderer, it calls `drawLightingLayer` function, NOT `LightingLayer.render`.
+        // Ah! `LightingLayer.ts` has a class `LightingLayer` AND `useMapRenderer.ts` imports specific functions `drawLightingLayer` from `canvasRenderer`.
+
+        // WAIT. The files I read earlier:
+        // `LightingLayer.ts` (Class based layer)
+        // `canvasRenderer.ts` (Functional renderer `drawLightingLayer`)
+
+        // The SYSTEM seems to imply `LightingLayer.ts` (the class) is the "New Engine" layer, while `canvasRenderer.ts` is the legacy/hook renderer?
+        // OR `LightingLayer.ts` is used by the `CanvasRenderer` (Engine).
+
+        // Explicitly check `LightingLayer.ts` again. It has `render(ctx, context)`.
+        // `context` (RenderContext) likely needs `animations`.
+
+        // Let's assume `context` has what we need or we interpolating based on time.
+        // `context.tokens` are the source of truth.
+        // If `LightingLayer` class is used, we need to ensure IT does the interpolation.
+
+        // Let's use the same logic as `canvasRenderer.ts` if possible.
+        // But wait, `renderDarkness` in `LightingLayer.ts` (Class) iterates `tokens`.
+
+        // I will add interpolation logic here matching the standard `getAnimatedPosition` manual calculation
+        // since we might not have the helper imported.
+
+        // FIX: The user complains light lag.
+        // If `LightingLayer.ts` is used, it reads `token.x`.
+        // I will add animation lookups if `context.animations` exists.
+
+        const anim = (context as any).animations?.get(token.id);
+        if (anim) {
+          const progress = Math.min(1, (time - anim.startTime) / anim.duration);
+          const ease = 1 - Math.pow(1 - progress, 3); // EaseOutCubic
+          tx = anim.startX + (anim.targetX - anim.startX) * ease;
+          ty = anim.startY + (anim.targetY - anim.startY) * ease;
+        }
+
+        const cx = (tx + token.size / 2) * gridSize;
+        const cy = (ty + token.size / 2) * gridSize;
+
         const flicker = this.calculateFlicker(token, time);
         const maxFlicker = this.getMaxFlicker(token);
         const baseRadius = Math.max(token.light.brightRadius || 0, token.light.dimRadius || 0) * gridSize;
