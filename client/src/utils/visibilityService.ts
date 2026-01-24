@@ -62,11 +62,13 @@ const isWorkerAvailable = () => true;
 
 // Listen for worker restarts (crashes/HMR) to invalidate state
 // CRITICAL: Only run this on the main thread.
-if (typeof window !== 'undefined' && !((typeof self !== 'undefined' && self.constructor.name === 'DedicatedWorkerGlobalScope') || typeof (self as any).importScripts === 'function')) {
+if (typeof window !== 'undefined') {
   try {
+    // We are on main thread (window exists)
     WorkerManager.getInstance().onWorkerRestart(() => {
       DebugLogger.warn('vision', 'VisibilityService', 'WorkerRestart', 'Worker restarted, invalidating obstacle state');
       lastObstacleHash = '';
+      // Optional: We could trigger a global refresh here if we had access to a redraw event
     });
   } catch (e) {
     // Ignore errors if WorkerManager fails to init (e.g. inside worker context that slipped through)
@@ -244,9 +246,9 @@ export const calculateVisibilityPolygon = (
     // If cache exists and map state (hash) hasn't changed, return it forever.
     if (cached && cached.obstacleHash === obstacleHash) {
       // DEBUG: Cache Hit
-      if (Math.random() < 0.001) {
-        DebugLogger.log('vision', 'Service', 'CacheHit', `Returning cached polygon for ${cacheKey}`);
-      }
+      // if (Math.random() < 0.001) {
+      //   DebugLogger.log('vision', 'Service', 'CacheHit', `Returning cached polygon for ${cacheKey}`);
+      // }
       return cached.polygon;
     }
 
@@ -258,10 +260,13 @@ export const calculateVisibilityPolygon = (
     // Update worker state if needed
     updateWorkerMap(obstacles, obstacleHash);
 
-    // Try worker (Throttled)
+    // Try worker (Optimistic - Fire and Forget)
+    // We removed strict throttling that caused fallbacks.
+    // We now just ensure we don't spam the identical request.
     const timeSinceLast = now - lastWorkerRequestTime;
 
-    if (pendingRequests.size < MAX_PENDING_REQUESTS && timeSinceLast > MIN_WORKER_INTERVAL) {
+    // Strict throttle removed (was MIN_WORKER_INTERVAL) - only debounce slightly (5ms) to batch super-fast react updates
+    if (pendingRequests.size < MAX_PENDING_REQUESTS * 2 && timeSinceLast > 5) {
       const id = cacheKey; // Used as correlation ID
 
       if (!pendingRequests.has(id)) {
@@ -276,6 +281,10 @@ export const calculateVisibilityPolygon = (
           if (polygon.length === 0 && obstacles.length > 0) {
             DebugLogger.warn('vision', 'VisibilityService', 'Worker', 'Worker returned 0 points (State Desync?). Forcing obstacle re-sync.');
             lastObstacleHash = ''; // Force re-send next time
+
+            // IMMEDIATE RECOVERY: If we detected desync, try to forcefully update the map NOW so the next frame is correct.
+            // We can't retry *this* request easily without recursion/promise chains, but we ensure the state is fixed.
+            updateWorkerMap(obstacles, obstacleHash);
           } else {
             // Only cache valid results or if truly empty
             cache.set(cacheKey, { polygon, timestamp: Date.now(), obstacleHash, origin });
@@ -314,17 +323,23 @@ export const calculateVisibilityPolygon = (
       return fuzzy;
     }
 
-    // Last resort: Use sync calculation for first-time calculations
-    DebugLogger.warn('vision', 'VisibilityService', 'Fallback', 'Fallback to SYNC calculation', { cacheKey });
-    DebugLogger.time('sync-vis');
-    const syncResult = calculateSync(origin, obstacles, visionRadius);
-    DebugLogger.timeEnd('vision', 'sync-vis', 5); // Warn if > 5ms
-    DebugLogger.log('vision', 'VisibilityService', 'Fallback', `Sync Result: ${syncResult.length} points`);
+    // Last resort: Return empty or fuzzy match. (NO SYNC FALLBACK)
+    // User requested "Force Worker" even if it lags.
+    // If we return empty, we might flicker. If we have ANY cache, we used it above.
+
+    // Attempt one last fuzzy search with infinite radius? No, too slow.
+    // Just return empty. The worker WILL return soon.
+    if (Math.random() < 0.05) {
+      DebugLogger.log('vision', 'VisibilityService', 'AsyncWait', 'Waiting for worker, returning empty/stale', { cacheKey });
+    }
+
+    // We do NOT call calculateSync anymore.
+    return [];
 
     // Cache the sync result immediately so next frame doesn't recalculate
-    cache.set(cacheKey, { polygon: syncResult, timestamp: now, obstacleHash, origin });
+    // cache.set(cacheKey, { polygon: syncResult, timestamp: now, obstacleHash, origin });
 
-    return syncResult;
+    // return syncResult;
   } catch (e) {
     DebugLogger.error('vision', 'VisibilityService', 'Error', 'Unexpected error:', e);
     return []; // Ultimate fallback

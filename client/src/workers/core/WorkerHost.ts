@@ -20,6 +20,7 @@ export class WorkerHost implements IWorkerHost {
   constructor() {
     self.onmessage = this.handleMessage.bind(this);
     DebugLogger.log('worker', 'WorkerHost', 'Init', 'Initialized');
+    this.emit('system', 'ready', { timestamp: Date.now() });
   }
 
   public register(ModuleClass: ModuleConstructor) {

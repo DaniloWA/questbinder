@@ -378,6 +378,13 @@ export class WorkerManager {
     }
     else if (type === 'EVENT') {
       const eventPayload = payload as WorkerEvent;
+
+      // CRITICAL: Handshake to detect silent worker restarts
+      if (eventPayload.module === 'system' && eventPayload.event === 'ready') {
+        DebugLogger.log('worker', 'WorkerManager', 'Handshake', 'Received system:ready signal from worker. Triggering restart listeners.');
+        this.restartListeners.forEach(cb => cb());
+      }
+
       const moduleListeners = this.listeners.get(eventPayload.module);
       if (moduleListeners) {
         moduleListeners.forEach(cb => cb(eventPayload.event, eventPayload.payload));

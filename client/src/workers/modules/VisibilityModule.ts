@@ -32,7 +32,8 @@ export class VisibilityModule extends BaseModule {
   private calculateVisibility(payload: VisibilityPayload): Point[] {
     const { origin, visionRadius } = payload;
     // Use payload obstacles if provided (one-off), otherwise use state
-    const obstacles = payload.obstacles || this.obstacles;
+    // SAFETY: Ensure we never map over undefined
+    const obstacles = payload.obstacles || this.obstacles || [];
 
     // DIAGNOSTIC LOG: Check for empty state
     if (obstacles.length === 0 && visionRadius > 0) {
