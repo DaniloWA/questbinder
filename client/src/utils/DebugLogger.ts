@@ -134,6 +134,13 @@ class DebugLoggerService {
 
   // --- Core Logging ---
 
+  private centerText(text: string, width: number): string {
+    if (text.length >= width) return text;
+    const left = Math.max(0, Math.floor((width - text.length) / 2));
+    const right = Math.max(0, width - text.length - left);
+    return ' '.repeat(left) + text + ' '.repeat(right);
+  }
+
   private shouldLog(category: DebugCategory, message: string, where: string, what: string): boolean {
     if (!this.config.enabled) return false;
     if (!this.config.categories[category]) return false;
@@ -164,8 +171,8 @@ class DebugLoggerService {
     const statusColor = STATUS_COLORS[entry.level];
 
     // Normalize widths: Max Category (8=LIGHTING), Max Level (7=SUCCESS)
-    const catBadge = entry.category.toUpperCase().padEnd(8, ' ');
-    const lvlBadge = entry.level.toUpperCase().padEnd(7, ' ');
+    const catBadge = this.centerText(entry.category.toUpperCase(), 8);
+    const lvlBadge = this.centerText(entry.level.toUpperCase(), 7);
 
     // Badge Style: [CATEGORY] [STATUS] Message
     console.log(
@@ -218,12 +225,14 @@ class DebugLoggerService {
     // Warns are important, we might want to show them even if regex doesn't match? 
     // User requested "robust filter", so we respect filter but maybe log warning normally if allowed.
     if (this.shouldLog(category, message, where, what)) {
-      const catBadge = category.toUpperCase().padEnd(8, ' ');
+      const catBadge = this.centerText(category.toUpperCase(), 8);
+      const lvlBadge = this.centerText('WARN', 7);
+
       // Use console.warn for stack trace capability, but formatted custom
       console.groupCollapsed(
-        `%c ${catBadge} %c WARN    %c ${message}`,
-        `background: ${CATEGORY_COLORS[category]}; color: white; font-weight: bold; padding: 2px 5px; white-space: pre;`,
-        `background: ${STATUS_COLORS.warn}; color: black; font-weight: bold; padding: 2px 5px; white-space: pre;`,
+        `%c ${catBadge} %c ${lvlBadge} %c ${message}`,
+        `background: ${CATEGORY_COLORS[category]}; color: white; border-radius: 3px 0 0 3px; font-weight: bold; padding: 2px 5px; white-space: pre;`,
+        `background: ${STATUS_COLORS.warn}; color: black; border-radius: 0 3px 3px 0; font-weight: bold; padding: 2px 5px; white-space: pre;`,
         'font-weight: bold;'
       );
       console.warn(message);
@@ -247,11 +256,13 @@ class DebugLoggerService {
     this.addToHistory(entry);
     // Always show errors unless master switch off
     if (this.config.enabled) {
-      const catBadge = category.toUpperCase().padEnd(8, ' ');
+      const catBadge = this.centerText(category.toUpperCase(), 8);
+      const lvlBadge = this.centerText('ERROR', 7);
+
       console.groupCollapsed(
-        `%c ${catBadge} %c ERROR   %c ${message}`,
-        `background: ${CATEGORY_COLORS[category]}; color: white; font-weight: bold; padding: 2px 5px; white-space: pre;`,
-        `background: ${STATUS_COLORS.error}; color: white; font-weight: bold; padding: 2px 5px; white-space: pre;`,
+        `%c ${catBadge} %c ${lvlBadge} %c ${message}`,
+        `background: ${CATEGORY_COLORS[category]}; color: white; border-radius: 3px 0 0 3px; font-weight: bold; padding: 2px 5px; white-space: pre;`,
+        `background: ${STATUS_COLORS.error}; color: white; border-radius: 0 3px 3px 0; font-weight: bold; padding: 2px 5px; white-space: pre;`,
         'font-weight: bold; color: #ef4444;'
       );
       console.error(message);
