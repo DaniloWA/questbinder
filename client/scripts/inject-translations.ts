@@ -154,7 +154,7 @@ function serializeObject(obj: any, indent: number = 0): string {
 
 // Process each locale file
 function processLocaleFile(filePath: string, translations: Translation[], lang: 'en' | 'pt'): number {
-  console.log(`\n📝 Processing: ${path.basename(filePath)}`);
+  DebugLogger.log(`\n📝 Processing: ${path.basename(filePath)}`);
 
   const { obj, prefix } = parseLocaleFile(filePath);
   let successCount = 0;
@@ -164,7 +164,7 @@ function processLocaleFile(filePath: string, translations: Translation[], lang: 
     const value = lang === 'en' ? translation.en : translation.pt;
 
     if (setNestedValue(obj, keyPath, value)) {
-      console.log(`  ✅ Added: ${translation.key}`);
+      DebugLogger.log(`  ✅ Added: ${translation.key}`);
       successCount++;
     }
   }
@@ -177,11 +177,11 @@ function processLocaleFile(filePath: string, translations: Translation[], lang: 
 }
 
 // Main execution
-console.log(`🌐 Injecting ${input.translations.length} translations...`);
+DebugLogger.log(`🌐 Injecting ${input.translations.length} translations...`);
 
 const enCount = processLocaleFile(enUsPath, input.translations, 'en');
 const ptCount = processLocaleFile(ptBrPath, input.translations, 'pt');
 
-console.log(`\n✅ Done!`);
-console.log(`   EN-US: ${enCount}/${input.translations.length} translations added`);
-console.log(`   PT-BR: ${ptCount}/${input.translations.length} translations added`);
+DebugLogger.log(`\n✅ Done!`);
+DebugLogger.log(`   EN-US: ${enCount}/${input.translations.length} translations added`);
+DebugLogger.log(`   PT-BR: ${ptCount}/${input.translations.length} translations added`);

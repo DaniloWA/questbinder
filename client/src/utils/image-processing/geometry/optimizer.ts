@@ -1,3 +1,6 @@
+
+
+import { DebugLogger } from '../../DebugLogger';
 import { Point } from '../../../types';
 import { OptimizationOptions } from '../types';
 
@@ -193,33 +196,33 @@ export class PolygonOptimizer {
 
     // Step 1: Remove near-duplicate points
     let result = PolygonOptimizer.removeDuplicates(points, minPointDistance);
-    console.log(`[Optimizer] 1️⃣ Duplicates: ${points.length} -> ${result.length}`);
+    DebugLogger.log('vision', 'PolygonOptimizer', 'Duplicates', `1️⃣ Removed: ${points.length} -> ${result.length}`);
 
     // Step 2: Remove collinear points (straight line optimization)
     const afterCollinear = PolygonOptimizer.removeCollinear(result, collinearThreshold);
-    console.log(`[Optimizer] 2️⃣ Collinear: ${result.length} -> ${afterCollinear.length}`);
+    DebugLogger.log('vision', 'PolygonOptimizer', 'Collinear', `2️⃣ Removed: ${result.length} -> ${afterCollinear.length}`);
     result = afterCollinear;
 
     // Step 3: RDP simplification for remaining curves
     const afterRDP = PolygonOptimizer.simplifyRDP(result, simplifyEpsilon);
-    console.log(`[Optimizer] 3️⃣ RDP: ${result.length} -> ${afterRDP.length}`);
+    DebugLogger.log('vision', 'PolygonOptimizer', 'RDP', `3️⃣ Simplified: ${result.length} -> ${afterRDP.length}`);
     result = afterRDP;
 
     // Step 4: Light smoothing to soften corners (assuming closed contour)
     if (smoothIterations > 0) {
       const afterSmooth = PolygonOptimizer.smoothChaikin(result, smoothIterations, true);
-      console.log(`[Optimizer] 4️⃣ Smoothing: ${result.length} -> ${afterSmooth.length} (Iterations: ${smoothIterations})`);
+      DebugLogger.log('vision', 'PolygonOptimizer', 'Smoothing', `4️⃣ Smoothed: ${result.length} -> ${afterSmooth.length} (Iterations: ${smoothIterations})`);
       result = afterSmooth;
     }
 
     // Step 5: Cleanup - remove any new duplicates created by smoothing
     const afterCleanup = PolygonOptimizer.removeDuplicates(result, minPointDistance);
-    console.log(`[Optimizer] 5️⃣ Cleanup: ${result.length} -> ${afterCleanup.length}`);
+    DebugLogger.log('vision', 'PolygonOptimizer', 'Cleanup', `5️⃣ Cleanup: ${result.length} -> ${afterCleanup.length}`);
     result = afterCleanup;
 
     // Step 6: Cleanup - remove any new collinear points created by smoothing
     const finalResult = PolygonOptimizer.removeCollinear(result, collinearThreshold);
-    console.log(`[Optimizer] 6️⃣ Final: ${result.length}`);
+    DebugLogger.log('vision', 'PolygonOptimizer', 'Final', `6️⃣ Final: ${result.length}`);
     return finalResult;
   }
 }

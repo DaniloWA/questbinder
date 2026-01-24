@@ -20,6 +20,7 @@ import type {
 } from './types';
 import { screenToWorld, getMousePos } from '../utils/coordConversion';
 import type { Viewport, VTTTool, Point } from '../../../../../types';
+import { DebugLogger } from '../../../../../utils/DebugLogger';
 
 /**
  * InteractionOrchestrator - Central interaction controller.
@@ -105,10 +106,6 @@ export class InteractionOrchestrator {
     for (const handler of this.registry.getHandlers()) {
       handler.onContextUpdate?.(this.context as InteractionContext, changedKeys);
     }
-
-    // if (changedKeys.includes('tokens')) {
-    //   console.log('[Orchestrator] Context Tokens Updated:', this.context.tokens?.length);
-    // }
 
     this.emit({ type: 'context:updated', keys: changedKeys });
   }
@@ -330,8 +327,8 @@ export class InteractionOrchestrator {
    */
   debug(): void {
     console.group('[InteractionOrchestrator] Debug');
-    console.log('Current Tool:', this.currentTool);
-    console.log('Handlers:', this.registry.getHandlerCount());
+    DebugLogger.log('input', 'InteractionOrchestrator', 'Tool', `Current Tool: ${this.currentTool}`);
+    DebugLogger.log('input', 'InteractionOrchestrator', 'Handlers', `Handler count: ${this.registry.getHandlerCount()}`);
     this.registry.debugHandlers();
     console.groupEnd();
   }

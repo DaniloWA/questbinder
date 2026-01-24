@@ -208,7 +208,7 @@ export const MapCanvas = (props: MapCanvasProps) => {
       currentFogRect: mapState.currentFogRect,
       draggedAttackZone: mapState.draggedAttackZone,
     },
-    { debug: false }
+    { debug: true }
   );
 
   // Sync additional context data to orchestrator

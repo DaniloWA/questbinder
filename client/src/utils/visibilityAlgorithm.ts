@@ -1,5 +1,4 @@
-
-import { Point, Obstacle } from '../types';
+import { Point, Obstacle } from '../types/models';
 import { DebugLogger } from './DebugLogger';
 
 // ============================================================================

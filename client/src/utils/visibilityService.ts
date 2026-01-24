@@ -31,7 +31,7 @@ interface CacheEntry {
 
 const CACHE_TTL_MS = 100;
 const MAX_CACHE_SIZE = 200;
-const WORKER_TIMEOUT_MS = 50; // Fast timeout - fall back quickly
+const WORKER_TIMEOUT_MS = 600;// Fast timeout - fall back quickly
 const MAX_PENDING_REQUESTS = 5; // Strict limit to prevent animation loop overload
 
 // ============================================================================
@@ -59,6 +59,12 @@ let lastObstacleHash = '';
 
 // Worker initialization is handled by WorkerManager now.
 const isWorkerAvailable = () => true;
+
+// Listen for worker restarts (crashes/HMR) to invalidate state
+WorkerManager.getInstance().onWorkerRestart(() => {
+  DebugLogger.warn('vision', 'VisibilityService', 'WorkerRestart', 'Worker restarted, invalidating obstacle state');
+  lastObstacleHash = '';
+});
 
 
 /**
@@ -154,6 +160,37 @@ const cleanCache = () => {
       DebugLogger.log('vision', 'VisibilityService', 'Evict', `Evicted: ${evictedTTL} (TTL), ${evictedSize} (Size). Remaining: ${cache.size}`);
     }
   }
+};
+
+const findFuzzyMatch = (origin: Point, visionRadius: number, obstacleHash: string): Point[] | null => {
+  // Search for a recent cache entry with same map state but close position
+  // Limit search to ~50 most recent entries for speed
+  const ENTRIES_TO_CHECK = 50;
+  const FUZZY_RADIUS = 50; // Pixels
+
+  let checked = 0;
+  // Iterate map in reverse insertion order (newest first)
+  // Map iteration is insertion-ordered. We need to be careful.
+  // Actually, standard iteration is easiest. We'll check all if size < big.
+
+  for (const entry of cache.values()) {
+    if (checked++ > ENTRIES_TO_CHECK) break;
+
+    // Must match environment exactly
+    if (entry.obstacleHash !== obstacleHash) continue;
+
+    // Check distance
+    const dist = Math.hypot(origin.x - entry.origin.x, origin.y - entry.origin.y);
+    if (dist < FUZZY_RADIUS) {
+      // Found a close match! Translate it.
+      const dx = origin.x - entry.origin.x;
+      const dy = origin.y - entry.origin.y;
+
+      // Return translated copy
+      return entry.polygon.map(p => ({ x: p.x + dx, y: p.y + dy }));
+    }
+  }
+  return null;
 };
 
 // ============================================================================
@@ -255,6 +292,19 @@ export const calculateVisibilityPolygon = (
     // If we have a cached value (even if stale), return it while we wait for worker
     // This prevents main thread freeze
     if (cached) return cached.polygon;
+
+    // TRY FUZZY CACHE: If moving fast, use a nearby polygon shifted to our position
+    // This effectively "interpolates" the vision polygon, avoiding the 100ms sync calc
+    const fuzzy = findFuzzyMatch(origin, visionRadius, obstacleHash);
+    if (fuzzy) {
+      // DEBUG: Fuzzy Hit
+      if (Math.random() < 0.01) DebugLogger.log('vision', 'VisibilityService', 'FuzzyHit', 'Used interpolated cache during movement');
+
+      // IMPORTANT: We still dispatched the worker above!
+      // We just return this approximation NOW to avoid dropping frames.
+      // We do NOT cache this fuzzy result as "authoritative" for this key.
+      return fuzzy;
+    }
 
     // Last resort: Use sync calculation for first-time calculations
     DebugLogger.warn('vision', 'VisibilityService', 'Fallback', 'Fallback to SYNC calculation', { cacheKey });

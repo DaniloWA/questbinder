@@ -1,0 +1,17 @@
+﻿src/components/vtt/map/hooks/useLayerEngine.ts(165,7): error TS2304: Cannot find name 'DebugLogger'.
+src/components/vtt/map/hooks/useLayerEngine.ts(174,9): error TS2304: Cannot find name 'DebugLogger'.
+src/components/vtt/map/interaction/core/HandlerRegistry.ts(107,5): error TS2304: Cannot find name 'DebugLogger'.
+src/components/vtt/map/interaction/core/HandlerRegistry.ts(128,5): error TS2304: Cannot find name 'DebugLogger'.
+src/components/vtt/map/interaction/core/InteractionOrchestrator.ts(328,5): error TS2304: Cannot find name 'DebugLogger'.
+src/components/vtt/map/interaction/core/InteractionOrchestrator.ts(329,5): error TS2304: Cannot find name 'DebugLogger'.
+src/components/vtt/map/interaction/core/InteractionOrchestrator.ts(330,5): error TS2304: Cannot find name 'DebugLogger'.
+src/components/vtt/map/interaction/core/InteractionOrchestrator.ts(331,5): error TS2304: Cannot find name 'DebugLogger'.
+src/components/vtt/map/interaction/core/InteractionOrchestrator.ts(333,5): error TS2304: Cannot find name 'DebugLogger'.
+src/context/gameSession/hooks/usePermissions.ts(32,5): error TS2304: Cannot find name 'DebugLogger'.
+src/context/gameSession/hooks/usePermissions.ts(33,5): error TS2304: Cannot find name 'DebugLogger'.
+src/context/gameSession/hooks/usePermissions.ts(34,5): error TS2304: Cannot find name 'DebugLogger'.
+src/context/gameSession/hooks/usePermissions.ts(37,5): error TS2304: Cannot find name 'DebugLogger'.
+src/context/gameSession/hooks/usePermissions.ts(40,5): error TS2304: Cannot find name 'DebugLogger'.
+src/context/gameSession/hooks/usePermissions.ts(42,5): error TS2304: Cannot find name 'DebugLogger'.
+src/context/gameSession/hooks/usePermissions.ts(54,5): error TS2304: Cannot find name 'DebugLogger'.
+src/context/gameSession/hooks/useSceneActions.ts(108,9): error TS2304: Cannot find name 'DebugLogger'.

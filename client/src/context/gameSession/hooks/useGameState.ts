@@ -9,6 +9,7 @@ import { apiService } from '../../../services/apiService';
 import { socketService } from '../../../services/socketService';
 import { useAuth } from '../../AuthContext';
 import { TokenTemplate } from '../../../types';
+import { DebugLogger } from '../../../utils/DebugLogger';
 
 export const useGameState = (campaignId: string) => {
   const { user } = useAuth();
@@ -98,12 +99,12 @@ export const useGameState = (campaignId: string) => {
 
             // Setup connection listeners
             socketService.on('connect', () => {
-              console.log('[GameState] Socket connected');
+              DebugLogger.log('sync', 'GameState', 'Socket', 'Socket connected');
               setState(prev => ({ ...prev, isConnected: true }));
             });
 
             socketService.on('disconnect', () => {
-              console.log('[GameState] Socket disconnected');
+              DebugLogger.log('sync', 'GameState', 'Socket', 'Socket disconnected');
               setState(prev => ({ ...prev, isConnected: false }));
             });
 

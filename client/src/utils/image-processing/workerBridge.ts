@@ -1,7 +1,7 @@
 import { WorkerManager } from '../../workers/core/WorkerManager';
 import { ProcessingConfig } from './types';
 import { DEFAULT_CONFIG } from './constants';
-import { Point } from '../../types';
+import { Point } from '../../types/models';
 
 /**
  * processImageInWorker

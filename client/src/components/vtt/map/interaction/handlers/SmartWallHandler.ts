@@ -9,6 +9,7 @@ import type { EventPhase, HandlerResult, InteractionContext } from '../core/type
 import { processImageInWorker } from '../../../../../utils/image-processing/workerBridge';
 import { handleRightClickCancel } from '../utils/InteractionUtils';
 import type { Point } from '../../../../../types';
+import { DebugLogger } from '../../../../../utils/DebugLogger';
 
 /**
  * SmartWallHandler - Automatic wall detection from image.
@@ -42,25 +43,23 @@ export class SmartWallHandler extends BaseHandler {
 
     // Get map image from cache
     const imageUrl = ctx.scene?.imageUrl;
-    console.log('[SmartWall] 🔍 DEBUG START');
-    console.log('[SmartWall] imageUrl:', imageUrl);
-    console.log('[SmartWall] imageCache keys:', Object.keys(ctx.imageCache || {}));
+    DebugLogger.log('vision', 'SmartWall', 'Debug', 'Starting detection');
+    DebugLogger.log('vision', 'SmartWall', 'Image', `URL: ${imageUrl}`);
+    DebugLogger.log('vision', 'SmartWall', 'Cache', 'Keys available', Object.keys(ctx.imageCache || {}));
 
     if (!imageUrl) {
-      console.warn('[SmartWall] ❌ No imageUrl in scene!');
+      DebugLogger.warn('vision', 'SmartWall', 'Image', 'No imageUrl in scene');
       return this.notHandled();
     }
 
     const img = ctx.imageCache[imageUrl];
-    console.log('[SmartWall] img found:', !!img);
-    console.log('[SmartWall] img.complete:', img?.complete);
-    console.log('[SmartWall] img.width (CSS):', img?.width);
-    console.log('[SmartWall] img.height (CSS):', img?.height);
-    console.log('[SmartWall] img.naturalWidth:', img?.naturalWidth);
-    console.log('[SmartWall] img.naturalHeight:', img?.naturalHeight);
+    DebugLogger.log('vision', 'SmartWall', 'Image', `Found: ${!!img}, Complete: ${img?.complete}`);
+    if (img) {
+      DebugLogger.log('vision', 'SmartWall', 'Dimensions', `CSS: ${img.width}x${img.height}, Natural: ${img.naturalWidth}x${img.naturalHeight}`);
+    }
 
     if (!img || !img.complete) {
-      console.warn('[SmartWall] ❌ Image not loaded or not complete!');
+      DebugLogger.warn('vision', 'SmartWall', 'Image', 'Image not loaded or not complete!');
       return this.notHandled();
     }
 
@@ -68,28 +67,28 @@ export class SmartWallHandler extends BaseHandler {
     const tolerance = ctx.wandSettings?.tolerance ?? 30;
     const resolution = ctx.wandSettings?.resolution ?? 512;
     const simplification = ctx.wandSettings?.simplification ?? 2.0;
-    console.log('[SmartWall] wandSettings:', { tolerance, resolution, simplification });
+    DebugLogger.log('vision', 'SmartWall', 'Settings', 'Wand Settings', { tolerance, resolution, simplification });
 
     // Get image dimensions
     const grid = ctx.scene?.grid;
     if (!grid) return this.notHandled();
 
     const mapWidth = grid.size * grid.cols;
-    console.log('[SmartWall] grid:', { size: grid.size, cols: grid.cols, rows: grid.rows });
-    console.log('[SmartWall] mapWidth:', mapWidth);
+    DebugLogger.log('vision', 'SmartWall', 'Grid', 'Grid Config', { size: grid.size, cols: grid.cols, rows: grid.rows });
+    DebugLogger.log('vision', 'SmartWall', 'Grid', `Map Width: ${mapWidth}`);
 
     // IMPORTANT: Map is rendered with uniform scale (aspect ratio preserved)
     // The image is scaled to fit mapWidth, so we use the same scale for both X and Y
     const scale = img.naturalWidth / mapWidth;
-    console.log('[SmartWall] Uniform scale:', scale);
-    console.log('[SmartWall] Image dimensions: ', img.naturalWidth, 'x', img.naturalHeight);
-    console.log('[SmartWall] Effective map height in world coords:', img.naturalHeight / scale);
+    DebugLogger.log('vision', 'SmartWall', 'Scale', `Uniform Scale: ${scale}`);
+    DebugLogger.log('vision', 'SmartWall', 'Dimensions', `Image: ${img.naturalWidth}x${img.naturalHeight}`);
+    DebugLogger.log('vision', 'SmartWall', 'Dimensions', `Effective Height: ${img.naturalHeight / scale}`);
 
-    console.log('[SmartWall] worldPos:', ctx.worldPos);
+    DebugLogger.log('vision', 'SmartWall', 'Coords', 'World Pos', ctx.worldPos);
     const imgX = Math.floor(ctx.worldPos.x * scale);
     const imgY = Math.floor(ctx.worldPos.y * scale);
-    console.log('[SmartWall] imgX:', imgX, 'imgY:', imgY);
-    console.log('[SmartWall] 📍 Calling getContourFromPoint...');
+    DebugLogger.log('vision', 'SmartWall', 'Coords', `Image Coords: ${imgX}, ${imgY}`);
+    DebugLogger.log('vision', 'SmartWall', 'Process', 'Calling getContourFromPoint...');
 
     // Trigger loading state via callback
     this.callbacks?.setProcessing?.(true, 'Detecting wall...');

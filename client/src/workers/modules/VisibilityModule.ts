@@ -1,6 +1,7 @@
 import { BaseModule } from './BaseModule';
-import { Point, Obstacle } from '../../types';
+import { Point, Obstacle } from '../../types/models';
 import { computeVisibilityPolygon } from '../../utils/visibilityAlgorithm';
+import { DebugLogger } from '../../utils/DebugLogger';
 
 interface VisibilityPayload {
   origin: Point;
@@ -18,7 +19,7 @@ export class VisibilityModule extends BaseModule {
         this.obstacles = payload.obstacles || [];
         // LOG: Confirm update
         if (this.obstacles.length > 0) {
-          console.log(`[VisibilityWorker] Updated obstacles: ${this.obstacles.length}`);
+          DebugLogger.log('worker', 'VisibilityModule', 'Update', `Updated obstacles: ${this.obstacles.length}`);
         }
         return true;
       case 'calculateVisibility':
@@ -35,12 +36,12 @@ export class VisibilityModule extends BaseModule {
 
     // DIAGNOSTIC LOG: Check for empty state
     if (obstacles.length === 0 && visionRadius > 0) {
-      console.warn('[VisibilityWorker] Warning: Calculating with 0 obstacles! (State likely empty)');
+      DebugLogger.warn('worker', 'VisibilityModule', 'Calc', 'Warning: Calculating with 0 obstacles! (State likely empty)');
     }
 
     // Explicit Worker Log (Throttled)
     if (Math.random() < 0.005) {
-      console.log(`[VisibilityWorker] Spec: ${obstacles.length} obstacles, Radius: ${visionRadius}`);
+      DebugLogger.log('worker', 'VisibilityModule', 'Calc', `Spec: ${obstacles.length} obstacles, Radius: ${visionRadius}`);
     }
 
     return computeVisibilityPolygon(origin, obstacles, visionRadius);

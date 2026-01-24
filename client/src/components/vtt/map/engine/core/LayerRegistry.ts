@@ -7,6 +7,7 @@
 
 import { BaseLayer } from './BaseLayer';
 import { LayerConfig, LayerPlugin, LayerState } from './types';
+import { DebugLogger } from '../../../../../utils/DebugLogger';
 
 /**
  * Internal layer entry with configuration.
@@ -100,8 +101,7 @@ export class LayerRegistry {
       pluginId: plugin.id,
     });
 
-    this.invalidateSortedCache();
-    console.log(`[LayerRegistry] Plugin registered: ${plugin.name} v${plugin.version}`);
+    DebugLogger.log('system', 'LayerRegistry', 'Plugin', `Plugin registered: ${plugin.name} v${plugin.version}`);
   }
 
   /**
@@ -124,7 +124,7 @@ export class LayerRegistry {
 
     this.plugins.delete(pluginId);
     this.invalidateSortedCache();
-    console.log(`[LayerRegistry] Plugin unregistered: ${plugin.name}`);
+    DebugLogger.log('system', 'LayerRegistry', 'Plugin', `Plugin unregistered: ${plugin.name}`);
     return true;
   }
 

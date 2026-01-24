@@ -5,6 +5,7 @@ import { socketService } from '../../../services/socketService';
 import { smartSync } from '../../../services/sync';
 import { MapScene } from '../../../types';
 import { ActionHandlers, StateHelpers } from '../helpers';
+import { DebugLogger } from '../../../utils/DebugLogger';
 
 export const useSceneActions = (
   state: GameSessionState,
@@ -105,7 +106,7 @@ export const useSceneActions = (
       isGMOnly: true,
 
       socketEmit: () => {
-        console.log('[WS] Emitting scene:update (settings)', { id: state.activeSceneId, changes: settings });
+        DebugLogger.log('sync', 'useSceneActions', 'Emit', 'Emitting scene:update (settings)', { id: state.activeSceneId, changes: settings });
         smartSync.apply('scene', state.activeSceneId, 'update', settings);
       }
     });

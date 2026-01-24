@@ -1,5 +1,5 @@
 
-import { Point, Obstacle, MeasurementMetric } from '../types';
+import { Point, Obstacle, MeasurementMetric } from '../types/models';
 
 /**
  * Calculates the intersection point of two line segments (p1-p2 and p3-p4).

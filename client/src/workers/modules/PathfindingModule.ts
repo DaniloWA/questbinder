@@ -1,5 +1,5 @@
 import { BaseModule } from './BaseModule';
-import { Obstacle, Point, GridOptions } from '../../types';
+import { Obstacle, Point, GridOptions } from '../../types/models';
 
 // Copied/Adapted from utils/geometry.ts to ensure worker independence or import if possible.
 // Since utils/geometry.ts is pure math, importing it is fine as long as it doesn't touch DOM.

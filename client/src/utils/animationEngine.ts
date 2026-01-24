@@ -8,6 +8,8 @@
  * - Visibility detection for performance
  */
 
+import { DebugLogger } from './DebugLogger';
+
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -577,7 +579,7 @@ export const interpolateState = (
 // Enable via: window.__DEBUG_ANIMATION = true
 export const debugLog = (message: string, data?: any): void => {
   if (typeof window !== 'undefined' && (window as any).__DEBUG_ANIMATION) {
-    console.log(`[AnimationEngine] ${message}`, data ?? '');
+    DebugLogger.log('render', 'AnimationEngine', 'Debug', message, data);
   }
 };
 

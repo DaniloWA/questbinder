@@ -16,6 +16,7 @@ import {
 } from './types';
 import { Viewport, MapScene, Token, VTTTool, Ping, Character, User, SessionPermissions } from '../../../../../types';
 import { CursorMovePayload, TokenDragPayload } from '../../../../../types/socket';
+import { DebugLogger } from '../../../../../utils/DebugLogger';
 
 /**
  * Default background color for the canvas.
@@ -83,7 +84,7 @@ export class MapOrchestrator {
     this.fpsLastTime = this.lastTime;
     this.frameId = requestAnimationFrame((t) => this.render(t));
     if (this.options.debug) {
-      console.log('[MapOrchestrator] Started');
+      DebugLogger.log('render', 'MapOrchestrator', 'Lifecycle', 'Started');
     }
   }
 
@@ -98,7 +99,7 @@ export class MapOrchestrator {
       this.frameId = 0;
     }
     if (this.options.debug) {
-      console.log('[MapOrchestrator] Stopped');
+      DebugLogger.log('render', 'MapOrchestrator', 'Lifecycle', 'Stopped');
     }
   }
 
@@ -239,9 +240,9 @@ export class MapOrchestrator {
    */
   debug(): void {
     console.group('[MapOrchestrator] Debug');
-    console.log('Running:', this.running);
-    console.log('FPS:', this.currentFps);
-    console.log('Canvas:', this.canvas.width, 'x', this.canvas.height);
+    DebugLogger.log('render', 'MapOrchestrator', 'Status', `Running: ${this.running}`);
+    DebugLogger.log('render', 'MapOrchestrator', 'Status', `FPS: ${this.currentFps}`);
+    DebugLogger.log('render', 'MapOrchestrator', 'Canvas', `${this.canvas.width}x${this.canvas.height}`);
     this.registry.debugLayers();
     console.groupEnd();
   }

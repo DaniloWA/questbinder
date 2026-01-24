@@ -24,6 +24,7 @@ import { useSFXActions } from './gameSession/hooks/useSFXActions';
 import { audioService } from '../services/audioService';
 import { smartSync } from '../services/sync';
 import { useSmartSyncBridge } from './gameSession/hooks/useSmartSyncBridge';
+import { DebugLogger } from '../utils/DebugLogger';
 
 const GameSessionContext = createContext<GameSessionContextType | undefined>(undefined);
 
@@ -82,11 +83,10 @@ export const GameSessionProvider: React.FC<{ children: React.ReactNode, campaign
                 ?.audioZones?.find(z => z.audioUrl === state.activeAudioZoneUrl);
 
             const zoneVolume = activeZone?.volume ?? 0.3; // Default to 30% if not found
-
-            console.log('[AudioZone] Entering zone, playing:', state.activeAudioZoneUrl, 'volume:', zoneVolume);
+            DebugLogger.log('system', 'AudioZone', 'Playback', `Entering zone: ${state.activeAudioZoneUrl} (vol: ${zoneVolume})`);
             audioService.playMusic(state.activeAudioZoneUrl, true, zoneVolume);
         } else {
-            // console.log('[AudioZone] Exiting zone, stopping music');
+            DebugLogger.log('system', 'AudioZone', 'Playback', 'Exiting zone, stopping music');
             audioService.stopMusic();
         }
     }, [state.activeAudioZoneUrl, state.scenes, state.activeSceneId]);

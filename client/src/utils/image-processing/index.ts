@@ -1,4 +1,4 @@
-import { Point } from '../../types';
+import { Point } from '../../types/models';
 import { EdgeDetector } from './analysis/edge';
 import { FloodFiller } from './analysis/flood';
 import { ColorMatcher } from './color/matcher';
@@ -9,6 +9,7 @@ import { MorphologyProcessor } from './geometry/morphology';
 import { PolygonOptimizer } from './geometry/optimizer';
 import { ProcessingConfig } from './types';
 import { inBounds } from './utils';
+import { DebugLogger } from '../DebugLogger';
 
 // Re-export types for consumers
 export type { ProcessingConfig } from './types';
@@ -66,8 +67,8 @@ export const getContourFromPoint = (
   const targetRGBA = ColorSampler.getSample(data, sx, sy, width, height, 3);
   const variance = ColorSampler.getVariance(data, sx, sy, width, height, 5);
 
-  console.log('[ImageProcessing] 🎯 Target Color:', targetRGBA);
-  console.log('[ImageProcessing] 📊 Variance:', variance.toFixed(2));
+  DebugLogger.log('vision', 'ImageProcessing', 'Target', 'Target Color', targetRGBA);
+  DebugLogger.log('vision', 'ImageProcessing', 'Variance', `Variance: ${variance.toFixed(2)}`);
 
   // 3. Initialize Processors with Adaptive Config
   // First, create matcher to calculate adaptive tolerance
@@ -76,7 +77,7 @@ export const getContourFromPoint = (
 
   // Update config with adaptive tolerance
   const adaptiveConfig = { ...finalConfig, tolerance: adaptiveTolerance };
-  console.log('[ImageProcessing] ⚙️ Final Config:', { ...adaptiveConfig, scale: scale.toFixed(2), scaledWidth: w, scaledHeight: h });
+  DebugLogger.log('vision', 'ImageProcessing', 'Config', 'Final Config', { ...adaptiveConfig, scale: scale.toFixed(2), scaledWidth: w, scaledHeight: h });
 
   const colorMatcher = new ColorMatcher(targetRGBA, adaptiveConfig);
   const edgeDetector = new EdgeDetector(data, width, height, adaptiveConfig.gradientThreshold);
@@ -92,7 +93,7 @@ export const getContourFromPoint = (
   // Calculate mask area (pixels filled)
   let filledPixels = 0;
   for (let i = 0; i < visitedMask.length; i++) if (visitedMask[i] === 1) filledPixels++;
-  console.log(`[ImageProcessing] 🌊 Flood Fill: ${filledPixels} pixels in ${(floodEnd - floodStart).toFixed(2)}ms`);
+  DebugLogger.log('vision', 'ImageProcessing', 'FloodFill', `Filled ${filledPixels} pixels in ${(floodEnd - floodStart).toFixed(2)}ms`);
 
   // 5. Create Cropped Mask
   const minX = bbox.minX;
@@ -131,10 +132,10 @@ export const getContourFromPoint = (
   const traceEnd = performance.now();
 
   if (contour.length === 0) {
-    console.warn('[ImageProcessing] ⚠️ No contour found!');
+    DebugLogger.warn('vision', 'ImageProcessing', 'Contour', 'No contour found!');
     return [];
   }
-  console.log(`[ImageProcessing] 🖍️ Raw Contour Points: ${contour.length} (Traced in ${(traceEnd - traceStart).toFixed(2)}ms)`);
+  DebugLogger.log('vision', 'ImageProcessing', 'Contour', `Raw Points: ${contour.length} (Traced in ${(traceEnd - traceStart).toFixed(2)}ms)`);
 
   // 8. Transform back to original image coordinates and upscale
   const worldContour = contour.map(p => ({
@@ -153,8 +154,8 @@ export const getContourFromPoint = (
   });
   const optEnd = performance.now();
 
-  console.log(`[ImageProcessing] ✨ Optimized Contour: ${result.length} points (Reduction: ${Math.round((1 - result.length / contour.length) * 100)}%)`);
-  console.log(`[ImageProcessing] ⏱️ Optimization Time: ${(optEnd - optStart).toFixed(2)}ms`);
+  DebugLogger.log('vision', 'ImageProcessing', 'Optimize', `Optimized: ${result.length} points (Reduction: ${Math.round((1 - result.length / contour.length) * 100)}%)`);
+  DebugLogger.log('vision', 'ImageProcessing', 'Optimize', `Optimization Time: ${(optEnd - optStart).toFixed(2)}ms`);
 
   return result;
 };

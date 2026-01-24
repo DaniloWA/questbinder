@@ -1,0 +1,129 @@
+﻿src/components/CampaignSettings/CampaignBestiary.tsx(115,20): error TS18048: 'tpl.visionRange' is possibly 'undefined'.
+src/components/ui/ColorPicker.tsx(2,30): error TS7016: Could not find a declaration file for module 'react-dom'. 'C:/Users/ddani/Documents/Projetos/QuestBinder/client/node_modules/react-dom/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-dom` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-dom';`
+src/components/ui/Modal.tsx(2,30): error TS7016: Could not find a declaration file for module 'react-dom'. 'C:/Users/ddani/Documents/Projetos/QuestBinder/client/node_modules/react-dom/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-dom` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-dom';`
+src/components/ui/PopoutWindow.tsx(3,30): error TS7016: Could not find a declaration file for module 'react-dom'. 'C:/Users/ddani/Documents/Projetos/QuestBinder/client/node_modules/react-dom/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-dom` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-dom';`
+src/components/ui/SheetPrimitives.tsx(3,30): error TS7016: Could not find a declaration file for module 'react-dom'. 'C:/Users/ddani/Documents/Projetos/QuestBinder/client/node_modules/react-dom/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-dom` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-dom';`
+src/components/vtt/GameLog.tsx(3,30): error TS7016: Could not find a declaration file for module 'react-dom'. 'C:/Users/ddani/Documents/Projetos/QuestBinder/client/node_modules/react-dom/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-dom` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-dom';`
+src/components/vtt/GameLog.tsx(484,134): error TS2322: Type 'string | undefined' is not assignable to type 'string | number'.
+  Type 'undefined' is not assignable to type 'string | number'.
+src/components/vtt/GameLog.tsx(484,271): error TS2322: Type 'string | undefined' is not assignable to type 'string | number'.
+  Type 'undefined' is not assignable to type 'string | number'.
+src/components/vtt/HandoutFormModal.tsx(216,50): error TS2322: Type 'RefObject<HTMLTextAreaElement | null>' is not assignable to type 'RefObject<HTMLTextAreaElement>'.
+  Type 'HTMLTextAreaElement | null' is not assignable to type 'HTMLTextAreaElement'.
+    Type 'null' is not assignable to type 'HTMLTextAreaElement'.
+src/components/vtt/LocalCursor.tsx(3,38): error TS7016: Could not find a declaration file for module 'react-dom/server'. 'C:/Users/ddani/Documents/Projetos/QuestBinder/client/node_modules/react-dom/server.node.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-dom` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-dom/server';`
+src/components/vtt/map/engine/layers/TokenLayer.ts(357,11): error TS18047: 'scene' is possibly 'null'.
+src/components/vtt/map/hooks/useMapRenderer.ts(485,118): error TS2345: Argument of type 'User[] | undefined' is not assignable to parameter of type 'User[]'.
+  Type 'undefined' is not assignable to type 'User[]'.
+src/components/vtt/map/interaction/handlers/TokenDragHandler.ts(85,9): error TS2322: Type 'boolean | undefined' is not assignable to type 'boolean'.
+  Type 'undefined' is not assignable to type 'boolean'.
+src/components/vtt/map/interaction/handlers/TokenDragHandler.ts(246,9): error TS2532: Object is possibly 'undefined'.
+src/components/vtt/map/MapCanvas.tsx(129,9): error TS2322: Type '"pulse" | "ripple" | "burst" | "sparkle" | "vortex" | "shard" | "ring" | "echo" | "orb" | undefined' is not assignable to type 'ClickAnimationStyle'.
+  Type 'undefined' is not assignable to type 'ClickAnimationStyle'.
+src/components/vtt/map/MapCanvas.tsx(166,5): error TS2322: Type 'RefObject<HTMLCanvasElement | null>' is not assignable to type 'RefObject<HTMLCanvasElement>'.
+  Type 'HTMLCanvasElement | null' is not assignable to type 'HTMLCanvasElement'.
+    Type 'null' is not assignable to type 'HTMLCanvasElement'.
+src/components/vtt/map/MapCanvas.tsx(425,9): error TS2322: Type 'RefObject<HTMLCanvasElement | null>' is not assignable to type 'RefObject<HTMLCanvasElement>'.
+  Type 'HTMLCanvasElement | null' is not assignable to type 'HTMLCanvasElement'.
+    Type 'null' is not assignable to type 'HTMLCanvasElement'.
+src/components/vtt/MapContextMenu.tsx(3,30): error TS7016: Could not find a declaration file for module 'react-dom'. 'C:/Users/ddani/Documents/Projetos/QuestBinder/client/node_modules/react-dom/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-dom` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-dom';`
+src/components/vtt/MapSettingsModal.tsx(3,30): error TS7016: Could not find a declaration file for module 'react-dom'. 'C:/Users/ddani/Documents/Projetos/QuestBinder/client/node_modules/react-dom/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-dom` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-dom';`
+src/components/vtt/PermissionsModal.tsx(285,55): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'PermissionSet'.
+src/components/vtt/PermissionsModal.tsx(293,55): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'PermissionSet'.
+src/components/vtt/PermissionsModal.tsx(301,55): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'PermissionSet'.
+src/components/vtt/PermissionsModal.tsx(309,55): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'PermissionSet'.
+src/components/vtt/PermissionsModal.tsx(317,55): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'PermissionSet'.
+src/components/vtt/PermissionsModal.tsx(325,55): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'PermissionSet'.
+src/components/vtt/PermissionsModal.tsx(333,55): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'PermissionSet'.
+src/components/vtt/PermissionsModal.tsx(340,73): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'PermissionSet'.
+src/components/vtt/PermissionsModal.tsx(358,54): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'Partial<PermissionSet>'.
+src/components/vtt/PermissionsModal.tsx(370,54): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'Partial<PermissionSet>'.
+src/components/vtt/PermissionsModal.tsx(379,54): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'Partial<PermissionSet>'.
+src/components/vtt/PermissionsModal.tsx(388,54): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'Partial<PermissionSet>'.
+src/components/vtt/PermissionsModal.tsx(397,54): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'Partial<PermissionSet>'.
+src/components/vtt/PermissionsModal.tsx(406,54): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'Partial<PermissionSet>'.
+src/components/vtt/PermissionsModal.tsx(415,50): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'Partial<PermissionSet>'.
+src/components/vtt/TokenContextMenu.tsx(6,30): error TS7016: Could not find a declaration file for module 'react-dom'. 'C:/Users/ddani/Documents/Projetos/QuestBinder/client/node_modules/react-dom/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-dom` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-dom';`
+src/components/vtt/TokenLibrary.tsx(54,86): error TS18048: 'tpl.visionRange' is possibly 'undefined'.
+src/components/vtt/TokenLibrary.tsx(54,146): error TS2322: Type 'number | undefined' is not assignable to type 'string | number'.
+  Type 'undefined' is not assignable to type 'string | number'.
+src/components/vtt/VTTToolbar.tsx(2,30): error TS7016: Could not find a declaration file for module 'react-dom'. 'C:/Users/ddani/Documents/Projetos/QuestBinder/client/node_modules/react-dom/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-dom` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-dom';`
+src/context/gameSession/hooks/listeners/attackZoneListeners.ts(122,41): error TS2345: Argument of type '(payload: { zoneId: string; updates: Partial<AttackZoneConfig>; userId: string; }) => void' is not assignable to parameter of type '(payload: { zoneId: string; updates: any; userId?: string | undefined; }) => void'.
+  Types of parameters 'payload' and 'payload' are incompatible.
+    Type '{ zoneId: string; updates: any; userId?: string | undefined; }' is not assignable to type '{ zoneId: string; updates: Partial<AttackZoneConfig>; userId: string; }'.
+      Types of property 'userId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string'.
+          Type 'undefined' is not assignable to type 'string'.
+src/context/gameSession/hooks/listeners/attackZoneListeners.ts(123,41): error TS2345: Argument of type '(payload: { zoneId: string; userId: string; }) => void' is not assignable to parameter of type '(payload: { zoneId: string; userId?: string | undefined; }) => void'.
+  Types of parameters 'payload' and 'payload' are incompatible.
+    Type '{ zoneId: string; userId?: string | undefined; }' is not assignable to type '{ zoneId: string; userId: string; }'.
+      Types of property 'userId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string'.
+          Type 'undefined' is not assignable to type 'string'.
+src/context/gameSession/hooks/listeners/attackZoneListeners.ts(124,40): error TS2345: Argument of type '(payload: { userId: string; }) => void' is not assignable to parameter of type '(payload: { userId?: string | undefined; }) => void'.
+  Types of parameters 'payload' and 'payload' are incompatible.
+    Type '{ userId?: string | undefined; }' is not assignable to type '{ userId: string; }'.
+      Types of property 'userId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string'.
+          Type 'undefined' is not assignable to type 'string'.
+src/context/gameSession/hooks/listeners/attackZoneListeners.ts(133,44): error TS2345: Argument of type '(payload: { zoneId: string; updates: Partial<AttackZoneConfig>; userId: string; }) => void' is not assignable to parameter of type '(payload: { zoneId: string; updates: any; userId?: string | undefined; }) => void'.
+  Types of parameters 'payload' and 'payload' are incompatible.
+    Type '{ zoneId: string; updates: any; userId?: string | undefined; }' is not assignable to type '{ zoneId: string; updates: Partial<AttackZoneConfig>; userId: string; }'.
+      Types of property 'userId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string'.
+          Type 'undefined' is not assignable to type 'string'.
+src/context/gameSession/hooks/listeners/attackZoneListeners.ts(134,44): error TS2345: Argument of type '(payload: { zoneId: string; userId: string; }) => void' is not assignable to parameter of type '(payload: { zoneId: string; userId?: string | undefined; }) => void'.
+  Types of parameters 'payload' and 'payload' are incompatible.
+    Type '{ zoneId: string; userId?: string | undefined; }' is not assignable to type '{ zoneId: string; userId: string; }'.
+      Types of property 'userId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string'.
+          Type 'undefined' is not assignable to type 'string'.
+src/context/gameSession/hooks/listeners/attackZoneListeners.ts(135,43): error TS2345: Argument of type '(payload: { userId: string; }) => void' is not assignable to parameter of type '(payload: { userId?: string | undefined; }) => void'.
+  Types of parameters 'payload' and 'payload' are incompatible.
+    Type '{ userId?: string | undefined; }' is not assignable to type '{ userId: string; }'.
+      Types of property 'userId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string'.
+          Type 'undefined' is not assignable to type 'string'.
+src/context/gameSession/hooks/listeners/campaignListeners.ts(156,63): error TS2538: Type 'undefined' cannot be used as an index type.
+src/context/gameSession/hooks/listeners/playerListeners.ts(163,54): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/context/TooltipContext.tsx(2,30): error TS7016: Could not find a declaration file for module 'react-dom'. 'C:/Users/ddani/Documents/Projetos/QuestBinder/client/node_modules/react-dom/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-dom` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-dom';`
+src/context/TooltipContext.tsx(40,65): error TS2322: Type '{ isVisible: boolean; content: ReactNode; rect: DOMRect | null; position: TooltipPosition; variant: TooltipVariant; }' is not assignable to type '{ content: ReactNode; rect: DOMRect; position: TooltipPosition; variant: TooltipVariant; }'.
+  Types of property 'rect' are incompatible.
+    Type 'DOMRect | null' is not assignable to type 'DOMRect'.
+      Type 'null' is not assignable to type 'DOMRect'.
+src/main.tsx(3,22): error TS7016: Could not find a declaration file for module 'react-dom/client'. 'C:/Users/ddani/Documents/Projetos/QuestBinder/client/node_modules/react-dom/client.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-dom` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-dom/client';`
+src/modules/vtt/map3d/core/camera/CameraRig.tsx(11,38): error TS2345: Argument of type 'RefObject<MapControls | null>' is not assignable to parameter of type 'RefObject<MapControls>'.
+  Type 'MapControls | null' is not assignable to type 'MapControls'.
+    Type 'null' is not assignable to type 'MapControls'.
+src/modules/vtt/map3d/interaction/raycasting/RaycastManager.tsx(9,1): error TS2322: Type '(options?: import("C:/Users/ddani/Documents/Projetos/QuestBinder/client/node_modules/three-mesh-bvh/src/index").MeshBVHOptions | undefined) => import("C:/Users/ddani/Documents/Projetos/QuestBinder/client/node_modules/three-mesh-bvh/src/index").MeshBVH' is not assignable to type '(options?: import("C:/Users/ddani/Documents/Projetos/QuestBinder/client/node_modules/@react-three/drei/node_modules/three-mesh-bvh/src/index").MeshBVHOptions | undefined) => import("C:/Users/ddani/Documents/Projetos/QuestBinder/client/node_modules/@react-three/drei/node_modules/three-mesh-bvh/src/index").MeshBVH'.
+  Call signature return types 'MeshBVH' and 'MeshBVH' are incompatible.
+    The types returned by 'raycastFirst(...)' are incompatible between these types.
+      Type 'Intersection<Object3D<Object3DEventMap>> | null' is not assignable to type 'Intersection<Object3D<Object3DEventMap>>'.
+        Type 'null' is not assignable to type 'Intersection<Object3D<Object3DEventMap>>'.
+src/utils/cursorRenderer.ts(2,38): error TS7016: Could not find a declaration file for module 'react-dom/server'. 'C:/Users/ddani/Documents/Projetos/QuestBinder/client/node_modules/react-dom/server.node.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/react-dom` if it exists or add a new declaration (.d.ts) file containing `declare module 'react-dom/server';`
+src/views/CampaignDashboardView.tsx(475,105): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/views/CampaignDashboardView.tsx(544,25): error TS2322: Type '(data: Omit<Handout, "id" | "createdAt" | "campaignId">) => Promise<void>' is not assignable to type '(data: Omit<Handout, "id" | "createdAt" | "campaignId" | "sharedWith">) => void'.
+  Types of parameters 'data' and 'data' are incompatible.
+    Property 'sharedWith' is missing in type 'Omit<Handout, "id" | "createdAt" | "campaignId" | "sharedWith">' but required in type 'Omit<Handout, "id" | "createdAt" | "campaignId">'.
+src/views/CharacterCreateView.tsx(247,19): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'SetStateAction<string>'.
+  Type 'undefined' is not assignable to type 'SetStateAction<string>'.
+src/views/CharacterCreateView.tsx(254,24): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'SetStateAction<string>'.
+  Type 'undefined' is not assignable to type 'SetStateAction<string>'.
+src/views/GameSession/components/GameHeader.tsx(20,118): error TS18047: 'session.campaign' is possibly 'null'.
+src/views/GameSession/components/GameSidebars.tsx(54,86): error TS18048: 'tpl.visionRange' is possibly 'undefined'.
+src/views/GameSession/layers/InterfaceLayer.tsx(56,120): error TS18047: 'session.campaign' is possibly 'null'.

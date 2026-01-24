@@ -5,6 +5,7 @@ import { campaignService } from '../../../services/campaignService';
 import { SessionPermissions } from '../../../types';
 import { SubscriptionTier, GameRole, PremiumFeatureKey } from '../../../types/acl';
 import { PermissionHelper } from '../helpers/PermissionHelper';
+import { DebugLogger } from '../../../utils/DebugLogger';
 
 export const usePermissions = (
   state: GameSessionState,
@@ -29,17 +30,17 @@ export const usePermissions = (
   };
 
   const updatePermissions = (perms: Partial<SessionPermissions>) => {
-    console.log('[CLIENT] ========== UPDATE PERMISSIONS CALLED ==========');
-    console.log('[CLIENT] Campaign ID:', state.campaign?.id);
-    console.log('[CLIENT] New permissions:', JSON.stringify(perms, null, 2));
+    DebugLogger.log('sync', 'usePermissions', 'Update', 'UPDATE PERMISSIONS CALLED');
+    DebugLogger.log('sync', 'usePermissions', 'Campaign', `Campaign ID: ${state.campaign?.id}`);
+    DebugLogger.log('sync', 'usePermissions', 'NewPerms', 'New permissions', perms);
 
     const newPerms = { ...state.permissions, ...perms };
-    console.log('[CLIENT] Merged permissions:', JSON.stringify(newPerms, null, 2));
+    DebugLogger.log('sync', 'usePermissions', 'Merge', 'Merged permissions', newPerms);
 
     setState(prev => ({ ...prev, permissions: newPerms }));
-    console.log('[CLIENT] ✅ Local state updated');
+    DebugLogger.log('sync', 'usePermissions', 'State', '✅ Local state updated');
 
-    console.log('[CLIENT] Emitting campaign:update via WebSocket for permissions...');
+    DebugLogger.log('sync', 'usePermissions', 'Emit', 'Emitting campaign:update via WebSocket for permissions...');
     socketService.emit('campaign:update', {
       changes: { permissions: newPerms }
     });
@@ -51,7 +52,7 @@ export const usePermissions = (
         .catch(err => console.error('[CLIENT] Failed to persist permissions via API:', err));
     }
 
-    console.log('[CLIENT] ✅ WebSocket emit completed');
+    DebugLogger.log('sync', 'usePermissions', 'Complete', '✅ WebSocket emit completed');
   };
 
   return {

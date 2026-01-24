@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { MapScene, Token } from '../../../../types';
+import { DebugLogger } from '../../../../utils/DebugLogger';
 
 // Global cache to persist across re-renders/unmounts
 const globalImageCache: { [src: string]: HTMLImageElement; } = {};
@@ -212,7 +213,7 @@ export const useImageLoader = (scene: MapScene | null, tokens: Token[]) => {
 
       if (toRetry.length === 0) return;
 
-      console.log(`Retrying ${toRetry.length} failed image(s)...`);
+      DebugLogger.log('system', 'ImageLoader', 'Retry', `Retrying ${toRetry.length} failed image(s)...`);
 
       toRetry.forEach(src => {
         // Double-check cache one more time

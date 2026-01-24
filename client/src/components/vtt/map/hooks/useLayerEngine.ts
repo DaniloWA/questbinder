@@ -10,6 +10,7 @@ import { MapOrchestrator } from '../engine/core/MapOrchestrator';
 import { RenderContext } from '../engine/core/types';
 import { MapCanvasProps } from '../types';
 import { Token } from '../../../../types';
+import { DebugLogger } from '../../../../utils/DebugLogger';
 
 
 // Import all layers
@@ -162,7 +163,7 @@ export function useLayerEngine(
     setOrchestratorInstance(orchestrator);
 
     if (options.debug) {
-      console.log('[useLayerEngine] Initialized with', layers.length, 'layers');
+      DebugLogger.log('render', 'useLayerEngine', 'Init', `Initialized with ${layers.length} layers`);
     }
 
     // Cleanup
@@ -171,7 +172,7 @@ export function useLayerEngine(
       orchestratorRef.current = null;
       setOrchestratorInstance(null);
       if (options.debug) {
-        console.log('[useLayerEngine] Destroyed');
+        DebugLogger.log('render', 'useLayerEngine', 'Destroy', 'Destroyed');
       }
     };
   }, [canvasRef.current]); // Only re-init when canvas ref changes

@@ -7,6 +7,7 @@
 
 import { BaseHandler } from './BaseHandler';
 import type { HandlerPlugin } from './types';
+import { DebugLogger } from '../../../../../utils/DebugLogger';
 
 /**
  * Internal handler entry with metadata.
@@ -104,7 +105,7 @@ export class HandlerRegistry {
     });
 
     this.invalidateSortedCache();
-    console.log(`[HandlerRegistry] Plugin registered: ${plugin.name} v${plugin.version}`);
+    DebugLogger.log('input', 'HandlerRegistry', 'Register', `Plugin registered: ${plugin.name} v${plugin.version}`);
   }
 
   /**
@@ -125,7 +126,7 @@ export class HandlerRegistry {
 
     this.plugins.delete(pluginId);
     this.invalidateSortedCache();
-    console.log(`[HandlerRegistry] Plugin unregistered: ${plugin.name}`);
+    DebugLogger.log('input', 'HandlerRegistry', 'Unregister', `Plugin unregistered: ${plugin.name}`);
     return true;
   }
 

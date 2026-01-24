@@ -24,6 +24,7 @@ import {
   hasTranslation,
 } from './index';
 import type { SupportedLocale, TranslationKey } from './types';
+import { DebugLogger } from '../utils/DebugLogger';
 
 // === External Store for Performance ===
 let listeners: Array<() => void> = [];
@@ -51,7 +52,7 @@ interface TranslationContextValue {
   hasKey: (key: string) => boolean;
 }
 
-console.log('[DEBUG] TranslationContext Module Loaded', new Error().stack); // Log stack to see importer
+DebugLogger.log('system', 'Translation', 'Init', 'Module Loaded', new Error().stack); // Log stack to see importer
 const TranslationContext = (globalThis as any).__TranslationContext || createContext<TranslationContextValue | null>(null);
 if (process.env.NODE_ENV !== 'production') {
   (globalThis as any).__TranslationContext = TranslationContext;

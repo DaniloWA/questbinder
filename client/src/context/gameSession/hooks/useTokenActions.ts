@@ -69,7 +69,7 @@ export const useTokenActions = (
     const token = scene?.tokens.find(t => t.id === tokenId);
 
     if (!scene || !token) {
-      DebugLogger.warn('input', 'moveToken failed to find token or scene:', {
+      DebugLogger.warn('input', 'TokenActions', 'Move', 'moveToken failed to find token or scene', {
         sceneId: currentState.activeSceneId,
         sceneFound: !!scene,
         tokenId,
@@ -88,7 +88,7 @@ export const useTokenActions = (
         const canMove = permissionHelper.canMoveToken(token);
 
         if (!canMove) {
-          DebugLogger.warn('input', 'Permission Denied:', {
+          DebugLogger.warn('input', 'TokenActions', 'Permission', 'Denied', {
             tokenId: token.id,
             tokenOwner: token.ownerId,
             userId: user?.id,
@@ -122,7 +122,7 @@ export const useTokenActions = (
                 triggeredHandoutId: zone.handoutId,
                 lastTriggeredZoneId: zone.id
               }));
-              console.log('[TRIGGER] Activated zone:', zone.id, 'Handout:', zone.handoutId);
+              DebugLogger.log('vision', 'Zone', 'Trigger', 'Activated zone', { zoneId: zone.id, handoutId: zone.handoutId });
               break;
             }
           }
@@ -172,13 +172,13 @@ export const useTokenActions = (
   const addToken = (tokenData: Partial<Token>) => {
     resetAfkTimer();
     if (!state.activeSceneId) {
-      DebugLogger.warn('input', 'addToken: no active scene');
+      DebugLogger.warn('input', 'TokenActions', 'Create', 'addToken: no active scene');
       return;
     }
 
     // Retry logic for connection
     if (!state.isConnected) {
-      DebugLogger.warn('input', 'addToken: WebSocket not connected yet, retrying in 500ms');
+      DebugLogger.warn('input', 'TokenActions', 'Create', 'WebSocket not connected yet, retrying in 500ms');
       setTimeout(() => addToken(tokenData), 500);
       return;
     }
@@ -213,7 +213,7 @@ export const useTokenActions = (
       optimisticUpdate: undefined as any,
 
       socketEmit: () => {
-        DebugLogger.log('sync', 'SmartSync token:add:', { sceneId: state.activeSceneId, token: newToken });
+        DebugLogger.log('sync', 'TokenActions', 'Create', 'SmartSync token:add', { sceneId: state.activeSceneId, token: newToken });
         smartSync.apply('token', newToken.id, 'create', newToken, state.activeSceneId);
       }
     });
@@ -233,7 +233,7 @@ export const useTokenActions = (
         if (!permissionHelper) return false;
         const canDelete = permissionHelper.can('tokenDelete');
         if (!canDelete) {
-          DebugLogger.warn('input', 'Permission denied for token', id);
+          DebugLogger.warn('input', 'TokenActions', 'Delete', 'Permission denied for token', { id });
         }
         return canDelete;
       },
@@ -259,7 +259,7 @@ export const useTokenActions = (
 
     // REGRA MILENAR: Permission Check
     if (permissionHelper && !permissionHelper.isGameMaster()) {
-      DebugLogger.warn('input', 'Denied moveTokenToScene (GM Only)');
+      DebugLogger.warn('input', 'TokenActions', 'Move', 'Denied moveTokenToScene (GM Only)');
       show({ type: 'error', message: 'Apenas o GM pode mover tokens entre cenas.' });
       return;
     }

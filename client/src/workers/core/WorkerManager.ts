@@ -37,6 +37,7 @@ export class WorkerManager {
 
   // Event listeners: Module -> Set of callbacks
   private listeners: Map<string, Set<(event: string, payload: any) => void>> = new Map();
+  private restartListeners: Set<() => void> = new Set();
 
   // Health check interval
   private healthCheckInterval: ReturnType<typeof setInterval> | null = null;
@@ -85,6 +86,9 @@ export class WorkerManager {
 
     this.worker.onmessage = this.handleMessage.bind(this);
     this.worker.onerror = this.handleError.bind(this);
+
+    // Notify listeners of restart/init
+    this.restartListeners.forEach(cb => cb());
 
     DebugLogger.log('worker', 'WorkerManager', 'Init', 'Worker initialized');
   }
@@ -157,6 +161,14 @@ export class WorkerManager {
   }
 
   /**
+   * Subscribe to worker restart events (system-wide).
+   */
+  public onWorkerRestart(callback: () => void): () => void {
+    this.restartListeners.add(callback);
+    return () => this.restartListeners.delete(callback);
+  }
+
+  /**
    * Start periodic health checks.
    * 
    * @param intervalMs - Check interval in milliseconds (default: 30000)
@@ -191,6 +203,9 @@ export class WorkerManager {
    * Reinitialize worker and reject all pending requests.
    */
   private reinitializeWithPendingRejection(): void {
+    DebugLogger.error('worker', 'WorkerManager', 'ReinitializeWithPendingRejection', 'Worker crash, reinitializing...');
+    console.trace();
+
     // Reject all pending requests
     for (const [id, pending] of this.pending.entries()) {
       if (pending.timeoutId) {
@@ -202,6 +217,16 @@ export class WorkerManager {
 
     // Reinitialize
     this.initWorker();
+  }
+
+  /**
+   * Handle worker-level errors (e.g., syntax errors, crashes).
+   */
+  private handleError(error: ErrorEvent) {
+    // Critical: Raw log to ensure we see this even if DebugLogger fails or is filtered
+    console.error('[WorkerManager] 🚨 RAW WORKER CRASH:', error.message, error.filename, error.lineno, error.colno, error.error);
+    DebugLogger.error('worker', 'WorkerManager', 'HandleError', 'Worker crash:', error);
+    this.reinitializeWithPendingRejection();
   }
 
   /**
@@ -242,14 +267,6 @@ export class WorkerManager {
         moduleListeners.forEach(cb => cb(eventPayload.event, eventPayload.payload));
       }
     }
-  }
-
-  /**
-   * Handle worker-level errors (e.g., syntax errors, crashes).
-   */
-  private handleError(error: ErrorEvent) {
-    DebugLogger.error('worker', 'WorkerManager', 'HandleError', 'Worker crash:', error);
-    this.reinitializeWithPendingRejection();
   }
 
   /**
