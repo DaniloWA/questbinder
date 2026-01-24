@@ -440,6 +440,7 @@ export class SmartSyncService {
 
     switch (strategy) {
       case 'remote-wins':
+        if (this.options.debug) DebugLogger.warn('sync', 'SmartSyncService', 'Resolve', 'Strategy: Remote Wins', { id: conflict.entityId });
         // Accept remote, discard local
         this.cache.set(
           conflict.entityType,
@@ -456,11 +457,13 @@ export class SmartSyncService {
         break;
 
       case 'local-wins':
+        if (this.options.debug) DebugLogger.warn('sync', 'SmartSyncService', 'Resolve', 'Strategy: Local Wins (Re-queuing)', { id: conflict.entityId });
         // Keep local, re-queue for sync
         // The local data is already in cache
         break;
 
       case 'merge':
+        if (this.options.debug) DebugLogger.log('sync', 'SmartSyncService', 'Resolve', 'Strategy: Automated Merge', { id: conflict.entityId });
         // Attempt to merge
         const merged = this.mergeChanges(conflict);
         this.cache.set(
@@ -474,6 +477,7 @@ export class SmartSyncService {
         break;
 
       case 'manual':
+        if (this.options.debug) DebugLogger.warn('sync', 'SmartSyncService', 'Resolve', 'Strategy: Manual Intervention Required');
         // Store conflict for UI to resolve
         // Don't apply remote
         break;
@@ -578,11 +582,34 @@ export class SmartSyncService {
       DebugLogger.log('sync', 'SmartSyncService', 'Ack', 'ACK received:', payload);
     }
 
+    // Get the pending change to know which entity to update
+    const pendingChange = this.queue.getChange(changeId);
+
+    // Get any merged IDs (older changes merged into this one)
+    const mergedIds = this.queue.getMergedIds(changeId);
+
+    if (pendingChange) {
+      // Confirm primary change
+      this.cache.confirmChange(
+        pendingChange.entityType,
+        pendingChange.entityId,
+        changeId,
+        version || pendingChange.version + 1
+      );
+
+      // Confirm all merged changes (they are implicitly ACKed by the latest state)
+      for (const mergedId of mergedIds) {
+        this.cache.confirmChange(
+          pendingChange.entityType,
+          pendingChange.entityId,
+          mergedId,
+          version || pendingChange.version + 1
+        );
+      }
+    }
+
     // Remove from queue (confirmed)
     this.queue.dequeue(changeId);
-
-    // Update local version if applicable (though usually we wait for broadcast)
-    // Actually, local version is optimistic. Broadcast will update it firmly.
   }
 
   private handleReject(payload: any) {
@@ -596,36 +623,69 @@ export class SmartSyncService {
     this.queue.dequeue(changeId);
 
     if (pendingChange) {
-      if (data && data.id) {
+      const targetId = (data && data.id) || pendingChange.entityId;
+      const mergedIds = this.queue.getMergedIds(changeId);
+
+      if (data) {
         // Server sent the correct state - apply it immediately to fix desync
         // This essentially works like "Server Wins" on conflict
-        this.cache.set(
+        this.cache.rollbackChange(
           pendingChange.entityType,
-          data.id,
+          targetId,
+          changeId,
           data,
-          version || pendingChange.version + 1, // Ensure version bump
-          pendingChange.parentId,
-          false // Not optimistic, this is confirmed server truth
+          version || pendingChange.version + 1
         );
+
+        // Also rollback merged IDs
+        for (const mergedId of mergedIds) {
+          this.cache.rollbackChange(
+            pendingChange.entityType,
+            targetId,
+            mergedId,
+            data,
+            version || pendingChange.version + 1
+          );
+        }
 
         // Notify subscribers of the "fix"
         this.notifySubscribers(
           pendingChange.entityType,
-          data.id,
+          targetId,
           data,
           'update',
           pendingChange.parentId
         );
 
-        DebugLogger.log('sync', 'SmartSyncService', 'Reject', 'Applied server state for rejected change:', pendingChange.entityId);
+        DebugLogger.log('sync', 'SmartSyncService', 'Reject', 'Applied server state for rejected change:', targetId);
       } else {
-        // No data provided, try to rollback
-        // ... (This logic is tricky without baseData, but "Server Wins" above is the main fix)
-        console.warn('[SmartSync] Rejected without server data, requesting fresh state...');
-        // Ideally trigger a re-fetch or let regular sync handle it
+        // No data provided, but we must clear the pending status to unblock sync
+        // We revert to current state (effectively accepting it locally but marking not dirty)
+        // ideally we would revert to pre-optimistic state, but we don't track that currently without baseData
+        const currentData = this.cache.get(pendingChange.entityType, targetId);
+        if (currentData) {
+          this.cache.rollbackChange(
+            pendingChange.entityType,
+            targetId,
+            changeId,
+            currentData
+          );
+          // Also rollback merged IDs
+          for (const mergedId of mergedIds) {
+            this.cache.rollbackChange(
+              pendingChange.entityType,
+              targetId,
+              mergedId,
+              currentData
+            );
+          }
+          DebugLogger.warn('sync', 'SmartSyncService', 'Reject', 'Cleared pending status without data rollback:', targetId);
+        } else {
+          DebugLogger.warn('sync', 'SmartSyncService', 'Reject', 'Could not find entity to clear pending status:', targetId);
+        }
       }
     } else {
-      console.warn('[SmartSync] Rejected change not found in queue:', changeId);
+      DebugLogger.warn('sync', 'SmartSyncService', 'Reject', 'Rejected change not found in queue:', changeId);
     }
   }
 
@@ -678,12 +738,10 @@ export class SmartSyncService {
    * Debug log current state.
    */
   debug(): void {
-    console.group('[SmartSync] Debug');
     DebugLogger.log('sync', 'SmartSyncService', 'Debug', 'Status:', this.getStatus());
     DebugLogger.log('sync', 'SmartSyncService', 'Debug', 'Subscriptions:', this.subscriptions.size);
     this.cache.debug();
     this.queue.debug();
-    console.groupEnd();
   }
 }
 

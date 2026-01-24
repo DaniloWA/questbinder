@@ -24,6 +24,7 @@ interface QueueEntry {
   change: PendingChange;
   retries: number;
   addedAt: number;
+  mergedIds: string[]; // Track IDs of changes merged into this one
 }
 
 /**
@@ -44,9 +45,11 @@ interface SyncBatch {
  * - Automatic flush timers per priority
  * - Retry logic with exponential backoff
  * - Change deduplication (latest change wins)
+ * - In-flight change tracking
  */
 export class SyncQueue {
   private queues: Map<SyncPriority, Map<string, QueueEntry>> = new Map();
+  private inflight: Map<string, QueueEntry> = new Map(); // Changes sent but not yet ACKed/REJECTed
   private flushTimers: Map<SyncPriority, NodeJS.Timeout | null> = new Map();
   private listeners: Set<(batch: SyncBatch) => void> = new Set();
 
@@ -101,6 +104,7 @@ export class SyncQueue {
       change: change as PendingChange,
       retries: 0,
       addedAt: Date.now(),
+      mergedIds: [],
     };
 
     // Deduplication key: entityType:entityId
@@ -110,12 +114,24 @@ export class SyncQueue {
     // If same entity already queued, merge changes
     const existing = queue.get(key);
     if (existing && existing.change.changeType === 'update' && changeType === 'update') {
+      // Track the old ID as merged
+      existing.mergedIds.push(existing.change.id);
+
       // Merge data for same entity updates
       existing.change.data = { ...existing.change.data, ...data };
       existing.change.timestamp = Date.now();
       existing.change.id = changeId; // Update ID to new one
+
+      // DEBUG: Merge
+      if (Math.random() < 0.1) {
+        DebugLogger.log('sync', 'SyncQueue', 'Merge', `Merged update for ${key}`, { mergedCount: existing.mergedIds.length });
+      }
     } else {
       queue.set(key, entry);
+      // DEBUG: Enqueue (Throttled)
+      if (Math.random() < 0.05) {
+        DebugLogger.log('sync', 'SyncQueue', 'Enqueue', `[${priority}] ${changeType} ${key}`);
+      }
     }
 
     // Schedule flush based on priority
@@ -125,9 +141,10 @@ export class SyncQueue {
   }
 
   /**
-   * Remove a change from queue (e.g., on rollback).
+   * Remove a change from queue (e.g., on rollback) or inflight.
    */
   dequeue(changeId: string): boolean {
+    // Check pending queues
     for (const queue of this.queues.values()) {
       for (const [key, entry] of queue) {
         if (entry.change.id === changeId) {
@@ -136,13 +153,21 @@ export class SyncQueue {
         }
       }
     }
+
+    // Check inflight
+    if (this.inflight.has(changeId)) {
+      this.inflight.delete(changeId);
+      return true;
+    }
+
     return false;
   }
 
   /**
-   * Get a pending change by ID.
+   * Get a pending change by ID (from queue or inflight).
    */
   getChange(changeId: string): PendingChange | null {
+    // Check pending queues
     for (const queue of this.queues.values()) {
       for (const entry of queue.values()) {
         if (entry.change.id === changeId) {
@@ -150,14 +175,41 @@ export class SyncQueue {
         }
       }
     }
+
+    // Check inflight
+    if (this.inflight.has(changeId)) {
+      return this.inflight.get(changeId)!.change;
+    }
+
     return null;
+  }
+
+  /**
+   * Get merged change IDs associated with a primary change ID.
+   */
+  getMergedIds(changeId: string): string[] {
+    // Check pending queues
+    for (const queue of this.queues.values()) {
+      for (const entry of queue.values()) {
+        if (entry.change.id === changeId) {
+          return entry.mergedIds || [];
+        }
+      }
+    }
+
+    // Check inflight
+    if (this.inflight.has(changeId)) {
+      return this.inflight.get(changeId)!.mergedIds || [];
+    }
+
+    return [];
   }
 
   /**
    * Get pending changes count.
    */
   getPendingCount(): number {
-    let count = 0;
+    let count = this.inflight.size;
     for (const queue of this.queues.values()) {
       count += queue.size;
     }
@@ -217,6 +269,8 @@ export class SyncQueue {
     const changes: PendingChange[] = [];
     for (const entry of queue.values()) {
       changes.push(entry.change);
+      // Move to inflight
+      this.inflight.set(entry.change.id, entry);
     }
 
     // Clear queue
@@ -236,6 +290,10 @@ export class SyncQueue {
     }
 
     // Send to server
+    // DEBUG: Flush
+    if (batch.changes.length > 0) {
+      DebugLogger.log('sync', 'SyncQueue', 'Flush', `Sending ${batch.priority} batch: ${batch.changes.length} items`);
+    }
     this.sendBatch(batch);
   }
 
@@ -389,16 +447,15 @@ export class SyncQueue {
    * Debug log queue state.
    */
   debug(): void {
-    console.group('[SyncQueue] State');
+    DebugLogger.log('sync', 'SyncQueue', 'Debug', 'State:', this.queues);
     for (const [priority, queue] of this.queues) {
       if (queue.size > 0) {
-        console.log(`${priority}: ${queue.size} pending`);
+        DebugLogger.log('sync', 'SyncQueue', 'Debug', `${priority}: ${queue.size} pending`);
         for (const [key, entry] of queue) {
-          console.log(`  ${key}: ${entry.change.changeType}`);
+          DebugLogger.log('sync', 'SyncQueue', 'Debug', `  ${key}: ${entry.change.changeType}`);
         }
       }
     }
-    console.groupEnd();
   }
 }
 

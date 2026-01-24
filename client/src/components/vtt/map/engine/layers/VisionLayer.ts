@@ -151,10 +151,21 @@ export class VisionLayer extends BaseLayer {
     context.visionPolygons = Array.from(this.visionPolygons.values());
 
     // Build combined vision path
+    const startComposite = performance.now();
     this.combinedVisionPath = this.buildCombinedPath();
 
     // Render fog overlay (darkness outside vision)
     this.renderFogOverlay(ctx, context);
+
+    // DEBUG: Render Performance
+    if (Math.random() < 0.005) {
+      const duration = performance.now() - startComposite;
+      DebugLogger.log('vision', 'VisionLayer', 'Render', `Composited ${visibleTokens.length} tokens in ${duration.toFixed(2)}ms`, {
+        polygons: this.visionPolygons.size,
+        isGM: context.isGM,
+        gmView: context.gmViewMode
+      });
+    }
   }
 
   /**

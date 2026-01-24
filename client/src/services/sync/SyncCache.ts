@@ -53,16 +53,26 @@ export class SyncCache {
     const typeCache = this.cache.get(entityType);
     if (!typeCache) {
       this.stats.misses++;
+      // DEBUG: Type Miss
+      if (Math.random() < 0.01) DebugLogger.log('sync', 'SyncCache', 'Miss', `Type not found: ${entityType}`);
       return null;
     }
 
     const entry = typeCache.get(id);
     if (!entry) {
       this.stats.misses++;
+      // DEBUG: Key Miss (Throttled)
+      if (Math.random() < 0.01) {
+        DebugLogger.log('sync', 'SyncCache', 'Miss', `[${entityType}] ${id} not found`);
+      }
       return null;
     }
 
     this.stats.hits++;
+    // DEBUG: Hit (Highly Throttled)
+    if (Math.random() < 0.001) {
+      DebugLogger.log('sync', 'SyncCache', 'Hit', `[${entityType}] ${id} found`);
+    }
     return entry.data as T;
   }
 
@@ -111,6 +121,11 @@ export class SyncCache {
         this.parentIndex.set(parentKey, children);
       }
       children.add(id);
+    }
+
+    // DEBUG: Set
+    if (dirty || Math.random() < 0.05) {
+      DebugLogger.log('sync', 'SyncCache', 'Set', `[${entityType}] ${id} v${version} (dirty: ${dirty})`);
     }
   }
 
@@ -171,7 +186,8 @@ export class SyncCache {
     entityType: EntityType,
     id: string,
     changeId: string,
-    originalData: T
+    originalData: T,
+    version?: number
   ): void {
     const typeCache = this.cache.get(entityType);
     if (!typeCache) return;
@@ -183,11 +199,15 @@ export class SyncCache {
     const updatedEntry: CacheEntry<T> = {
       ...entry,
       data: originalData,
+      version: version !== undefined ? version : entry.version,
       dirty: updatedPending.length > 0,
       pendingChanges: updatedPending,
     };
 
     typeCache.set(id, updatedEntry as CacheEntry);
+
+    // DEBUG: Rollback
+    DebugLogger.warn('sync', 'SyncCache', 'Rollback', `[${entityType}] ${id} reverted change ${changeId}`, { version });
   }
 
   /**
