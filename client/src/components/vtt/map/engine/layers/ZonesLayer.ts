@@ -2,17 +2,21 @@
  * VTT Engine - Zones Layer
  *
  * Renders Light Zones, Audio Zones, and Trigger Zones.
- * Only visible to GM in GM view mode.
+ * Uses WebWorker for heavy data processing (colors, centers, geometry).
  */
 
 import { BaseLayer } from '../core/BaseLayer';
 import { RenderContext } from '../core/types';
 import { LightZone, AudioZone, TriggerZone } from '../../../../../types';
+import { zonesWorkerService } from '../../../../../services/ZonesWorkerService';
+import { ProcessedZonesResult, ProcessedZone } from '../../../../../workers/modules/ZonesModule';
+import { DebugLogger } from '../../../../../utils/DebugLogger';
 
 /**
  * ZonesLayer - Renders special zones (light, audio, trigger).
  *
  * Features:
+ * - Worker-based processing for geometry and styling
  * - Light zones with brightness indication
  * - Audio zones with speaker icon
  * - Trigger zones with lightning icon
@@ -20,6 +24,11 @@ import { LightZone, AudioZone, TriggerZone } from '../../../../../types';
  * - Cached until zones change
  */
 export class ZonesLayer extends BaseLayer {
+  // Worker State
+  private processedData: ProcessedZonesResult | null = null;
+  private lastDispatchedHash: string | null = null;
+  private isProcessing: boolean = false;
+
   constructor() {
     super('zones', 'Zones', {
       useCache: true,
@@ -28,17 +37,83 @@ export class ZonesLayer extends BaseLayer {
     });
   }
 
+  /**
+   * Lifecycle Hook: Called before every render frame.
+   * Checks if we need to dispatch a new worker job.
+   */
+  onBeforeRender(context: RenderContext): void {
+    const { scene, isGM, gmViewMode } = context;
+    if (!scene || !isGM || gmViewMode !== 'gm') return;
+
+    // Calculate a hash of the SOURCE data to see if it changed
+    const sourceHash = this.computeSourceHash(scene.lightZones, scene.audioZones, scene.triggerZones);
+
+    if (sourceHash !== this.lastDispatchedHash && !this.isProcessing) {
+      this.dispatchWorker(sourceHash, scene.lightZones || [], scene.audioZones || [], scene.triggerZones || []);
+    }
+  }
+
+  private computeSourceHash(light?: LightZone[], audio?: AudioZone[], trigger?: TriggerZone[]): string {
+    // Simple length + last item ID hash for speed
+    // For deep changes (like moving a point), we rely on the editor updating the zones array reference or IDs
+    // If mutable updates happen without reference change, this might need deeper checking, 
+    // but in Redux/React land, immutability usually gives us new references.
+    // For robust "content" hashing without excessive cost:
+    const l = light?.length ?? 0;
+    const a = audio?.length ?? 0;
+    const t = trigger?.length ?? 0;
+    return `l${l}-a${a}-t${t}-${light?.[l - 1]?.id ?? ''}`;
+  }
+
+  private async dispatchWorker(hash: string, lightZones: LightZone[], audioZones: AudioZone[], triggerZones: TriggerZone[]) {
+    this.isProcessing = true;
+    this.lastDispatchedHash = hash;
+
+    DebugLogger.log('zones', 'ZonesLayer', 'Dispatch', 'Zone data changed, dispatching worker...');
+
+    try {
+      const result = await zonesWorkerService.processZones({
+        lightZones,
+        audioZones,
+        triggerZones
+      });
+
+      this.processedData = result;
+      this.isProcessing = false;
+
+      // Invalidate cache to force re-render with new data
+      this.invalidateCache();
+      DebugLogger.log('zones', 'ZonesLayer', 'Update', 'Worker finished, cache invalidated.');
+
+    } catch (err) {
+      DebugLogger.error('zones', 'ZonesLayer', 'Error', 'Worker failed', err);
+      this.isProcessing = false;
+      // Reset hash so we retry later or on next change
+      this.lastDispatchedHash = null;
+    }
+  }
+
   computeStateHash(context: RenderContext): string {
     const { scene, isGM, gmViewMode, zoom } = context;
     if (!scene) return 'no-scene';
     if (!isGM || gmViewMode !== 'gm') return 'hidden';
 
+    // We include the PROCESSED data presence in the hash. 
+    // If processedData updates, this hash changes, triggering render().
+    // We also include zoom because stroke width depends on it.
+    const dataHash = this.processedData
+      ? `ready-${this.countProcessed()}`
+      : 'pending';
+
     return this.hashValues(
-      scene.lightZones?.length || 0,
-      scene.audioZones?.length || 0,
-      scene.triggerZones?.length || 0,
+      dataHash,
       zoom
     );
+  }
+
+  private countProcessed(): number {
+    if (!this.processedData) return 0;
+    return this.processedData.light.length + this.processedData.audio.length + this.processedData.trigger.length;
   }
 
   render(ctx: CanvasRenderingContext2D, context: RenderContext): void {
@@ -46,41 +121,40 @@ export class ZonesLayer extends BaseLayer {
     if (!scene) return;
     if (!isGM || gmViewMode !== 'gm') return;
 
+    if (!this.processedData) {
+      // Data not ready yet. 
+      // Option 1: Render nothing (avoids ghosting)
+      // Option 2: Render loading indicator?
+      return;
+    }
+
     ctx.save();
 
-    // Render light zones
-    if (scene.lightZones) {
-      for (const zone of scene.lightZones) {
-        if (!zone.hidden) {
-          this.renderLightZone(ctx, zone, zoom);
-        }
-      }
+    // Render processed light zones
+    for (const zone of this.processedData.light) {
+      this.renderProcessedZone(ctx, zone, zoom);
     }
 
-    // Render audio zones
-    if (scene.audioZones) {
-      for (const zone of scene.audioZones) {
-        this.renderAudioZone(ctx, zone, zoom);
-      }
+    // Render processed audio zones
+    for (const zone of this.processedData.audio) {
+      this.renderProcessedZone(ctx, zone, zoom);
     }
 
-    // Render trigger zones
-    if (scene.triggerZones) {
-      for (const zone of scene.triggerZones) {
-        this.renderTriggerZone(ctx, zone, zoom);
-      }
+    // Render processed trigger zones
+    for (const zone of this.processedData.trigger) {
+      this.renderProcessedZone(ctx, zone, zoom);
     }
 
     ctx.restore();
   }
 
-  private renderLightZone(ctx: CanvasRenderingContext2D, zone: LightZone, zoom: number): void {
+  private renderProcessedZone(ctx: CanvasRenderingContext2D, zone: ProcessedZone, zoom: number): void {
     ctx.save();
 
     ctx.beginPath();
-    if (zone.type === 'rect' && zone.rect) {
+    if (zone.shapeType === 'rect' && zone.rect) {
       ctx.rect(zone.rect.x, zone.rect.y, zone.rect.w, zone.rect.h);
-    } else if (zone.type === 'polygon' && zone.points && zone.points.length > 0) {
+    } else if (zone.shapeType === 'polygon' && zone.points && zone.points.length > 0) {
       ctx.moveTo(zone.points[0].x, zone.points[0].y);
       for (let i = 1; i < zone.points.length; i++) {
         ctx.lineTo(zone.points[i].x, zone.points[i].y);
@@ -88,155 +162,40 @@ export class ZonesLayer extends BaseLayer {
       ctx.closePath();
     }
 
-    // Visual style based on brightness
-    const isDarkness = zone.brightness <= 0.2;
-
-    let fillColor = 'rgba(255, 220, 100, 0.3)';
-    let strokeColor = 'rgba(255, 220, 100, 0.6)';
-    let labelColor = '#ffdc64';
-
-    if (isDarkness) {
-      fillColor = 'rgba(30, 30, 30, 0.6)';
-      strokeColor = 'rgba(80, 80, 80, 0.8)';
-      labelColor = '#666';
-    } else if (zone.color) {
-      // Use custom color but enforce opacity
-      const rgb = this.hexToRgb(zone.color);
-      fillColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.3)`;
-      strokeColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.6)`;
-      labelColor = zone.color;
-    }
-
-    ctx.fillStyle = fillColor;
+    // Use pre-calculated color
+    const c = zone.color;
+    ctx.fillStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${c.a})`;
     ctx.fill();
 
-    ctx.strokeStyle = strokeColor;
+    // Stroke (slightly more opaque than fill)
+    ctx.strokeStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${Math.min(1, c.a * 2)})`;
     ctx.lineWidth = 2 / zoom;
-    ctx.setLineDash([6 / zoom, 3 / zoom]);
+    ctx.setLineDash(zone.type === 'light' ? [6 / zoom, 3 / zoom] : [8 / zoom, 4 / zoom]);
     ctx.stroke();
 
     // Label
-    const center = this.getZoneCenter(zone);
-    if (center) {
+    const center = zone.center;
+    if (center && zone.label) {
       ctx.font = `bold ${14 / zoom}px sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillStyle = labelColor;
-      ctx.fillText(isDarkness ? '🌑' : '💡', center.x, center.y);
+
+      // Label color matches stroke or specific logic
+      // Ideally worker provides labelColor too, but for now we reuse refined logic
+      if (zone.type === 'light' && (zone.original as LightZone).brightness <= 0.2) {
+        ctx.fillStyle = '#666';
+      } else if (zone.type === 'light') {
+        // Using custom color or default yellow
+        ctx.fillStyle = (zone.original as LightZone).color || '#ffdc64';
+      } else if (zone.type === 'audio') {
+        ctx.fillStyle = 'rgba(59, 130, 246, 1)';
+      } else {
+        ctx.fillStyle = 'rgba(168, 85, 247, 1)';
+      }
+
+      ctx.fillText(zone.label, center.x, center.y);
     }
 
     ctx.restore();
-  }
-
-  private renderAudioZone(ctx: CanvasRenderingContext2D, zone: AudioZone, zoom: number): void {
-    ctx.save();
-
-    ctx.beginPath();
-    if (zone.type === 'rect' && zone.rect) {
-      ctx.rect(zone.rect.x, zone.rect.y, zone.rect.w, zone.rect.h);
-    } else if (zone.type === 'polygon' && zone.points && zone.points.length > 0) {
-      ctx.moveTo(zone.points[0].x, zone.points[0].y);
-      for (let i = 1; i < zone.points.length; i++) {
-        ctx.lineTo(zone.points[i].x, zone.points[i].y);
-      }
-      ctx.closePath();
-    }
-
-    ctx.fillStyle = 'rgba(59, 130, 246, 0.2)';
-    ctx.fill();
-
-    ctx.strokeStyle = 'rgba(59, 130, 246, 0.6)';
-    ctx.lineWidth = 2 / zoom;
-    ctx.setLineDash([8 / zoom, 4 / zoom]);
-    ctx.stroke();
-
-    // Label
-    const center = this.getZoneCenter(zone);
-    if (center) {
-      ctx.font = `bold ${16 / zoom}px sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = 'rgba(59, 130, 246, 1)';
-      ctx.fillText('🔊', center.x, center.y);
-    }
-
-    ctx.restore();
-  }
-
-  private renderTriggerZone(ctx: CanvasRenderingContext2D, zone: TriggerZone, zoom: number): void {
-    ctx.save();
-
-    ctx.beginPath();
-    if (zone.type === 'rect' && zone.rect) {
-      ctx.rect(zone.rect.x, zone.rect.y, zone.rect.w, zone.rect.h);
-    } else if (zone.type === 'polygon' && zone.points && zone.points.length > 0) {
-      ctx.moveTo(zone.points[0].x, zone.points[0].y);
-      for (let i = 1; i < zone.points.length; i++) {
-        ctx.lineTo(zone.points[i].x, zone.points[i].y);
-      }
-      ctx.closePath();
-    }
-
-    ctx.fillStyle = 'rgba(168, 85, 247, 0.15)';
-    ctx.fill();
-
-    ctx.strokeStyle = 'rgba(168, 85, 247, 0.6)';
-    ctx.lineWidth = 2 / zoom;
-    ctx.setLineDash([8 / zoom, 4 / zoom]);
-    ctx.stroke();
-
-    // Label
-    const center = this.getZoneCenter(zone);
-    if (center) {
-      ctx.font = `bold ${16 / zoom}px sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = 'rgba(168, 85, 247, 1)';
-      ctx.fillText('⚡', center.x, center.y);
-    }
-
-    ctx.restore();
-  }
-
-  private getZoneCenter(zone: LightZone | AudioZone | TriggerZone): { x: number; y: number; } | null {
-    if (zone.type === 'rect' && zone.rect) {
-      return {
-        x: zone.rect.x + zone.rect.w / 2,
-        y: zone.rect.y + zone.rect.h / 2,
-      };
-    } else if (zone.type === 'polygon' && zone.points && zone.points.length > 0) {
-      const sum = zone.points.reduce(
-        (acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }),
-        { x: 0, y: 0 }
-      );
-      return {
-        x: sum.x / zone.points.length,
-        y: sum.y / zone.points.length,
-      };
-    }
-    return null;
-  }
-
-  /**
-   * Convert hex color to RGB.
-   */
-  private hexToRgb(hex: string): { r: number; g: number; b: number; } {
-    if (!hex || typeof hex !== 'string') return { r: 255, g: 255, b: 255 };
-
-    if (!/^#[0-9a-fA-F]{6}$/.test(hex)) {
-      if (/^#[0-9a-fA-F]{3}$/.test(hex)) {
-        const r = parseInt(hex[1] + hex[1], 16);
-        const g = parseInt(hex[2] + hex[2], 16);
-        const b = parseInt(hex[3] + hex[3], 16);
-        return { r, g, b };
-      }
-      return { r: 255, g: 255, b: 255 };
-    }
-
-    return {
-      r: parseInt(hex.slice(1, 3), 16),
-      g: parseInt(hex.slice(3, 5), 16),
-      b: parseInt(hex.slice(5, 7), 16),
-    };
   }
 }

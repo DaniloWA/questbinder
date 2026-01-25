@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Activity, Terminal, ScrollText, X, Download, Trash2,
   Play, Pause, Search, Settings, Cpu, Eye, Zap,
-  RefreshCw, MousePointer2, Layers, Sun, Wand2
+  RefreshCw, MousePointer2, Layers, Sun, Wand2, Maximize
 } from 'lucide-react';
 import { DebugLogger, DebugCategory, LogEntry } from '../../../../utils/DebugLogger';
 import { useGameSession } from '../../../../context/GameSessionContext';
@@ -20,7 +20,8 @@ const CATEGORY_ICONS: Record<DebugCategory, React.ReactNode> = {
   sync: <RefreshCw className="w-4 h-4" />,
   worker: <Cpu className="w-4 h-4" />,
   input: <MousePointer2 className="w-4 h-4" />,
-  system: <Settings className="w-4 h-4" />
+  system: <Settings className="w-4 h-4" />,
+  zones: <Maximize className="w-4 h-4" />
 };
 
 type Preset = {
@@ -72,6 +73,14 @@ const PRESETS: Preset[] = [
     description: 'Timing stats & optimization metrics',
     categories: { render: true, vision: true },
     filter: 'Stats|Calc|Optimize|Duration'
+  },
+  {
+    id: 'zones',
+    name: 'Zones & Areas',
+    icon: <Maximize className="w-4 h-4" />,
+    description: 'Light, Audio & Trigger zones',
+    categories: { zones: true, worker: true },
+    filter: 'Zones|Layer'
   }
 ];
 
@@ -79,7 +88,7 @@ const KNOWN_MODULES = [
   'WorkerManager', 'WorkerHost', 'VisibilityModule', 'ImageProcessing',
   'VisibilityService', 'PolygonOptimizer', 'SyncQueue', 'SyncCache',
   'SmartSyncService', 'ActionHandler', 'TokenActions', 'AnimationEngine',
-  'MapOrchestrator', 'Socket'
+  'MapOrchestrator', 'Socket', 'ZonesModule', 'ZonesLayer'
 ];
 
 export const DebugPanelModal: React.FC<DebugPanelModalProps> = ({ onClose }) => {

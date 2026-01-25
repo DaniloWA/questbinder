@@ -20,7 +20,7 @@
  * - Metrics: Performance aggregation.
  */
 
-type DebugCategory = 'vision' | 'lighting' | 'render' | 'sync' | 'worker' | 'input' | 'system';
+type DebugCategory = 'vision' | 'lighting' | 'render' | 'sync' | 'worker' | 'input' | 'system' | 'zones';
 type LogLevel = 'info' | 'warn' | 'error' | 'success';
 
 interface LogConfig {
@@ -58,7 +58,8 @@ const DEFAULT_CONFIG: LogConfig = {
     sync: true,
     worker: true,
     input: true,
-    system: true
+    system: true,
+    zones: true
   },
   performance: true,
   filter: null,
@@ -79,7 +80,8 @@ const CATEGORY_COLORS: Record<DebugCategory, string> = {
   sync: '#8b5cf6',     // Violet
   worker: '#d946ef',   // Fuchsia
   input: '#ec4899',    // Pink
-  system: '#64748b'    // Slate
+  system: '#64748b',   // Slate
+  zones: '#fbbf24'     // Amber-400
 };
 
 // Semantic Colors (Status)
