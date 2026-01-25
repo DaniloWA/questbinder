@@ -8,7 +8,7 @@ import {
     User, Crown, Lightbulb, Sun, Hexagon, Users, Lock,
     LayoutGrid, RefreshCw, ArrowLeft, ScanEye, Dices, BookOpen,
     Music, Speaker, FileText, Book, Zap, Brush, Wand2, Target,
-    Link, Monitor, Magnet, X, CloudRain
+    Link, Monitor, Magnet, X, CloudRain, Activity
 } from 'lucide-react';
 import { Tooltip } from '../ui/Tooltip';
 import { useGameSession } from '../../context/GameSessionContext';
@@ -81,6 +81,7 @@ interface VTTToolbarProps {
     onOpenPermissions?: () => void;
     onOpenCursorSettings?: () => void;
     onOpenViewSettings?: () => void;
+    onOpenDebugPanel?: () => void;
 }
 
 const SubMenuPortal: React.FC<{
@@ -568,6 +569,13 @@ export const VTTToolbar: React.FC<VTTToolbarProps> = (props) => {
                         label: t('vtt.tools.toolbar.gmTools.mapSettings.button.label'),
                         icon: <Settings />,
                         onClick: props.onOpenSettings
+                    },
+                    {
+                        id: 'debug-panel',
+                        type: 'action',
+                        label: 'System Diagnostics',
+                        icon: <Activity />,
+                        onClick: props.onOpenDebugPanel
                     }
                 ]
             }

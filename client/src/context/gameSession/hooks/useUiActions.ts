@@ -20,6 +20,8 @@ export const useUiActions = (
   const toggleDiceRoller = () => setState(prev => ({ ...prev, ui: { ...prev.ui, isDiceRollerOpen: !prev.ui.isDiceRollerOpen } }));
   const toggleAudioPanel = () => setState(prev => ({ ...prev, ui: { ...prev.ui, isAudioPanelOpen: !prev.ui.isAudioPanelOpen } }));
   const toggleSFXPanel = () => setState(prev => ({ ...prev, ui: { ...prev.ui, isSFXPanelOpen: !prev.ui.isSFXPanelOpen } }));
+  const toggleDebugPanel = () => setState(prev => ({ ...prev, ui: { ...prev.ui, isDebugPanelOpen: !prev.ui.isDebugPanelOpen } }));
+  const toggleDebugLayer = () => setState(prev => ({ ...prev, ui: { ...prev.ui, showDebugLayer: !prev.ui.showDebugLayer } }));
   const toggleCompendium = () => setIsCompendiumOpen(!isCompendiumOpen);
   const invitePlayer = () => `http://localhost:5173/join/${campaignId}`;
   const setActiveTool = (tool: VTTTool) => setState(prev => ({ ...prev, activeTool: tool }));
@@ -47,6 +49,8 @@ export const useUiActions = (
     toggleDiceRoller,
     toggleAudioPanel,
     toggleSFXPanel,
+    toggleDebugPanel,
+    toggleDebugLayer,
     toggleCompendium,
     invitePlayer,
     setActiveTool,

@@ -4,7 +4,7 @@ import {
   X, ChevronUp, Layers, Settings, User, ArrowLeft,
   Grid, Fence, DoorOpen, Eraser, PenTool, Wand2, Sun, Hexagon, EyeOff, Square, RefreshCw,
   Music, Speaker, Zap, Target, Dices, BookOpen, Book, FileText, UserPlus, Swords, ShieldOff,
-  Crown, Eye, Lock, CloudRain
+  Crown, Eye, Lock, CloudRain, Activity
 } from 'lucide-react';
 import { VTTTool, User as UserType } from '@/types';
 import { BooleanPermissionKey } from '@/context/gameSession/types';
@@ -43,6 +43,7 @@ interface MobileVTTToolbarProps {
   onOpenPermissions?: () => void;
   onOpenCursorSettings?: () => void;
   onOpenViewSettings?: () => void;
+  onOpenDebugPanel?: () => void;
   // Helper to check permissions since we passed session in wrapper
   isGameMaster: boolean;
   canAsGMOr: (perm: BooleanPermissionKey) => boolean;
@@ -132,6 +133,7 @@ export const MobileVTTToolbar: React.FC<MobileVTTToolbarProps> = (props) => {
         { id: 'view', label: 'Visualizar', icon: <Eye />, action: props.onOpenViewSettings },
         { id: 'perms', label: 'Permissões', icon: <Lock />, action: props.onOpenPermissions },
         { id: 'settings', label: 'Configurações', icon: <Settings />, action: props.onOpenSettings },
+        { id: 'debug', label: 'Diagnósticos', icon: <Activity />, action: props.onOpenDebugPanel },
       ]
     }
   ];

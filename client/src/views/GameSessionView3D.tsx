@@ -3,6 +3,8 @@ import { GameSessionProvider, useGameSession } from '../context/GameSessionConte
 import { useNavigation } from '../context/NavigationContext';
 import { MapCanvas3D } from '../components/vtt/map3d/MapCanvas3D';
 import { Button } from '../components/ui/Button';
+import { LoadingOverlay } from '../components/ui/Loading';
+import { DebugPanelModal } from '../components/vtt/map/modals/DebugPanelModal';
 
 export const GameSessionView3D: React.FC = () => {
   const { params, navigateTo } = useNavigation();
@@ -37,6 +39,7 @@ const GameSession3DUI: React.FC = () => {
           <Button variant="outline" size="sm" onClick={() => navigateTo('game-session', params)}>
             Voltar para 2D
           </Button>
+          {session.ui.isDebugPanelOpen && <DebugPanelModal onClose={session.toggleDebugPanel} />}
           <Button variant="secondary" size="sm" onClick={() => navigateTo('dashboard')}>
             Sair
           </Button>

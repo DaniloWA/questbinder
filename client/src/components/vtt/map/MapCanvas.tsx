@@ -15,6 +15,7 @@ import { PrecisionCursor } from '../PrecisionCursor';
 import { useGameSession } from '../../../context/GameSessionContext';
 import { useModal } from '../../../context/ModalContext';
 import { LoadingOverlay } from '../../ui/Loading';
+import { useTranslation } from '../../../i18n/TranslationContext';
 import { AudioZoneConfigModalContent, TriggerZoneConfigModalContent } from './modals';
 import {
   shouldShowPrecisionCursor,
@@ -40,6 +41,7 @@ export const MapCanvas = (props: MapCanvasProps) => {
   // Get UI settings from GameSession
   const { ui, drawingSettings, rulerSettings, addDrawing, audioSettings, handouts } = useGameSession();
   const { openModal, closeModal } = useModal();
+  const { t } = useTranslation();
 
   // Modal callbacks for zone configuration
   const openAudioZoneConfigModal = useCallback((onSave: (config: { audioUrl: string; volume: number; radius: number; }) => void) => {
@@ -207,8 +209,9 @@ export const MapCanvas = (props: MapCanvasProps) => {
       isDrawingRef: mapState.isDrawingRef,
       currentFogRect: mapState.currentFogRect,
       draggedAttackZone: mapState.draggedAttackZone,
+      showDebug: ui.showDebugLayer
     },
-    { debug: true }
+    { debug: ui.showDebugLayer || true } // Keep debug true for logging, but layer handles its own enabled state based on prop
   );
 
   // Sync additional context data to orchestrator
@@ -238,6 +241,18 @@ export const MapCanvas = (props: MapCanvasProps) => {
       },
       localCursorPos: mapState.mouseWorldPosRef?.current || { x: 0, y: 0 },
       cursorSettings: cursorConfig,
+      i18nLabels: {
+        diagnostics: {
+          title: t('vtt.tools.toolbar.gmTools.diagnostics.title'),
+          fpsStability: t('vtt.tools.toolbar.gmTools.diagnostics.fpsStability'),
+          frameTime: t('vtt.tools.toolbar.gmTools.diagnostics.frameTime'),
+          layerBreakdown: t('vtt.tools.toolbar.gmTools.diagnostics.layerBreakdown'),
+          min: t('vtt.tools.toolbar.gmTools.diagnostics.min'),
+          max: t('vtt.tools.toolbar.gmTools.diagnostics.max'),
+          avg: t('vtt.tools.toolbar.gmTools.diagnostics.avg'),
+          low1: t('vtt.tools.toolbar.gmTools.diagnostics.low1'),
+        }
+      }
     });
   });
 

@@ -148,9 +148,9 @@ export function useLayerEngine(
     ];
 
     for (const layer of layers) {
-      // Specifically check for debug flag in props for DebugLayer
-      if (layer.id === 'debug' && !props.showDebug) {
-        layer.enabled = false;
+      // Initialize with correct state
+      if (layer.id === 'debug') {
+        layer.enabled = !!props.showDebug;
       } else if (options.disabledLayers?.includes(layer.id)) {
         layer.enabled = false;
       }
@@ -302,6 +302,16 @@ export function useLayerEngine(
       sfxLayer.setConfig({});
     }
   }, [props.scene?.sfx, orchestratorInstance]); // Update when sfx or engine instance changes
+
+  // Sync Debug Layer Visibility
+  useEffect(() => {
+    if (!orchestratorInstance) return;
+    const debugLayer = orchestratorInstance.getRegistry().getLayer('debug');
+    if (debugLayer) {
+      debugLayer.enabled = !!props.showDebug;
+      DebugLogger.log('render', 'useLayerEngine', 'DebugLayer', `Set enabled: ${props.showDebug}`);
+    }
+  }, [props.showDebug, orchestratorInstance]);
 
   // API methods
   const getFps = useCallback(() => {

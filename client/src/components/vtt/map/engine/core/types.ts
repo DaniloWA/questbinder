@@ -167,6 +167,20 @@ export interface RenderContext {
 
   // Legacy Visibility Sharing (for TokenLayer checks)
   visionPolygons?: { x: number; y: number; }[][];
+
+  // Internationalization Labels (Injected for pure TS layers)
+  i18nLabels?: {
+    diagnostics: {
+      title: string;
+      fpsStability: string;
+      frameTime: string;
+      layerBreakdown: string;
+      min: string;
+      max: string;
+      avg: string;
+      low1: string;
+    };
+  };
 }
 
 // Attack Zone Result Type

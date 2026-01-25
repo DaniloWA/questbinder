@@ -102,6 +102,7 @@ export interface MapCanvasProps {
     snapToGrid: boolean;
     metric: 'euclidean' | 'chebyshev' | 'manhattan';
   };
+  showDebug?: boolean;
 }
 
 export interface DragState {

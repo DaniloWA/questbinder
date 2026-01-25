@@ -57,7 +57,7 @@ export const LocalCursor: React.FC<CustomCursorProps> = ({
   const [isClicking, setIsClicking] = useState(false);
   const { t } = useTranslation();
   const queueSize = useWorkerQueue();
-  DebugLogger.log('render', 'LocalCursor', 'Render', `QueueSize: ${queueSize}`);
+  // DebugLogger.log('render', 'LocalCursor', 'Render', `QueueSize: ${queueSize}`);
 
   // Animation state (refs to avoid re-renders)
   const mousePos = useRef({ x: 0, y: 0 });

@@ -233,6 +233,15 @@ export const VttLoadingScreen: React.FC<VttLoadingScreenProps> = ({
         <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(0,0,0,0.03)_2px,rgba(0,0,0,0.03)_4px)]" />
       </div>
 
+      {/* DEV SKIP BUTTON */}
+      <button
+        onClick={() => onReady()}
+        className="absolute top-4 right-4 z-[10001] px-3 py-1 bg-red-500/10 hover:bg-red-500/40 border border-red-500/30 text-red-400 text-[10px] font-bold tracking-wider rounded uppercase hover:text-white transition-all"
+        title="Developer Bypass: Skip Loading"
+      >
+        DEV SKIP
+      </button>
+
       {/* Main Card */}
       <div className="w-[560px] bg-zinc-900/60 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-2xl shadow-cyan-900/20 relative overflow-hidden flex flex-col">
         {/* Animated Header Bar */}

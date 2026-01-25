@@ -507,6 +507,23 @@ export default {
           group: {
             label: 'Mestre',
           },
+          diagnostics: {
+            title: 'Diagnóstico de Performance',
+            fpsStability: 'Estabilidade FPS',
+            frameTime: 'Tempo de Quadro',
+            layerBreakdown: 'Detalhamento de Camadas',
+            min: 'MIN',
+            max: 'MAX',
+            avg: 'MÉD',
+            low1: '1% BAIXO',
+            settings: {
+              showFps: 'Mostrar FPS',
+              showFrameTime: 'Mostrar Tempo de Quadro',
+              showLayerBreakdown: 'Mostrar Camadas',
+              detailedStats: 'Estatísticas Detalhadas',
+              graphDuration: 'Duração do Gráfico (s)',
+            }
+          },
           viewSettings: {
             button: {
               label: 'Visualizar & Sincronizar',

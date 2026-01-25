@@ -28,6 +28,13 @@ interface LogConfig {
   categories: Record<DebugCategory, boolean>;
   performance: boolean;
   filter: string | null; // Regex string or plain text
+  diagnostics: {
+    showFps: boolean;
+    showFrameTime: boolean;
+    showLayerBreakdown: boolean;
+    detailedStats: boolean; // Min/Max/Avg/1%Low
+    graphDuration: number; // Seconds (default 4)
+  };
 }
 
 interface LogEntry {
@@ -54,7 +61,14 @@ const DEFAULT_CONFIG: LogConfig = {
     system: true
   },
   performance: true,
-  filter: null
+  filter: null,
+  diagnostics: {
+    showFps: true,
+    showFrameTime: true,
+    showLayerBreakdown: true,
+    detailedStats: true,
+    graphDuration: 4
+  }
 };
 
 // Identity Colors (Category)
@@ -102,7 +116,13 @@ class DebugLoggerService {
       if (typeof localStorage !== 'undefined') {
         const saved = localStorage.getItem('qb_debug_config');
         if (saved) {
-          this.config = { ...this.config, ...JSON.parse(saved) };
+          // Deep merge to ensure nested objects like 'diagnostics' exist even if old config is loaded
+          const parsed = JSON.parse(saved);
+          this.config = {
+            ...DEFAULT_CONFIG,
+            ...parsed,
+            diagnostics: { ...DEFAULT_CONFIG.diagnostics, ...(parsed.diagnostics || {}) }
+          };
         }
       }
     } catch { }
@@ -119,17 +139,20 @@ class DebugLoggerService {
   public setCategory(category: DebugCategory, enabled: boolean) {
     this.config.categories[category] = enabled;
     this.saveConfig();
+    setTimeout(() => this.notifyListeners(), 0);
   }
 
   public setAll(enabled: boolean) {
     Object.keys(this.config.categories).forEach(k => this.config.categories[k as DebugCategory] = enabled);
     this.saveConfig();
+    setTimeout(() => this.notifyListeners(), 0);
   }
 
   public setFilter(query: string | null) {
     this.config.filter = query;
     this.saveConfig();
     console.log(`%c[DEBUG] Filter set to: "${query || '(none)'}"`, 'color: #888');
+    setTimeout(() => this.notifyListeners(), 0);
   }
 
   // --- Core Logging ---
@@ -189,7 +212,40 @@ class DebugLoggerService {
     );
   }
 
+  // --- Reactivity ---
+
+  private listeners: Set<() => void> = new Set();
+  private logListeners: Set<(entry: LogEntry) => void> = new Set();
+
+  public subscribe(callback: () => void) {
+    this.listeners.add(callback);
+    return () => this.listeners.delete(callback);
+  }
+
+  public subscribeToLogs(callback: (entry: LogEntry) => void) {
+    this.logListeners.add(callback);
+    return () => this.logListeners.delete(callback);
+  }
+
+  private notifyListeners() {
+    this.listeners.forEach(cb => cb());
+  }
+
+  private notifyLogListeners(entry: LogEntry) {
+    this.logListeners.forEach(cb => cb(entry));
+  }
+
   // --- Public API ---
+
+  public getConfig() {
+    return { ...this.config };
+  }
+
+  public setLogConfigProperties(props: Partial<LogConfig>) {
+    this.config = { ...this.config, ...props };
+    this.saveConfig();
+    setTimeout(() => this.notifyListeners(), 0);
+  }
 
   public log(category: DebugCategory, where: string, what: string, message: string, data?: any) {
     const entry: LogEntry = {
@@ -204,6 +260,8 @@ class DebugLoggerService {
     };
 
     this.addToHistory(entry);
+    setTimeout(() => this.notifyLogListeners(entry), 0); // Live stream (Deferred to avoid render cycle errors)
+
     if (this.shouldLog(category, message, where, what)) {
       this.print(entry);
     }
@@ -222,8 +280,8 @@ class DebugLoggerService {
     };
 
     this.addToHistory(entry);
-    // Warns are important, we might want to show them even if regex doesn't match? 
-    // User requested "robust filter", so we respect filter but maybe log warning normally if allowed.
+    this.notifyLogListeners(entry);
+
     if (this.shouldLog(category, message, where, what)) {
       const catBadge = this.centerText(category.toUpperCase(), 8);
       const lvlBadge = this.centerText('WARN', 7);
@@ -254,6 +312,8 @@ class DebugLoggerService {
     };
 
     this.addToHistory(entry);
+    this.notifyLogListeners(entry);
+
     // Always show errors unless master switch off
     if (this.config.enabled) {
       const catBadge = this.centerText(category.toUpperCase(), 8);
@@ -284,6 +344,8 @@ class DebugLoggerService {
       data
     };
     this.addToHistory(entry);
+    this.notifyLogListeners(entry);
+
     if (this.shouldLog(category, message, where, what)) {
       this.print(entry);
     }
@@ -366,7 +428,9 @@ class DebugLoggerService {
   public clear() {
     this.history = [];
     console.clear();
+    this.notifyListeners(); // Also notify config potential changes or history clear
   }
 }
 
 export const DebugLogger = new DebugLoggerService();
+export type { DebugCategory, LogEntry, LogConfig, LogLevel };

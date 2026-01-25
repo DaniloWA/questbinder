@@ -62,6 +62,7 @@ const GameSessionUI: React.FC = () => {
     || !!zoneHandler.editingTriggerZoneId
     || !!zoneHandler.editingAudioZoneId
     || !!zoneHandler.editingAttackZoneId
+    || session.ui.isDebugPanelOpen
     || isInitiativeRollerOpen;
 
   // Initial Data Loading (Before we even show the Load Modules screen)

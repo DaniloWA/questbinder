@@ -507,6 +507,23 @@ export default {
           group: {
             label: 'Game Master',
           },
+          diagnostics: {
+            title: 'Performance Diagnostics',
+            fpsStability: 'FPS Stability',
+            frameTime: 'Frame Time',
+            layerBreakdown: 'Layer Breakdown',
+            min: 'MIN',
+            max: 'MAX',
+            avg: 'AVG',
+            low1: '1% LOW',
+            settings: {
+              showFps: 'Show FPS',
+              showFrameTime: 'Show Frame Time',
+              showLayerBreakdown: 'Show Layer Breakdown',
+              detailedStats: 'Detailed Stats',
+              graphDuration: 'Graph Duration (s)',
+            }
+          },
           viewSettings: {
             button: {
               label: 'View & Sync',

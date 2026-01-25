@@ -49,7 +49,7 @@ export const InterfaceLayer = memo(({ session, tokenHandler, mapHandler, zoneHan
         <div className="flex justify-between items-start w-full">
           {/* Header Left - Campaign Info */}
           <div className="pointer-events-auto flex items-center gap-3 bg-zinc-950/80 backdrop-blur-md border border-white/10 rounded-2xl p-2 pr-6 shadow-xl hover:bg-zinc-950/90 transition-colors group">
-            <Button variant="ghost" size="icon" onClick={() => navigateTo('dashboard')} className="text-zinc-400 hover:text-white hover:bg-white/10 rounded-xl h-10 w-10">
+            <Button variant="ghost" size="icon" onClick={() => navigateTo('campaign-dashboard', { id: session.campaign.id })} className="text-zinc-400 hover:text-white hover:bg-white/10 rounded-xl h-10 w-10">
               <ChevronLeft className="w-5 h-5" />
             </Button>
             <div className="flex flex-col">
@@ -138,6 +138,7 @@ export const InterfaceLayer = memo(({ session, tokenHandler, mapHandler, zoneHan
               onToggleSFXPanel={session.toggleSFXPanel}
               isSFXPanelOpen={session.ui.isSFXPanelOpen}
               onOpenViewSettings={() => mapHandler.setIsViewSettingsOpen(true)}
+              onOpenDebugPanel={session.toggleDebugPanel}
             />
           </div>
 
@@ -180,6 +181,7 @@ export const InterfaceLayer = memo(({ session, tokenHandler, mapHandler, zoneHan
               onOpenPermissions={() => mapHandler.setIsPermissionsOpen(true)}
               onOpenCursorSettings={() => mapHandler.setIsCursorSettingsOpen(true)}
               onOpenViewSettings={() => mapHandler.setIsViewSettingsOpen(true)}
+              onOpenDebugPanel={session.toggleDebugPanel}
               isGameMaster={isGM}
               canAsGMOr={(perm) => session.permissionHelper.canAsGMOr(perm)}
             />

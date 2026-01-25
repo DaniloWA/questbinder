@@ -19,6 +19,7 @@ const ViewSettingsModal = lazy(() => import('../../../components/vtt/settings/Vi
 
 // Non-lazy (Lightweight or sub-components already loaded)
 import { TriggerZoneConfigModalContent, AudioZoneEditModalContent } from '../../../components/vtt/map/modals';
+import { DebugPanelModal } from '../../../components/vtt/map/modals/DebugPanelModal';
 import { CombatInitiativeRoller } from '../../../components/vtt/CombatInitiativeRoller';
 
 import { useTokenHandler } from '../handlers/useTokenHandler';
@@ -176,6 +177,10 @@ export const ModalsLayer = ({ session, tokenHandler, mapHandler, zoneHandler, ha
         >
           <ViewSettingsModal />
         </Modal>
+      )}
+
+      {session.ui.isDebugPanelOpen && (
+        <DebugPanelModal onClose={session.toggleDebugPanel} />
       )}
     </Suspense>
   );
