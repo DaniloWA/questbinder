@@ -9,6 +9,7 @@ import { BaseLayer } from '../core/BaseLayer';
 import { RenderContext } from '../core/types';
 import { Token, Point, Obstacle, LightZone } from '../../../../../types';
 import { calculateVisibilityPolygon } from '../../../../../utils/geometry';
+import { DebugLogger } from '../../../../../utils/DebugLogger';
 
 /**
  * LightingLayer - Dynamic lighting and atmosphere.
@@ -26,6 +27,12 @@ export class LightingLayer extends BaseLayer {
   private lightCanvas: HTMLCanvasElement | null = null;
   private lightCtx: CanvasRenderingContext2D | null = null;
 
+  // Geometry Cache
+  private polyCache: Map<string, Point[]> = new Map();
+  private lastObstacleHash: string = '';
+  private cacheHits = 0;
+  private cacheMisses = 0;
+
   constructor() {
     super('lighting', 'Lighting', {
       useCache: false, // Animated lights
@@ -37,6 +44,62 @@ export class LightingLayer extends BaseLayer {
 
   computeStateHash(): string {
     return 'dynamic'; // Lighting has animations
+  }
+
+  /**
+   * Lifecycle Hook: Called before every render frame.
+   * Checks if obstacles changed to invalidate geometry cache.
+   */
+  onBeforeRender(context: RenderContext): void {
+    const { scene } = context;
+    if (!scene) return;
+
+    // Check obstacle hash (cheap check: length + first/last ID)
+    const obs = scene.obstacles || [];
+    const hash = `len:${obs.length}-first:${obs[0]?.id}`;
+
+    if (hash !== this.lastObstacleHash) {
+      if (this.polyCache.size > 0) {
+        DebugLogger.log('lighting', 'LightingLayer', 'Cache', 'Obstacles changed, clearing geometry cache');
+      }
+      this.polyCache.clear();
+      this.lastObstacleHash = hash;
+    }
+
+    // Log efficiency occasionally
+    if (Math.random() < 0.005 && (this.cacheHits + this.cacheMisses > 100)) {
+      const efficiency = Math.round(this.cacheHits / (this.cacheHits + this.cacheMisses) * 100);
+      DebugLogger.log('lighting', 'LightingLayer', 'Stats',
+        `Cache Efficiency: ${efficiency}% (${this.cacheHits}/${this.cacheHits + this.cacheMisses})`
+      );
+    }
+  }
+
+  /**
+   * Helper to get cached polygon or calculate new one.
+   */
+  private getCachedPolygon(origin: { x: number, y: number; }, obstacles: Obstacle[], radius: number): Point[] {
+    // Round to 1 decimal place (0.1 grid unit precision) to catch micro-jitters
+    const x = Math.round(origin.x * 10) / 10;
+    const y = Math.round(origin.y * 10) / 10;
+    const r = Math.round(radius * 10) / 10;
+
+    // Key depends on position, radius, and current obstacle state
+    const key = `${x},${y},${r},${this.lastObstacleHash}`;
+
+    if (this.polyCache.has(key)) {
+      this.cacheHits++;
+      return this.polyCache.get(key)!;
+    }
+
+    this.cacheMisses++;
+    const poly = calculateVisibilityPolygon(origin, obstacles, radius);
+    this.polyCache.set(key, poly);
+
+    // Safety cap
+    if (this.polyCache.size > 2000) this.polyCache.clear();
+
+    return poly;
   }
 
   /**
@@ -69,6 +132,19 @@ export class LightingLayer extends BaseLayer {
     const mapWidth = gridSize * scene.grid.cols;
     const mapHeight = gridSize * scene.grid.rows;
     const effectiveIsGM = isGM && gmViewMode === 'gm';
+
+    // --- CACHE VALIDATION (Moved from onBeforeRender to ensure execution) ---
+    // --- CACHE VALIDATION (Moved from onBeforeRender to ensure execution) ---
+    const obs = scene.obstacles || [];
+    // Cheap hash: length + first/last ID
+    const hash = `len:${obs.length}-v:3-first:${obs[0]?.id}-last:${obs[obs.length - 1]?.id}`;
+
+    if (hash !== this.lastObstacleHash) {
+      this.polyCache.clear();
+      this.lastObstacleHash = hash;
+      DebugLogger.log('lighting', 'LightingLayer', 'Cache', 'Obstacles changed, clearing geometry cache');
+    }
+    // -----------------------------------------------------------------------
 
     // Get player vision path from VisionLayer if available
     const playerVisionPath = this.getPlayerVisionPath(context);
@@ -138,7 +214,8 @@ export class LightingLayer extends BaseLayer {
 
       if (visionRadius <= 0) continue;
 
-      const polygon = calculateVisibilityPolygon({ x: cx, y: cy }, obstacles, visionRadius);
+      // OPTIMIZATION: Use cached polygon
+      const polygon = this.getCachedPolygon({ x: cx, y: cy }, obstacles, visionRadius);
 
       if (polygon.length > 0) {
         path.moveTo(polygon[0].x, polygon[0].y);
@@ -279,8 +356,8 @@ export class LightingLayer extends BaseLayer {
     for (const src of lightSources) {
       if (src.r <= 0) continue;
 
-      // Use stableR for visibility calculation to prevent cache trashing
-      const poly = calculateVisibilityPolygon({ x: src.x, y: src.y }, obstacles, src.stableR);
+      // OPTIMIZATION: Use stableR for visibility calculation to reuse cache
+      const poly = this.getCachedPolygon({ x: src.x, y: src.y }, obstacles, src.stableR);
 
       ctx.save();
 
@@ -418,8 +495,8 @@ export class LightingLayer extends BaseLayer {
 
       if (maxRadius <= 0.1) continue;
 
-      // Use stableRadius for calculation
-      const poly = calculateVisibilityPolygon({ x: cx, y: cy }, obstacles, stableRadius);
+      // OPTIMIZATION: Use cached polygon
+      const poly = this.getCachedPolygon({ x: cx, y: cy }, obstacles, stableRadius);
 
       ctx.save();
 

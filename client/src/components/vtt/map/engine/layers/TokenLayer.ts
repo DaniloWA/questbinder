@@ -13,6 +13,7 @@ import { isPositionVisible } from '../../hooks/renderers/visibilityHelpers';
 import { calculateVisibilityPolygon } from '../../../../../utils/geometry';
 import { COLORS } from '../../hooks/renderers';
 import { adjustAlpha } from '../../utils';
+import { DebugLogger } from '../../../../../utils/DebugLogger';
 
 /**
  * TokenLayer - Renders all tokens with full visual features.
@@ -75,8 +76,79 @@ export class TokenLayer extends BaseLayer {
     // Render remote drags first (ghost tokens from other players)
     this.renderRemoteDrags(ctx, context, gridSize, effectiveIsGM);
 
+    // Debug Metrics
+    let renderedCount = 0;
+    let culledCount = 0;
+    const startRender = performance.now();
+
     // Render each token
     for (const token of sortedTokens) {
+      // Get animated position
+      const { x: animX, y: animY } = this.getAnimatedPosition(token, renderTime);
+
+      // OPTIMIZATION: Viewport Culling
+      // Skip rendering if token is completely off-screen
+      // Add a safe margin (e.g. 1 grid cell) for animations/auras
+      const margin = 5; // Increased margin to prevent flickering at edges
+      const tokenX = animX;
+      const tokenY = animY;
+      const tokenSize = token.size;
+
+      // Viewport is in world coordinates (top-left) derived from the orchestrated transform.
+      // But the context.viewport passed here provides x,y,zoom. 
+      // We need to calculate the visible world bounds.
+
+      // Calculate visible world bounds from viewport
+      // Viewport.x/y is the translation applied to the canvas. 
+      // So -viewport.x is the world pixel at screen 0.
+      // Use effective viewport (from Ref if available) to match the render transform
+      const ev = context.viewportRef?.current || context.viewport;
+
+      // Calculate visible world bounds from viewport
+      // Screen(0) = (World(0) * zoom) + pan
+      // World(0) = (Screen(0) - pan) / zoom
+      const worldLeft = -ev.x / ev.zoom;
+      const worldTop = -ev.y / ev.zoom;
+      const worldRight = (-ev.x + context.canvas.width) / ev.zoom;
+      const worldBottom = (-ev.y + context.canvas.height) / ev.zoom;
+
+      // Token bounds in world units (grid)
+      const tLeft = tokenX;
+      const tTop = tokenY;
+      const tRight = tokenX + tokenSize;
+      const tBottom = tokenY + tokenSize;
+
+      // Convert world Pixel bounds to grid units for comparison (since tokens are in grid units)
+      // Actually tokenX is in grid units. worldLeft is in PIXELS? 
+      // No, context.viewport.x is pixels. Zoom is scale.
+      // So (-viewport.x / zoom) is World PIXELS? 
+      // Wait, let's check `MapCanvas`. 
+      // `ctx.translate(viewport.x, viewport.y)` -> standard pan.
+      // `ctx.scale(zoom, zoom)`
+      // Logic: Screen(0) = (World(0) * zoom) + viewport.x
+      // World(0) = (Screen(0) - viewport.x) / zoom = -viewport.x / zoom. 
+      // Correct. These are WORLD PIXELS.
+
+      // Token coordinates (token.x) are GRID UNITS.
+      // We must convert bounds to same system.
+      const gridLeft = worldLeft / gridSize;
+      const gridTop = worldTop / gridSize;
+      const gridRight = worldRight / gridSize;
+      const gridBottom = worldBottom / gridSize;
+
+      // Check intersection
+      const isVisible = !(
+        tRight + margin < gridLeft ||
+        tLeft - margin > gridRight ||
+        tBottom + margin < gridTop ||
+        tTop - margin > gridBottom
+      );
+
+      if (!isVisible) {
+        culledCount++;
+        continue;
+      }
+
       const isOwner = this.isTokenOwner(token, currentUser?.id);
 
       // Visibility check for players
@@ -93,9 +165,6 @@ export class TokenLayer extends BaseLayer {
         renderAsGhost = true;
       }
 
-      // Get animated position
-      const { x: animX, y: animY } = this.getAnimatedPosition(token, renderTime);
-
       // Legacy Visibility Check (Exact Logic)
       // If not GM and not Owner, check if position is visible in vision polygons or fog path
       // IMPORTANT: Only check if NOT dragging (dragged tokens might be visible ghost)
@@ -106,6 +175,8 @@ export class TokenLayer extends BaseLayer {
           continue;
         }
       }
+
+      renderedCount++;
 
       // GM Vision Ranges (Restored Feature)
       if (effectiveIsGM && (context.ui.showVisionRanges || selectedTokenIds.includes(token.id))) {
@@ -180,6 +251,12 @@ export class TokenLayer extends BaseLayer {
 
     // Render local drag preview
     this.renderLocalDrag(ctx, context, gridSize);
+
+    // Diagnostics (Throttled)
+    if (Math.random() < 0.01) {
+      const duration = performance.now() - startRender;
+      DebugLogger.log('render', 'TokenLayer', 'Stats', `Culling: ${renderedCount} rendered, ${culledCount} culled. Time: ${duration.toFixed(2)}ms`);
+    }
 
     ctx.restore();
   }
