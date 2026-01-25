@@ -100,15 +100,26 @@ export class ZonesLayer extends BaseLayer {
 
     // We include the PROCESSED data presence in the hash. 
     // If processedData updates, this hash changes, triggering render().
-    // We also include zoom because stroke width depends on it.
+
+    // OPTIMIZATION: Quantize zoom to reduce re-renders. 
+    // We only re-render if zoom changes by meaningful steps (approx every 20%).
+    // This prevents 60fps re-rendering of the massive world-cache during smooth zooming.
+    const zoomLOD = this.getZoomLOD(zoom);
+
     const dataHash = this.processedData
       ? `ready-${this.countProcessed()}`
       : 'pending';
 
     return this.hashValues(
       dataHash,
-      zoom
+      zoomLOD
     );
+  }
+
+  private getZoomLOD(zoom: number): number {
+    // Quantize to 0.2 steps (e.g., 1.0, 1.2, 1.4)
+    if (zoom > 2) return Math.round(zoom * 2) / 2; // Every 0.5 step when zoomed in
+    return Math.round(zoom * 5) / 5; // Every 0.2 step normally
   }
 
   private countProcessed(): number {
@@ -122,27 +133,28 @@ export class ZonesLayer extends BaseLayer {
     if (!isGM || gmViewMode !== 'gm') return;
 
     if (!this.processedData) {
-      // Data not ready yet. 
-      // Option 1: Render nothing (avoids ghosting)
-      // Option 2: Render loading indicator?
       return;
     }
+
+    // Use LOD zoom for rendering execution to match the cache hash
+    // This allows the cache to be reused across small zoom changes
+    const renderZoom = this.getZoomLOD(zoom);
 
     ctx.save();
 
     // Render processed light zones
     for (const zone of this.processedData.light) {
-      this.renderProcessedZone(ctx, zone, zoom);
+      this.renderProcessedZone(ctx, zone, renderZoom);
     }
 
     // Render processed audio zones
     for (const zone of this.processedData.audio) {
-      this.renderProcessedZone(ctx, zone, zoom);
+      this.renderProcessedZone(ctx, zone, renderZoom);
     }
 
     // Render processed trigger zones
     for (const zone of this.processedData.trigger) {
-      this.renderProcessedZone(ctx, zone, zoom);
+      this.renderProcessedZone(ctx, zone, renderZoom);
     }
 
     ctx.restore();
