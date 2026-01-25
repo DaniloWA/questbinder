@@ -12,6 +12,9 @@ import {
   MAX_STRETCH,
   MAX_SQUASH,
 } from '../../constants/cursorConstants';
+import { Loader2 } from 'lucide-react';
+import { useWorkerQueue } from '../../hooks/useWorkerQueue';
+import { DebugLogger } from '../../utils/DebugLogger';
 
 interface CustomCursorProps {
   shapeId: string;
@@ -53,6 +56,8 @@ export const LocalCursor: React.FC<CustomCursorProps> = ({
   const badgeRef = useRef<HTMLDivElement>(null);
   const [isClicking, setIsClicking] = useState(false);
   const { t } = useTranslation();
+  const queueSize = useWorkerQueue();
+  DebugLogger.log('render', 'LocalCursor', 'Render', `QueueSize: ${queueSize}`);
 
   // Animation state (refs to avoid re-renders)
   const mousePos = useRef({ x: 0, y: 0 });
@@ -193,6 +198,14 @@ export const LocalCursor: React.FC<CustomCursorProps> = ({
           willChange: 'transform',
         }}
       >
+        {/* Worker Loading Indicator */}
+        {queueSize > 0 && (
+          <div className="absolute -top-8 -right-8 flex items-center gap-1.5 bg-zinc-950/90 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg border border-primary/30 backdrop-blur-sm z-50 animate-in fade-in zoom-in duration-200">
+            <Loader2 className="w-3 h-3 text-primary animate-spin" />
+            <span className="font-mono text-xs">{queueSize}</span>
+          </div>
+        )}
+
         {/* Status Indicator (Chat or Combat) */}
         {(isChatting || activeTool === 'combat') && (
           <div className="absolute -top-6 -left-6 text-lg filter drop-shadow-md z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">

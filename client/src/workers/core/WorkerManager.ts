@@ -168,6 +168,25 @@ export class WorkerManager {
     }
   }
 
+  // Queue listeners: Set of callbacks for queue size changes
+  private queueListeners: Set<(count: number) => void> = new Set();
+
+  /**
+   * Subscribe to queue size changes.
+   */
+  public onQueueChange(callback: (count: number) => void): () => void {
+    this.queueListeners.add(callback);
+    // Immediate callback with current count
+    callback(this.getPendingCount());
+    return () => this.queueListeners.delete(callback);
+  }
+
+  private notifyQueueChange() {
+    const count = this.getPendingCount();
+    DebugLogger.log('worker', 'WorkerManager', 'Queue', `Queue Notification: ${count} pending jobs`);
+    this.queueListeners.forEach(cb => cb(count));
+  }
+
   /**
    * Execute an action on a specific module in the worker.
    * 
@@ -201,11 +220,13 @@ export class WorkerManager {
         const pending = this.pending.get(id);
         if (pending) {
           this.pending.delete(id);
+          this.notifyQueueChange(); // Notify removal
           reject(new Error(`[Worker Timeout] ${module}.${action} exceeded ${timeout}ms`));
         }
       }, timeout) : undefined;
 
       this.pending.set(id, { resolve, reject, timeoutId });
+      this.notifyQueueChange(); // Notify addition
 
       const message: WorkerMessage<WorkerRequest> = {
         id,
@@ -225,6 +246,7 @@ export class WorkerManager {
         if (this.pending.has(id)) {
           clearTimeout(timeoutId);
           this.pending.delete(id);
+          this.notifyQueueChange(); // Notify removal
           reject(err);
         }
       }
@@ -311,6 +333,7 @@ export class WorkerManager {
       pending.reject(new Error('[Worker] Worker crashed and was reinitialized'));
     }
     this.pending.clear();
+    this.notifyQueueChange(); // Notify cleared
 
     // Check restart limits
     if (this.restartCount >= this.MAX_RESTARTS) {
@@ -361,6 +384,7 @@ export class WorkerManager {
         }
         resolver.resolve((payload as WorkerResponse).data);
         this.pending.delete(id);
+        this.notifyQueueChange(); // Notify removal
       }
     }
     else if (type === 'ERROR') {
@@ -372,6 +396,7 @@ export class WorkerManager {
         const error = payload as WorkerError;
         resolver.reject(new Error(`[Worker Error] ${error.code}: ${error.message}`));
         this.pending.delete(id);
+        this.notifyQueueChange(); // Notify removal
       } else {
         DebugLogger.error('worker', 'WorkerManager', 'HandleMessage', 'Unhandled worker error:', payload);
       }
@@ -416,6 +441,7 @@ export class WorkerManager {
       }
     }
     this.pending.clear();
+    this.notifyQueueChange(); // Notify cleared
 
     if (this.worker) {
       this.worker.terminate();
